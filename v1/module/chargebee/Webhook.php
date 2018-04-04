@@ -48,9 +48,7 @@ class Module_Chargebee_Webhook{
 		$subscription_id = $params->content->subscription->id; 
 		$this->modelObj->updateSubscription($data, $subscription_id);
 	}
-	
-	
-	
+
 	private function _subscription_deleted($params){
 		$data = array("status"=>"subscription_deleted", "update_date"=>"Y-m-d h:i:s");
 		$subscription_id = $params->content->subscription->id; 
