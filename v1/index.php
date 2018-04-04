@@ -27,7 +27,6 @@ require_once 'module/base/icargo.php';
 require_once 'authentication.php';
 
 require_once 'dashboard.php';
-require_once 'company.php';
 require_once 'controller.php';
 require_once 'driver.php';
 require_once 'route.php';
