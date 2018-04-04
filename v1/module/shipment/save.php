@@ -1263,7 +1263,6 @@ class shipment extends Library{
     
     function _save_address($address){
         $postcode = $this->postcodeObj->validate($address["postcode"]);
-        echo $address["postcode"]; print_r($postcode);
         if($postcode){
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
@@ -1308,7 +1307,7 @@ class shipment extends Library{
         $shipment_data = $param["shipment_data"];
         //address
         $address = $this->_save_address($shipment_data);
-print_r($address);
+
         //shipment
         if($address["status"]=="success"){
             $shipment_data["address_id"] = $address["address_id"];
