@@ -1158,10 +1158,9 @@ class shipment extends Library{
         $_attribute = array();
         $service_id = "";
         $_data["surcharges"] = 0;
-        $_data["taxes"] = 0; 
-        $_data["carrier"] = '1';
-        
-            
+        $_data["taxes"] = 0;
+        $_data["carrier"] = 'PnP';
+
         $data_string = json_encode($param);
         
         $_attribute["shipment_id"] = $param->shipment_id;
@@ -1475,6 +1474,8 @@ class shipment extends Library{
                     $shipmentService->transit_time_text = $data->transit_time_text;
                     $shipmentService->transit_distance_text = $data->transit_distance_text;
                     $shipmentService->load_identity = $loadIdentity;
+					$shipmentService->service_request_string = json_encode($data->service_request_string);
+					$shipmentService->service_response_string = json_encode($data->service_request_string);
 
                     unset($shipmentService->message);
                     //save shipment price breakdown
@@ -1529,5 +1530,9 @@ class shipment extends Library{
             return array("status"=>"error", "message"=>"Customer account disabled.");
         }
     }
+	
+	public function saveQuoteForCustomer($param){
+		echo '<pre/>';print_r($param);die;
+	}
 } 
 ?>
