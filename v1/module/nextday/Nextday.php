@@ -34,8 +34,6 @@ final class Nextday extends Booking
         $errorResponse = array();
         $results = array();
 
-        $this->_param->carrier = 'ukmail';
-
         if(isset($this->_param->carrier)){
             switch($this->_param->carrier) {
                 case 'ukmail' :
