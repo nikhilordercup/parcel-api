@@ -1625,6 +1625,31 @@ $app->post('/generateReport', function() use($app){
     echoResponse(200, $response);
 });
 
+$app->post('/loadCountry', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    $obj = new Common();
+    $response = $obj->countryList(array("controller_id"=>$r->company_id));
+    echoResponse(200, $response);
+});
+
+$app->post('/getParcelPackage', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $dummyData = array("0"=>array("name"=>"Parcels","id"=>"1"));
+    echoResponse(200, $dummyData);
+});
+
+$app->post('/getNextdayAvailableCarrier', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Nextday($r);
+    $response = $obj->searchNextdayAvailableCarrier();
+
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});
+
 /*end of report module comment by kavita 20march2018*/
 
 //this action is only for testing and development

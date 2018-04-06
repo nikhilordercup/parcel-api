@@ -93,5 +93,11 @@
         {
            return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country;
         }
+
+        public function countryList(){
+            $sql = "SELECT * FROM `" . DB_PREFIX . "countries`";
+            $records = $this->db->getAllRecords($sql);
+            return $records;
+        }
     }
 ?>
