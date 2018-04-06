@@ -82,8 +82,6 @@
                 $json = json_decode($query);
                 if($json->status=="OK"){
                    $postcodeValid = false;
-
-
                     foreach($json->results[0]->address_components as $val){
                        if(in_array('postal_code',$val->types)){
                            $postdata = str_replace(' ','',$val->long_name);
@@ -107,6 +105,36 @@
             }
 		}
 		
+        public function get_lat_long_by_address_for_resolve_route($address){
+            $address = urlencode($address);
+            $api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$this->google_api_key";
+            $query   = $this->get_curlresponse($api_url);
+            if($query!='Error'){
+                $json = json_decode($query); 
+                if($json->status=="OK"){
+                   $postcodeValid = false;
+                    foreach($json->results[0]->address_components as $val){
+                       if(in_array('country',$val->types)){ 
+                           $countryCode = str_replace(' ','',$val->short_name);
+                           $postcodeValid = ($countryCode =='GB')?true:false;
+                       }
+                   }
+                if($postcodeValid) {
+                     return array("latitude"=>$json->results[0]->geometry->location->lat, "longitude"=>$json->results[0]->geometry->location->lng, 'geo_location'=>$json,"status"=>"success") ;
+                }else{
+                      return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+                 }
+                 }
+                elseif($json->status=="OVER_QUERY_LIMIT"){
+                   return $this->get_lat_long_by_postcode(urldecode($address));
+                }
+                else{
+                  return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+                 }
+            }else{
+                 return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+            }
+		}
         public  function get_curlresponse($url){
           try{
             $output = file_get_contents($url);
