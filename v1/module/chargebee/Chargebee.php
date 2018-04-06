@@ -1,6 +1,5 @@
 <?php
 require_once("model/Chargebee.php");
-require_once(dirname(__FILE__) . '/vendor/chargebee/chargebee-php/lib/ChargeBee.php');
 
 class Module_Chargebee extends Icargo
 	{

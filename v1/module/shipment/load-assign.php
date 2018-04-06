@@ -388,8 +388,8 @@ class Route_Assign
 
     function resolveDropError()
         {
-        $geo_data = $this->libraryObj->get_lat_long_by_postcode($this->postcode);
-
+        //$geo_data = $this->libraryObj->get_lat_long_by_postcode($this->postcode);
+         $geo_data = $this->libraryObj->get_lat_long_by_address_for_resolve_route($this->postcode.',UK');
         // if(!empty($geo_data['latitude']) and !empty($geo_data['longitude'])){
 
         if ($geo_data['status'] == 'success')
