@@ -66,7 +66,7 @@ require_once 'module/firebase/route-release.php';
 require_once 'module/chargebee/Chargebee.php';
 require_once 'module/chargebee/Webhook.php';
 
-require_once 'module/carrier/customer.php';
+//require_once 'module/carrier/customer.php';
 require_once 'module/google/api.php';
 require_once 'module/coreprime/api.php';
 require_once 'module/addressbook/addressbook.php';
@@ -98,70 +98,35 @@ require_once 'module/notification/Consignee_Notification.php';
 require_once 'module/notification/Notification_Email.php';
 require_once 'module/report/report.php';
 
+require_once 'module/carrier/Environment.php';
+require_once 'module/carrier/model/carrier.php';
+require_once 'module/carrier/CustomerCostFactor.php';
+
+require_once 'module/booking/Booking.php';
+require_once 'module/carrier/Carrier.php';
+require_once 'module/carrier/Ukmail.php';
+require_once 'module/nextday/Nextday.php';
+require_once 'module/allshipment/allshipments.php';
+require_once 'module/allshipment/model/allshipments.php';
+
 require_once 'module/shipment/shipment_tracking.php';
 
 require_once 'pod_signature.php';
-
-/**
-*verifying user authenticate 
-*/
-/*$postData = json_decode(file_get_contents("php://input"));
-print_r($postData['auth']);die;
-$icargo = new Icargo((array("email"=>$postData->email, "access_token"=>$postData->access_token)));*/
 
 
 /**
  * Verifying required params posted or not
  */
 
-date_default_timezone_set('Europe/Bucharest'); 
- 
-function verifyRequiredParamsBKP($required_fields,$request_params) {
-	$error = false;
-    $error_fields = "";
-    foreach ($required_fields as $field) {
-        //if (!isset($request_params->$field) || strlen(trim($request_params->$field)) <= 0) {
-
-        if (!isset($request_params->$field)) {
-            $error = true;
-            $error_fields .= $field . ', ';
-        }
-        if(!isset($request_params->$field) || !is_array($request_params->$field)){
-            if(!isset($request_params->$field) || strlen(trim($request_params->$field)) <= 0){
-                $error = true;
-                $error_fields .= $field . ', ';
-            }
-
-        }
-        if(is_array($request_params->$field)){
-            if(count($request_params->$field) <= 0){
-                $error = true;
-                $error_fields .= $field . ', ';
-            }
-        }
-    }
-
-    if ($error) {
-        // Required field(s) are missing or empty
-        // echo error json and stop the app
-        $response = array();
-        $app = \Slim\Slim::getInstance();
-        $response["status"] = "error";
-        $response["message"] = 'Required field(s) ' . substr($error_fields, 0, -2) . ' is missing or empty';
-        echoResponse(400, $response);
-        $app->stop();
-    }
-}
+date_default_timezone_set('Europe/Bucharest');
 
 function verifyRequiredParams($required_fields,$request_params) {
     $error = false;
     $error_fields = "";
     foreach ($required_fields as $field) {
-        if(!is_array($request_params->$field)){
-            if (!isset($request_params->$field) || strlen(trim($request_params->$field)) <= 0) {
-                $error = true;
-                $error_fields .= $field . ', ';
-            }
+        if (!isset($request_params->$field) || strlen(trim($request_params->$field)) <= 0) {
+            $error = true;
+            $error_fields .= $field . ', ';
         }
     }
 
@@ -176,8 +141,6 @@ function verifyRequiredParams($required_fields,$request_params) {
         $app->stop();
     }
 }
-
-
 
 function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
@@ -191,10 +154,8 @@ function echoResponse($status_code, $response) {
 }
 
 function rootPath(){
-	return dirname(dirname(dirname(__FILE__)));
+    return dirname(dirname(dirname(__FILE__)));
 }
-
-//$app->add(new \CorsSlim\CorsSlim($corsOptions));
 
 $app->run();
 ?>
