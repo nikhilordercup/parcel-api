@@ -1627,6 +1627,28 @@ $app->post('/generateReport', function() use($app){
 
 /*end of report module comment by kavita 20march2018*/
 
+/*start of save quote feature comment by kavita 2april2018*/
+
+$app->post('/saveQuote', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id'),$r);
+    $obj = new shipment();
+    $response = $obj->saveQuoteForCustomer($r);
+	print_r($response);die;
+    //echoResponse(200, $response);
+});
+
+$app->post('/sendQuoteEmail', function() use($app){
+    $r = json_decode($app->request->getBody());
+    echo '<pre/>';print_r($r);die;
+    verifyRequiredParams(array('access_token','email','company_id','selected_service'),$r);
+    $obj = new shipment();
+    $response = $obj->saveQuoteForCustomer($r);
+    print_r($response);die;
+    //echoResponse(200, $response);
+});
+/*end of save quote feature comment by kavita 2april2018*/ 
+
 //this action is only for testing and development
 /*$app->post('/temp', function() use ($app) {
 	$db = new DbHandler();
