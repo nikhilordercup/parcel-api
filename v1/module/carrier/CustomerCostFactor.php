@@ -1,7 +1,7 @@
 <?php
 class CustomerCostFactor{
     public $modelObj = NULL;
-   
+
     public function __construct(){
         $this->modelObj = Carrier_Model_Carrier::_getInstance();
     }
