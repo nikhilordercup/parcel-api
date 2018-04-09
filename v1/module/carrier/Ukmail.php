@@ -10,22 +10,7 @@ final class Ukmail extends Carrier implements CarrierInterface{
         $this->_preparedData = new stdClass();
 
         $this->_preparedData->carrier = "ukmail";
-        $this->_preparedData->currency = "GBP";
         $this->_preparedData->service = "1";
-
-        $this->_preparedData->method_type = "post";
-        $this->_preparedData->credentials = new stdClass();
-
-        $this->_preparedData->credentials->username = "nikhil.kumar@ordercup.com";
-        $this->_preparedData->credentials->password = "[FILTERED]";
-        //$this->_preparedData->credentials->authentication_token = "158F46BF-D21A-47AE-8ACB-5AF127961DA1";
-        //$this->_preparedData->credentials->authentication_token_created_at = "2018-02-09T19:45:45+05:30";
-
-        $this->_preparedData->credentials->token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0";
-        $this->_preparedData->credentials->account_number = "B069807";
-        $this->_preparedData->credentials->master_carrier_account_number = "B069807";
-        $this->_preparedData->credentials->latest_time = "06:00:00";
-        $this->_preparedData->credentials->earliest_time = "11:00:00";
     }
 
     public function validateCollectionAddress(){
@@ -174,12 +159,12 @@ final class Ukmail extends Carrier implements CarrierInterface{
         $this->_preparedData->from->country_name = $this->param->from->country_name;
 
         $this->_preparedData->to = new stdClass();
-        $this->_preparedData->to->name = "";//"Nikhil Kumar Kumar";//$this->param->to->name;
-        $this->_preparedData->to->company = "";//"Perceptive Consulting Solutions";//$this->param->to->company;
-        $this->_preparedData->to->street1 = ""; //"6 York Way, Harlestone Manor";//$this->param->to->street1;
-        $this->_preparedData->to->street2 = "";// "6 York Way";//$this->param->to->street2;
-        $this->_preparedData->to->city = "";//"Northampton";//$this->param->to->city;
-        $this->_preparedData->to->state = "";//"Northamptonshire";//$this->param->to->state;
+        $this->_preparedData->to->name = "";//$this->param->to->name;
+        $this->_preparedData->to->company = "";//$this->param->to->company;
+        $this->_preparedData->to->street1 = "";//$this->param->to->street1;
+        $this->_preparedData->to->street2 = "";//$this->param->to->street2;
+        $this->_preparedData->to->city = "";//$this->param->to->city;
+        $this->_preparedData->to->state = "";//$this->param->to->state;
         $this->_preparedData->to->zip = $this->param->to->zip;
         $this->_preparedData->to->country = $this->param->to->alpha3_code;
         $this->_preparedData->to->country_name = $this->param->to->country_name;
@@ -207,8 +192,6 @@ final class Ukmail extends Carrier implements CarrierInterface{
         $this->_preparedData->insurance->value = "0.0";
         $this->_preparedData->insurance->currency = "GBP";
 
-        $this->_preparedData->currency = $this->param->currency;
-
         $this->_preparedData->rate = new stdClass();
     }
 
@@ -224,9 +207,7 @@ final class Ukmail extends Carrier implements CarrierInterface{
 
             $this->_preparedData->ship_date = $param->ship_date;
 
-
             $ukmailService = $this->_send($this->_preparedData);
-
             return array("status"=>"success", "response"=>$ukmailService, "carrier_code"=>"ukmail");
         }
     }

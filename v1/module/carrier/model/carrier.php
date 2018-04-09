@@ -4,52 +4,54 @@ class Carrier_Model_Carrier{
     public static $_db = NULL;
     public static $_modelObj = NULL;
 
+
     public static function _getInstance(){
         if(self::$_modelObj==NULL){
             self::$_modelObj = new Carrier_Model_Carrier();
         }
+        if(self::$_db==NULL){
+            self::$_db = new DbHandler();
+        }
+
         return self::$_modelObj;
     }
 
     public static function _getDbInstance(){
-        if(self::$_db==NULL){
-            self::$_db = new DbHandler();
-        }
         return self::$_db;
     }
 
     public function getCustomerCcfService($customer_id, $service_code){
-        $sql = "SELECT CCST.".COL_COMPANY_CUST_SERVICE_CCF." AS ccf, CCST.".COL_COMPANY_CUST_SERVICE_CCF_OPERATOR." AS operator, SCT.service_name AS service_name, SCT.service_code AS service_code FROM ". DB_PREFIX . TBL_COMPANY_CUST_SERVICE . " CCST INNER JOIN ". DB_PREFIX . TBL_COURIER_SERVICE." AS SCT ON SCT.".COL_ID." = CCST.".COL_SERVICE_ID."  WHERE CCST.".COL_STATUS."=1 AND CCST.".COL_COMPANY_CUSTOMER_ID."=$customer_id AND CCST.".COL_SERVICE_ID."='$service_code' AND CCST.".COL_COMPANY_CUST_SERVICE_CCF." > 0";
+        $sql = "SELECT CCST.customer_ccf AS ccf, CCST.ccf_operator AS operator, SCT.service_name AS service_name, SCT.service_code AS service_code FROM ". DB_PREFIX . "company_vs_customer_vs_services CCST INNER JOIN ". DB_PREFIX ."courier_vs_services AS SCT ON SCT.id = CCST.service_id  WHERE CCST.status=1 AND CCST.company_customer_id=$customer_id AND CCST.service_id='$service_code' AND CCST.customer_ccf > 0";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
     public function getCustomerCcfSurcharge($customer_id, $surcharge_code){
-        $sql = "SELECT CCST.".COL_COMPANY_CUST_SURCHARGE_CCF." AS ccf, CCST.".COL_COMPANY_CUST_SERVICE_CCF_OPERATOR." AS operator, CSCT.".COL_COMPANY_SURCHARGE_CODE." AS surcharge_code, CSCT.".COL_COMPANY_SURCHARGE_NAME." AS surcharge_name, CCCT.".COL_CUSTOMER_SURCHARGE_VALUE." as carrier_ccf, CCCT.".COL_COMPANY_CCF_OPERATOR_SURCHARGE." AS carrier_operator  FROM ". DB_PREFIX . TBL_COMPANY_CUST_SURCHARGE . " AS CCST LEFT JOIN ". DB_PREFIX . TBL_COURIER_SURCHARGE_COMPANY ." AS CSCT ON CSCT.".COL_SURCHARGE_ID."=CCST.".COL_SURCHARGE_ID." LEFT JOIN " . DB_PREFIX . TBL_COURIER_COMPANY_CUST. " AS CCCT ON CCCT.".COL_COURIER_ID." = CCST.". COL_COURIER_ID ." WHERE CCST.".COL_STATUS."=1 AND CCST.".COL_COMPANY_CUSTOMER_ID."=$customer_id AND CSCT.".COL_COMPANY_SURCHARGE_CODE."='$surcharge_code'";
+        $sql = "SELECT CCST.customer_surcharge AS ccf, CCST.ccf_operator AS operator, CSCT.company_surcharge_code AS surcharge_code, CSCT.company_surcharge_name AS surcharge_name, CCCT.customer_surcharge_value as carrier_ccf, CCCT.company_ccf_operator_surcharge AS carrier_operator  FROM ". DB_PREFIX . "company_vs_customer_vs_surcharge AS CCST LEFT JOIN ". DB_PREFIX ."courier_vs_surcharge_vs_company AS CSCT ON CSCT.surcharge_id=CCST.surcharge_id LEFT JOIN " . DB_PREFIX . "courier_vs_company_vs_customer AS CCCT ON CCCT.courier_id = CCST.courier_id WHERE CCST.status=1 AND CCST.company_customer_id=$customer_id AND CSCT.company_surcharge_code='$surcharge_code'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
     public function getCustomerAllCourier($customer_id){
-        $sql = "SELECT CT.".COL_NAME." AS courier_name, CT.".COL_CODE." AS courier_code, CT.".COL_ICON." AS courier_icon, CT.".COL_DESCRIPTION." AS courier_description, CT.".COL_ID." AS courier_id FROM ". DB_PREFIX . TBL_COURIER_COMPANY_CUST . " AS CCT INNER JOIN ". DB_PREFIX . TBL_COURIER." AS CT ON CT.".COL_ID." = CCT.".COL_COURIER_ID." WHERE CCT.".COL_STATUS."=1 AND CT.".COL_STATUS."=1 AND CCT.".COL_COMPANY_ID."=$customer_id";
+        $sql = "SELECT CT.name AS courier_name, CT.code AS courier_code, CT.icon AS courier_icon, CT.description AS courier_description, CT.id AS courier_id FROM ". DB_PREFIX . "courier_vs_company_vs_customer AS CCT INNER JOIN ". DB_PREFIX."courier AS CT ON CT.id = CCT.courier_id WHERE CCT.status=1 AND CT.status=1 AND CCT.company_id=$customer_id";
         return $this->_getDbInstance()->getAllRecords($sql);
     }
 
-    public function getCustomerCourierByCourierCode($customer_id, $courier_code){
-        $sql = "SELECT CT.".COL_NAME." AS courier_name, CT.".COL_CODE." AS courier_code, CT.".COL_ICON." AS courier_icon, CT.".COL_DESCRIPTION." AS courier_description, CT.".COL_ID." AS courier_id FROM ". DB_PREFIX . TBL_COURIER_COMPANY_CUST . " AS CCT INNER JOIN ". DB_PREFIX . TBL_COURIER." AS CT ON CT.".COL_ID." = CCT.".COL_COURIER_ID." WHERE CT.".COL_CODE."='$courier_code' AND CCT.".COL_STATUS."=1 AND CT.".COL_STATUS."=1 AND CCT.".COL_COMPANY_ID."=$customer_id";
+    public function getCustomerCourierByCourierCode($customer_id, $company_id, $courier_code){
+        $sql = "SELECT CT.name AS courier_name, CT.code AS courier_code, CT.icon AS courier_icon, CT.description AS courier_description, CT.id AS courier_id FROM ". DB_PREFIX . "courier_vs_company_vs_customer AS CCT INNER JOIN ". DB_PREFIX ."courier AS CT ON CT.id = CCT.courier_id WHERE CT.code='$courier_code' AND CCT.status=1 AND CT.status=1 AND CCT.company_id=$company_id AND CCT.customer_id=$customer_id";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
     public function getCustomerInfoSurcharge($customer_id){
-        $sql = "SELECT CT.".COL_SURCHARGE." AS surcharge_ccf, CT.".COL_CUSTOMER_SURCHARGE_OPERATOR." AS surcharge_operator FROM ". DB_PREFIX . TBL_CUSTOMER_INFO . " AS CT WHERE CT.".COL_USER_ID."=$customer_id";
+        $sql = "SELECT CT.surcharge AS surcharge_ccf, CT.ccf_operator_surcharge AS surcharge_operator FROM ". DB_PREFIX . "customer_info AS CT WHERE CT.user_id=$customer_id";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
     public function getCourierSurchargeCompany($company_id, $surcharge_code){
-        $sql = "SELECT CSCT.".COL_CUSTOMER_SURCHARGE_SURCHARGE." AS surcharge_ccf, CSCT.".COL_COMPANY_CCF_OPERATOR." AS surcharge_operator, CSCT.".COL_COMPANY_SURCHARGE_NAME." AS surcharge_name, CSCT.".COL_COMPANY_SURCHARGE_CODE." as surcharge_code FROM ". DB_PREFIX . TBL_COURIER_SURCHARGE_COMPANY . " AS CSCT WHERE CSCT.".COL_COMPANY_SURCHARGE_CODE."='$surcharge_code' AND " . COL_COMPANY_ID . "='$company_id'";
+        $sql = "SELECT CSCT.company_surcharge_surcharge AS surcharge_ccf, CSCT.company_ccf_operator AS surcharge_operator, CSCT.company_surcharge_name AS surcharge_name, CSCT.company_surcharge_code as surcharge_code FROM ". DB_PREFIX . "courier_vs_surcharge_vs_company AS CSCT WHERE CSCT.company_surcharge_code='$surcharge_code' AND company_id='$company_id'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
     public function getCompanyCourierSurcharge($company_id, $courier_code){
-        $sql = "SELECT CCT.".COL_COMPANY_SURCHARGE_VALUE." AS surcharge_ccf, CCT.".COL_COMPANY_CCF_OPERATOR_SURCHARGE." AS surcharge_operator  FROM ". DB_PREFIX . TBL_COURIER_COMPANY . " AS CCT INNER JOIN ". DB_PREFIX .TBL_COURIER." AS CT ON CT.".COL_ID."=CCT.".COL_COURIER_ID." WHERE CSCT.".COL_COMPANY_SURCHARGE_CODE."='$courier_code' AND " . COL_COMPANY_ID . "='$company_id'";
+        $sql = "SELECT CCT.company_surcharge_value AS surcharge_ccf, CCT.company_ccf_operator_surcharge AS surcharge_operator  FROM ". DB_PREFIX . "courier_vs_company AS CCT INNER JOIN ". DB_PREFIX ."courier AS CT ON CT.id=CCT.courier_id WHERE CSCT.company_surcharge_code='$courier_code' AND company_id='$company_id'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
@@ -125,9 +127,7 @@ class Carrier_Model_Carrier{
                 CCST.status = 1
                 AND CCST.company_customer_id = '$customer_id'
                 AND CCST.surcharge_id = '$surchrage_code'";
-        echo $sql;die;
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 }
-
 ?>
