@@ -1065,11 +1065,11 @@ class shipment extends Library{
 
             $data["notification_status"] = (isset($param['notification'])) ? $param['notification'] : "0";
 
-            $data['shipment_address1'] = $param["address_line1"];
-            $data['shipment_address2'] = $param["address_line2"];
-            $data['shipment_customer_city'] = $param["city"];
-            $data['shipment_postcode'] = $param["postcode"];
-            $data['shipment_customer_country'] = $param["country"];
+            $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
+            $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
+            $data['shipment_customer_city'] = (isset($param["city"])) ? $param["city"]: "";
+            $data['shipment_postcode'] = (isset($param["postcode"])) ? $param["postcode"] : "";
+            $data['shipment_customer_country'] = (isset($param["country"])) ? $param["country"] : "";
             $data['shipment_instruction'] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
 //print_r($data);die;
@@ -1158,9 +1158,10 @@ class shipment extends Library{
         $_attribute = array();
         $service_id = "";
         $_data["surcharges"] = 0;
-        $_data["taxes"] = 0;
-        $_data["carrier"] = 'PnP';
-
+        $_data["taxes"] = 0; 
+        $_data["carrier"] = '1';
+        
+            
         $data_string = json_encode($param);
         
         $_attribute["shipment_id"] = $param->shipment_id;
@@ -1263,6 +1264,7 @@ class shipment extends Library{
     
     function _save_address($address){
         $postcode = $this->postcodeObj->validate($address["postcode"]);
+       
         if($postcode){
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
@@ -1307,7 +1309,6 @@ class shipment extends Library{
         $shipment_data = $param["shipment_data"];
         //address
         $address = $this->_save_address($shipment_data);
-
         //shipment
         if($address["status"]=="success"){
             $shipment_data["address_id"] = $address["address_id"];
@@ -1474,8 +1475,6 @@ class shipment extends Library{
                     $shipmentService->transit_time_text = $data->transit_time_text;
                     $shipmentService->transit_distance_text = $data->transit_distance_text;
                     $shipmentService->load_identity = $loadIdentity;
-					$shipmentService->service_request_string = json_encode($data->service_request_string);
-					$shipmentService->service_response_string = json_encode($data->service_request_string);
 
                     unset($shipmentService->message);
                     //save shipment price breakdown
@@ -1530,9 +1529,5 @@ class shipment extends Library{
             return array("status"=>"error", "message"=>"Customer account disabled.");
         }
     }
-	
-	public function saveQuoteForCustomer($param){
-		echo '<pre/>';print_r($param);die;
-	}
 } 
 ?>

@@ -1642,7 +1642,7 @@ $app->post('/getNextdayAvailableCarrier', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new Nextday($r);
     $response = $obj->searchNextdayAvailableCarrier();
-
+//echo "<pre>";print_r($response);die;
     if($response["status"]=="error"){
         echoResponse(500, $response);
     }else{
