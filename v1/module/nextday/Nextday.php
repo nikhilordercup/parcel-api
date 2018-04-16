@@ -10,7 +10,7 @@ final class Nextday extends Booking
         $this->_param = $data;
     }
 
-    private function _ccf(){
+    /*private function _ccf(){
         if(self::$_ccf===NULL){
             self::$_ccf = new CustomerCostFactor();
         }
@@ -19,13 +19,15 @@ final class Nextday extends Booking
 
     private function _calculateCcf($data,$courier_code){
         return $this->_ccf()->calculate($data, $courier_code, $this->_param->customer_id, $this->_param->company_id);
-    }
+    }*/
 
     private function _searchUkMail(){
         $obj = new Ukmail();
         $data = $obj->searchService($this->_param);
         if($data["status"]=="success"){
-            print_r($this->_calculateCcf($data["response"],'ukmail'));
+            return $data;
+        }else{
+            return array();
         }
     }
 
@@ -37,7 +39,10 @@ final class Nextday extends Booking
         if(isset($this->_param->carrier)){
             switch($this->_param->carrier) {
                 case 'ukmail' :
-                    array_push($results, $this->_searchUkMail());
+                    $data = $this->_searchUkMail();
+                    if(count($data)>0){
+                        array_push($results, $data);
+                    }
                     break;
             };
         }
@@ -48,7 +53,7 @@ final class Nextday extends Booking
                 break;
                 return $errorResponse;
             }else{
-                array_push($response, array("response"=>$item["response"],"carrier_code"=>$item["carrier_code"]));
+                array_push($response, array($item["carrier_code"]=>$item["response"]));
             }
         }
 
