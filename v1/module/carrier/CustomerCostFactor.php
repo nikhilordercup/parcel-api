@@ -15,23 +15,22 @@ class CustomerCostFactor{
     }
 
     private function _getCustomerAllCourier($customer_id){
-        $items = $this->modelObj->getCustomerAllCourier($customer_id);
-
+        $item = $this->modelObj->getCustomerAllCourier($customer_id);
         $customerCarriers = new stdClass;
         foreach($items as $item){
-            $courier_code = $item["courier_code"];
-            $customerCarriers->$courier_code = new stdClass();
+            $carrier_code = $item["courier_code"];
+            $customerCarriers->$carrier_code = new stdClass();
 
-            $customerCarriers->$courier_code->courier_name = $item["courier_name"];
-            $customerCarriers->$courier_code->courier_icon = $item["courier_icon"];
-            $customerCarriers->$courier_code->courier_description = $item["courier_description"];
-            $customerCarriers->$courier_code->courier_code = $item["courier_id"];
+            $customerCarriers->$carrier_code->name = $item["courier_name"];
+            $customerCarriers->$carrier_code->icon = $item["courier_icon"];
+            $customerCarriers->$carrier_code->description = $item["courier_description"];
+            $customerCarriers->$carrier_code->code = $item["courier_id"];
         }
         return $customerCarriers;
     }
 
-    private function _getCustomerCourierByCourierCode($customer_id, $courier_code){
-        $items = $this->modelObj->getCustomerCourierByCourierCode($customer_id, $courier_code);
+    private function _getCustomerCourierByCourierCode($customer_id, $company_id, $carrier_code){
+        $item = $this->modelObj->getCustomerCourierByCourierCode($customer_id, $company_id, $carrier_code);
         $customerCarriers = new stdClass;
         $customerCarriers->$courier_code = new stdClass();
         $customerCarriers->$courier_code->courier_name = $items["courier_name"];
@@ -51,20 +50,20 @@ class CustomerCostFactor{
         return $item;
     }
 
-    private function _getCompanyCourierSurcharge($company_id, $courier_code){
-        $item = $this->modelObj->getCompanyCourierSurcharge($company_id, $courier_code);
+    private function _getCompanyCourierSurcharge($company_id, $carrier_code){
+        $item = $this->modelObj->getCompanyCourierSurcharge($company_id, $carrier_code);
         return $item;
     }
 
     private function _calculateCcf($price, $ccf_value, $operator, $company_service_code, $company_service_name, $courier_service_code, $courier_service_name, $level,$service_id){
         if($operator=="FLAT"){
             $ccfprice = $ccf_value;
-        }elseif($operator=="PERCENTAGE"){ //echo "$price,";die;
+        }elseif($operator=="PERCENTAGE"){ 
             $ccfprice = ($price*$ccf_value/100);
         }
         return array("originalprice"=>$price,"ccf_value"=>$ccf_value,"operator"=>$operator,"price"=>$ccfprice,"company_service_code"=>$company_service_code,"company_service_name"=>$company_service_name,"courier_service_code"=>$courier_service_code,"courier_service_name"=>$courier_service_name,"level"=>$level,'service_id'=>$service_id);
     }
-
+   
     private function _calculateSurcharge($price, $surcharge_value, $operator, $company_surcharge_code, $company_surcharge_name, $courier_surcharge_code, $courier_surcharge_name,$level,$surcharge_id){
         if($operator=="FLAT"){
             $price = $surcharge_value;
@@ -73,7 +72,7 @@ class CustomerCostFactor{
         }
         return array("surcharge_value"=>$surcharge_value,"operator"=>$operator,"price"=>$price,"company_surcharge_code"=>$company_surcharge_code,"company_surcharge_name"=>$company_surcharge_name,"courier_surcharge_code"=>$courier_surcharge_code,"courier_surcharge_name"=>$courier_surcharge_name,"level"=>$level,'surcharge_id'=>$surcharge_id);
     }
-
+    
     public function calculate($data, $courier_id, $customer_id, $company_id){
         foreach($data->rate as $key=>$itemsdata){
            foreach($itemsdata as $serviceCode=>$items){  
@@ -103,13 +102,10 @@ class CustomerCostFactor{
                 }
             }
             $service_ccf_price['courier_id'] =  $courier_id;  
-            
             $items[0]->rate->price = $service_ccf_price["price"]+$items[0]->rate->price;
-               
             $items[0]->rate->service_name = 
             isset($service_ccf_price["company_service_name"])?
                   $service_ccf_price["company_service_name"]: $service_ccf_price["courier_service_name"];
-               
            $items[0]->rate->service_code = 
            isset($service_ccf_price["company_service_code"])?
                   $service_ccf_price["company_service_code"]: $service_ccf_price["courier_service_code"];
@@ -149,8 +145,8 @@ class CustomerCostFactor{
               $data = array('price'=>$surcharge_ccf_price['price'],'info'=>str_rot13(serialize($surcharge_ccf_price)));
               $items[0]->ccf_surcharges->alldata[$surcharge_code] = $data;
            }
-        }}
-        
+            }
+        }
         return $data;
     }
 }

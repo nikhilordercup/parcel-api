@@ -35,8 +35,8 @@ class Carrier_Model_Carrier{
         return $this->_getDbInstance()->getAllRecords($sql);
     }
 
-    public function getCustomerCourierByCourierCode($customer_id, $courier_code){
-        $sql = "SELECT CT.name AS courier_name, CT.code AS courier_code, CT.icon AS courier_icon, CT.description AS courier_description, CT.id AS courier_id FROM ". DB_PREFIX . "courier_vs_company_vs_customer AS CCT INNER JOIN ". DB_PREFIX ."courier AS CT ON CT.id = CCT.courier_id WHERE CT.id='$courier_code' AND CCT.status=1 AND CT.status=1 AND CCT.company_id=$customer_id";
+public function getCustomerCourierByCourierCode($customer_id, $company_id, $courier_code){
+        $sql = "SELECT CT.name AS courier_name, CT.code AS courier_code, CT.icon AS courier_icon, CT.description AS courier_description, CT.id AS courier_id FROM ". DB_PREFIX . "courier_vs_company_vs_customer AS CCT INNER JOIN ". DB_PREFIX ."courier AS CT ON CT.id = CCT.courier_id WHERE CT.code='$courier_code' AND CCT.status=1 AND CT.status=1 AND CCT.company_id=$company_id AND CCT.customer_id=$customer_id";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
@@ -161,16 +161,6 @@ class Carrier_Model_Carrier{
         AND CCC.courier_id = '$courier_id'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     public function getCcfOfCustomer($customer_id){
         $sql = "SELECT
                 CCC.customer_ccf_value AS customer_carrier_ccf,
@@ -187,7 +177,6 @@ class Carrier_Model_Carrier{
                 AND CCC.customer_id = '$customer_id'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
-
     public function getCcfOfCarrierSurcharge__($surchrage_code, $customer_id){
         $sql = "SELECT  
                 CCST.customer_surcharge AS customer_carrier_surcharge_ccf,
@@ -216,7 +205,6 @@ class Carrier_Model_Carrier{
                 AND CCST.surcharge_id = '$surchrage_code'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
-    
     public function checkServiceExist($serviceName,$courier_id){ 
        $sql = "SELECT CT.id as service_id
                FROM ". DB_PREFIX . "courier_vs_services AS CT 
@@ -224,7 +212,6 @@ class Carrier_Model_Carrier{
        $servicedetails = $this->_getDbInstance()->getRowRecord($sql);
        return $servicedetails['service_id'];
     }
-    
     public function getServiceDetail($serviceName,$courier_id,$customerid){ 
       $sql = "SELECT CUSTSER.service_id,CTS.company_service_code,CTS.company_service_name,CTT.service_name,CTT.service_code,
               CTS.company_service_ccf,CTS.company_ccf_operator,CUSTSER.customer_ccf,CUSTSER.ccf_operator
@@ -234,7 +221,6 @@ class Carrier_Model_Carrier{
               WHERE CUSTSER.service_id = '$serviceName' AND CUSTSER.courier_id = '$courier_id' AND CUSTSER.company_customer_id = '$customerid'";
        return  $this->_getDbInstance()->getRowRecord($sql);
     }
-    
    /*public function checkServiceExist($serviceName,$courier_code){
        $sql = "SELECT CT.surcharge AS surcharge_ccf, CT.ccf_operator_surcharge AS surcharge_operator 
                FROM ". DB_PREFIX . "courier_vs_services AS CT 

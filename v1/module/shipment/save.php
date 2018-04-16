@@ -1065,11 +1065,11 @@ class shipment extends Library{
 
             $data["notification_status"] = (isset($param['notification'])) ? $param['notification'] : "0";
 
-            $data['shipment_address1'] = $param["address_line1"];
-            $data['shipment_address2'] = $param["address_line2"];
-            $data['shipment_customer_city'] = $param["city"];
-            $data['shipment_postcode'] = $param["postcode"];
-            $data['shipment_customer_country'] = $param["country"];
+            $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
+            $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
+            $data['shipment_customer_city'] = (isset($param["city"])) ? $param["city"]: "";
+            $data['shipment_postcode'] = (isset($param["postcode"])) ? $param["postcode"] : "";
+            $data['shipment_customer_country'] = (isset($param["country"])) ? $param["country"] : "";
             $data['shipment_instruction'] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
 
@@ -1167,10 +1167,7 @@ class shipment extends Library{
         $service_id = "";
         $_data["surcharges"] = 0;
         $_data["taxes"] = 0;
-        $_data["carrier"] = 'PnP';
         $_data["charge_from_base"] = 0;
-        
-        
         if(isset($param->otherinfo)){
             $param->otherinfo =  unserialize(str_rot13($param->otherinfo));
         }
@@ -1181,20 +1178,16 @@ class shipment extends Library{
         }
         $data_string = json_encode($param);
         $_data["carrier"] = $param->otherinfo['courier_id']; 
-        $_data["courier_commission_type"] = $param->otherinfo['operator']; 
-        $_data["courier_commission_value"] = $param->otherinfo['ccf_value'];
-        $_data["courier_commission"]    = $param->otherinfo['ccf_value']; 
-        $_data["base_price"]            = $param->otherinfo['originalprice']; 
-        $_data["total_price"]           = $_data["base_price"]  + $_data["courier_commission"];
-        
-        
-        
+        $_data["courier_commission_type"]   = $param->otherinfo['operator']; 
+        $_data["courier_commission_value"]  = $param->otherinfo['ccf_value'];
+        $_data["courier_commission"]        = $param->otherinfo['ccf_value']; 
+        $_data["base_price"]                = $param->otherinfo['originalprice']; 
+        $_data["total_price"]               = $_data["base_price"]  + $_data["courier_commission"];
         unset($param->surchargesinfo);
         unset($param->otherinfo);
         unset($param->base_price);
         unset($param->total_price);
         $_attribute["shipment_id"] = $param->shipment_id;
-        
         if(isset($param->icon)){
             $_attribute["column_name"] = "icon";
             $_attribute["value"] = $param->icon;
@@ -1202,7 +1195,6 @@ class shipment extends Library{
             $attribute_id = $this->db->save("shipment_attributes", $_attribute);
             unset($param->icon);
         }
-        
         if(isset($param->dimensions)){
             foreach($param->dimensions as $column=>$item){
                 $_attribute["column_name"] = $column;
@@ -1212,7 +1204,6 @@ class shipment extends Library{
             }
             unset($param->dimensions);
         }
-        
         if(isset($param->weight)){
             foreach($param->weight as $column=>$item){
                 $_attribute["column_name"] = $column;
@@ -1294,6 +1285,7 @@ class shipment extends Library{
     
     function _save_address($address){
         $postcode = $this->postcodeObj->validate($address["postcode"]);
+       
         if($postcode){
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
@@ -1338,7 +1330,6 @@ class shipment extends Library{
         $shipment_data = $param["shipment_data"];
         //address
         $address = $this->_save_address($shipment_data);
-
         //shipment
         if($address["status"]=="success"){
             $shipment_data["address_id"] = $address["address_id"];
@@ -1508,12 +1499,10 @@ class shipment extends Library{
                     $shipmentService->load_identity = $loadIdentity;
 					$shipmentService->service_request_string = ''; //json_encode($data->service_request_string);
 					$shipmentService->service_response_string = '';//json_encode($data->service_request_string);
-
                     unset($shipmentService->message);
                     //save shipment price breakdown
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"shipment_id"=>$shipmentId,"version"=>$priceVersionNo));
                     //save shipment price detail
-                    
                     $service_id = $this->_saveShipmentService($shipmentService);
                     ++$counter;
                 }
@@ -1561,9 +1550,5 @@ class shipment extends Library{
             return array("status"=>"error", "message"=>"Customer account disabled.");
         }
     }
-	
-	public function saveQuoteForCustomer($param){
-		echo '<pre/>';print_r($param);die;
-	}
 } 
 ?>
