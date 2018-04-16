@@ -27,4 +27,18 @@ class Coreprime_Model_Api
         $sql = "SELECT ccf FROM " . DB_PREFIX . "customer_info WHERE user_id = '$id' AND apply_ccf=1";
         return $this->_db->getRowRecord($sql);
     }
+    
+      public
+    
+    function getCustomerCarrierData($customerId,$company){
+        $sql = "SELECT C3.courier_id,C1.account_number,C3.token,C3.currency,C2.code,C2.icon 
+        FROM " . DB_PREFIX . "courier_vs_company_vs_customer as C1
+        INNER JOIN ".DB_PREFIX . "courier as C2 on C1.courier_id = C2.id 
+        INNER JOIN ".DB_PREFIX . "courier_vs_company as C3 on C1.courier_id = C3.courier_id AND C3.company_id = '$company'
+        WHERE C1.customer_id = '$customerId' AND C1.status = 1";
+        return $this->_db->getRowRecord($sql); 
+    }
+
+  
+    
 }
