@@ -1,5 +1,5 @@
 <?php
-abstract class Carrier{
+class Carrier{
     protected static $_environment = NULL;
     private $_postParam = array();
 
@@ -52,7 +52,7 @@ abstract class Carrier{
             $this->_setMethodType();
 
             $data_string = json_encode($this->_postParam);
-
+//echo $data_string;die;
             $ch = curl_init($this->_getEnvironment()->getApiUrl());
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);

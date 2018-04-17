@@ -6,7 +6,8 @@ interface CarrierInterface{
     public function validateShipDate();
     public function validatePackage();
     public function prepareParams();
-    //public function send();
     public function searchService($param);
+    public function carrierInfo();
+    public function serviceInfo($param);
 }
 ?>

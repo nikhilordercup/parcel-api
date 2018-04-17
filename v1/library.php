@@ -1,7 +1,16 @@
 <?php
     class Library{
 
+        public static $_obj = NULL;
+
         public $google_api_key = "AIzaSyBIh4rhpvo0WBRWUEvzZLUI5ikWa_OyuPE";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
+
+        public function _getInstance(){
+            if(self::$_obj==NULL){
+                self::$_obj = new Library();
+            }
+            return self::$_obj;
+        }
 
 		public function get_file_content($param){
 			$content = null;

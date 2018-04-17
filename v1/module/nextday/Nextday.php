@@ -24,11 +24,7 @@ final class Nextday extends Booking
     private function _searchUkMail(){
         $obj = new Ukmail();
         $data = $obj->searchService($this->_param);
-        if($data["status"]=="success"){
-            return $data;
-        }else{
-            return array();
-        }
+        return $data;
     }
 
     public function searchNextdayAvailableCarrier(){
@@ -49,14 +45,25 @@ final class Nextday extends Booking
 
         foreach($results as $item){
             if($item["status"]=="error"){
-                array_push($errorResponse, array("status"=>"error", "response"=>$item["response"], "carrier_name"=>$item["carrier_name"]));
-                break;
+                array_push($errorResponse, array("status"=>"error", "response"=>$item["message"], "carrier_name"=>$item["carrier_name"]));
+
                 return $errorResponse;
+
             }else{
-                array_push($response, array($item["carrier_code"]=>$item["response"]));
+                array_push($response, array(
+                    $item["carrier_code"]=>array(
+                        "services"=>$item["response"],
+                        "carrier_info"=>(object)array(
+                            "carrier_code"=>$item["carrier_code"],
+                            "carrier_name"=>$item["carrier_name"],
+                            "carrier_icon"=>$item["carrier_icon"],
+                            "carrier_description"=>$item["carrier_description"],
+                            "carrier_id"=>$item["carrier_id"],
+                        )
+                    )
+                ));
             }
         }
-
         return $response;
     }
 }
