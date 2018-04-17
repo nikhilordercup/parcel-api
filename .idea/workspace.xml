@@ -2,25 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a2a8d7e7-f870-43b4-a8e8-856f60ba79de" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/v1/module/package/Module_Package_Index.php" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/v1/module/package/model/Package_Model_Index.php" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/config.php" afterPath="$PROJECT_DIR$/config.php" />
-      <change beforePath="$PROJECT_DIR$/v1/api.php" afterPath="$PROJECT_DIR$/v1/api.php" />
-      <change beforePath="$PROJECT_DIR$/v1/common.php" afterPath="$PROJECT_DIR$/v1/common.php" />
-      <change beforePath="$PROJECT_DIR$/v1/dbHandler.php" afterPath="$PROJECT_DIR$/v1/dbHandler.php" />
-      <change beforePath="$PROJECT_DIR$/v1/index.php" afterPath="$PROJECT_DIR$/v1/index.php" />
-      <change beforePath="$PROJECT_DIR$/v1/library.php" afterPath="$PROJECT_DIR$/v1/library.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/booking/Booking.php" afterPath="$PROJECT_DIR$/v1/module/booking/Booking.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/carrier/Carrier.php" afterPath="$PROJECT_DIR$/v1/module/carrier/Carrier.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/carrier/CarrierInterface.php" afterPath="$PROJECT_DIR$/v1/module/carrier/CarrierInterface.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/carrier/Ukmail.php" afterPath="$PROJECT_DIR$/v1/module/carrier/Ukmail.php" />
+      <change beforePath="$PROJECT_DIR$/v1/module/carrier/CustomerCostFactor.php" afterPath="$PROJECT_DIR$/v1/module/carrier/CustomerCostFactor.php" />
       <change beforePath="$PROJECT_DIR$/v1/module/carrier/model/carrier.php" afterPath="$PROJECT_DIR$/v1/module/carrier/model/carrier.php" />
       <change beforePath="$PROJECT_DIR$/v1/module/coreprime/api.php" afterPath="$PROJECT_DIR$/v1/module/coreprime/api.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/nextday/Nextday.php" afterPath="$PROJECT_DIR$/v1/module/nextday/Nextday.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/shipment/model/shipment.php" afterPath="$PROJECT_DIR$/v1/module/shipment/model/shipment.php" />
+      <change beforePath="$PROJECT_DIR$/v1/module/coreprime/model/api.php" afterPath="$PROJECT_DIR$/v1/module/coreprime/model/api.php" />
       <change beforePath="$PROJECT_DIR$/v1/module/shipment/save.php" afterPath="$PROJECT_DIR$/v1/module/shipment/save.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/shipment/view-support.php" afterPath="$PROJECT_DIR$/v1/module/shipment/view-support.php" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -44,11 +31,31 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="save.php" pinned="false" current-in-tab="true">
+      <file leaf-file-name="save.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/v1/module/shipment/save.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="428">
-              <caret line="1455" column="0" lean-forward="false" selection-start-line="1455" selection-start-column="0" selection-end-line="1455" selection-end-column="0" />
+            <state relative-caret-position="743">
+              <caret line="1476" column="0" lean-forward="false" selection-start-line="1476" selection-start-column="0" selection-end-line="1476" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="api.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/v1/module/coreprime/api.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-170">
+              <caret line="236" column="43" lean-forward="false" selection-start-line="236" selection-start-column="43" selection-end-line="236" selection-end-column="43" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="carrier.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/v1/module/carrier/model/carrier.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="566">
+              <caret line="195" column="2" lean-forward="false" selection-start-line="195" selection-start-column="2" selection-end-line="195" selection-end-column="2" />
               <folding />
             </state>
           </provider>
@@ -58,12 +65,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>$this-&gt;customerCarriers</find>
-      <find>courier_code</find>
-      <find>db_prefix</find>
-      <find>courier_vs_services</find>
-      <find>_prepareShipmentData</find>
-      <find>$this-&gt;_ccf()</find>
       <find>objectTypeId</find>
       <find>statusCode</find>
       <find>jobTypeName</find>
@@ -88,6 +89,12 @@
       <find>shipment_required_service_date</find>
       <find>_save_shipment</find>
       <find>_bookSameDayShipment</find>
+      <find>checkServiceExist</find>
+      <find>getServiceDetail</find>
+      <find>getCarrierServiceInfo</find>
+      <find>getTicketNo</find>
+      <find>saveLastTicketNo</find>
+      <find>testShipmentTicket</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -106,9 +113,7 @@
         <option value="$PROJECT_DIR$/config.php" />
         <option value="$PROJECT_DIR$/v1/module/carrier/CarrierInterface.php" />
         <option value="$PROJECT_DIR$/v1/library.php" />
-        <option value="$PROJECT_DIR$/v1/module/carrier/model/carrier.php" />
         <option value="$PROJECT_DIR$/v1/module/booking/Shipment.php" />
-        <option value="$PROJECT_DIR$/v1/module/coreprime/api.php" />
         <option value="$PROJECT_DIR$/v1/module/booking/Booking.php" />
         <option value="$PROJECT_DIR$/v1/module/nextday/Nextday.php" />
         <option value="$PROJECT_DIR$/v1/module/carrier/Ukmail.php" />
@@ -123,6 +128,8 @@
         <option value="$PROJECT_DIR$/v1/module/shipment/view-support.php" />
         <option value="$PROJECT_DIR$/../shipments.php" />
         <option value="$PROJECT_DIR$/v1/module/shipment/save.php" />
+        <option value="$PROJECT_DIR$/v1/module/coreprime/api.php" />
+        <option value="$PROJECT_DIR$/v1/module/carrier/model/carrier.php" />
       </list>
     </option>
   </component>
@@ -183,7 +190,22 @@
               <item name="parcel-api" type="2a2b976b:PhpTreeStructureProvider$1" />
               <item name="v1" type="2a2b976b:PhpTreeStructureProvider$1" />
               <item name="module" type="2a2b976b:PhpTreeStructureProvider$1" />
-              <item name="shipment" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="carrier" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="parcel-api" type="b2602c69:ProjectViewProjectNode" />
+              <item name="parcel-api" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="v1" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="module" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="carrier" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="model" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="parcel-api" type="b2602c69:ProjectViewProjectNode" />
+              <item name="parcel-api" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="v1" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="module" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="coreprime" type="2a2b976b:PhpTreeStructureProvider$1" />
             </path>
           </expand>
           <select />
@@ -230,15 +252,16 @@
       <workItem from="1522837534449" duration="1236000" />
       <workItem from="1522838906023" duration="266000" />
       <workItem from="1522843332110" duration="68070000" />
-      <workItem from="1523886955476" duration="671000" />
+      <workItem from="1523886955476" duration="2610000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="70243000" />
+    <option name="totallyTimeSpent" value="72182000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="807" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -423,6 +446,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
           <caret line="7" column="26" lean-forward="false" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="26" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -454,13 +478,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="205">
           <caret line="172" column="48" lean-forward="false" selection-start-line="172" selection-start-column="24" selection-end-line="172" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/v1/module/coreprime/api.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1035">
-          <caret line="69" column="40" lean-forward="false" selection-start-line="69" selection-start-column="28" selection-end-line="69" selection-end-column="40" />
         </state>
       </provider>
     </entry>
@@ -496,13 +513,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-905">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/v1/module/carrier/model/carrier.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2310">
-          <caret line="154" column="34" lean-forward="false" selection-start-line="154" selection-start-column="20" selection-end-line="154" selection-end-column="34" />
         </state>
       </provider>
     </entry>
@@ -637,8 +647,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/v1/module/shipment/save.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="428">
-          <caret line="1455" column="0" lean-forward="false" selection-start-line="1455" selection-start-column="0" selection-end-line="1455" selection-end-column="0" />
+        <state relative-caret-position="743">
+          <caret line="1476" column="0" lean-forward="false" selection-start-line="1476" selection-start-column="0" selection-end-line="1476" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/v1/module/coreprime/api.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-170">
+          <caret line="236" column="43" lean-forward="false" selection-start-line="236" selection-start-column="43" selection-end-line="236" selection-end-column="43" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/v1/module/carrier/model/carrier.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="566">
+          <caret line="195" column="2" lean-forward="false" selection-start-line="195" selection-start-column="2" selection-end-line="195" selection-end-column="2" />
           <folding />
         </state>
       </provider>

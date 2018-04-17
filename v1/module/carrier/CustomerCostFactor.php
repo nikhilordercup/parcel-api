@@ -1,7 +1,7 @@
 <?php
 class CustomerCostFactor{
     public $modelObj = NULL;
-   
+
     public function __construct(){
         $this->modelObj = Carrier_Model_Carrier::_getInstance();
     }
@@ -31,15 +31,12 @@ class CustomerCostFactor{
 
     private function _getCustomerCourierByCourierCode($customer_id, $company_id, $carrier_code){
         $item = $this->modelObj->getCustomerCourierByCourierCode($customer_id, $company_id, $carrier_code);
-        print_r($item);die;
         $customerCarriers = new stdClass;
-        $customerCarriers->$carrier_code = new stdClass();
-
-        $customerCarriers->$carrier_code->name = $item["courier_name"];
-        $customerCarriers->$carrier_code->icon = $item["courier_icon"];
-        $customerCarriers->$carrier_code->description = $item["courier_description"];
-        $customerCarriers->$carrier_code->code = $item["courier_id"];
-
+        $customerCarriers->$courier_code = new stdClass();
+        $customerCarriers->$courier_code->courier_name = $items["courier_name"];
+        $customerCarriers->$courier_code->courier_icon = $items["courier_icon"];
+        $customerCarriers->$courier_code->courier_description = $items["courier_description"];
+        $customerCarriers->$courier_code->courier_id = $items["courier_id"];
         return $customerCarriers;
     }
 
@@ -58,72 +55,98 @@ class CustomerCostFactor{
         return $item;
     }
 
-    private function _calculateCcf($price, $ccf_value, $operator, $company_service_code, $company_service_name, $courier_service_code, $courier_service_name, $level){
+    private function _calculateCcf($price, $ccf_value, $operator, $company_service_code, $company_service_name, $courier_service_code, $courier_service_name, $level,$service_id){
         if($operator=="FLAT"){
-            $price = $ccf_value;
-        }elseif($operator=="PERCENTAGE"){ //echo "$price,";die;
-            $price = ($price*$ccf_value/100);
+            $ccfprice = $ccf_value;
+        }elseif($operator=="PERCENTAGE"){ 
+            $ccfprice = ($price*$ccf_value/100);
         }
-        return array("ccf_value"=>$ccf_value,"operator"=>$operator,"price"=>$price,"company_service_code"=>$company_service_code,"company_service_name"=>$company_service_name,"courier_service_code"=>$courier_service_code,"courier_service_name"=>$courier_service_name,"level"=>$level);
+        return array("originalprice"=>$price,"ccf_value"=>$ccf_value,"operator"=>$operator,"price"=>$ccfprice,"company_service_code"=>$company_service_code,"company_service_name"=>$company_service_name,"courier_service_code"=>$courier_service_code,"courier_service_name"=>$courier_service_name,"level"=>$level,'service_id'=>$service_id);
     }
-
-    public function calculate($data, $carrier_code, $customer_id, $company_id){
-
-        $this->customerCarriers = $this->_getCustomerCourierByCourierCode($customer_id, $company_id, $carrier_code);
-        echo "<pre>";print_r($this->customerCarriers);
-        $testingArray = array("1"=>"parcel_next_day");
-       // $surchargeArray = array("1"=>"long_length_surcharge");
-        foreach($data as $service_code=>$items){
-            echo "<pre>";print_r($service_code);
-            $serviceCode = $testingArray[$service_code];
-
-            $serviceCcf = $this->modelObj->getCcfOfCarrierServices($serviceCode, $customer_id);
-
-
-            if($serviceCcf){
-                if(isset($serviceCcf["customer_carrier_service_ccf"]) and $serviceCcf["customer_carrier_service_ccf"]>0){
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_carrier_service_ccf"],$serviceCcf["customer_carrier_service_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 1");
-                }elseif(isset($serviceCcf["customer_carrier_ccf"]) and $serviceCcf["customer_carrier_ccf"]>0){
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_carrier_ccf"],$serviceCcf["customer_carrier_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 2");
-                }elseif(isset($serviceCcf["customer_ccf"]) and $serviceCcf["customer_ccf"]>0){
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_ccf"],$serviceCcf["customer_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 3");
-                }elseif(isset($serviceCcf["company_carrier_service_ccf"]) and $serviceCcf["company_carrier_service_ccf"]>0){
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["company_carrier_service_ccf"],$serviceCcf["company_carrier_service_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 4");
-                }elseif(isset($serviceCcf["company_carrier_ccf"]) and $serviceCcf["company_carrier_ccf"]>0){
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["company_carrier_ccf"],$serviceCcf["company_carrier_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 4");
-                }
-            }else{
-                $customerCcf = $this->modelObj->getCcfOfCustomer($customer_id);
-
-                if(isset($customerCcf["customer_carrier_ccf"]) and $customerCcf["customer_carrier_ccf"]>0){
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$customerCcf["customer_carrier_ccf"],$customerCcf["customer_carrier_operator"],$serviceCode,$serviceCode,$serviceCode,$serviceCode,"level 2");
-                }elseif(isset($serviceCcf["customer_ccf"]) and $serviceCcf["customer_ccf"]>0){
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_ccf"],$serviceCcf["customer_operator"],$serviceCode,$serviceCode,$serviceCode,$serviceCode,"level 3");
-                }elseif(isset($serviceCcf["company_carrier_ccf"]) and $serviceCcf["company_carrier_ccf"]>0) {
-                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price, $serviceCcf["company_carrier_ccf"], $serviceCcf["company_carrier_operator"], $serviceCode, $serviceCode, $serviceCode, $serviceCode, "level 5");
+   
+    private function _calculateSurcharge($price, $surcharge_value, $operator, $company_surcharge_code, $company_surcharge_name, $courier_surcharge_code, $courier_surcharge_name,$level,$surcharge_id){
+        if($operator=="FLAT"){
+            $price = $surcharge_value;
+        }elseif($operator=="PERCENTAGE"){ 
+            $price = ($price*$surcharge_value/100);
+        }
+        return array("surcharge_value"=>$surcharge_value,"operator"=>$operator,"price"=>$price,"company_surcharge_code"=>$company_surcharge_code,"company_surcharge_name"=>$company_surcharge_name,"courier_surcharge_code"=>$courier_surcharge_code,"courier_surcharge_name"=>$courier_surcharge_name,"level"=>$level,'surcharge_id'=>$surcharge_id);
+    }
+    
+    public function calculate($data, $courier_id, $customer_id, $company_id){
+        foreach($data->rate as $key=>$itemsdata){
+           foreach($itemsdata as $serviceCode=>$items){  
+            $serviceCcf = $this->modelObj-> getCcfOfCarrierServices($serviceCode, $customer_id,$company_id,$courier_id); 
+              if($serviceCcf){
+                if(isset($serviceCcf["customer_carrier_service_ccf"]) and $serviceCcf["customer_carrier_service_ccf"]>0 and $serviceCcf["customer_carrier_service_operator"] != 'NONE'){
+                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_carrier_service_ccf"],$serviceCcf["customer_carrier_service_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 1",$serviceCcf['service_id']);
+                }elseif(isset($serviceCcf["customer_carrier_ccf"]) and $serviceCcf["customer_carrier_ccf"]>0 and $serviceCcf["customer_carrier_operator"] != 'NONE'){
+                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_carrier_ccf"],$serviceCcf["customer_carrier_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 2",$serviceCcf['service_id']);
+                }elseif(isset($serviceCcf["customer_ccf"]) and $serviceCcf["customer_ccf"]>0  and $serviceCcf["customer_operator"] != 'NONE'){
+                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_ccf"],$serviceCcf["customer_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 3",$serviceCcf['service_id']);
+                }elseif(isset($serviceCcf["company_carrier_service_ccf"]) and $serviceCcf["company_carrier_service_ccf"]>0  and $serviceCcf["company_carrier_service_operator"] != 'NONE'){
+                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["company_carrier_service_ccf"],$serviceCcf["company_carrier_service_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 4",$serviceCcf['service_id']);
+                }elseif(isset($serviceCcf["company_carrier_ccf"]) and $serviceCcf["company_carrier_ccf"]>0  and $serviceCcf["company_carrier_operator"] != 'NONE'){
+                    $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["company_carrier_ccf"],$serviceCcf["company_carrier_operator"],$serviceCcf["company_service_code"],$serviceCcf["company_service_name"],$serviceCcf["courier_service_code"],$serviceCcf["courier_service_name"],"level 5",$serviceCcf['service_id']);
                 }
             }
-
-            $items[0]->rate->ccf = $service_ccf_price["ccf_value"];
-            $items[0]->rate->ccf_price = $service_ccf_price["price"];
-            $items[0]->rate->total_base_price = $service_ccf_price["price"]+$items[0]->rate->price;
-
-            $items[0]->rate->ccf_operator = $service_ccf_price["operator"];
-            $items[0]->rate->company_service_code = $service_ccf_price["company_service_code"];
-            $items[0]->rate->company_service_name = $service_ccf_price["company_service_name"];
-
-            $items[0]->rate->courier_service_code = $service_ccf_price["courier_service_code"];
-            $items[0]->rate->courier_service_name = $service_ccf_price["courier_service_name"];
-
-            $items[0]->rate->level = $service_ccf_price["level"];
-
+               else{
+                //$customerCcf = $this->modelObj->getCcfOfCustomer($customer_id);
+                $customerCcf = $this->modelObj-> getCcfOfCarrier($customer_id,$company_id,$courier_id); 
+                if(isset($customerCcf["customer_carrier_ccf"]) and $customerCcf["customer_carrier_ccf"]>0 and $serviceCcf["customer_carrier_operator"] != 'NONE'){
+                 $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$customerCcf["customer_carrier_ccf"],$customerCcf["customer_carrier_operator"],$serviceCode,$serviceCode,$serviceCode,$serviceCode,"level 2",0);
+                }elseif(isset($serviceCcf["customer_ccf"]) and $serviceCcf["customer_ccf"]>0 and $serviceCcf["customer_operator"] != 'NONE'){
+                 $service_ccf_price = $this->_calculateCcf($items[0]->rate->price,$serviceCcf["customer_ccf"],$serviceCcf["customer_operator"],$serviceCode,$serviceCode,$serviceCode,$serviceCode,"level 3",0);
+                }elseif(isset($serviceCcf["company_carrier_ccf"]) and $serviceCcf["company_carrier_ccf"]>0  and $serviceCcf["company_carrier_operator"] != 'NONE') {
+                 $service_ccf_price = $this->_calculateCcf($items[0]->rate->price, $serviceCcf["company_carrier_ccf"], $serviceCcf["company_carrier_operator"], $serviceCode, $serviceCode, $serviceCode, $serviceCode, "level 5",0);
+                }
+            }
+            $service_ccf_price['courier_id'] =  $courier_id;  
+            $items[0]->rate->price = $service_ccf_price["price"]+$items[0]->rate->price;
+            $items[0]->rate->service_name = 
+            isset($service_ccf_price["company_service_name"])?
+                  $service_ccf_price["company_service_name"]: $service_ccf_price["courier_service_name"];
+           $items[0]->rate->service_code = 
+           isset($service_ccf_price["company_service_code"])?
+                  $service_ccf_price["company_service_code"]: $service_ccf_price["courier_service_code"];
+           $items[0]->rate->info = str_rot13(serialize($service_ccf_price));
+          
             $items[0]->ccf_surcharges = new StdClass();
-            foreach($items[0]->surcharges as $surcharge_code=> $surcharge_price) {
-                $surchargeCcf = $this->modelObj->getCcfOfCarrierSurcharge($surcharge_code, $customer_id);
-                print_r($surchargeCcf);die;
+            $items[0]->ccf_surcharges->alldata = array();  
+           foreach($items[0]->surcharges as $surcharge_code=> $price) {
+             $surchargeCcf = $this->modelObj->getCcfOfCarrierSurcharge($surcharge_code, $customer_id,$company_id,$courier_id);
+              if($surchargeCcf){
+                if(isset($surchargeCcf["customer_carrier_surcharge_ccf"]) and $surchargeCcf["customer_carrier_surcharge_ccf"]>0 and $surchargeCcf["customer_carrier_surcharge_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["customer_carrier_surcharge_ccf"],$surchargeCcf["customer_carrier_surcharge_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 1",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["customer_carrier_surcharge"]) and $surchargeCcf["customer_carrier_surcharge"]>0 and $surchargeCcf["customer_carrier_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["customer_carrier_surcharge"],$surchargeCcf["customer_carrier_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 2",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["customer_surcharge"]) and $serviceCcf["customer_surcharge"]>0 and $surchargeCcf["customer_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["customer_surcharge"],$surchargeCcf["customer_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 3",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["company_carrier_surcharge_ccf"]) and $surchargeCcf["company_carrier_surcharge_ccf"]>0 and $surchargeCcf["company_carrier_surcharge_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["company_carrier_surcharge_ccf"],$surchargeCcf["company_carrier_surcharge_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 4",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["company_carrier_ccf"]) and $serviceCcf["company_carrier_ccf"]>0 and $surchargeCcf["company_carrier_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["company_carrier_ccf"],$surchargeCcf["company_carrier_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 5",$surchargeCcf["surcharge_id"]);
+                }
+            }
+              else{
+                //$customerCcf = $this->modelObj->getCcfOfCustomer($customer_id);
+               $customerCcf = $this->modelObj->getSurchargeOfCarrier($customer_id,$company_id,$courier_id); 
+               if(isset($customerCcf["customer_surcharge_value"]) and $customerCcf["customer_surcharge_value"]>0 and $customerCcf["company_ccf_operator_surcharge"] != 'NONE'){
+                 $surcharge_ccf_price = $this->_calculateSurcharge($price,$customerCcf["customer_surcharge_value"],$customerCcf["company_ccf_operator_surcharge"],$surcharge_code,$surcharge_code,$surcharge_code,$surcharge_code,"level 2",0);
+                }elseif(isset($serviceCcf["customer_surcharge"]) and $serviceCcf["customer_surcharge"]>0  and $customerCcf["customer_operator"] != 'NONE'){
+                 $surcharge_ccf_price = $this->_calculateSurcharge($price,$serviceCcf["customer_surcharge"],$serviceCcf["customer_operator"],$surcharge_code,$surcharge_code,$surcharge_code,$surcharge_code,"level 3",0);
+                }elseif(isset($serviceCcf["company_carrier_ccf"]) and $serviceCcf["company_carrier_ccf"]>0  and $customerCcf["company_carrier_operator"] != 'NONE') {
+                 $surcharge_ccf_price = $this->_calculateSurcharge($price, $serviceCcf["company_carrier_ccf"], $serviceCcf["company_carrier_operator"], $surcharge_code, $surcharge_code, $surcharge_code, $surcharge_code, "level 5",0);
+                }
+              }
+              
+              $surcharge_ccf_price["originalprice"] =  $price;
+              $items[0]->surcharges->$surcharge_code = $surcharge_ccf_price['price'];
+              $data = array('price'=>$surcharge_ccf_price['price'],'info'=>str_rot13(serialize($surcharge_ccf_price)));
+              $items[0]->ccf_surcharges->alldata[$surcharge_code] = $data;
+           }
             }
         }
-        print_r($data);die;
         return $data;
     }
 }
