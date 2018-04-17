@@ -16,7 +16,7 @@
         private
             
         function _postRequest($data)
-            {
+            {print_r($data);die;
             $data_string = json_encode($data);
             //$ch = curl_init('http://occore.ordercup1.com/api/v1/rate');
             $ch = curl_init('http://occore.ordercup.com/api/v1/rate');
@@ -214,6 +214,7 @@
             $param->customer_id = $param->customer_id;
             $transit_distance = $param->transit_distance;
             $transit_time = $param->transit_time;
+            $param->courier_id = 1;
             $waypointCount = 0;
             if(isset($param->waypoint_lists)){
                 $waypointCount = count($param->waypoint_lists);
@@ -230,7 +231,7 @@
                 $transit_time += $param->warehouse_to_collection_point_time;
             } 
             //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
-            $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id,$param->company_id);
+            $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id,$param->company_id,$param->courier_id);
             $post_data = [];
             $post_data["credentials"] = array(
                 "account_number"=> $carrier['account_number'],
@@ -263,7 +264,7 @@
             $post_data["extra"] = [];
             $post_data["insurance"] = [];
             $post_data["constants"] = [];
-            
+            print_r($this->_postRequest($post_data));die;
             $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true));
           
             $this->customerccf->calculate($data, $carrier['courier_id'], $param->customer_id, $param->company_id);
