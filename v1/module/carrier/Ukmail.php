@@ -13,6 +13,10 @@ final class Ukmail extends Carrier implements CarrierInterface{
         $this->_preparedData->service = "1";
     }
 
+    public function carrierInfo(){
+        $this->carrierInfo = Carrier_Model_Carrier::_getInstance()->getCustomerCourierByCourierCode($this->param->customer_id,$this->param->company_id,"ukmail");
+    }
+
     public function validateCollectionAddress(){
         if(!isset($this->param->from)){
             $this->validationError["from"] = "Collection address required";
@@ -195,20 +199,46 @@ final class Ukmail extends Carrier implements CarrierInterface{
         $this->_preparedData->rate = new stdClass();
     }
 
+    public function serviceInfo($param){
+        foreach($param as $serviceKey => $items){
+            $serviceInfo = Carrier_Model_Carrier::_getInstance()->getCarrierServiceInfo($this->carrierInfo["courier_id"], $serviceKey);
+
+            if(count($serviceInfo)>0){
+                foreach($items as $key => $item){
+                    $item->service_options->service_name = $serviceInfo["service_name"];
+
+                    $item->service_options->service_code = $serviceInfo["service_code"];
+                    $item->service_options->service_icon = $serviceInfo["service_icon"];
+                    $item->service_options->service_description = $serviceInfo["service_description"];
+                }
+            }
+        }
+        return $param;
+    }
+
     public function searchService($param){
         $this->param = $param;
 
         $this->validateParams();
+        $this->carrierInfo();
 
         if(count($this->validationError)>0){
-            return array("status"=>"error", "response"=>$this->validationError, "carrier_name"=>"ukmail");
+            return array("status"=>"error", "response"=>$this->validationError, "carrier_code"=>$this->carrierInfo["courier_code"],"carrier_name"=>$this->carrierInfo["courier_name"],"carrier_icon"=>$this->carrierInfo["courier_icon"]);
         }else{
             $this->prepareParams();
 
             $this->_preparedData->ship_date = $param->ship_date;
 
             $ukmailService = $this->_send($this->_preparedData);
-            return array("status"=>"success", "response"=>$ukmailService, "carrier_code"=>"ukmail");
+            print_r( $ukmailService );die;
+            if(is_array($ukmailService) and count($ukmailService)>0){
+                $ukmailService = $this->serviceInfo($ukmailService);
+
+                return array("status"=>"success", "response"=>$ukmailService, "carrier_code"=>$this->carrierInfo["courier_code"],"carrier_name"=>$this->carrierInfo["courier_name"],"carrier_icon"=>$this->carrierInfo["courier_icon"],"carrier_description"=>$this->carrierInfo["courier_description"],"carrier_id"=>$this->carrierInfo["courier_id"]);
+
+            }else{
+                return array("status"=>"error", "message"=>"Service not found");
+            }
         }
     }
 }

@@ -71,12 +71,12 @@ class Carrier_Model_Carrier{
                 COMCOUR.company_ccf_operator_service AS company_carrier_operator,
                 COURSER.service_name AS courier_service_name,
                 COURSER.service_code AS courier_service_code
-                FROM icargo_company_vs_customer_vs_services CCST
-                INNER JOIN icargo_courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
-                INNER JOIN icargo_customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
-                INNER JOIN icargo_courier_vs_services_vs_company as COMSER on (COMSER.service_id = CCST.company_service_id AND COMSER.courier_id = CCST.courier_id)
-                INNER JOIN icargo_courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id)
-                INNER JOIN icargo_courier_vs_services as COURSER on (COURSER.id = CCST.service_id)
+                FROM ". DB_PREFIX . "company_vs_customer_vs_services CCST
+                INNER JOIN ". DB_PREFIX . "courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
+                INNER JOIN ". DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
+                INNER JOIN ". DB_PREFIX . "courier_vs_services_vs_company as COMSER on (COMSER.service_id = CCST.company_service_id AND COMSER.courier_id = CCST.courier_id)
+                INNER JOIN ". DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id)
+                INNER JOIN ". DB_PREFIX . "courier_vs_services as COURSER on (COURSER.id = CCST.service_id)
                 WHERE
                 CCST.status = 1
                 AND CCST.company_customer_id = '$customer_id'
@@ -92,9 +92,9 @@ class Carrier_Model_Carrier{
                 CINFO.ccf_operator_service AS customer_operator,
                 COMCOUR.company_ccf_value AS company_carrier_ccf,
                 COMCOUR.company_ccf_operator_service AS company_carrier_operator
-                FROM icargo_courier_vs_company_vs_customer CCC
-                INNER JOIN icargo_customer_info as CINFO on CINFO.user_id = CCC.customer_id
-                INNER JOIN icargo_courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCC.courier_id)
+                FROM ". DB_PREFIX . "courier_vs_company_vs_customer CCC
+                INNER JOIN ". DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCC.customer_id
+                INNER JOIN ". DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCC.courier_id)
                 WHERE
                 CCC.status = 1
                 AND CCC.customer_id = '$customer_id'";
@@ -117,17 +117,44 @@ class Carrier_Model_Carrier{
                 COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator,
                 COURSER.surcharge_name AS corier_surcharge_name,
                 COURSER.surcharge_code AS corier_surcharge_code
-                FROM icargo_company_vs_customer_vs_surcharge CCST
-                INNER JOIN icargo_courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
-                INNER JOIN icargo_customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
-                INNER JOIN icargo_courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.company_surcharge_id AND COMSER.courier_id = CCST.courier_id)
-                INNER JOIN icargo_courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id)
-                INNER JOIN icargo_courier_vs_surcharge as COURSER on (COURSER.id = CCST.surcharge_id)
+                FROM ". DB_PREFIX . "company_vs_customer_vs_surcharge CCST
+                INNER JOIN ". DB_PREFIX . "courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
+                INNER JOIN ". DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
+                INNER JOIN ". DB_PREFIX . "courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.company_surcharge_id AND COMSER.courier_id = CCST.courier_id)
+                INNER JOIN ". DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id)
+                INNER JOIN ". DB_PREFIX . "courier_vs_surcharge as COURSER on (COURSER.id = CCST.surcharge_id)
                 WHERE
                 CCST.status = 1
                 AND CCST.company_customer_id = '$customer_id'
                 AND CCST.surcharge_id = '$surchrage_code'";
         return $this->_getDbInstance()->getRowRecord($sql);
+    }
+
+    public function getCarrierServiceInfo($carrier_id, $service_code){
+        $sql = "SELECT service_name, service_code, service_icon, service_description FROM ". DB_PREFIX . "courier_vs_services AS CST WHERE courier_id='$carrier_id' AND service_code='$service_code'";
+        return $this->_getDbInstance()->getRowRecord($sql);
+    }
+
+    public function getTicketNo($company_id){
+        $record = $this->_getDbInstance()->getRowRecord("SELECT (shipment_end_number + 1) AS shipment_ticket_no, shipment_ticket_prefix AS shipment_ticket_prefix FROM " . DB_PREFIX . "configuration WHERE company_id = '$company_id'");
+        return $record;
+    }
+
+    public function saveLastTicketNo($company_id){
+        return $this->_getDbInstance()->updateData("UPDATE " . DB_PREFIX . "configuration SET shipment_end_number = shipment_end_number + 1 WHERE company_id = '$company_id'");
+    }
+
+    public function testShipmentTicket($shipment_ticket){
+        $record = $this->_getDbInstance()->getOneRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "shipment WHERE shipment_ticket = '". $shipment_ticket ."'");
+        if($record['exist'] > 0)
+            return true;
+        else
+            return false;
+    }
+
+    public function getCompanyCode($company_id){
+        $record = $this->_getDbInstance()->getRowRecord("SELECT code AS code FROM " . DB_PREFIX . "user_code WHERE id = '$company_id'");
+        return $record['code'];
     }
 }
 ?>

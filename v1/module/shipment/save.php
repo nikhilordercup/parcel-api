@@ -1033,7 +1033,7 @@ class shipment extends Library{
 
             $data['shipment_pod'] = '';
             $data['shipment_ticket'] = $ticketNumber;
-            $data['shipment_required_service_date'] = $param["service_date"];
+            $data['shipment_required_service_date'] = date("Y-m-d", strtotime($param["service_date"]));
             $data['current_status'] = 'C';
             $data['is_shipment_routed'] = '0';
             $data['is_driver_assigned'] = '0';
@@ -1289,7 +1289,7 @@ class shipment extends Library{
             $data["address_type"] = (isset($address["type"])) ? $address["type"] : "";//address_type
             
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
-            
+
             $address_id = $this->_getAddressBySearchStringAndCustomerId($address["customer_id"], $data["search_string"]);
             
             if(!$address_id){
@@ -1389,7 +1389,7 @@ class shipment extends Library{
         $_data["service_starttime"] = (isset($param["service_date"])) ? date("H:i:s", strtotime($param["service_date"])) : date("H:i:s", $timestamp);
 
         $_data["service_endtime"] = (isset($param["service_date"])) ? date("H:i:s", strtotime($param["service_date"])) : date("H:i:s", $timestamp);
-        $_data["shipment_required_service_date"] = (isset($_data["shipment_required_service_date"])) ? $_data["shipment_required_service_date"] : "Not Set";
+        $_data["shipment_required_service_date"] = (isset($_data["shipment_required_service_date"])) ? date("Y-m-d",strtotime($_data["shipment_required_service_date"])) : "1970-01-01";
         $_data["customer_id"] = (isset($param["customer_id"])) ? $param["customer_id"] : "0";
         $_data["collection_user_id"] = (isset($param["collection_user_id"])) ? $param["collection_user_id"] : "0";
 		$_data["userid"] = (isset($param["userid"])) ? $param["userid"] : "0";

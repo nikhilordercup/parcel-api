@@ -1054,7 +1054,7 @@ class View_Support extends Icargo{
 		
 		
 		$updatedRoute['driver_id']         = $driverid;
-        $updatedRoute['assign_start_time'] = str_replace(' ', '', $start_time . ':00');
+        $updatedRoute['assign_start_time'] = date("H:i:s", strtotime($start_time));//str_replace(' ', '', $start_time . ':00');
         $updatedRoute['is_active']         = 'Y';
         $updatedRoute['status']            = '1';
 		$condition        = "shipment_route_id = '".$shipment_route_id."'";
@@ -1266,6 +1266,7 @@ class View_Support extends Icargo{
 		$getAllTicket       = explode(',',$ticketids);
         foreach ($getAllTicket as $eachTicket) {
 			$eachShipmentDetails = $this->modelObj->getShipmentStatusDetails($eachTicket);
+			//print_r($eachShipmentDetails);die;
 			$shipData                                 = array();
             $shipData['shipment_id']                  = $eachShipmentDetails['shipment_id'];
             $shipData['shipment_ticketnumber']        = $eachShipmentDetails['shipment_ticket'];
@@ -1290,11 +1291,12 @@ class View_Support extends Icargo{
 			$shipData['company_id']                   = $company_id;
             $shipData['status']                       = '1';
 			$historyid                                = $this->modelObj->addContent("shipment_history", $shipData);
-            
+
             $tickets = str_replace('"', '', $eachTicket); 
 			$actions     = "Carded by Controller";
 			$actionsCode = 'CARDEDBYCONTROLLER';
 			$this->_add_shipment_life_history($eachTicket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
+
 			$actions     = "Return in warehouse after carded by controller";
 			$actionsCode = 'RETURNINWAREHOUSE';
 			$this->_add_shipment_life_history($eachTicket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );

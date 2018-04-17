@@ -206,13 +206,19 @@ class Shipment_Model
     function _get_assigned_route_detail($shipment_route_id)
         {
         $record = array();
-        $sqldata = 'R4.instaDispatch_loadGroupTypeCode,R1.*,R2.name,R3.vehicle_id';
+        $sqldata = 'R4.instaDispatch_loadGroupTypeCode,R1.*,R2.name';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_route  as R1
         INNER JOIN " . DB_PREFIX . "users AS R2  ON R1.driver_id = R2.id
         INNER JOIN " . DB_PREFIX . "driver_vehicle AS R3  ON R3.driver_id = R1.driver_id
         INNER JOIN " . DB_PREFIX . "shipment as R4 on R4.shipment_routed_id=R1.shipment_route_id
         WHERE shipment_route_id = $shipment_route_id GROUP BY R4.instaDispatch_loadGroupTypeCode";
+
         $record = $this->db->getRowRecord($sql);
+
+        if(count($record)>0){
+            $vehicle = $this->getVehicleIdByDriverId($record["driver_id"]);
+            $record["vehicle_id"] = $vehicle["vehicle_id"];
+        }
         return $record;
         }
 
@@ -673,6 +679,14 @@ class Shipment_Model
 
     function getShipmentPod($shipment_ticket){
         $sql = "SELECT `value` as `pod` FROM `" . DB_PREFIX . "shipments_pod` AS `PODT` WHERE `PODT`.`shipment_ticket`='$shipment_ticket'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+    }
+
+    public
+
+    function getVehicleIdByDriverId($driver_id){
+        $sql = "SELECT `vehicle_id` as `vehicle_id` FROM `" . DB_PREFIX . "driver_vehicle` AS `DVT` WHERE `DVT`.`driver_id`='$driver_id'";
         $record = $this->db->getRowRecord($sql);
         return $record;
     }

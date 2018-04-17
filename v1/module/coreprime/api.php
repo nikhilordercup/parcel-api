@@ -74,7 +74,7 @@
                                 if($services->$list_key->total_price > $total_price)
                                     {
                                     $sort[$list_key] = $total_price;
-                                        $services[$list_key]["service_name"] = '79878989';$list_key;
+                                    $services[$list_key]["service_name"] = '79878989';$list_key;
                                     $services[$list_key]["rate_type"] = $item->rate->rate_type;
                                     $services[$list_key]["message"] = $item->rate->message;
                                         

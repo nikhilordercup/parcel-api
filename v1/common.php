@@ -39,6 +39,7 @@
 
         public function addShipmentlifeHistory($tickets, $action, $driver_id, $route_id, $company_id, $warehouse_id, $action_code, $action_taken_by)
         {
+            $tickets = str_replace('"','',$tickets);
             $all_parcel_details = $this->getShipmentParcelStatusDetail($tickets);
             if (count($all_parcel_details) > 0) {
                 foreach ($all_parcel_details as $shipdetails) {
@@ -63,6 +64,8 @@
                     $shipmentHistoryData['action_taken_by'] = $action_taken_by;
                     $shipmentHistoryData['warehouse_id'] = $warehouse_id;
                     $shipmentHistoryData['company_id'] = $company_id;
+                    $shipmentHistoryData['lattitude'] = 0.000000000;
+                    $shipmentHistoryData['longitude'] = 0.000000000;
                     $this->db->save('shipment_life_history', $shipmentHistoryData);
                 }
             }else {
