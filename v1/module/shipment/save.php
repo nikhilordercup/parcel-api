@@ -172,8 +172,8 @@ class shipment extends Library{
 		else
 			return false;
 	}
-	
-	private function _test_parcel_ticket($parcel_ticket){
+
+    private function _test_parcel_ticket($parcel_ticket){
 		$record = $this->db->getOneRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "shipments_parcel WHERE parcel_ticket = '". $parcel_ticket ."'");
 		if($record['exist'] > 0)
 			return true;
@@ -200,26 +200,6 @@ class shipment extends Library{
 		    return false;
         }
 
-	}
-	
-	private function _generate_quote_no(){
-		$record = $this->db->getRowRecord("SELECT (shipment_end_number + 1) AS shipment_ticket_no, shipment_ticket_prefix AS shipment_ticket_prefix FROM " . DB_PREFIX . "configuration WHERE company_id = ".$this->company_id);
-		if($record){
-            $quote_number = $record['shipment_ticket_prefix'].str_pad($record['shipment_ticket_no'],6,0,STR_PAD_LEFT);
-
-            $check_digit = $this->generateCheckDigit($quote_number);
-
-            $quote_number = "$quote_number$check_digit";
-
-            $this->db->updateData("UPDATE " . DB_PREFIX . "configuration SET shipment_end_number = shipment_end_number + 1 WHERE company_id = ".$this->company_id);
-
-            if($this->_test_shipment_quote($quote_number)){
-                $this->_generate_quote_no();
-            }
-            return $quote_number;
-        }else{
-		    return false;
-        }
 	}
 	
 	private function _generate_parcel_ticket_number(){
@@ -1550,103 +1530,5 @@ class shipment extends Library{
             return array("status"=>"error", "message"=>"Customer account disabled.");
         }
     }
-	
-	public function saveQuoteForCustomer($data){
-        //check customer is enable or not  shipment_instruction
-        echo '<pre/>';print_r(json_encode($data));die;
-            $shipmentData = array();
-            $courier_commission_type = "percentage";
-            $service_id = false;
-            $shipmentId = 0;
-            $timestamp = strtotime("now");
-            $transit_time = $data->transit_time;
-            $transit_distance = $data->transit_distance;
-            $this->company_id = $data->company_id;
-            $this->warehouse_id = $data->warehouse_id;
-            $this->service_date = $data->service_date;
-            $loadIdentity = "";
-            $counter = 1;
-            $this->db->startTransaction();
-
-            //save collection shipment detail
-            foreach($data->collection_postcodes as $shipment_data){
-				
-				$shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Collection","jobTypeCode"=>"COLL","shipment_service_type"=>"P","icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction));
-				
-                $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"customer_id"=>$data->customer_id,"loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","shipment_service_type"=>"P","execution_order"=>$counter,"service_date"=>$this->service_date,"warehouse_id"=>$data->warehouse_id,"userid"=>$data->userid));
-
-                $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
-
-                if($shipmentStatus["status"]=="success"){
-                    $shipmentId = $shipmentStatus["shipment_id"];
-                    //find load identity
-                    $loadIdentity = $this->_getShipmentLoadIdentity($shipmentId);
-
-                    //find version number of shipment price
-                    $priceVersionNo = $this->_findPriceNextVersionNo($shipmentId);
-
-                    $shipmentService = $data->service_detail;
-
-                    $shipmentService->price_version = $priceVersionNo;
-                    $shipmentService->shipment_id = $shipmentId;
-                    $shipmentService->customer_id = $data->customer_id;
-                    $shipmentService->courier_commission_type = $courier_commission_type;
-                    $shipmentService->transit_distance = $data->transit_distance;
-                    $shipmentService->transit_time = $data->transit_time;
-                    $shipmentService->transit_time_text = $data->transit_time_text;
-                    $shipmentService->transit_distance_text = $data->transit_distance_text;
-                    $shipmentService->load_identity = $loadIdentity;
-                    $shipmentService->service_request_string = json_encode($data->service_request_string);
-                    $shipmentService->service_response_string = json_encode($data->service_request_string);
-
-                    unset($shipmentService->message);
-                    //save shipment price breakdown
-                    $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"shipment_id"=>$shipmentId,"version"=>$priceVersionNo));
-                    //save shipment price detail
-
-                    $service_id = $this->_saveShipmentService($shipmentService);
-                    ++$counter;
-                }elseif($shipmentStatus["status"]=="error"){
-                    return $shipmentStatus;
-                }
-            }
-
-            foreach($data->delivery_postcodes as $shipment_data){
-                $shipment_data->parent_id = $shipmentId;
-                if($loadIdentity!=""){
-                    $shipment_data->loadIdentity = $loadIdentity;
-                }
-
-                $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Delivery","jobTypeCode"=>"DELV","shipment_service_type"=>"D","load_identity"=>$loadIdentity,"icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction));
-
-                $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
-
-                if($shipmentStatus["status"]=="success" and !$service_id){
-                    //save only service id is false
-                    $shipmentId = $shipmentStatus["shipment_id"];
-                    //find version number of shipment price
-                    $priceVersionNo = $this->_findPriceNextVersionNo($shipmentId);
-
-                    $shipmentService = $data->service_opted;
-
-                    $shipmentService->price_version = $priceVersionNo;
-                    $shipmentService->shipment_id = $shipmentId;
-                    $shipmentService->customer_id = $data->customer_id;
-                    $shipmentService->courier_commission_type = $courier_commission_type;
-
-                    unset($shipmentService->message);
-                    //save shipment price detail
-                    $service_id = $this->_saveShipmentService($shipmentService);
-                }elseif($shipmentStatus["status"]=="error"){
-                    return $shipmentStatus;
-                }
-                $counter++;
-            }
-            $this->db->commitTransaction();
-
-            //email to customer
-           // Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
-
-	}
 } 
 ?>

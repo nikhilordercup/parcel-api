@@ -96,6 +96,7 @@ require_once 'module/notification/model/index.php';
 
 require_once 'module/notification/Consignee_Notification.php';
 require_once 'module/notification/Notification_Email.php';
+require_once 'module/quotation/quotation.php';
 require_once 'module/report/report.php';
 
 require_once 'module/shipment/shipment_tracking.php';

@@ -1629,24 +1629,36 @@ $app->post('/generateReport', function() use($app){
 
 /*start of save quote feature comment by kavita 2april2018*/
 
-$app->post('/saveQuote', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','email','company_id'),$r);
-    $obj = new shipment();
-    $response = $obj->saveQuoteForCustomer($r);
-	print_r($response);die;
-    //echoResponse(200, $response);
-});
-
 $app->post('/sendQuoteEmail', function() use($app){
     $r = json_decode($app->request->getBody());
-    echo '<pre/>';print_r($r);die;
-    verifyRequiredParams(array('access_token','email','company_id','selected_service'),$r);
-    $obj = new shipment();
-    $response = $obj->saveQuoteForCustomer($r);
-    print_r($response);die;
-    //echoResponse(200, $response);
+    verifyRequiredParams(array('access_token','email','company_id'),$r);
+    $obj = new Quotation();
+    $response = $obj->sendQuoteEmail($r);
+    echoResponse(200, $response);
 });
+
+
+$app->post('/getAllSavedQuotes', function() use ($app) {
+    $response = array();
+    $r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('access_token','email','company_id'),$r);
+	$obj = new Quotation();
+	if($r->user_code=="super_admin")
+		$response = $obj->getAllSavedQuotes($r);
+	else
+		$response = $obj->getAllSavedQuotesByCompanyId(array("company_id"=>$r->company_id));
+		
+	echoResponse(200, $response);
+});
+
+$app->post('/getQuoteData', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id','quote_number'),$r);
+    $obj = new Quotation();
+    $response = $obj->getQuoteDataByQuoteNumber($r);
+    echoResponse(200, $response);
+});
+
 /*end of save quote feature comment by kavita 2april2018*/ 
 
 //this action is only for testing and development
