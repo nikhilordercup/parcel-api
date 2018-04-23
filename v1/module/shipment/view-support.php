@@ -823,7 +823,7 @@ class View_Support extends Icargo{
         $releseShipment['current_status']           = 'S';
         $releseShipment['distancemiles']            = '0.00';
         $releseShipment['estimatedtime']            = '0.00';
-        $releseShipment['icargo_execution_order']   = '0';
+        //$releseShipment['icargo_execution_order']   = '0';
 
         if($route_data["instaDispatch_loadGroupTypeCode"]=="SAME"){
             unset($releseShipment['icargo_execution_order']);

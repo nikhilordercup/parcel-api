@@ -18,6 +18,7 @@ class Module_Coreprime_Api extends Icargo
     function _postRequest($data)
     {
         $data_string = json_encode($data);
+
         //$ch = curl_init('http://occore.ordercup1.com/api/v1/rate');
         $ch = curl_init('http://occore.ordercup.com/api/v1/rate');
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");

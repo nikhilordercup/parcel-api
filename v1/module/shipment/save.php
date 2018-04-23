@@ -1151,6 +1151,7 @@ class shipment extends Library{
                 $price_breakdown["version"] = $priceVersionNo;
                 $price_breakdown["price_code"] = $key;
                 $price_breakdown["price"] = ($item!="") ? $item : "0.00";
+                $price_breakdown["baseprice"] = ($item!="") ? $item : "0.00";
                 $price_breakdown["api_key"] = "taxes";
                 $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
                 array_push($response,$price_breakdown_id);
@@ -1465,14 +1466,14 @@ class shipment extends Library{
             $transit_distance = $data->transit_distance;
             $this->company_id = $data->company_id;
             $this->warehouse_id = $data->warehouse_id;
-            $this->service_date = $data->service_date;
+            $this->service_date = date("Y-m-d", strtotime($data->service_date));
             $loadIdentity = "";
             $counter = 1;
             $this->db->startTransaction();
 
             //save collection shipment detail
             foreach($data->collection_address as $shipment_data){
-
+                $shipment_data->special_instruction = (isset($shipment_data->special_instruction)) ? $shipment_data->special_instruction : "";
                 $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Collection","jobTypeCode"=>"COLL","shipment_service_type"=>"P","icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction));
 
                 $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
@@ -1513,6 +1514,7 @@ class shipment extends Library{
             
             foreach($data->delivery_address as $shipment_data){
                 $shipment_data->parent_id = $shipmentId;
+                $shipment_data->special_instruction = (isset($shipment_data->special_instruction)) ? $shipment_data->special_instruction : "";
                 if($loadIdentity!=""){
                     $shipment_data->loadIdentity = $loadIdentity;
                 } 
