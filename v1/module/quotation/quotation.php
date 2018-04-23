@@ -323,12 +323,14 @@
 				}
 			}
 			
-			$serviceData = $this->db->getRowRecord("SELECT service_opted,expiry_date,collection_date,transit_time_text,transit_distance_text,shipment_address_json FROM " . DB_PREFIX . "quote_service WHERE quote_number = '".$param->quote_number."'");
+			$serviceData = $this->db->getRowRecord("SELECT service_opted,expiry_date,collection_date,transit_time_text,transit_distance_text,transit_time,transit_distance,shipment_address_json FROM " . DB_PREFIX . "quote_service WHERE quote_number = '".$param->quote_number."'");
 			
 			$quoteArr['serviceDate'] = $serviceData['collection_date'];
 			$quoteArr['serviceList'] = $serviceData['service_opted'];
 			$quoteArr['transit_time_text'] = $serviceData['transit_time_text'];
 			$quoteArr['transit_distance_text'] = $serviceData['transit_distance_text'];
+			$quoteArr['transit_time'] = $serviceData['transit_time'];
+			$quoteArr['transit_distance'] = $serviceData['transit_distance'];
 			$quoteArr['shipment_address_json'] = $serviceData['shipment_address_json'];
 			
 			return array("status"=>"success","quoteData"=>$quoteArr);
