@@ -1,63 +1,17 @@
 [
     {
-        "name": "palanik/corsslim",
-        "version": "v1.1.0",
-        "version_normalized": "1.1.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/palanik/CorsSlim.git",
-            "reference": "ebd2bca1fcf4711a69db43f65bb63d10c7016030"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/palanik/CorsSlim/zipball/ebd2bca1fcf4711a69db43f65bb63d10c7016030",
-            "reference": "ebd2bca1fcf4711a69db43f65bb63d10c7016030",
-            "shasum": ""
-        },
-        "require": {
-            "slim/slim": ">=2.4.0 <3.0"
-        },
-        "time": "2015-12-16T23:57:06+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "CorsSlim\\": "."
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "palanik"
-            }
-        ],
-        "description": "Cross-origin resource sharing (CORS) middleware for PHP Slim.",
-        "homepage": "https://github.com/palanik/CorsSlim",
-        "keywords": [
-            "cors",
-            "corsslim",
-            "cross-origin",
-            "preflight",
-            "slim",
-            "slimphp"
-        ]
-    },
-    {
         "name": "phpmailer/phpmailer",
-        "version": "v6.0.3",
-        "version_normalized": "6.0.3.0",
+        "version": "v6.0.5",
+        "version_normalized": "6.0.5.0",
         "source": {
             "type": "git",
             "url": "https://github.com/PHPMailer/PHPMailer.git",
-            "reference": "44d49bab5ab1fef721d3ee07e75dc0865ddf4cc6"
+            "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/44d49bab5ab1fef721d3ee07e75dc0865ddf4cc6",
-            "reference": "44d49bab5ab1fef721d3ee07e75dc0865ddf4cc6",
+            "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/cb3ea134d4d3729e7857737d5f320cce9caf4d32",
+            "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32",
             "shasum": ""
         },
         "require": {
@@ -82,7 +36,7 @@
             "stevenmaguire/oauth2-microsoft": "Needed for Microsoft XOAUTH2 authentication",
             "symfony/polyfill-mbstring": "To support UTF-8 if the Mbstring PHP extension is not enabled (^1.2)"
         },
-        "time": "2018-01-05T13:19:58+00:00",
+        "time": "2018-03-27T13:49:45+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -114,52 +68,39 @@
         "description": "PHPMailer is a full-featured email creation and transfer class for PHP"
     },
     {
-        "name": "slim/slim",
-        "version": "2.6.3",
-        "version_normalized": "2.6.3.0",
+        "name": "chargebee/chargebee-php",
+        "version": "v2.4.7",
+        "version_normalized": "2.4.7.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/slimphp/Slim.git",
-            "reference": "9224ed81ac1c412881e8d762755e3d76ebf580c0"
+            "url": "https://github.com/chargebee/chargebee-php.git",
+            "reference": "82d6a80febf04a3ba8f8df6f0e042d2ba594c108"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/slimphp/Slim/zipball/9224ed81ac1c412881e8d762755e3d76ebf580c0",
-            "reference": "9224ed81ac1c412881e8d762755e3d76ebf580c0",
+            "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/82d6a80febf04a3ba8f8df6f0e042d2ba594c108",
+            "reference": "82d6a80febf04a3ba8f8df6f0e042d2ba594c108",
             "shasum": ""
         },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "suggest": {
-            "ext-mcrypt": "Required for HTTP cookie encryption",
-            "phpseclib/mcrypt_compat": "Polyfil for mcrypt extension"
-        },
-        "time": "2017-01-07T12:21:41+00:00",
+        "time": "2018-03-29T14:42:34+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
-            "psr-0": {
-                "Slim": "."
-            }
+            "files": [
+                "lib/ChargeBee.php"
+            ]
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
             "MIT"
         ],
-        "authors": [
-            {
-                "name": "Josh Lockhart",
-                "email": "info@joshlockhart.com",
-                "homepage": "http://www.joshlockhart.com/"
-            }
-        ],
-        "description": "Slim Framework, a PHP micro framework",
-        "homepage": "http://github.com/codeguy/Slim",
+        "description": "ChargeBee API client implementation for PHP",
+        "homepage": "https://github.com/chargebee/chargebee-php",
         "keywords": [
-            "microframework",
-            "rest",
-            "router"
+            "chargebee",
+            "payments",
+            "recurring billing",
+            "subscription billing"
         ]
     }
 ]
