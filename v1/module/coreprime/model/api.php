@@ -35,7 +35,6 @@ class Coreprime_Model_Api
     function getCustomerCarrierData($customerId, $company,$courierId)
     {
         $sql = "SELECT C3.courier_id,C1.account_number,C3.token,C3.currency,C2.code,C2.icon FROM " . DB_PREFIX . "courier_vs_company_vs_customer as C1 INNER JOIN " . DB_PREFIX . "courier as C2 on C1.courier_id = C2.id INNER JOIN " . DB_PREFIX . "courier_vs_company as C3 on C1.courier_id = C3.courier_id AND C3.company_id = '$company' WHERE C1.customer_id = '$customerId' AND C3.courier_id = '$courierId' AND C1.status = 1";
-        echo $sql; die;
         return $this->_db->getRowRecord($sql);
     }
 }
