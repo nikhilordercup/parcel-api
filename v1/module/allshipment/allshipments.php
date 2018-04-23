@@ -540,5 +540,24 @@ class allShipments extends Icargo{
         }
         return $temparr;
     }
+    public function getPriceDetails($data){
+        $returndata =  array();
+        if(!empty($data)){
+          $pricedetails =  $breakdown = array();
+          $pricedetails =   $this->modelObj->getShipmentPriceDetails($data->shipid);
+          $breakdown    =   $this->modelObj->getShipmentPricebreakdownDetails($data->shipid);
+          if(!empty($pricedetails)  && !empty($breakdown)){
+           $returndata['pricedetails'] =  $pricedetails; 
+           $returndata['breakdown'] =  $breakdown;
+           $returndata['status'] =  'true'; 
+          } else{
+              $returndata['pricedetails'] =  'Data not Found'; 
+              $returndata['breakdown'] =  'Data not Found'; 
+              $returndata['status'] =  'true'; 
+              
+          } 
+         }
+       return $returndata;
+    }
 }
 ?>

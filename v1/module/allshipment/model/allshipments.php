@@ -223,5 +223,22 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getAllRecords($sql); 
         return $record;
       } 
+    public function getShipmentPriceDetails($identity){ 
+       $record = array();
+         $sqldata = 'S.*';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service AS S
+                WHERE S.load_identity = '" . $identity . "'";
+        $record = $this->db->getRowRecord($sql); 
+        return $record;
+      }
+    public function getShipmentPricebreakdownDetails($identity){ 
+       $record = array();
+         $sqldata = 'S.*';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_price AS S
+                WHERE S.load_identity = '" . $identity . "'";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+        
   }
 ?>
