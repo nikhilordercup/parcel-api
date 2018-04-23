@@ -58,8 +58,7 @@
 				$expiry_date = $this->_getCustomerQuoteExpiryDate($data->customer_id,$this->service_date);
 				$counter = 1;
 				$quoteNumber = $this->_generate_quote_no();
-				$this->db->startTransaction();
-							
+				$this->db->startTransaction();		
 
 				foreach($data->collection_shipment_address as $collection_data) {
 					$shipmentData = array("shipment_postcode"=>$collection_data->postcode,
@@ -75,13 +74,14 @@
 										   "company_id"=>$this->company_id,
 										   "warehouse_id"=>$this->warehouse_id);
 										   
+										   
 					$parcelData = array("parcel_weight"=>1,
 										"parcel_height"=>1,
 										"parcel_length"=>1,
 										"parcel_width"=>1,
 										"parcel_type"=>"P",
 										"company_id"=>$this->company_id,
-										"warehouse_id"=>$this->warehouse_id);				   
+										"warehouse_id"=>$this->warehouse_id);		   
 
 					$shipmentStatus = $this->_saveSamedayQuote(array("shipment_data"=>$shipmentData,"parcel_data"=>$parcelData));
 					++$counter;
@@ -120,9 +120,9 @@
 					$shipmentService['collection_date'] = $this->service_date;//$service_date[0];
 					$shipmentService['collection_time'] = $this->service_time;//$service_date[1];
 					$shipmentService['expiry_date'] = $this->_getCustomerQuoteExpiryDate($data->customer_id,$this->service_date);
-					$shipmentService['service_opted'] = json_encode($data->service_detail);
-					$shipmentService['service_request_string'] = json_encode($data->service_request_string);
-					$shipmentService['service_response_string'] = json_encode($data->service_response_string);
+					$shipmentService['service_opted'] = json_encode($data->service_detail);//$data->service_detail;
+					$shipmentService['service_request_string'] = json_encode($data->service_request_string);//$data->service_request_string;
+					$shipmentService['service_response_string'] = json_encode($data->service_response_string);//$data->service_response_string;
 					$shipmentService['transit_time'] = $data->transit_time;
 					$shipmentService['transit_distance'] = $data->transit_distance;
 					$shipmentService['transit_time_text'] = $data->transit_time_text;
