@@ -1625,6 +1625,64 @@ $app->post('/generateReport', function() use($app){
     echoResponse(200, $response);
 });
 
+$app->post('/loadCountry', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    $obj = new Common();
+    $response = $obj->countryList(array("controller_id"=>$r->company_id));
+    echoResponse(200, $response);
+});
+
+$app->post('/getParcelPackage', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $dummyData = array("0"=>array("name"=>"Parcels","id"=>"1"));
+    echoResponse(200, $dummyData);
+});
+
+$app->post('/getNextdayAvailableCarrier', function() use ($app){
+
+    echo '[{"ukmail":{"services":{"1":[{"rate":{"price":"4.5","rate_type":"Weight","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"\/icons\/original\/missing.png","max_delivery_time":null,"service_name":"Next working day","service_code":"1","service_icon":null,"service_description":"Next working day description"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0,"fuel_surcharge":0.16},"taxes":{"total_tax":0.466}}]},"carrier_info":{"carrier_code":"ukmail","carrier_name":"UkMail","carrier_icon":"assets\/images\/carrier\/dhl.png","carrier_description":"courier information goes here","carrier_id":"2"}}}]';die;
+
+    $r = json_decode($app->request->getBody());
+    $obj = new Nextday($r);
+    $response = $obj->searchNextdayAvailableCarrier();
+
+
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});
+
+$app->post('/bookNextDayJob', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Booking($r);
+    $obj->saveNextDayBooking($r);
+});
+
+$app->post('/savePackage', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Module_Package_Index($r);
+    $response = $obj->savePackage($r);
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});
+$app->post('/getPriceDetails', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new allShipments($r);
+    $response = $obj->getPriceDetails($r);
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});
+
+
+
 /*end of report module comment by kavita 20march2018*/
 
 $app->post('/loadCountry', function() use ($app) {
