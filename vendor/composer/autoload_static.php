@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde
+class ComposerStaticInit4455734f2800240b3ba14c3bbf107559
 {
     public static $files = array (
         '8dd32984d4cd58147cb41bf3844153c3' => __DIR__ . '/..' . '/chargebee/chargebee-php/lib/ChargeBee.php',
@@ -27,8 +27,8 @@ class ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde::$prefixDirsPsr4;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit4455734f2800240b3ba14c3bbf107559::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit4455734f2800240b3ba14c3bbf107559::$prefixDirsPsr4;
 
         }, null, ClassLoader::class);
     }
