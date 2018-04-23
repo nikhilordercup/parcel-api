@@ -202,6 +202,10 @@ class Customer extends Icargo{
       $addressBook['billing_address'] = "Y"; 
       $addressBook['pickup_address'] = "N"; 
       $addressId    = $this->modelObj->addContent("address_book",$addressBook);
+	  
+	  //save default address by entering data in relation table added by kavita 19april2018
+	  $relationData = array("address_id"=>$addressId,"user_id"=>$param->customer_id,"default_address"=>"Y","pickup_address"=>"0","billing_address"=>"1");
+	  $relationAddressId = $this->modelObj->addContent("user_address",$relationData);
       
       $data = array();
       $data['billing_full_name'] =   $addressBook['name'];

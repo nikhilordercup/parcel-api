@@ -1670,6 +1670,16 @@ $app->post('/savePackage', function() use ($app){
         echoResponse(200, $response);
     }
 });
+$app->post('/getPriceDetails', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new allShipments($r);
+    $response = $obj->getPriceDetails($r);
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});
 
 
 

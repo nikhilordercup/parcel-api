@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a2a8d7e7-f870-43b4-a8e8-856f60ba79de" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/v1/module/addressbook/addressbook.php" afterPath="$PROJECT_DIR$/v1/module/addressbook/addressbook.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/controller/controller.php" afterPath="$PROJECT_DIR$/v1/module/controller/controller.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/coreprime/api.php" afterPath="$PROJECT_DIR$/v1/module/coreprime/api.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/shipment/save.php" afterPath="$PROJECT_DIR$/v1/module/shipment/save.php" />
-      <change beforePath="$PROJECT_DIR$/v1/module/shipment/view-support.php" afterPath="$PROJECT_DIR$/v1/module/shipment/view-support.php" />
-    </list>
+    <list default="true" id="a2a8d7e7-f870-43b4-a8e8-856f60ba79de" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
