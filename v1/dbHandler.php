@@ -96,7 +96,11 @@ class DbHandler {
 	}
 	
 	public function delete($query){
-		$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+		//$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+        $r = $this->conn->query($query);
+		if(!$r){
+            throw new Exception($this->conn->error.__LINE__);
+		}
 		return $r;
 	}
 	
@@ -106,21 +110,38 @@ class DbHandler {
 		if($condition)
 			$query .= " WHERE $condition";
 		$query .= ";";
-		$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-		return $r;
+
+        $r = $this->conn->query($query);
+        if($r)
+        	return $r;
+        else
+            throw new Exception($this->conn->error.__LINE__);
+		//$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+		//return $r;
 	}
 	
 	public function save($table_name, $data){
 		$query = $this->_prepare_sql_col_val_statement($data);
 		$query = "INSERT INTO `" . DB_PREFIX . "$table_name` SET $query;";
-		$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+
+        $r = $this->conn->query($query);
+
+        if ($r) {
+            $new_row_id = $this->conn->insert_id;
+            return $new_row_id;
+        } else {
+        	print_r($query);
+            throw new Exception($this->conn->error.__LINE__);
+        }
+
+		/*$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 
         if ($r) {
 			$new_row_id = $this->conn->insert_id;
 			return $new_row_id;
 		} else {
 			return NULL;
-        }
+        }*/
 	}
 	
 	public function getSession(){

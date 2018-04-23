@@ -1033,7 +1033,7 @@ class shipment extends Library{
 
             $data['shipment_pod'] = '';
             $data['shipment_ticket'] = $ticketNumber;
-            $data['shipment_required_service_date'] = $param["service_date"];
+            $data['shipment_required_service_date'] = date("Y-m-d", strtotime($param["service_date"]));
             $data['current_status'] = 'C';
             $data['is_shipment_routed'] = '0';
             $data['is_driver_assigned'] = '0';
@@ -1065,14 +1065,14 @@ class shipment extends Library{
 
             $data["notification_status"] = (isset($param['notification'])) ? $param['notification'] : "0";
 
-            $data['shipment_address1'] = $param["address_line1"];
-            $data['shipment_address2'] = $param["address_line2"];
-            $data['shipment_customer_city'] = $param["city"];
-            $data['shipment_postcode'] = $param["postcode"];
-            $data['shipment_customer_country'] = $param["country"];
+            $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
+            $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
+            $data['shipment_customer_city'] = (isset($param["city"])) ? $param["city"]: "";
+            $data['shipment_postcode'] = (isset($param["postcode"])) ? $param["postcode"] : "";
+            $data['shipment_customer_country'] = (isset($param["country"])) ? $param["country"] : "";
             $data['shipment_instruction'] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
-//print_r($data);die;
+
             //save address first then save shipment detail with address id
             $shipmentId = $this->db->save("shipment", $data);
 
@@ -1089,50 +1089,53 @@ class shipment extends Library{
     private
     
     function _saveShipmentPriceBreakdown($param)
-    {
-        $price_breakdown = array();
+    {   
         $shipmentId = $param["shipment_id"];
         $priceVersionNo = $param["version"];
         $shipmentType = $param["shipment_type"];
-        //$serviceOpted = $param["service_opted"];
-        $price_breakdown["shipment_type"] = $shipmentType;
-        $price_breakdown["shipment_id"] = $shipmentId;
-        $price_breakdown["version"] = $priceVersionNo;
-        $price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
-	    
         $response = array();
-        
-        if(isset($param->total_price)){
-            $price_breakdown["price_code"] = "total_price";
-            $price_breakdown["price"] = $param->total_price;
-            $price_breakdown["api_key"] = "total_price";
-            //save record
-            $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
+       //save service
+        if(isset($param["service_opted"]->otherinfo)){
+            $servicePriceinfoInfo = array();
+            $servicePriceinfoInfo =  unserialize(str_rot13($param["service_opted"]->otherinfo));
+            $service_price_breakdown = array();
+            $service_price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
+            $service_price_breakdown["shipment_id"] = $shipmentId;
+            $service_price_breakdown["shipment_type"] = $shipmentType;
+            $service_price_breakdown["version"] = $priceVersionNo;
+            $service_price_breakdown["api_key"] = "service";
+            $service_price_breakdown["price_code"] = $servicePriceinfoInfo['courier_service_code'];
+            $service_price_breakdown["ccf_operator"] = $servicePriceinfoInfo['operator'];
+            $service_price_breakdown["ccf_value"] = $servicePriceinfoInfo['ccf_value'];
+            $service_price_breakdown["ccf_level"] = $servicePriceinfoInfo['level'];
+            $service_price_breakdown["baseprice"] = $servicePriceinfoInfo['originalprice'];
+            $service_price_breakdown["ccf_price"] = $servicePriceinfoInfo['price'];
+            $service_price_breakdown["price"] = ($service_price_breakdown["baseprice"] + $service_price_breakdown["ccf_price"]);
+            $service_price_breakdown["service_id"] = $servicePriceinfoInfo['service_id'];
+            $price_breakdown_id = $this->db->save("shipment_price", $service_price_breakdown);
+            array_push($response,$price_breakdown_id);
             
-            array_push($response,$price_breakdown_id);
-        }
-        if(isset($param->service_opted->courier_commission_value)){
-            $price_breakdown["price_code"] = "courier_commission";
-            $price_breakdown["price"] = $param->service_opted->courier_commission_value;
-            $price_breakdown["api_key"] = "courier_commission";
-            //save record
-            $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
-            array_push($response,$price_breakdown_id);
-        }
-        if(isset($param->service_opted->base_price)){
-            $price_breakdown["price_code"] = "base_price";
-            $price_breakdown["price"] = $param->service_opted->base_price;
-            $price_breakdown["api_key"] = "base_price";
-            //save record
-            $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
-            array_push($response,$price_breakdown_id);
-        }
+        }  
+        
         //save surcharges
-        if(isset($param["service_opted"]->surcharges)){
-            foreach($param["service_opted"]->surcharges as $key => $item){
-                $price_breakdown["price_code"] = $key;
-                $price_breakdown["price"] = ($item!="") ? $item : "0.00";
+        if(isset($param["service_opted"]->surchargesinfo)){
+            foreach($param["service_opted"]->surchargesinfo as $key => $item){
+                $surchargeInfo = array();
+                $surchargeInfo = unserialize(str_rot13($item->info));
+                $price_breakdown = array();
+                $price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
+                $price_breakdown["shipment_id"] = $shipmentId;
+                $price_breakdown["shipment_type"] = $shipmentType;
+                $price_breakdown["version"] = $priceVersionNo;
                 $price_breakdown["api_key"] = "surcharges";
+                $price_breakdown["price_code"] = $key;
+                $price_breakdown["ccf_operator"] = $surchargeInfo['operator'];
+                $price_breakdown["ccf_value"] = $surchargeInfo['surcharge_value'];
+                $price_breakdown["ccf_level"] = $surchargeInfo['level'];
+                $price_breakdown["baseprice"] = $surchargeInfo['originalprice'];
+                $price_breakdown["ccf_price"] = $surchargeInfo['price'];
+                $price_breakdown["price"] = ($price_breakdown["baseprice"] + $price_breakdown["ccf_price"]);
+                $price_breakdown["surcharge_id"] = $surchargeInfo['surcharge_id'];
                 $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
                 array_push($response,$price_breakdown_id);
             }
@@ -1141,8 +1144,14 @@ class shipment extends Library{
         //save surcharges
         if(isset($param["service_opted"]->taxes)){
             foreach($param["service_opted"]->taxes as $key => $item){
+                $price_breakdown = array();
+                $price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
+                $price_breakdown["shipment_id"] = $shipmentId;
+                $price_breakdown["shipment_type"] = $shipmentType;
+                $price_breakdown["version"] = $priceVersionNo;
                 $price_breakdown["price_code"] = $key;
                 $price_breakdown["price"] = ($item!="") ? $item : "0.00";
+                $price_breakdown["baseprice"] = ($item!="") ? $item : "0.00";
                 $price_breakdown["api_key"] = "taxes";
                 $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
                 array_push($response,$price_breakdown_id);
@@ -1158,23 +1167,35 @@ class shipment extends Library{
         $_attribute = array();
         $service_id = "";
         $_data["surcharges"] = 0;
-        $_data["taxes"] = 0; 
-        $_data["carrier"] = '1';
-        
-            
+        $_data["taxes"] = 0;
+        $_data["charge_from_base"] = 0;
+        if(isset($param->otherinfo)){
+            $param->otherinfo =  unserialize(str_rot13($param->otherinfo));
+        }
+       if(isset($param->surchargesinfo)){
+            foreach($param->surchargesinfo as $key => $item){
+                $item->info = unserialize(str_rot13($item->info));
+            }
+        }
         $data_string = json_encode($param);
-        
+        $_data["carrier"] = $param->otherinfo['courier_id']; 
+        $_data["courier_commission_type"]   = $param->otherinfo['operator']; 
+        $_data["courier_commission_value"]  = $param->otherinfo['ccf_value'];
+        $_data["courier_commission"]        = $param->otherinfo['ccf_value']; 
+        $_data["base_price"]                = $param->otherinfo['originalprice']; 
+        $_data["total_price"]               = $_data["base_price"]  + $_data["courier_commission"];
+        unset($param->surchargesinfo);
+        unset($param->otherinfo);
+        unset($param->base_price);
+        unset($param->total_price);
         $_attribute["shipment_id"] = $param->shipment_id;
-        
         if(isset($param->icon)){
             $_attribute["column_name"] = "icon";
             $_attribute["value"] = $param->icon;
             $_attribute["api_key"] = "icon";
             $attribute_id = $this->db->save("shipment_attributes", $_attribute);
-            
             unset($param->icon);
         }
-        
         if(isset($param->dimensions)){
             foreach($param->dimensions as $column=>$item){
                 $_attribute["column_name"] = $column;
@@ -1184,7 +1205,6 @@ class shipment extends Library{
             }
             unset($param->dimensions);
         }
-        
         if(isset($param->weight)){
             foreach($param->weight as $column=>$item){
                 $_attribute["column_name"] = $column;
@@ -1214,15 +1234,17 @@ class shipment extends Library{
             $_data["taxes"] = array_sum((array)$param->taxes);
             unset($param->taxes);
         }
-        
+         
         foreach($param as $column=>$item)
             $_data[$column] = $item;
-        
-        if($_data["charge_from_base"]==""){
+        if(isset($_data["charge_from_base"])){
+              if($_data["charge_from_base"]==""){
             $_data["charge_from_base"] = 0;
-        }
-       
+        }}
         if($_data){
+            $_data["grand_total"] = $_data['total_price'] + $_data['surcharges'] + $_data['taxes'];
+            $_data["chargable_value"] = 0.00;
+            $_data["invoice_reference"] ='';
             $_data["json_data"] = $data_string;
             $service_id = $this->db->save("shipment_service", $_data);
         }
@@ -1289,7 +1311,7 @@ class shipment extends Library{
             $data["address_type"] = (isset($address["type"])) ? $address["type"] : "";//address_type
             
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
-            
+
             $address_id = $this->_getAddressBySearchStringAndCustomerId($address["customer_id"], $data["search_string"]);
             
             if(!$address_id){
@@ -1389,7 +1411,7 @@ class shipment extends Library{
         $_data["service_starttime"] = (isset($param["service_date"])) ? date("H:i:s", strtotime($param["service_date"])) : date("H:i:s", $timestamp);
 
         $_data["service_endtime"] = (isset($param["service_date"])) ? date("H:i:s", strtotime($param["service_date"])) : date("H:i:s", $timestamp);
-        $_data["shipment_required_service_date"] = (isset($_data["shipment_required_service_date"])) ? $_data["shipment_required_service_date"] : "Not Set";
+        $_data["shipment_required_service_date"] = (isset($_data["shipment_required_service_date"])) ? date("Y-m-d",strtotime($_data["shipment_required_service_date"])) : "1970-01-01";
         $_data["customer_id"] = (isset($param["customer_id"])) ? $param["customer_id"] : "0";
         $_data["collection_user_id"] = (isset($param["collection_user_id"])) ? $param["collection_user_id"] : "0";
 		$_data["userid"] = (isset($param["userid"])) ? $param["userid"] : "0";
@@ -1419,6 +1441,7 @@ class shipment extends Library{
         
     function bookSameDayShipment($data)
     {   
+        
         //check customer is enable or not  shipment_instruction
         $customerStatus = $this->db->getRowRecord("SELECT status FROM ".DB_PREFIX."users WHERE id = '$data->customer_id' AND status=1");
         if($customerStatus){
@@ -1436,7 +1459,6 @@ class shipment extends Library{
                 }
             
             $shipmentData = array();
-            $courier_commission_type = "percentage";
             $service_id = false;
             $shipmentId = 0;
             $timestamp = strtotime("now");
@@ -1444,14 +1466,14 @@ class shipment extends Library{
             $transit_distance = $data->transit_distance;
             $this->company_id = $data->company_id;
             $this->warehouse_id = $data->warehouse_id;
-            $this->service_date = $data->service_date;
+            $this->service_date = date("Y-m-d", strtotime($data->service_date));
             $loadIdentity = "";
             $counter = 1;
             $this->db->startTransaction();
 
             //save collection shipment detail
             foreach($data->collection_address as $shipment_data){
-
+                $shipment_data->special_instruction = (isset($shipment_data->special_instruction)) ? $shipment_data->special_instruction : "";
                 $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Collection","jobTypeCode"=>"COLL","shipment_service_type"=>"P","icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction));
 
                 $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
@@ -1469,31 +1491,33 @@ class shipment extends Library{
                     $shipmentService->price_version = $priceVersionNo;
                     $shipmentService->shipment_id = $shipmentId;
                     $shipmentService->customer_id = $data->customer_id;
-                    $shipmentService->courier_commission_type = $courier_commission_type;
+                    //$shipmentService->courier_commission_type = $courier_commission_type;
+                   
                     $shipmentService->transit_distance = $data->transit_distance;
                     $shipmentService->transit_time = $data->transit_time;
                     $shipmentService->transit_time_text = $data->transit_time_text;
                     $shipmentService->transit_distance_text = $data->transit_distance_text;
                     $shipmentService->load_identity = $loadIdentity;
-
+					$shipmentService->service_request_string = ''; //json_encode($data->service_request_string);
+					$shipmentService->service_response_string = '';//json_encode($data->service_request_string);
                     unset($shipmentService->message);
                     //save shipment price breakdown
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"shipment_id"=>$shipmentId,"version"=>$priceVersionNo));
                     //save shipment price detail
-                    
                     $service_id = $this->_saveShipmentService($shipmentService);
                     ++$counter;
-                }elseif($shipmentStatus["status"]=="error"){
+                }
+                elseif($shipmentStatus["status"]=="error"){
                     return $shipmentStatus;
                 }
             }
             
             foreach($data->delivery_address as $shipment_data){
                 $shipment_data->parent_id = $shipmentId;
+                $shipment_data->special_instruction = (isset($shipment_data->special_instruction)) ? $shipment_data->special_instruction : "";
                 if($loadIdentity!=""){
                     $shipment_data->loadIdentity = $loadIdentity;
-                }
-
+                } 
                 $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Delivery","jobTypeCode"=>"DELV","shipment_service_type"=>"D","load_identity"=>$loadIdentity,"icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction));
 
                 $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
@@ -1503,13 +1527,12 @@ class shipment extends Library{
                     $shipmentId = $shipmentStatus["shipment_id"];
                     //find version number of shipment price
                     $priceVersionNo = $this->_findPriceNextVersionNo($shipmentId);
-                    
                     $shipmentService = $data->service_opted;
                     
                     $shipmentService->price_version = $priceVersionNo;
                     $shipmentService->shipment_id = $shipmentId;
                     $shipmentService->customer_id = $data->customer_id;
-                    $shipmentService->courier_commission_type = $courier_commission_type;
+                    //$shipmentService->courier_commission_type = $courier_commission_type;
                     
                     unset($shipmentService->message);
                     //save shipment price detail

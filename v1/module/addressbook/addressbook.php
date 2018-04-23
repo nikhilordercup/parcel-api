@@ -140,6 +140,7 @@ class Module_Addressbook_Addressbook extends Icargo{
 				"state"=>$addresses["state"],
 				"address_line1"=>$addresses["address_line1"],
 				"address_line2"=>$addresses["address_line2"],
+				"postcode"=>$addresses["postcode"],
 				"country"=>$addresses["country"]),"origin"=>"local");
 		}
     }

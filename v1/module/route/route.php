@@ -274,8 +274,9 @@ class Route extends Icargo{
 	public function resolvePostcode($shipmentId,$postCode){
 	    require_once __DIR__.'/../../library.php';
 	    $library=new Library();
-	    $latlang=$library->get_lat_long_by_postcode($postCode);
-	    if(!$latlang['location_error']){
+	    //$latlang=$library->get_lat_long_by_postcode($postCode);
+        $latlang=$library->get_lat_long_by_address_for_resolve_route($postCode.',UK');
+	    if($latlang['status']=='success'){
 	        $data="shipment_latitude='".$latlang['latitude']."', shipment_longitude='".$latlang['longitude']."', error_flag=0";
             $this->_parentObj->db->updateData("UPDATE ".DB_PREFIX."shipment SET ".$data." WHERE shipment_id=$shipmentId");
             echo json_encode(array("success"=>true,'location'=>$latlang));
