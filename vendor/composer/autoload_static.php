@@ -4,16 +4,16 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit4455734f2800240b3ba14c3bbf107559
+class ComposerStaticInitc263abab0d259b689ddd808a8902541a
 {
+    public static $files = array (
+        '8dd32984d4cd58147cb41bf3844153c3' => __DIR__ . '/..' . '/chargebee/chargebee-php/lib/ChargeBee.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'P' => 
         array (
             'PHPMailer\\PHPMailer\\' => 20,
-        ),
-        'C' => 
-        array (
-            'CorsSlim\\' => 9,
         ),
     );
 
@@ -22,28 +22,13 @@ class ComposerStaticInit4455734f2800240b3ba14c3bbf107559
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
-        'CorsSlim\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/palanik/corsslim',
-        ),
-    );
-
-    public static $prefixesPsr0 = array (
-        'S' => 
-        array (
-            'Slim' => 
-            array (
-                0 => __DIR__ . '/..' . '/slim/slim',
-            ),
-        ),
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit4455734f2800240b3ba14c3bbf107559::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit4455734f2800240b3ba14c3bbf107559::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit4455734f2800240b3ba14c3bbf107559::$prefixesPsr0;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitc263abab0d259b689ddd808a8902541a::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitc263abab0d259b689ddd808a8902541a::$prefixDirsPsr4;
 
         }, null, ClassLoader::class);
     }

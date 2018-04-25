@@ -21,36 +21,36 @@ class Report extends Icargo{
 	}
 	
 	public function generateReport(){
-		// output headers so that the file is downloaded rather than displayed
-header('Content-type: text/csv');
-header('Content-Disposition: attachment; filename="demo.csv"');
- 
-// do not cache the file
-header('Pragma: no-cache');
-header('Expires: 0');
-$path = dirname(dirname(dirname(dirname(dirname(__FILE__)))))."\output\.".time().".csv";
-//echo $path;die;
- //echo dirname(dirname(dirname(dirname(dirname(__FILE__)))));die;
-// create a file pointer connected to the output stream
-$file = fopen($path, 'w');
- 
-// send the column headers
-fputcsv($file, array('Driver Name', 'Date', 'No of Drops'));
- 
-// Sample data. This can be fetched from mysql too
-$data = array(
-array('Nishant', '22-03-2018', '4'),
-array('Roopesh', '22-03-2018', '6'),
-array('Perceptive', '22-03-2018', '8'),
-array('Test', '22-03-2018', '10'));
- 
-// output each row of the data
-foreach ($data as $row)
-{
-fputcsv($file, $row);
-}
- 
-exit();
+				// output headers so that the file is downloaded rather than displayed
+		header('Content-type: text/csv');
+		header('Content-Disposition: attachment; filename="demo.csv"');
+		 
+		// do not cache the file
+		header('Pragma: no-cache');
+		header('Expires: 0');
+		$path = dirname(dirname(dirname(dirname(dirname(__FILE__)))))."\output\.".time().".csv";
+		//echo $path;die;
+		 //echo dirname(dirname(dirname(dirname(dirname(__FILE__)))));die;
+		// create a file pointer connected to the output stream
+		$file = fopen($path, 'w');
+		 
+		// send the column headers
+		fputcsv($file, array('Driver Name', 'Date', 'No of Drops'));
+		 
+		// Sample data. This can be fetched from mysql too
+		$data = array(
+		array('Nishant', '22-03-2018', '4'),
+		array('Roopesh', '22-03-2018', '6'),
+		array('Perceptive', '22-03-2018', '8'),
+		array('Test', '22-03-2018', '10'));
+		 
+		// output each row of the data
+		foreach ($data as $row)
+		{
+		fputcsv($file, $row);
+		}
+		 
+		exit();
 	}
 }
 ?>

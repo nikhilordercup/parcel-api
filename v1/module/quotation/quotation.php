@@ -161,7 +161,7 @@
 		}
 		
 		private function _getServiceDataByQuoteNumber($quote_number){
-			return $this->db->getRowRecord("SELECT service_opted,collection_date,collection_time,service_response_string FROM ".DB_PREFIX."quote_service WHERE quote_number = '".$quote_number."'");
+			return $this->db->getRowRecord("SELECT service_opted,collection_date,collection_time,service_response_string,transit_time FROM ".DB_PREFIX."quote_service WHERE quote_number = '".$quote_number."'");
 		}
 		
 		private function _getTemplateByTemplateCode($company_id,$template_code){
@@ -226,11 +226,11 @@
 					}
 					$html = '';	
 					$serviceDetail = json_decode($serviceData['service_opted']);
-					$requestString = json_decode($serviceData['service_request_string']);
+					//$requestString = json_decode($serviceData['service_response_string']);
 
 					$collectionTimeStamp = strtotime($data->service_date);
 
-					$transitTimeStamp = $requestString->transit_time;
+					$transitTimeStamp = $serviceData['transit_time'];
 					$deliveryTimeStamp = $collectionTimeStamp + $transitTimeStamp;
 
 					$deliveryDateTime = date("D d M H:i:s Y", $deliveryTimeStamp);
@@ -323,9 +323,11 @@
 				}
 			}
 			
-			$serviceData = $this->db->getRowRecord("SELECT service_opted,expiry_date,collection_date,transit_time_text,transit_distance_text,transit_time,transit_distance,shipment_address_json FROM " . DB_PREFIX . "quote_service WHERE quote_number = '".$param->quote_number."'");
+			$serviceData = $this->db->getRowRecord("SELECT service_opted,expiry_date,collection_date,collection_time,transit_time_text,transit_distance_text,transit_time,transit_distance,shipment_address_json FROM " . DB_PREFIX . "quote_service WHERE quote_number = '".$param->quote_number."'");
 			
 			$quoteArr['serviceDate'] = $serviceData['collection_date'];
+			$quoteArr['serviceTime'] = date('h:i:s',strtotime($serviceData['collection_time']));
+			$quoteArr['collectionDateTime'] = $quoteArr['serviceDate'].' '.$quoteArr['serviceTime'];
 			$quoteArr['serviceList'] = $serviceData['service_opted'];
 			$quoteArr['transit_time_text'] = $serviceData['transit_time_text'];
 			$quoteArr['transit_distance_text'] = $serviceData['transit_distance_text'];
