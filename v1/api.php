@@ -623,6 +623,9 @@ $app->post('/PauseAssignedRouteByShipmentRouteId', function() use ($app) {
 
 $app->post('/routeCompleted', function() use($app){
 	$r = json_decode($app->request->getBody());
+	//testing
+		print_r($r);die;
+	//end of testing
 	verifyRequiredParams(array('shipment_route_id','company_id','email','access_token'),$r);
 	$obj = new Route_Complete(array('shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'email'=>$r->email,'access_token'=>$r->access_token));
 	$response = $obj->saveCompletedRoute();
