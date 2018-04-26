@@ -1466,7 +1466,8 @@ class shipment extends Library{
             $transit_distance = $data->transit_distance;
             $this->company_id = $data->company_id;
             $this->warehouse_id = $data->warehouse_id;
-            $this->service_date = date("Y-m-d", strtotime($data->service_date));
+            $this->service_date = date("Y-m-d h:i:s", strtotime($data->service_date));
+
             $loadIdentity = "";
             $counter = 1;
             $this->db->startTransaction();
