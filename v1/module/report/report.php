@@ -91,9 +91,9 @@ class Report extends Icargo{
 	
 	public function downloadReportCsv($param){
 		$reportData = array();
-		$data = '[{"driver_name":"Nishant","start_date":"04-21-2018","end_date":"04-28-2018","total_time_on_job":67,"total_drops":3,"total_jobs":4,"days":"7","total_miles":4.02151435616,"daily_drop_rate":0.42857142857143,"average_speed":96.597014925373,"average_time_per_drop":22.333333333333,"details":""},{"driver_name":"Nishant","start_date":"04-21-2018","end_date":"04-28-2018","total_time_on_job":67,"total_drops":3,"total_jobs":4,"days":"7","total_miles":4.02151435616,"daily_drop_rate":0.42857142857143,"average_speed":96.597014925373,"average_time_per_drop":22.333333333333,"details":""},{"driver_name":"Nishant","start_date":"04-21-2018","end_date":"04-28-2018","total_time_on_job":67,"total_drops":3,"total_jobs":4,"days":"7","total_miles":4.02151435616,"daily_drop_rate":0.42857142857143,"average_speed":96.597014925373,"average_time_per_drop":22.333333333333,"details":""}]';
-		$csvData = json_decode($data);
-        foreach($csvData as $item){
+		/* $data = '[{"driver_name":"Nishant","start_date":"04-21-2018","end_date":"04-28-2018","total_time_on_job":67,"total_drops":3,"total_jobs":4,"days":"7","total_miles":4.02151435616,"daily_drop_rate":0.42857142857143,"average_speed":96.597014925373,"average_time_per_drop":22.333333333333,"details":""},{"driver_name":"Nishant","start_date":"04-21-2018","end_date":"04-28-2018","total_time_on_job":67,"total_drops":3,"total_jobs":4,"days":"7","total_miles":4.02151435616,"daily_drop_rate":0.42857142857143,"average_speed":96.597014925373,"average_time_per_drop":22.333333333333,"details":""},{"driver_name":"Nishant","start_date":"04-21-2018","end_date":"04-28-2018","total_time_on_job":67,"total_drops":3,"total_jobs":4,"days":"7","total_miles":4.02151435616,"daily_drop_rate":0.42857142857143,"average_speed":96.597014925373,"average_time_per_drop":22.333333333333,"details":""}]';
+		$csvData = json_decode($data); */
+        foreach($param->data as $item){
 			array_push($reportData,array($item->driver_name,$item->start_date,$item->end_date,$item->total_time_on_job,$item->total_drops,$item->total_jobs,$item->days,$item->total_miles,$item->daily_drop_rate,$item->average_speed,$item->average_time_per_drop));
 		}
 
@@ -104,22 +104,23 @@ class Report extends Icargo{
 		// do not cache the file
 		header('Pragma: no-cache');
 		header('Expires: 0');
-		$path = dirname(dirname(dirname(dirname(dirname(__FILE__)))))."\icargo\output\.".time().".csv";
+		$fileName = time().".csv";
+		$path = dirname(dirname(dirname(dirname(dirname(__FILE__))))).'\icargo\output\/'.$fileName;
 		//echo $path;die;
 		 //echo dirname(dirname(dirname(dirname(dirname(__FILE__)))));die;
 		// create a file pointer connected to the output stream
 		$file = fopen($path, 'w');
 
 		// send the column headers
-		fputcsv($file, array('Driver Name','Start Date','End Date','Total Time On Job','Total Drops','Total Jobs','Days','Total Miles','Daily Drop Rate','Average Speed','Average Time Per Drop'));
+		$headers = array('Driver Name','Start Date','End Date','Total Time On Job','Total Drops','Total Jobs','Days','Total Miles','Daily Drop Rate','Average Speed','Average Time Per Drop');
+		fputcsv($file,$headers);
 		// output each row of the data
 		foreach ($reportData as $row)
 		{
-
 			fputcsv($file, $row);
 		}
 		 
-		exit();
+		return array("status"=>"success","message"=>"csv generated successfully","file_path"=>"http://localhost/projects/icargo/output/".$fileName);
 	}
 }
 ?>
