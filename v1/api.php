@@ -1620,8 +1620,7 @@ $app->post('/generateReport', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id'),$r);
     $obj = new Report($r);
-    $response = $obj->generateReport();
-	print_r($response);die;
+    $response = $obj->generateReport($r);
     echoResponse(200, $response);
 });
 
@@ -1769,6 +1768,26 @@ $app->post('/getQuoteData', function() use($app){
     echoResponse(200, $response);
 });
 /*end of save quote feature comment by kavita 2april2018*/ 
+
+/*start report type*/
+$app->post('/getAllActiveReportsByServiceType', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id','service_type'),$r);
+    $obj = new Report($r);
+    $response = $obj->getAllActiveReportsByServiceType($r);
+    echoResponse(200, $response);
+});
+/*end report type*/
+
+/*start download report csv*/
+$app->post('/downloadReportCsv', function() use($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Report($r);
+    $response = $obj->downloadReportCsv($r);
+    echoResponse(200, $response);
+});
+
+/*end download report csv*/
 
 
 //this action is only for testing and development
