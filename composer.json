@@ -1,6 +1,6 @@
 {
-    "require": {
-        "phpmailer/phpmailer": "^6.0",
-        "chargebee/chargebee-php":  "*"
-    }
+	"require": {
+		"phpmailer/phpmailer": "^6.0",
+		"chargebee/chargebee-php": "*"
+	}
 }
