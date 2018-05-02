@@ -38,7 +38,6 @@ class Route_Complete extends Icargo{
 				}
 				$result[$temp1['for']][] = $timestampDiff;
 			}
-			//echo '<pre/>';print_r($result);die;
 			foreach($result as $type=>$time_taken){
 				$saveDriverTimeData = $this->modelObj->saveDriverTimeData(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$driverId["assigned_driver"],"status"=>$type,"time_taken"=>array_sum($time_taken),"create_date"=>date('Y-m-d')));
 			}
