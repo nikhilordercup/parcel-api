@@ -1,7 +1,7 @@
 <?php
     class Quotation extends Library
     {
-		private $headerMsg = "Icargo Quotation Email";
+		private $headerMsg = "Icargo Quotation - __quote_number__";
 		
 		public function __construct($param = array()){
 			$this->db = new DbHandler();
@@ -161,7 +161,7 @@
 		}
 		
 		private function _getServiceDataByQuoteNumber($quote_number){
-			return $this->db->getRowRecord("SELECT service_opted,collection_date,collection_time,service_response_string FROM ".DB_PREFIX."quote_service WHERE quote_number = '".$quote_number."'");
+			return $this->db->getRowRecord("SELECT service_opted,collection_date,collection_time,service_response_string,transit_time FROM ".DB_PREFIX."quote_service WHERE quote_number = '".$quote_number."'");
 		}
 		
 		private function _getTemplateByTemplateCode($company_id,$template_code){
@@ -226,11 +226,11 @@
 					}
 					$html = '';	
 					$serviceDetail = json_decode($serviceData['service_opted']);
-					$requestString = json_decode($serviceData['service_request_string']);
+					//$requestString = json_decode($serviceData['service_response_string']);
 
 					$collectionTimeStamp = strtotime($data->service_date);
 
-					$transitTimeStamp = $requestString->transit_time;
+					$transitTimeStamp = $serviceData['transit_time'];
 					$deliveryTimeStamp = $collectionTimeStamp + $transitTimeStamp;
 
 					$deliveryDateTime = date("D d M H:i:s Y", $deliveryTimeStamp);
@@ -239,7 +239,7 @@
 					foreach($serviceDetail as $service){
 						
 						if($counter % 2){
-							$color = '#F6CEF5';
+							$color = '#bfbfbf';
 						}else{
 							$color = '#FFF';
 						}
@@ -259,14 +259,14 @@
 						$counter++;
 					}
 					$service_detail_str = $html;
-					$subject_msg = $this->headerMsg;
+					$subject_msg = str_replace(array("__quote_number__"),array($quoteSave['quote_number']),$this->headerMsg);
 					$collection_postcode = implode("",$templateMsg['collection_postcode']);
 					$delivery_postcode = implode(",",$templateMsg['delivery_postcode']);
-					$template_msg = str_replace(array("__quote_number__","__shipping_date__","__collection_postcode__","__delivery_postcode__","__service_detail__","__quote_expiry__","__courier_name__"), array($quoteSave['quote_number'],$serviceData['collection_date'],$collection_postcode,$delivery_postcode,$service_detail_str,$quoteExpiry,$courierData['name']), $template["template_html"]);
+					$template_msg = str_replace(array("__quote_number__","__shipping_date__","__collection_postcode__","__delivery_postcode__","__service_detail__","__quote_expiry__","__courier_name__","__img_src__"), array($quoteSave['quote_number'],$serviceData['collection_date'],$collection_postcode,$delivery_postcode,$service_detail_str,$quoteExpiry,$courierData['name'],"http://app-tree.co.uk/icargoN/assets/img/pnp_logo.png"), $template["template_html"]);
 				
-					$status = $emailObj->sendMail(array("recipient_name_and_email"=>array(array("name"=>"kavita","email"=>$data->quote_email)),"template_msg"=>$template_msg, "subject_msg"=>$this->headerMsg));
+					$status = $emailObj->sendMail(array("recipient_name_and_email"=>array(array("name"=>"kavita","email"=>$data->quote_email)),"template_msg"=>$template_msg, "subject_msg"=>$subject_msg));
 					if($status['status']==1)
-						$response = array("status"=>"success","message"=>$status['message']);
+						$response = array("status"=>"success","message"=>$quoteSave['message']);
 					else
 						$response = array("status"=>"error","message"=>$status['message']);
 				}else{
@@ -323,9 +323,11 @@
 				}
 			}
 			
-			$serviceData = $this->db->getRowRecord("SELECT service_opted,expiry_date,collection_date,transit_time_text,transit_distance_text,transit_time,transit_distance,shipment_address_json FROM " . DB_PREFIX . "quote_service WHERE quote_number = '".$param->quote_number."'");
+			$serviceData = $this->db->getRowRecord("SELECT service_opted,expiry_date,collection_date,collection_time,transit_time_text,transit_distance_text,transit_time,transit_distance,shipment_address_json FROM " . DB_PREFIX . "quote_service WHERE quote_number = '".$param->quote_number."'");
 			
 			$quoteArr['serviceDate'] = $serviceData['collection_date'];
+			$quoteArr['serviceTime'] = date('h:i:s',strtotime($serviceData['collection_time']));
+			$quoteArr['collectionDateTime'] = $quoteArr['serviceDate'].' '.$quoteArr['serviceTime'];
 			$quoteArr['serviceList'] = $serviceData['service_opted'];
 			$quoteArr['transit_time_text'] = $serviceData['transit_time_text'];
 			$quoteArr['transit_distance_text'] = $serviceData['transit_distance_text'];
