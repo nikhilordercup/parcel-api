@@ -26,14 +26,20 @@ class Report extends Icargo{
 	}
 	
 	
-	public function generateReport($param){
+	/*public function generateReport($param){
 		//driver name,start date, end date,total time on job, total drops,number of jobs,days,total miles,daily drop rate,average speed,average time per drop
 		$reportData = array();
-
-		$difference = date_diff(date_create($param->startDate),date_create($param->endDate));
-		$no_of_days = $difference->format("%a");
+		if($param->startDate==$param->endDate){
+			$difference = 0;
+			$no_of_days = 1;
+		}else{
+			$difference = date_diff(date_create($param->startDate),date_create($param->endDate));
+			$no_of_days = $difference->format("%a");
+		}
+		
 		
 		$driverTimeData = $this->_parentObj->db->getAllRecords("SELECT * FROM " . DB_PREFIX . "driver_time_tracking WHERE create_date BETWEEN '".$param->startDate."' AND '".$param->endDate."'");	
+		if(count($driverTimeData>0)){
 		foreach($driverTimeData as $key=>$value){
 			if(!isset($reportData[$value['driver_id']])){
 				$reportData[$value['driver_id']] = array("time_taken"=>0,"total_distance_meter"=>0);
@@ -42,7 +48,6 @@ class Report extends Icargo{
 			
 			$reportData[$value['driver_id']]['shipment_route_id'][] = $value['shipment_route_id'];
 		}
-		
 		
 		foreach($reportData as $driverId=>$item){
 			$shipment_route_id = implode(',',array_unique($item['shipment_route_id']));
@@ -58,33 +63,158 @@ class Report extends Icargo{
 			$reportData[$driverId]['driver_name'] = $driverName['name'];
 			
 			$dropJobData = $this->getDropJobData($driverId,$param->startDate,$param->endDate);
-			$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
-			$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
-			$reportData[$driverId]['no_of_days'] = $no_of_days;
-			$reportData[$driverId]['daily_drop_rate'] = $reportData[$driverId]['no_of_drops'] / $no_of_days;
-			$reportData[$driverId]['average_speed'] = $reportData[$driverId]['total_distance_meter'] / $reportData[$value['driver_id']]['time_taken'];
-			$reportData[$driverId]['average_time_per_drop'] = $reportData[$value['driver_id']]['time_taken'] / $reportData[$driverId]['no_of_drops'];
+			if($dropJobData['no_of_drops']!=0 AND $dropJobData['no_of_jobs']!=0){
+				$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
+				$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
+				$reportData[$driverId]['no_of_days'] = $no_of_days;
+				$reportData[$driverId]['daily_drop_rate'] = $reportData[$driverId]['no_of_drops'] / $no_of_days;
+				$reportData[$driverId]['average_speed'] = $reportData[$driverId]['total_distance_meter'] / $reportData[$value['driver_id']]['time_taken'];
+				$reportData[$driverId]['average_time_per_drop'] = $reportData[$value['driver_id']]['time_taken'] / $reportData[$driverId]['no_of_drops'];
+			}else{
+				$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
+				$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
+				$reportData[$driverId]['no_of_days'] = $no_of_days;
+				$reportData[$driverId]['daily_drop_rate'] = 0.0;
+				$reportData[$driverId]['average_speed'] = 0.0;
+				$reportData[$driverId]['average_time_per_drop'] = 0.0;
+			}
+				
 		}
-		return $reportData;
+		
+			if(count($reportData>0)){
+				return array("status"=>"success","reportData"=>$reportData);
+			}else{
+				return array("status"=>"success","reportData"=>array());
+			}
+		}
+		else{
+			return array("status"=>"error","reportData"=>array());
+		}
+		//return $reportData;
 	}
 	
 	public function getDropJobData($driverId,$startDate,$endDate){
 		$commonObj = new Common();
 		$result = array();
-		$startDate = $startDate.' 00:00:00';
-		$endDate = $endDate.' 00:00:00';
-		$dropJobData = $this->_parentObj->db->getAllRecords("SELECT shipment_id,shipment_create_date,assigned_driver,shipment_postcode as postcode,shipment_address1 FROM " . DB_PREFIX . "shipment WHERE assigned_driver = ".$driverId." AND shipment_create_date BETWEEN '".$startDate."' AND '".$endDate."'");
+		$drops = 0;
+		$jobs = 0;
+		//$startDate = $startDate.' 00:00:00';
+		//$endDate = $endDate.' 00:00:00';
+		$dropJobData = $this->_parentObj->db->getAllRecords("SELECT shipment_id,shipment_routed_id,shipment_create_date,assigned_driver,shipment_postcode as postcode,shipment_address1 FROM " . DB_PREFIX . "shipment WHERE assigned_driver = ".$driverId." AND shipment_assigned_service_date BETWEEN '".$startDate."' AND '".$endDate."'");
 		
 		foreach($dropJobData as $item){
 			$dropName = $commonObj->getDropName($item);
-			if(!isset($result[$dropName])){
-				$result[$dropName] = array();
+			if(!isset($result[$item['shipment_routed_id']][$dropName])){
+				$result[$item['shipment_routed_id']][$dropName] = array();
 			}
-			$result[$dropName] = $item;
+			$result[$item['shipment_routed_id']][$dropName] = $item;
 		}
-
+		foreach($result as $item){
+			$drops += count($item);
+		}
 		$jobs = count($dropJobData);
-		$drops = count($result);
+		//$drops = count($result);
+		
+		return array("no_of_drops"=>$drops,"no_of_jobs"=>$jobs);
+	}*/
+	
+	public function generateReport($param){
+		//driver name,start date, end date,total time on job, total drops,number of jobs,days,total miles,daily drop rate,average speed,average time per drop
+		$reportData = array();
+		if($param->startDate==$param->endDate){
+			$difference = 0;
+			$no_of_days = 1;
+		}else{
+			$difference = date_diff(date_create($param->startDate),date_create($param->endDate));
+			$no_of_days = $difference->format("%a");
+		}
+		
+		if($param->service_type=='lastmile'){
+			$param->service_type = 'Vendor';
+		}elseif($param->service_type=='sameday'){
+			$param->service_type = 'Same';
+		}else{
+			$param->service_type = 'Next';
+		}
+		
+		
+		//$driverTimeData = $this->_parentObj->db->getAllRecords("SELECT * FROM " . DB_PREFIX . "driver_time_tracking WHERE create_date BETWEEN '".$param->startDate."' AND '".$param->endDate."'");	
+		$driverTimeData = $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id),t1.* FROM ".DB_PREFIX."driver_time_tracking as t1 INNER JOIN ".DB_PREFIX."shipment as t2 ON t2.shipment_routed_id=t1.shipment_route_id WHERE create_date BETWEEN '".$param->startDate."' AND '".$param->endDate."' AND t2.instaDispatch_loadGroupTypeName='".$param->service_type."'");	
+
+		if(count($driverTimeData>0)){
+		foreach($driverTimeData as $key=>$value){
+			if(!isset($reportData[$value['driver_id']])){
+				$reportData[$value['driver_id']] = array("time_taken"=>0,"total_distance_meter"=>0);
+			}			
+			$reportData[$value['driver_id']]['time_taken'] = $reportData[$value['driver_id']]['time_taken'] + $value['time_taken'];
+			
+			$reportData[$value['driver_id']]['shipment_route_id'][] = $value['shipment_route_id'];
+		}
+		foreach($reportData as $driverId=>$item){
+			$shipment_route_id = implode(',',array_unique($item['shipment_route_id']));
+			$driverName = $this->_parentObj->db->getRowRecord("SELECT name FROM " . DB_PREFIX . "users WHERE id = $driverId");
+			$shipmentId = $this->_parentObj->db->getAllRecords("SELECT shipment_id FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id IN($shipment_route_id)");
+	        foreach($shipmentId as $id){
+				$totalMiles = $this->_parentObj->db->getRowRecord("SELECT SUM(transit_distance) as total_transit_distance FROM " . DB_PREFIX . "shipment_service WHERE shipment_id = ".$id['shipment_id']."");
+				$reportData[$driverId]['total_distance_meter'] = $reportData[$driverId]['total_distance_meter'] + $totalMiles['total_transit_distance'];
+			}
+			
+			$reportData[$driverId]['total_distance_miles'] = $reportData[$driverId]['total_distance_meter'] / 1609.344;
+			
+			$reportData[$driverId]['driver_name'] = $driverName['name'];
+			
+			$dropJobData = $this->getDropJobData($driverId,$param->startDate,$param->endDate,$param->service_type);
+			if($dropJobData['no_of_drops']!=0 AND $dropJobData['no_of_jobs']!=0){
+				$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
+				$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
+				$reportData[$driverId]['no_of_days'] = $no_of_days;
+				$reportData[$driverId]['daily_drop_rate'] = $reportData[$driverId]['no_of_drops'] / $no_of_days;
+				$reportData[$driverId]['average_speed'] = $reportData[$driverId]['total_distance_meter'] / $reportData[$value['driver_id']]['time_taken'];
+				$reportData[$driverId]['average_time_per_drop'] = $reportData[$value['driver_id']]['time_taken'] / $reportData[$driverId]['no_of_drops'];
+			}else{
+				$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
+				$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
+				$reportData[$driverId]['no_of_days'] = $no_of_days;
+				$reportData[$driverId]['daily_drop_rate'] = 0.0;
+				$reportData[$driverId]['average_speed'] = 0.0;
+				$reportData[$driverId]['average_time_per_drop'] = 0.0;
+			}
+				
+		}
+		
+			if(count($reportData>0)){
+				return array("status"=>"success","reportData"=>$reportData);
+			}else{
+				return array("status"=>"success","reportData"=>array());
+			}
+		}
+		else{
+			return array("status"=>"error","reportData"=>array());
+		}
+		//return $reportData;
+	}
+	
+	public function getDropJobData($driverId,$startDate,$endDate,$service_type){
+		$commonObj = new Common();
+		$result = array();
+		$drops = 0;
+		$jobs = 0;
+		//$startDate = $startDate.' 00:00:00';
+		//$endDate = $endDate.' 00:00:00';
+		$dropJobData = $this->_parentObj->db->getAllRecords("SELECT shipment_id,shipment_routed_id,shipment_create_date,assigned_driver,shipment_postcode as postcode,shipment_address1 FROM " . DB_PREFIX . "shipment WHERE assigned_driver = ".$driverId." AND shipment_assigned_service_date BETWEEN '".$startDate."' AND '".$endDate."' AND instaDispatch_loadGroupTypeName='".$service_type."'");
+		
+		foreach($dropJobData as $item){
+			$dropName = $commonObj->getDropName($item);
+			if(!isset($result[$item['shipment_routed_id']][$dropName])){
+				$result[$item['shipment_routed_id']][$dropName] = array();
+			}
+			$result[$item['shipment_routed_id']][$dropName] = $item;
+		}
+		foreach($result as $item){
+			$drops += count($item);
+		}
+		$jobs = count($dropJobData);
+		//$drops = count($result);
 		
 		return array("no_of_drops"=>$drops,"no_of_jobs"=>$jobs);
 	}
@@ -105,7 +235,7 @@ class Report extends Icargo{
 		header('Pragma: no-cache');
 		header('Expires: 0');
 		$fileName = time().".csv";
-		$path = dirname(dirname(dirname(dirname(dirname(__FILE__))))).'\icargo\output\/'.$fileName;
+		$path = dirname(dirname(dirname(dirname(__FILE__)))).'/output/'.$fileName;
 		//echo $path;die;
 		 //echo dirname(dirname(dirname(dirname(dirname(__FILE__)))));die;
 		// create a file pointer connected to the output stream
@@ -120,7 +250,7 @@ class Report extends Icargo{
 			fputcsv($file, $row);
 		}
 		 
-		return array("status"=>"success","message"=>"csv generated successfully","file_path"=>"http://localhost/projects/icargo/output/".$fileName);
+		return array("status"=>"success","message"=>"csv generated successfully","file_path"=>"http://api.instadispatch.com/dev/output/".$fileName);
 	}
 }
 ?>
