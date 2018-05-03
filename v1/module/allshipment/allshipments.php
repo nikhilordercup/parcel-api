@@ -243,8 +243,8 @@ class allShipments extends Icargo{
    }  
       
    public function getSameDayShipmentDetails($param){
-       $basicInfo = $this->_getBasicInfoOfShipment($param['identity']); 
-       return array('sameday'=>array('basicinfo'=>$basicInfo));
+       $allInfo = $this->_getBasicInfoOfShipment($param['identity']); 
+       return array('sameday'=>array('basicinfo'=>$allInfo['basicInfo'],'priceinfo'=>$allInfo['priceinfo']));
  }
     
    public function getNextDayShipmentDetails($param){
@@ -254,7 +254,12 @@ class allShipments extends Icargo{
   
    private function _getBasicInfoOfShipment($identity){
       $shipmentsInfoData = $this->modelObj->getShipmentsDetail($identity);
-      $basicInfo =  array();
+      $priceversion     = $this->modelObj->getShipmentsPriceVersion($identity);
+      $carrierPrice  = $this->modelObj->getShipmentsPriceDetailCarrier($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion);
+      $customerPrice = $this->modelObj->getShipmentsPriceDetailCustomer($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion);
+      $shipmentsPriceInfoData = $this->ManagePriceData($carrierPrice,$customerPrice);
+      //$shipmentsPriceInfoData = $this->ManagePriceData($this->modelObj->getShipmentsPriceDetail($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion));
+       $basicInfo =  array();
       if(count($shipmentsInfoData)>0)
       {
         $basicInfo['totaldrop']             = count($shipmentsInfoData); 
@@ -273,6 +278,7 @@ class allShipments extends Icargo{
         $basicInfo['customersubtotal']        = $shipmentsInfoData[0]['customersubtotal'];
         $basicInfo['customertax']             = $shipmentsInfoData[0]['customertax'];
         $basicInfo['customertotal']           = $shipmentsInfoData[0]['customertotalprice'];
+        
         $basicInfo['carrierbaseprice']        = $shipmentsInfoData[0]['carrierbaseprice'];
         $basicInfo['carriersurcharge']        = $shipmentsInfoData[0]['carriersurcharge'];
         $basicInfo['carriersubtotal']         = $shipmentsInfoData[0]['carriersubtotal'];
@@ -297,7 +303,7 @@ class allShipments extends Icargo{
         
           
           
-       $shipmentsurchargeData = $this->modelObj->getShipmentsurchargeData('ICARGOS1773577');   
+       $shipmentsurchargeData = $this->modelObj->getShipmentsurchargeData($identity);   
        $basicInfo['chargedata'] = array();
        if(count($shipmentsurchargeData)>0){
            foreach($shipmentsurchargeData as $key=>$val){
@@ -349,8 +355,8 @@ class allShipments extends Icargo{
           
           
         } 
-      return $basicInfo;
-    }    
+      return array('basicInfo'=>$basicInfo,'priceinfo'=>$shipmentsPriceInfoData);
+     }    
     
     
     public function shipmentdetailsAction(){
@@ -559,5 +565,440 @@ class allShipments extends Icargo{
          }
        return $returndata;
     }
+    
+    public function ManagePriceData($carrierPrice,$customerPrice){
+       $carrierPriceData  =   $this->ManagePriceDataCarrier($carrierPrice);
+       $customerPriceData =   $this->ManagePriceDataCustomer($customerPrice);
+        foreach($carrierPriceData as $key=>$vals){
+             $carrierPriceData[$key]['customer'] = $customerPriceData[$key]['customer'];
+       }    
+       return $carrierPriceData;  
+    } 
+    
+    public function ManagePriceDataCarrier($data){
+        $return = array();
+        if(count($data)>0){
+            $return['service']['courier'] = array();
+            $return['surcharges']['courier'] = array();
+            $return['taxes']['courier'] = array();
+            $return['subtotal']['courier'] = array();
+            $carrierSurcharge = array(); 
+            foreach($data as $key=>$vel){ 
+             if($vel['api_key']=='service'){  
+               $return['service']['courier']['baseprice'] = $vel['baseprice'];
+               $return['service']['courier']['naration']  = ($vel['service_name']=='')?$vel['price_code']:$vel['service_name'];   
+               $return['service']['courier']['id'] =  $vel['id'];
+             }elseif($vel['api_key']=='surcharges'){
+               $return['surcharges']['courier'][] = array(
+                                    'baseprice'=>$vel['baseprice'],
+                                    'naration' =>($vel['surcharge_name']=='')?$vel['price_code']:$vel['surcharge_name'],
+                                    'id'=>$vel['id']
+               );
+               $carrierSurcharge[] = $vel['baseprice'];
+               }elseif($vel['api_key']=='taxes'){
+               $return['taxes']['courier']['baseprice'] = $vel['baseprice'];
+               $return['taxes']['courier']['naration'] = 'Total Tax';   
+               $return['taxes']['courier']['id']  = $vel['id'];
+              }   
+            }
+          $return['subtotal']['courier'] = array_sum($carrierSurcharge) + $return['service']['courier']['baseprice'];
+          $return['total']['courier'] = $return['subtotal']['courier'] + $return['taxes']['courier']['baseprice'];
+        }
+       return $return;
+    } 
+    public function ManagePriceDataCustomer($data){
+        $return = array();
+        if(count($data)>0){
+            $return['service']['customer'] = array();
+            $return['surcharges']['customer'] = array();
+            $return['taxes']['customer'] = array();
+            $return['subtotal']['customer'] = array();
+            $customerSurcharge[] =  array();
+            foreach($data as $key=>$vel){ 
+             if($vel['api_key']=='service'){  
+               $return['service']['customer']['baseprice'] = $vel['price'];
+               $return['service']['customer']['naration'] = ($vel['company_service_name']=='')?$vel['service_name']:$vel['company_service_name'];   
+               $return['service']['customer']['naration'] = ($return['service']['customer']['naration'] =='')?$vel['price_code']:$return['service']['customer']['naration'];
+               $return['service']['customer']['id'] =  $vel['id'];
+             }elseif($vel['api_key']=='surcharges'){
+               $surchargenaration =  ($vel['company_surcharge_name']=='')?$vel['surcharge_name']:$vel['company_surcharge_name'];
+               $surchargenaration = ($surchargenaration =='')?$vel['price_code']:$surchargenaration;  
+               $return['surcharges']['customer'][] = 
+                                array(
+                                    'baseprice'=>$vel['price'],
+                                    'naration' =>$surchargenaration,
+                                    'id'=>$vel['id']
+                                ); 
+               $customerSurcharge[] = $vel['price'];   
+               }elseif($vel['api_key']=='taxes'){
+               $return['taxes']['customer']['baseprice'] = $vel['price'];
+               $return['taxes']['customer']['naration'] = 'Total Tax'; 
+               $return['taxes']['customer']['id'] = $vel['id'];
+              }   
+            }
+          $return['subtotal']['customer'] = array_sum($customerSurcharge) + $return['service']['customer']['baseprice']; 
+          $return['total']['customer'] = $return['subtotal']['customer'] + $return['taxes']['customer']['baseprice']; 
+            
+        }
+       return $return;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    public function updateCarrierPrice($param){
+        $param = json_decode(json_encode($param),1);
+        $getLastPriceVersion = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
+        $priceVersion = $getLastPriceVersion['price_version'];
+        $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsWithVersion($param['job_identity'],$priceVersion);
+        $isInvoiced = $getLastPriceVersion['isInvoiced'];
+        $customerId  = $getLastPriceVersion['customer_id']; 
+        $carrierId   = $getLastPriceVersion['carrier'];
+        $shipId    = $getLastPriceVersion['shipment_id'];
+        $oldGrandTotal  = $getLastPriceVersion['grand_total'];
+        $records = array();
+        
+        foreach($getLastPriceBreakdown as $key=>$val){
+           if(array_key_exists($val['id'],$param['data'])){
+             if($param['applypriceoncustomer'] == 'YES'){
+                 $val['show_for']    =  'B';
+                 $data = $this->calculateNewPrice($val,$param['data'][$val['id']]);
+                 $val['ccf_price']     =  $data['ccf_price'] ;
+                 $val['baseprice']     =  $data['baseprice'] ;
+                 $val['price']          = $data['price'] ;
+                 $val['version']     =  $priceVersion + 1; 
+                 $val['apply_to_customer'] = 'YES';
+                 $val['version_reason'] =  'CARRIER_PRICE_UPDATE'; 
+                 $val['inputjson']      =  json_encode($param);
+                 unset($val['id']);
+                 $records[] = $val;
+             }
+             elseif($param['applypriceoncustomer'] == 'NO'){  
+                 $val['baseprice']  =  $param['data'][$val['id']]; 
+                 $val['version']     =  $priceVersion + 1;
+                 $val['version_reason'] =  'CARRIER_PRICE_UPDATE'; 
+                 $val['inputjson']      =  json_encode($param);
+                 $val['apply_to_customer'] = 'NO';
+                 unset($val['id']);
+                 $records[] = $val;
+             }
+             else{
+                 //
+             }
+           }
+            else{
+                 $val['version']     =  $priceVersion + 1; 
+                 unset($val['id']);
+                 $val['version_reason'] =  'CARRIER_PRICE_UPDATE'; 
+                 $val['inputjson']      =  json_encode($param);
+                 $records[] = $val; 
+           }
+        } 
+        if(isset($param['data']['newsurcharges']) and count($param['data']['newsurcharges'])>0){
+          foreach($param['data']['newsurcharges'] as $key=>$surchargeId){
+             $surcharge_code = $this->modelObj->getSurchargeCodeBySurchargeId($surchargeId,$param['company_id']);
+             $price = $param['data']['newsurchargesprice'][$key];
+             if($param['applypriceoncustomer'] == 'NO'){
+              $tempdata =  array();  
+              $tempdata['price_code'] = $surcharge_code;
+              $tempdata['price'] = $price;   
+              $tempdata['load_identity'] = $getLastPriceVersion['load_identity'];
+              $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
+              $tempdata['shipment_type'] = '';   
+              $tempdata['version'] = $priceVersion + 1;
+              $tempdata['api_key'] = 'surcharges';
+              $tempdata['ccf_operator'] = 'FLAT';   
+              $tempdata['ccf_value'] = '0';
+              $tempdata['ccf_level'] = 'level 0';
+              $tempdata['baseprice'] = $price;   
+              $tempdata['ccf_price'] = '0.00';
+              $tempdata['surcharge_id'] = $surchargeId;
+              $tempdata['service_id'] = '0';   
+              $tempdata['apply_to_customer'] = 'NO';
+              $tempdata['show_for'] = 'CA';
+              $tempdata['version_reason'] =  'CARRIER_PRICE_UPDATE'; 
+              $tempdata['inputjson']      =  json_encode($param);
+              $records[] =  $tempdata;  
+             }
+              elseif($param['applypriceoncustomer'] == 'YES'){
+              $surchargeCcf = $this->modelObj->getCcfOfCarrierSurcharge($surchargeId,$param['company_id'],$customerId,$carrierId);
+              if($surchargeCcf){ 
+                if(isset($surchargeCcf["customer_carrier_surcharge_ccf"]) and $surchargeCcf["customer_carrier_surcharge_ccf"]>0 and $surchargeCcf["customer_carrier_surcharge_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["customer_carrier_surcharge_ccf"],$surchargeCcf["customer_carrier_surcharge_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 1",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["customer_carrier_surcharge"]) and $surchargeCcf["customer_carrier_surcharge"]>0 and $surchargeCcf["customer_carrier_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["customer_carrier_surcharge"],$surchargeCcf["customer_carrier_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 2",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["customer_surcharge"]) and $surchargeCcf["customer_surcharge"]>0 and $surchargeCcf["customer_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["customer_surcharge"],$surchargeCcf["customer_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 3",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["company_carrier_surcharge_ccf"]) and $surchargeCcf["company_carrier_surcharge_ccf"]>0 and $surchargeCcf["company_carrier_surcharge_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["company_carrier_surcharge_ccf"],$surchargeCcf["company_carrier_surcharge_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 4",$surchargeCcf["surcharge_id"]);
+                }elseif(isset($surchargeCcf["company_carrier_ccf"]) and $surchargeCcf["company_carrier_operator"] != 'NONE'){
+                    $surcharge_ccf_price = $this->_calculateSurcharge($price,$surchargeCcf["company_carrier_ccf"],$surchargeCcf["company_carrier_operator"],$surchargeCcf["company_surcharge_code"],$surchargeCcf["company_surcharge_name"],$surchargeCcf["courier_surcharge_code"],$surchargeCcf["courier_surcharge_name"],"level 5",$surchargeCcf["surcharge_id"]);
+                }
+             }
+              else{ 
+               $customerCcf = $this->modelObj->getSurchargeOfCarrier($customerId,$param['company_id'],$carrierId); 
+                if(isset($customerCcf["customer_surcharge_value"]) and $customerCcf["customer_surcharge_value"]>0 and $customerCcf["company_ccf_operator_surcharge"] != 'NONE'){
+                 $surcharge_ccf_price = $this->_calculateSurcharge($price,$customerCcf["customer_surcharge_value"],$customerCcf["company_ccf_operator_surcharge"],$surcharge_code,$surcharge_code,$surcharge_code,$surcharge_code,"level 2",$surchargeId);
+                }elseif(isset($customerCcf["customer_surcharge"]) and $customerCcf["customer_surcharge"]>0  and $customerCcf["customer_operator"] != 'NONE'){
+                 $surcharge_ccf_price = $this->_calculateSurcharge($price,$customerCcf["customer_surcharge"],$customerCcf["customer_operator"],$surcharge_code,$surcharge_code,$surcharge_code,$surcharge_code,"level 3",$surchargeId);
+                }elseif(isset($customerCcf["company_carrier_ccf"]) and $customerCcf["company_carrier_operator"] != 'NONE') {
+                 $surcharge_ccf_price = $this->_calculateSurcharge($price, $customerCcf["company_carrier_ccf"], $customerCcf["company_carrier_operator"], $surcharge_code, $surcharge_code, $surcharge_code, $surcharge_code, "level 5",$surchargeId);
+                }
+              }
+              $tempdata =  array();  
+              $tempdata['price_code'] = $surcharge_ccf_price['company_surcharge_code'];
+              $tempdata['price'] = $surcharge_ccf_price['price'] + $price;   
+              $tempdata['load_identity'] = $getLastPriceVersion['load_identity'];
+              $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
+              $tempdata['shipment_type'] = '';   
+              $tempdata['version'] = $priceVersion + 1;
+              $tempdata['api_key'] = 'surcharges';
+              $tempdata['ccf_operator'] = $surcharge_ccf_price['operator'];   
+              $tempdata['ccf_value']    = $surcharge_ccf_price['surcharge_value'];
+              $tempdata['ccf_level'] = $surcharge_ccf_price['level'];
+              $tempdata['baseprice'] = $price;   
+              $tempdata['ccf_price'] = $surcharge_ccf_price['price'];
+              $tempdata['surcharge_id'] = $surcharge_ccf_price['surcharge_id'];
+              $tempdata['service_id'] = '0';   
+              $tempdata['apply_to_customer'] = 'YES';
+              $tempdata['show_for'] = 'B';
+              $tempdata['version_reason'] =  'CARRIER_PRICE_UPDATE'; 
+              $tempdata['inputjson']      =  json_encode($param);
+              $records[] =  $tempdata;       
+             }
+              else{
+                // 
+             }
+          }
+        }
+        if($param['applypriceoncustomer'] == 'YES'){
+            $temp = array();
+            $temp['price_update_applyto_customer'] = 'YES';
+            $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
+            $temp['price_version']  = $priceVersion + 1;
+            $temp['surcharges']     = 0;
+            foreach($records as $data){
+                if($data['api_key']=='service'){
+                  $temp['base_price'] =  $data['baseprice'];
+                  $temp['courier_commission_value'] =  $data['ccf_price'];
+                  $temp['total_price'] =  $data['price'];
+                }elseif($data['api_key']=='taxes'){
+                  $temp['taxes'] =  $data['price'];  
+                }else{
+                    if($data['apply_to_customer']!='NO'){
+                        $temp['surcharges'] +=  $data['price']; 
+                    }
+                       
+                }
+                $adddata =   $this->modelObj->addContent('shipment_price',$data);
+             }
+            if($adddata){
+                 $temp['grand_total'] =  $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
+                 if($isInvoiced == 'YES'){
+                    if($temp['grand_total']!= $oldGrandTotal){
+                       $voucherHistoryid = $this->modelObj->getVoucherHistory($param['job_identity']);    
+                       $voucherdata = array(); 
+                       $voucherdata['voucher_type']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?'DEBIT':'CREDIT';
+                       $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
+                       $voucherdata['amount']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?($temp['grand_total'] - $oldGrandTotal):($oldGrandTotal - $temp['grand_total']);
+                       $voucherdata['shipment_id']  = $shipId;
+                       $voucherdata['shipment_reference']  = $param['job_identity'];
+                       $voucherdata['create_date']  = date('Y-m-d');
+                       $voucherdata['created_by']  = $param['user'];
+                       $voucherdata['history_id']  = $voucherHistoryid;
+                       $voucherdata['is_invoiced']  = 'NO';
+                       $voucherdata['status']  = '1';
+                       $voucherdata['company_id']  = $param['company_id'];
+                       $voucherdata['customer_id']  = $customerId;
+                       $voucherdata['invoice_reference']  = '';
+                       $voucherdata['is_Paid']  = 'UNPAID';
+                       $adddata =   $this->modelObj->addContent('vouchers',$voucherdata);
+                    }
+                 }
+                 $temp['price_update_applyto_customer'] = 'YES';
+                 $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
+                 $temp['price_version']  = $priceVersion + 1;
+                 $condition    = "shipment_id = '$shipId'";
+                 $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
+             } 
+         }
+        elseif($param['applypriceoncustomer'] == 'NO'){
+             foreach($records as $data){
+               $adddata =   $this->modelObj->addContent('shipment_price',$data);
+             }
+             if($adddata){
+                 $temp = array();
+                 $temp['price_update_applyto_customer'] = 'NO';
+                 $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
+                 $temp['price_version']  = $priceVersion + 1;
+                 $condition    = "shipment_id = '$shipId'";
+                 $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
+             }  
+         }
+        else{}
+        if($status){
+            return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity']));
+        } 
+    }   
+    public function updateCustomerPrice($param){
+        $param = json_decode(json_encode($param),1);
+        $getLastPriceVersion = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
+        $priceVersion = $getLastPriceVersion['price_version'];
+        $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsWithVersionOfCustomer($param['job_identity'],$priceVersion);
+        $isInvoiced = $getLastPriceVersion['isInvoiced'];
+        $customerId  = $getLastPriceVersion['customer_id']; 
+        $carrierId   = $getLastPriceVersion['carrier'];
+        $shipId    = $getLastPriceVersion['shipment_id'];
+        $oldGrandTotal  = $getLastPriceVersion['grand_total'];
+        $records = array();
+        foreach($getLastPriceBreakdown as $key=>$val){
+           if(array_key_exists($val['id'],$param['data'])){
+                 $val['show_for']    =  'B';
+                 $updatedPrice = $param['data'][$val['id']];
+                 $val['ccf_value'] = ($updatedPrice - $val['price']<0)?($updatedPrice - $val['baseprice']):($updatedPrice - $val['baseprice']);
+                 $val['ccf_price']  = $val['ccf_value'];
+                 $val['price']         = $val['baseprice'] + $val['ccf_price'] ;
+                 $val['ccf_operator']  = 'FLAT' ;
+                 $val['ccf_level']  = 'level 0' ;
+                 $val['version']     =  $priceVersion + 1; 
+                 $val['version_reason'] =  'CUSTOMER_PRICE_UPDATE'; 
+                 $val['inputjson']      =  json_encode($param);
+                 unset($val['id']);
+                 $records[] = $val;
+           }
+            else{
+                 $val['version']     =  $priceVersion + 1; 
+                 unset($val['id']);
+                 $val['version_reason'] =  'CUSTOMER_PRICE_UPDATE'; 
+                 $val['inputjson']      =  json_encode($param);
+                 $records[] = $val; 
+           }
+        }
+        if(isset($param['data']['newsurcharges']) and count($param['data']['newsurcharges'])>0){
+          foreach($param['data']['newsurcharges'] as $key=>$surchargeId){
+             $surcharge_code = $this->modelObj->getSurchargeCodeBySurchargeId($surchargeId,$param['company_id']);
+             $price = $param['data']['newsurchargesprice'][$key];
+              $tempdata =  array();  
+              $tempdata['price_code'] = $surcharge_code;
+              $tempdata['price'] = $price;   
+              $tempdata['load_identity'] = $getLastPriceVersion['load_identity'];
+              $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
+              $tempdata['shipment_type'] = '';   
+              $tempdata['version'] = $priceVersion + 1;
+              $tempdata['api_key'] = 'surcharges';
+              $tempdata['ccf_operator'] = 'FLAT';   
+              $tempdata['ccf_value'] = $price;
+              $tempdata['ccf_level'] = 'level 0';
+              $tempdata['baseprice'] = '0';
+              $tempdata['ccf_price'] = $price;
+              $tempdata['surcharge_id'] = $surchargeId;
+              $tempdata['service_id'] = '0';   
+              $tempdata['apply_to_customer'] = 'NO';
+              $tempdata['version_reason'] =  'CUSTOMER_PRICE_UPDATE'; 
+              $tempdata['inputjson']      =  json_encode($param);
+              $tempdata['show_for'] = 'C';
+              $records[] =  $tempdata;  
+            
+          }
+        }
+        $temp = array();
+            $temp['surcharges']     = 0;
+            foreach($records as $data){
+                if($data['api_key']=='service'){
+                  $temp['base_price'] =  $data['baseprice'];
+                  $temp['courier_commission_value'] =  $data['ccf_price'];
+                  $temp['courier_commission_type']  =  $data['ccf_operator'];
+                  $temp['courier_commission']       =  $data['ccf_value'];   
+                  $temp['total_price'] =  $data['price'];
+                }elseif($data['api_key']=='taxes'){
+                  $temp['taxes'] =  $data['price'];  
+                }else{
+                  $temp['surcharges'] +=  $data['price'];    
+                }
+                $adddata =   $this->modelObj->addContent('shipment_price',$data);
+             }
+            if($adddata){
+                 $temp['grand_total'] =  $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
+                 if($isInvoiced == 'YES'){
+                    if($temp['grand_total']!= $oldGrandTotal){
+                       $voucherHistoryid = $this->modelObj->getVoucherHistory($param['job_identity']);    
+                       $voucherdata = array(); 
+                       $voucherdata['voucher_type']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?'DEBIT':'CREDIT';
+                       $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
+                       $voucherdata['amount']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?($temp['grand_total'] - $oldGrandTotal):($oldGrandTotal - $temp['grand_total']);
+                       $voucherdata['shipment_id']  = $shipId;
+                       $voucherdata['shipment_reference']  = $param['job_identity'];
+                       $voucherdata['create_date']  = date('Y-m-d');
+                       $voucherdata['created_by']  = $param['user'];
+                       $voucherdata['history_id']  = $voucherHistoryid;
+                       $voucherdata['is_invoiced']  = 'NO';
+                       $voucherdata['status']  = '1';
+                       $voucherdata['company_id']  = $param['company_id'];
+                       $voucherdata['customer_id']  = $customerId;
+                       $voucherdata['invoice_reference']  = '';
+                       $voucherdata['is_Paid']  = 'UNPAID';
+                       $adddata =   $this->modelObj->addContent('vouchers',$voucherdata);
+                    }
+                 }
+                 $temp['price_update_applyto_customer'] = 'YES';
+                 $temp['version_reason'] = 'CUSTOMER_PRICE_UPDATE';
+                 $temp['price_version']  = $priceVersion + 1;
+                 $condition    = "shipment_id = '$shipId'";
+                 $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
+             }
+            if($status){
+                return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity']));
+            } 
+    }   
+    
+    
+    
+    
+    public function getbookedCarrierSurcharge($param){ 
+     $returndata = array();
+     $getLastPriceVersion = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
+     $booked_carrier = $getLastPriceVersion['carrier'];
+     $company_id   =    $param['company_id'];
+     if($booked_carrier!=0){
+       $returndata = $this->modelObj->getAllSurchargeOfCarrier($booked_carrier,$company_id);
+     }   
+     return $returndata;
+    }
+    public function calculateNewPrice($dataSet,$basePrice){
+        if($dataSet['ccf_operator'] !='' && $dataSet['ccf_value'] !='' && $dataSet['ccf_operator'] !='NONE'){
+         if($dataSet['ccf_operator']=="FLAT"){
+            $ccfprice = $dataSet['ccf_value'];
+         }
+         elseif($dataSet['ccf_operator']=="PERCENTAGE"){ 
+            $ccfprice = ($basePrice*$dataSet['ccf_value']/100);
+         }
+         else{}
+         $price = $basePrice+$ccfprice;
+        }
+        else{
+         $ccfprice = $dataSet['ccf_price'];
+         $price = $basePrice+$ccfprice;
+        }
+         
+        return array("ccf_price"=>$ccfprice,"baseprice"=>$basePrice,"price"=>$price);
+   }
+    private function _calculateSurcharge($price, $surcharge_value, $operator, $company_surcharge_code, $company_surcharge_name, $courier_surcharge_code, $courier_surcharge_name,$level,$surcharge_id){
+    if($operator=="FLAT"){
+            $price = $surcharge_value;
+        }
+    elseif($operator=="PERCENTAGE"){ 
+            $price = ($price*$surcharge_value/100);
+        }
+    else{
+        //
+    }
+        return array("surcharge_value"=>$surcharge_value,"operator"=>$operator,"price"=>$price,"company_surcharge_code"=>$company_surcharge_code,"company_surcharge_name"=>$company_surcharge_name,"courier_surcharge_code"=>$courier_surcharge_code,"courier_surcharge_name"=>$courier_surcharge_name,"level"=>$level,'surcharge_id'=>$surcharge_id);
+    }
+    
+        
 }
 ?>
