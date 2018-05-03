@@ -1769,6 +1769,32 @@ $app->post('/getQuoteData', function() use($app){
     echoResponse(200, $response);
 });
 /*end of save quote feature comment by kavita 2april2018*/ 
+$app->post('/updateCarrierPrice', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody()); 
+	verifyRequiredParams(array('email','access_token','job_identity'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->updateCarrierPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user));
+	echoResponse(200, $records);
+});
+$app->post('/updateCustomerPrice', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody()); 
+	verifyRequiredParams(array('email','access_token','job_identity'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->updateCustomerPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user));
+	echoResponse(200, $records);
+});
+
+    
+$app->post('/getbookedCarrierSurcharge', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody()); 
+	verifyRequiredParams(array('email','access_token','job_identity','company_id'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getbookedCarrierSurcharge(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'company_id'=>$r->company_id));
+	echoResponse(200, $records);
+});
 
 
 //this action is only for testing and development
