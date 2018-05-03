@@ -579,50 +579,30 @@ class allShipments extends Icargo{
         $return = array();
         if(count($data)>0){
             $return['service']['courier'] = array();
-            //$return['service']['customer'] = array();
             $return['surcharges']['courier'] = array();
-           // $return['surcharges']['customer'] = array();
             $return['taxes']['courier'] = array();
-            //$return['taxes']['customer'] = array();
             $return['subtotal']['courier'] = array();
-           // $return['subtotal']['customer'] = array();
             $carrierSurcharge = array(); 
-            //$customerSurcharge[] =  array();
             foreach($data as $key=>$vel){ 
              if($vel['api_key']=='service'){  
                $return['service']['courier']['baseprice'] = $vel['baseprice'];
-               $return['service']['courier']['naration'] = $vel['service_name'];   
-               //$return['service']['customer']['baseprice'] = $vel['price'];
-               //$return['service']['customer']['naration'] = ($vel['company_service_name']=='')?$vel['service_name']:$vel['company_service_name'];   
-              // $return['service']['customer']['id'] =  $vel['id'];
+               $return['service']['courier']['naration']  = ($vel['service_name']=='')?$vel['price_code']:$vel['service_name'];   
                $return['service']['courier']['id'] =  $vel['id'];
              }elseif($vel['api_key']=='surcharges'){
                $return['surcharges']['courier'][] = array(
                                     'baseprice'=>$vel['baseprice'],
-                                    'naration' =>$vel['surcharge_name'],
+                                    'naration' =>($vel['surcharge_name']=='')?$vel['price_code']:$vel['surcharge_name'],
                                     'id'=>$vel['id']
                );
                $carrierSurcharge[] = $vel['baseprice'];
-               /*$return['surcharges']['customer'][] = array(
-                                    'baseprice'=>$vel['price'],
-                                    'naration' =>($vel['company_surcharge_name']=='')?$vel['surcharge_name']:$vel['company_surcharge_name'],
-                                    'id'=>$vel['id']); */ 
-               //$customerSurcharge[] = $vel['price'];   
                }elseif($vel['api_key']=='taxes'){
                $return['taxes']['courier']['baseprice'] = $vel['baseprice'];
                $return['taxes']['courier']['naration'] = 'Total Tax';   
-               //$return['taxes']['customer']['baseprice'] = $vel['price'];
-               //$return['taxes']['customer']['naration'] = 'Total Tax'; 
                $return['taxes']['courier']['id']  = $vel['id'];
-               //$return['taxes']['customer']['id'] = $vel['id'];
               }   
             }
-            
           $return['subtotal']['courier'] = array_sum($carrierSurcharge) + $return['service']['courier']['baseprice'];
-          //$return['subtotal']['customer'] = array_sum($customerSurcharge) + $return['service']['customer']['baseprice']; 
           $return['total']['courier'] = $return['subtotal']['courier'] + $return['taxes']['courier']['baseprice'];
-          //$return['total']['customer'] = $return['subtotal']['customer'] + $return['taxes']['customer']['baseprice']; 
-            
         }
        return $return;
     } 
@@ -638,12 +618,17 @@ class allShipments extends Icargo{
              if($vel['api_key']=='service'){  
                $return['service']['customer']['baseprice'] = $vel['price'];
                $return['service']['customer']['naration'] = ($vel['company_service_name']=='')?$vel['service_name']:$vel['company_service_name'];   
+               $return['service']['customer']['naration'] = ($return['service']['customer']['naration'] =='')?$vel['price_code']:$return['service']['customer']['naration'];
                $return['service']['customer']['id'] =  $vel['id'];
              }elseif($vel['api_key']=='surcharges'){
-               $return['surcharges']['customer'][] = array(
+               $surchargenaration =  ($vel['company_surcharge_name']=='')?$vel['surcharge_name']:$vel['company_surcharge_name'];
+               $surchargenaration = ($surchargenaration =='')?$vel['price_code']:$surchargenaration;  
+               $return['surcharges']['customer'][] = 
+                                array(
                                     'baseprice'=>$vel['price'],
-                                    'naration' =>($vel['company_surcharge_name']=='')?$vel['surcharge_name']:$vel['company_surcharge_name'],
-                                    'id'=>$vel['id']); 
+                                    'naration' =>$surchargenaration,
+                                    'id'=>$vel['id']
+                                ); 
                $customerSurcharge[] = $vel['price'];   
                }elseif($vel['api_key']=='taxes'){
                $return['taxes']['customer']['baseprice'] = $vel['price'];
@@ -726,7 +711,7 @@ class allShipments extends Icargo{
               $tempdata['shipment_type'] = '';   
               $tempdata['version'] = $priceVersion + 1;
               $tempdata['api_key'] = 'surcharges';
-              $tempdata['ccf_operator'] = 'NONE';   
+              $tempdata['ccf_operator'] = 'FLAT';   
               $tempdata['ccf_value'] = '0';
               $tempdata['ccf_level'] = 'level 0';
               $tempdata['baseprice'] = $price;   
@@ -804,7 +789,10 @@ class allShipments extends Icargo{
                 }elseif($data['api_key']=='taxes'){
                   $temp['taxes'] =  $data['price'];  
                 }else{
-                  $temp['surcharges'] +=  $data['price'];    
+                    if($data['apply_to_customer']!='NO'){
+                        $temp['surcharges'] +=  $data['price']; 
+                    }
+                       
                 }
                 $adddata =   $this->modelObj->addContent('shipment_price',$data);
              }
