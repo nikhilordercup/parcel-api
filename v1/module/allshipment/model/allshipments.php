@@ -59,12 +59,18 @@ class AllShipment_Model
     public function getAllShipmentsDrop($whareHouseId,$componyId,$limitstr,$filter){
         $record = array();
         $sqldata ='S.instaDispatch_loadIdentity';
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_view AS S
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "xyz AS S
                 WHERE S.warehouse_id  = '" . $whareHouseId . "'
                 AND S.company_id  = '" . $componyId . "'
                 ".$filter."
                 ".$limitstr."
                 "; 
+       /* $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_view AS S
+                WHERE S.warehouse_id  = '" . $whareHouseId . "'
+                AND S.company_id  = '" . $componyId . "'
+                ".$filter."
+                ".$limitstr."
+                "; */
         $record = $this->db->getAllRecords($sql);
         return $record;
         
@@ -144,6 +150,7 @@ SELECT  S.warehouse_id as warehouse_id,
     public function getShipmentsDetail($identity){ 
        $record = array();
          $sqldata = '
+         S.company_id as companyid,
          S.instaDispatch_loadGroupTypeCode as job_type,
          S.shipment_service_type as shipment_type,
          S.shipment_create_date as bookingdate,
@@ -151,6 +158,7 @@ SELECT  S.warehouse_id as warehouse_id,
          S.shipment_required_service_starttime as expectedstarttime,
          S.shipment_required_service_endtime as expectedendtime,
          UTT.name as customer,
+         SST.carrier as carrierid,
          SST.service_name as service,
          SST.rate_type as chargeableunit,
          SST.transit_distance_text as chargeablevalue,
@@ -178,6 +186,7 @@ SELECT  S.warehouse_id as warehouse_id,
          SST.total_price as customertotalprice,
          (SST.base_price +  SST.courier_commission_value + SST.surcharges + SST.taxes)as customertotalprice,
          SST.base_price as carrierbaseprice,
+        
          SST.surcharges as carriersurcharge,
          (SST.base_price + SST.surcharges) as carriersubtotal,
          SST.taxes as carriertax,
@@ -203,6 +212,22 @@ SELECT  S.warehouse_id as warehouse_id,
         return $record;
       }
     
+    /*
+    public function getShipmentsPriceDetail($identity,$courier_id,$company_id,$priceversion){ 
+       $record = array();
+       $sqldata = 'CSER.company_service_name,COUSER.service_name,CSUR.company_surcharge_name,COUSUR.surcharge_name,P.*';
+       $sql = " SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_price AS  P
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS CSER ON CSER.service_id = P.service_id AND CSER.courier_id = '" .$courier_id . "'  AND CSER.company_id = '" .$company_id . "'
+                LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company AS CSUR ON CSUR.surcharge_id = P.surcharge_id AND CSUR.courier_id = '" .$courier_id . "'  AND CSUR.company_id = '" .$company_id . "'
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services AS COUSER ON COUSER.id = P.service_id
+                LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge AS COUSUR ON COUSUR.id = P.surcharge_id
+                WHERE P.load_identity = '" . $identity . "'
+                AND  P.version = '" . $priceversion . "'";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    */
+
     
      public function getShipmentsInvoiceDetail($identity){ 
        $record = array();
@@ -239,6 +264,164 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getAllRecords($sql); 
         return $record;
       }
+    public function getShipmentPricebreakdownDetailsWithVersion($identity,$priceVersion){ 
+       $record = array();
+         $sqldata = 'S.*';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_price AS S
+                WHERE S.load_identity = '" . $identity . "' AND S.version = '" . $priceVersion . "'
+                AND show_for != 'C'";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    public function getShipmentPricebreakdownDetailsWithVersionOfCustomer($identity,$priceVersion){ 
+       $record = array();
+         $sqldata = 'S.*';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_price AS S
+                WHERE S.load_identity = '" . $identity . "' AND S.version = '" . $priceVersion . "'
+                AND show_for != 'CA'";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    
+        
+     public function getAllSurchargeOfCarrier($carrierId,$companyId){ 
+       $record = array();
+         $sqldata = 'S.surcharge_id,S.company_surcharge_name';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_surcharge_vs_company AS S
+                WHERE S.company_id = '" . $companyId . "' AND S.courier_id = '" . $carrierId . "' AND S.status = 1";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    
+     public function getCcfOfCarrierSurcharge($surchargeId,$company_id,$customer_id,$courier_id)
+    {
+        $sql = "
+        SELECT  
+                COURSER.id as surcharge_id,
+                CCST.customer_surcharge AS customer_carrier_surcharge_ccf,
+                CCST.ccf_operator AS customer_carrier_surcharge_operator,
+                CCC.customer_surcharge_value AS customer_carrier_surcharge,
+                CCC.company_ccf_operator_surcharge AS customer_carrier_operator,
+                CINFO.surcharge AS customer_surcharge,
+                CINFO.ccf_operator_surcharge AS customer_operator,
+                COMSER.company_surcharge_surcharge AS company_carrier_surcharge_ccf,
+                COMSER.company_ccf_operator AS company_carrier_surcharge_operator,
+                COMSER.company_surcharge_code,
+                COMSER.company_surcharge_name,
+                COMCOUR.company_surcharge_value AS company_carrier_ccf,
+                COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator,
+                COURSER.surcharge_name AS courier_surcharge_name,
+                COURSER.surcharge_code AS courier_surcharge_code
+                FROM " . DB_PREFIX . "company_vs_customer_vs_surcharge CCST
+                INNER JOIN " . DB_PREFIX . "courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
+                INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
+                INNER JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.surcharge_id AND COMSER.courier_id = CCST.courier_id   AND COMSER.company_id =  '$company_id')
+                INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id AND  COMCOUR.company_id =  '$company_id')
+                INNER JOIN " . DB_PREFIX . "courier_vs_surcharge as COURSER on (COURSER.id = CCST.surcharge_id)
+                WHERE CCST.status = 1  
+                AND CCC.status = 1 
+                AND COMSER.status = 1 
+                AND COMCOUR.status = 1 
+                AND COURSER.status = 1
+                AND CCST.company_customer_id = '$customer_id'
+                AND CCST.company_id = '$company_id'
+                AND CCST.courier_id = '$courier_id'
+                AND COURSER.id = '$surchargeId'";
+        return $this->db->getRowRecord($sql); 
+    }
+
+     public function getSurchargeOfCarrier($customer_id, $company_id, $courier_id)
+    {
+        $sql = "
+        SELECT 
+        CCC.customer_surcharge_value AS customer_surcharge_value,
+        CCC.company_ccf_operator_surcharge AS company_ccf_operator_surcharge,
+        CINFO.surcharge AS customer_surcharge,
+        CINFO.ccf_operator_surcharge AS customer_operator,
+        COMCOUR.company_surcharge_value AS company_carrier_ccf,
+        COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator
+        FROM " . DB_PREFIX . "courier_vs_company_vs_customer as CCC 
+        INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCC.customer_id
+        INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCC.courier_id AND  COMCOUR.company_id =  CCC.company_id )
+        WHERE   CCC.status = 1 AND  COMCOUR.status = 1 
+        AND CCC.customer_id = '$customer_id'
+        AND CCC.company_id = '$company_id'
+        AND CCC.courier_id = '$courier_id'";
+        return $this->db->getRowRecord($sql); 
+    }
+     public function getSurchargeCodeBySurchargeId($surchargeId,$companyId){ 
+       $record = array();
+         $sqldata = 'S.company_surcharge_code';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_surcharge_vs_company AS S
+                WHERE S.company_id = '" . $companyId . "' AND S.surcharge_id = '" . $surchargeId . "' AND S.status = 1";
+        $record = $this->db->getRowRecord($sql);
+        return $record['company_surcharge_code'];
+      }
+    public function getShipmentsPriceVersion($identity){ 
+       $record = array();
+         $sqldata = 'S.price_version';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service AS S
+                WHERE S.load_identity = '" . $identity . "'";
+        $record = $this->db->getRowRecord($sql); 
+        return $record['price_version'];
+      }
+     public function getShipmentsPriceDetailCarrier($identity,$courier_id,$company_id,$priceversion){ 
+       $record = array();
+       $sqldata = 'CSER.company_service_name,COUSER.service_name,CSUR.company_surcharge_name,COUSUR.surcharge_name,P.*';
+       $sql = " SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_price AS  P
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS CSER ON CSER.service_id = P.service_id AND CSER.courier_id = '" .$courier_id . "'  AND CSER.company_id = '" .$company_id . "'
+                LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company AS CSUR ON CSUR.surcharge_id = P.surcharge_id AND CSUR.courier_id = '" .$courier_id . "'  AND CSUR.company_id = '" .$company_id . "'
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services AS COUSER ON COUSER.id = P.service_id
+                LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge AS COUSUR ON COUSUR.id = P.surcharge_id
+                WHERE P.load_identity = '" . $identity . "'
+                AND  P.version = '" . $priceversion . "'
+                AND  P.show_for != 'C'";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+     public function getShipmentsPriceDetailCustomer($identity,$courier_id,$company_id,$priceversion){ 
+       $record = array();
+       $sqldata = 'CSER.company_service_name,COUSER.service_name,CSUR.company_surcharge_name,COUSUR.surcharge_name,P.*';
+       $sql = " SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_price AS  P
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS CSER ON CSER.service_id = P.service_id AND CSER.courier_id = '" .$courier_id . "'  AND CSER.company_id = '" .$company_id . "'
+                LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company AS CSUR ON CSUR.surcharge_id = P.surcharge_id AND CSUR.courier_id = '" .$courier_id . "'  AND CSUR.company_id = '" .$company_id . "'
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services AS COUSER ON COUSER.id = P.service_id
+                LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge AS COUSUR ON COUSUR.id = P.surcharge_id
+                WHERE P.load_identity = '" . $identity . "'
+                AND  P.version = '" . $priceversion . "'
+                AND  P.show_for != 'CA'";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    public function _generate_voucher_no($company_id){ 
+        $libObj = new Library();
+		$record = $this->db->getRowRecord("SELECT (voucher_end_number + 1) AS voucher_reference, voucher_prefix AS voucher_prefix FROM " . DB_PREFIX . "configuration WHERE company_id = ".$company_id);
+		$voucher_number = $record['voucher_prefix'].str_pad($record['voucher_reference'],6,0,STR_PAD_LEFT);
+		$check_digit = $libObj->generateCheckDigit($voucher_number);
+		$voucher_number = "$voucher_number$check_digit";
+		$this->db->updateData("UPDATE " . DB_PREFIX . "configuration SET voucher_end_number = voucher_end_number + 1 WHERE company_id = ".$company_id);
+		
+		if($this->_test_voucher_number($voucher_number)){
+			$this->_generate_voucher_no($company_id);
+		}
+		return $voucher_number;
+	}
+   private function _test_voucher_number($voucher_number){
+		$record = $this->db->getOneRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "vouchers WHERE voucher_reference = '". $voucher_number ."'");
+		if($record['exist'] > 0)
+			return true;
+		else
+			return false;
+	}
+   public function getVoucherHistory($identity){
+		$record = $this->db->getOneRecord("SELECT id  FROM " . DB_PREFIX . "vouchers WHERE shipment_reference = '". $identity ."' ORDER BY id DESC");
+		if($record['id'] !=0)
+			return $record['id'];
+		else
+			return 0;
+	} 
+    
+    
         
   }
 ?>
