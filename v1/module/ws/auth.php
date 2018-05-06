@@ -71,7 +71,6 @@ class Idriver_Auth
         $user = $this->_process();
         if($user!=null)
         {
-            //if(passwordHash::check_password($user['password'],$this->password))
             if(true)
             {
                 $access_token = $this->_setAccessToken($user['id']);

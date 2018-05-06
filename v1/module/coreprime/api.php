@@ -212,9 +212,8 @@ class Module_Coreprime_Api extends Icargo
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
         $post_data["constants"] = [];
-
-        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true));
-
+        $input = $this->_filterApiResponsewithAllowedServicesforCustomer(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$carrier['courier_id']);
+        $data = $this->_filterApiResponse($input);
         $this->customerccf->calculate($data, $carrier['courier_id'], $param->customer_id, $param->company_id);
         if(count($data)>0){
             switch(strtoupper($response_filter_type))
@@ -229,6 +228,21 @@ class Module_Coreprime_Api extends Icargo
             return array("status"=>"error","message"=>"Rating api return null response");
         }
 
+    }
+    private function _filterApiResponsewithAllowedServicesforCustomer($input,$customer_id,$company_id,$courier_id){
+       if(is_array($input)){
+            foreach($input["rate"] as $key=>$service_list){
+               $returndata =  $this->modelObj->isServiceAvailableforCustomer(key($service_list),$customer_id,$company_id,$courier_id);
+               if($returndata){
+                 if(($returndata['courierstatus'] == 0) || ($returndata['status'] == 0)){
+                  unset($input["rate"][$key]); 
+                 }   
+               }      
+             }
+        return json_decode(json_encode($input),1);
+        }else{
+            return array();
+        } 
     }
 }
 ?>

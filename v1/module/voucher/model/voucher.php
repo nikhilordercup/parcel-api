@@ -61,6 +61,8 @@ class Voucher_Model
                     V.shipment_reference,
                     V.create_date,
                     V.is_invoiced,
+                    V.voucher_reference as voucher_reference,
+                    V.is_Paid as status,
                     CI.accountnumber as shipment_customer_account,
                     CI.billing_full_name as shipment_customer_name';
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "vouchers AS V

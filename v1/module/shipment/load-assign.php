@@ -159,7 +159,7 @@ class Route_Assign
         $createdRoute['route_name'] = $this->route_name;
         $createdRoute['driver_id'] = $this->driver_id;
         $createdRoute['assign_start_time'] = date('H:i:s', $timeStamp);
-        $createdRoute['service_date'] = date('Y-m-d', $timeStamp);
+        $createdRoute['service_date'] = date('Y-m-d H:i:s', $timeStamp);
         $createdRoute['is_active'] = 'Y';
         $createdRoute['status'] = '1';
         $createdRoute['company_id'] = $this->company_id;
@@ -195,7 +195,9 @@ class Route_Assign
             $cargoshipment['icargo_execution_order'] = $shipdata['drop_execution_order'];
             $cargoshipment['distancemiles'] = $shipdata['distancemiles'];
             $cargoshipment['estimatedtime'] = $shipdata['estimatedtime'];
+			//print_r($cargoshipment);
             $condition = "shipment_ticket = '" . $shipdata['temp_shipment_ticket'] . "'";
+			//echo $condition;
             $this->db->save("driver_shipment", $drivershipmet);
             $this->db->update('shipment', $cargoshipment, $condition);
             $this->_add_shipment_life_history($shipdata['temp_shipment_ticket'], 'Assign to Driver', 'ASSIGNTODRIVER', 'Controller', $this->company_id, $this->warehouse_id, $this->driver_id, $shipment_routed_id);

@@ -1037,6 +1037,9 @@ class loadShipment extends Library
         $vehicleIdofDriver = $this->_get_driver_data_by_id($this->driver_id);
 
         if ((count($shipment_tickets) > 0) && ($this->driver_id != '') && (is_numeric($this->driver_id))) {
+			$timestamp = (isset($this->assign_time)) ? strtotime($this->assign_time) : strtotime(date('Y-m-d H:i:s'));
+			$assign_time = date('H:i:s',$timestamp);
+			$assign_date = date('Y-m-d',$timestamp);
             // Create a Route
             $insertData = array(
                 'route_id' => '0',
@@ -1044,7 +1047,7 @@ class loadShipment extends Library
                 'route_name'        => $this->route_name,//'custom_1.' . rand(1, 50),
                 'driver_id'         => $this->driver_id,
                 'create_date'       => date("Y-m-d"),
-                'assign_start_time' => date("h:i:s", strtotime($this->assign_time)),//str_replace(' ', '', $this->assign_time . ':00'),
+                'assign_start_time' => date("h:i:s", $timestamp),//str_replace(' ', '', $this->assign_time . ':00'),
                 'is_active'         => 'Y',
                 'is_optimized'      => 'NO',
                 'optimized_type'    => 'N',
@@ -1085,7 +1088,7 @@ class loadShipment extends Library
                 $drshipid      = $this->db->save('driver_shipment', $insertData);
                 // Update Cargo shipment
                 
-                $status        = $this->db->updateData("UPDATE " . DB_PREFIX . "shipment SET is_driver_assigned = 1,company_id='$this->company_id',warehouse_id='$this->warehouse_id',shipment_assigned_service_time='" . date("H:m:s") . "',is_shipment_routed='1',assigned_driver='$this->driver_id',assigned_vehicle='" . $vehicleIdofDriver['vehicle_id'] . "',current_status='O',icargo_execution_order='" . $shipdata['shipment_executionOrder'] . "',distancemiles='" . $shipdata['distancemiles'] . "',estimatedtime='" . $shipdata['estimatedtime'] . "',shipment_routed_id='$shipment_routed_id' WHERE shipment_ticket = '$shipment_ticket'");
+                $status        = $this->db->updateData("UPDATE " . DB_PREFIX . "shipment SET shipment_assigned_service_date = '".$assign_date."',shipment_assigned_service_time = '".$assign_time."', is_driver_assigned = 1,company_id='$this->company_id',warehouse_id='$this->warehouse_id',shipment_assigned_service_time='" . date("H:m:s") . "',is_shipment_routed='1',assigned_driver='$this->driver_id',assigned_vehicle='" . $vehicleIdofDriver['vehicle_id'] . "',current_status='O',icargo_execution_order='" . $shipdata['shipment_executionOrder'] . "',distancemiles='" . $shipdata['distancemiles'] . "',estimatedtime='" . $shipdata['estimatedtime'] . "',shipment_routed_id='$shipment_routed_id' WHERE shipment_ticket = '$shipment_ticket'");
 
                 $historyOfShip = $common_obj->addShipmentlifeHistory($shipment_ticket, 'Assign to Driver', $this->driver_id, $shipment_routed_id, $this->company_id, $this->warehouse_id, "ASSIGNTODRIVER", 'controller');
             }
