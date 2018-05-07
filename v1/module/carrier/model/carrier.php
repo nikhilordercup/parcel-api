@@ -142,8 +142,8 @@ class Carrier_Model_Carrier
                 FROM " . DB_PREFIX . "company_vs_customer_vs_surcharge CCST
                 INNER JOIN " . DB_PREFIX . "courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
                 INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
-                INNER JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.surcharge_id AND COMSER.courier_id = CCST.courier_id   AND COMSER.company_id =  '10')
-                INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id AND  COMCOUR.company_id =  '10')
+                INNER JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.surcharge_id AND COMSER.courier_id = CCST.courier_id   AND COMSER.company_id =  '$company_id')
+                INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id AND  COMCOUR.company_id =  '$company_id')
                 INNER JOIN " . DB_PREFIX . "courier_vs_surcharge as COURSER on (COURSER.id = CCST.surcharge_id)
                 WHERE CCST.status = 1  
                 AND CCC.status = 1 

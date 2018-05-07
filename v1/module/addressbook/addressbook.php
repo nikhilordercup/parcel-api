@@ -18,9 +18,11 @@ class Module_Addressbook_Addressbook extends Icargo{
         $response = array();
 		
 		//added by kavita for search button 19march2018
-	if(isset($param->origin) && $param->origin=='api'){
-	    $pcaLookup = new Address_Lookup();
+	    if(isset($param->origin) && $param->origin=='api')
+	    {
+	        $pcaLookup = new Address_Lookup();
             $addresses = $pcaLookup->lookup($param->search_postcode);
+
             if($addresses["status"]=="success")
             {
                 $records = array();
@@ -37,8 +39,6 @@ class Module_Addressbook_Addressbook extends Icargo{
 			}
 		}
 		//end
-		
-		
         $records = Addressbook_Model::_getInstance()->searchAllAddress(array("customer_id"=>$param->customer_id,"postcode"=>$param->search_postcode));
         if(!$records)
         {

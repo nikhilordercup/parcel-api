@@ -1068,7 +1068,7 @@ class shipment extends Library{
             $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
             $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
             $data['shipment_customer_city'] = (isset($param["city"])) ? $param["city"]: "";
-            $data['shipment_postcode'] = (isset($param["postcode"])) ? $param["postcode"] : "";
+            $data['shipment_postcode'] = (isset($param["postcode"])) ? $this->postcodeObj->validate($param["postcode"]) : "";
             $data['shipment_customer_country'] = (isset($param["country"])) ? $param["country"] : "";
             $data['shipment_instruction'] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
@@ -1288,6 +1288,7 @@ class shipment extends Library{
         $postcode = $this->postcodeObj->validate($address["postcode"]);
        
         if($postcode){
+            $address["postcode"] = $postcode;
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
             $data["address_line2"] = (isset($address["address_line2"])) ? addslashes($address["address_line2"]) : "";
@@ -1466,8 +1467,7 @@ class shipment extends Library{
             $transit_distance = $data->transit_distance;
             $this->company_id = $data->company_id;
             $this->warehouse_id = $data->warehouse_id;
-            $this->service_date = date("Y-m-d h:i:s", strtotime($data->service_date));
-
+			$this->service_date = date("Y-m-d H:i:s", strtotime($data->service_date));
             $loadIdentity = "";
             $counter = 1;
             $this->db->startTransaction();
