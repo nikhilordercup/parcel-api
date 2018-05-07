@@ -10,6 +10,9 @@ Class Address_Lookup{
     function lookup($string)
     {
         //Set Licence and Account Code
+        $postcodeObj = new Postcode();
+        $string = $postcodeObj->validate($string);
+
         $oPostcode = new interactiveFindByPostcode();//interactiveRetrieveByAddress();
         
         $oPostcode->setLicenceKey('JJ36-KU94-DC22-FN63');
@@ -25,6 +28,7 @@ Class Address_Lookup{
         //$oPostcode->setCompany('Enevis Ltd');
         //$oPostcode->setAddress('Twistleton Court, DA1 2EN');
         //$oPostcode->setAddress($string);
+
         $oPostcode->setPostcode($string);
         
         if (!$oPostcode->run()) {
