@@ -853,7 +853,7 @@ class View_Support extends Icargo{
             $firebaseData["driver_id"] = $routeDetail["driver_id"];
 
         }
-        return array('status'=>$returnStatus,'message'=>'Total '.count($successBucket).' Shipment has been release and '.count($failBucket).' request has been failed',"firebaseData"=>$firebaseData);
+        return array('status'=>$returnStatus,'message'=>count($successBucket).' Job(s) has been assigned to route ' . $routeDetail["route_name"],"firebaseData"=>$firebaseData);
        }	
  
     public function assignShipment($shipmentDetails,$shipment_route_id,$companyid,$warehouseid) { 
