@@ -116,6 +116,7 @@ class Quotation extends Library
                 "company_id" => $this->company_id,
                 "warehouse_id" => $this->warehouse_id
             );
+
             $shipmentStatus = $this->_saveSamedayQuote(array(
                 "shipment_data" => $shipmentData,
                 "parcel_data" => $parcelData
@@ -152,6 +153,7 @@ class Quotation extends Library
                 "shipment_data" => $shipmentData,
                 "parcel_data" => $parcelData
             ));
+
             ++$counter;
         }
 
@@ -284,6 +286,7 @@ class Quotation extends Library
     function sendQuoteEmail($data)
     {
         $quoteSave = $this->_saveQuote($data);
+
         if ($data->quote_email != '')
         {
             $templateMsg = array();

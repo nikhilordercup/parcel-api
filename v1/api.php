@@ -410,8 +410,12 @@ $app->post('/getMoveToOtherRouteAcions', function() use ($app) {
 $app->post('/assignToCurrentRoute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
+
+    $r->shipment_ticket = implode(',', $r->shipment_ticket);
 	verifyRequiredParams(array('access_token','email','shipment_route_id','company_id','warehouse_id','shipment_ticket'),$r);
-    $params = array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_ticket'=>$r->shipment_ticket,'shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
+
+	$shipmentTickets = explode(',', $r->shipment_ticket);
+    $params = array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_ticket'=>$shipmentTickets,'shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
 	$obj = new View_Support($params);
 	$response = $obj->assignToCurrentRoute();
 	echoResponse(200, $response);
