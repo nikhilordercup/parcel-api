@@ -29,7 +29,7 @@ class Route_Model_Complete{
 	
 	//driver id by shipment route id
 	public function getDriverIdByShipmentRouteId($shipment_route_id){
-		$driverId = $this->getInstance()->getRowRecord("SELECT assigned_driver FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id = '".$shipment_route_id."'");
+		$driverId = $this->getInstance()->getRowRecord("SELECT assigned_driver, warehouse_id FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id = '".$shipment_route_id."'");
 		return $driverId;
 	}
 	
@@ -43,7 +43,15 @@ class Route_Model_Complete{
 			return array("status"=>false,"message"=>"Driver data not saved");
 		}
 	}
-	
-	
+
+    public function saveDriverApiTracking($param){
+        $this->getInstance()->save("api_driver_tracking",$param);
+    }
+
+    //driver id by shipment route id
+    public function getDriverByDriverId($user_id){
+        $data = $this->getInstance()->getRowRecord("SELECT name as profile_name FROM " . DB_PREFIX . "users WHERE id = '".$user_id."'");
+        return $data;
+    }
 }
 ?>
