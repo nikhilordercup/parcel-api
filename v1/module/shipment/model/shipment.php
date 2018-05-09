@@ -393,7 +393,7 @@ class Shipment_Model
         {
         $record = array();
         $sqldata = 't1.id AS driver_id, t1.name AS driver_name';
-        $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "users AS t1 INNER JOIN " . DB_PREFIX . "company_users AS t2 ON t1.id = t2.user_id WHERE t1.user_level = 4 AND t2.company_id = " . $company_id . " ORDER BY driver_name";
+        $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "users AS t1 INNER JOIN " . DB_PREFIX . "company_users AS t2 ON t1.id = t2.user_id WHERE t1.user_level = 4 AND t1.status = 1 AND t2.company_id = " . $company_id . " ORDER BY driver_name";
         $records = $this->db->getAllRecords($sql);
         return $records;
         }

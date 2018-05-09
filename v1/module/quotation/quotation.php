@@ -463,6 +463,7 @@ class Quotation extends Library
             "name" => $userData['name']
         );
         $shipmentData = $this->db->getAllRecords("SELECT shipment_postcode,shipment_service_type,shipment_address FROM " . DB_PREFIX . "quote_shipment WHERE quote_number = '" . $param->quote_number . "'");
+
         foreach($shipmentData as $data)
         {
             if ($data['shipment_service_type'] == 'P')
@@ -476,6 +477,7 @@ class Quotation extends Library
         }
 
         $serviceData = $this->db->getRowRecord("SELECT service_opted,expiry_date,collection_date,collection_time,transit_time_text,transit_distance_text,transit_time,transit_distance,shipment_address_json FROM " . DB_PREFIX . "quote_service WHERE quote_number = '" . $param->quote_number . "'");
+
         $quoteArr['serviceDate'] = $serviceData['collection_date'];
         $quoteArr['serviceTime'] = date('h:i:s', strtotime($serviceData['collection_time']));
         $quoteArr['collectionDateTime'] = $quoteArr['serviceDate'] . ' ' . $quoteArr['serviceTime'];
@@ -485,6 +487,7 @@ class Quotation extends Library
         $quoteArr['transit_time'] = $serviceData['transit_time'];
         $quoteArr['transit_distance'] = $serviceData['transit_distance'];
         $quoteArr['shipment_address_json'] = $serviceData['shipment_address_json'];
+
         return array(
             "status" => "success",
             "quoteData" => $quoteArr
