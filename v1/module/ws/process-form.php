@@ -123,8 +123,6 @@ class Process_Form{
         $data                 = array();
         $data['drivercode']   = $this->driver_name;
         $data['driver_id']    = $this->driver_id;
-        //$data['date']         = date("Y-m-d");
-        //$data['time']         = date("H:m:s");
         $data['route_id']     = $this->shipment_route_id;
         $data['latitude']     = $this->latitude;
         $data['longitude']    = $this->longitude;
@@ -132,6 +130,7 @@ class Process_Form{
         $data['company_id']   = $this->company_id;
         $data['warehouse_id'] = $this->warehouse_id;
         $data['status']       = '1';
+        $data['event_time']   = date("Y-m-d H:i", strtotime("now"));
         $trackid              = $this->model_rest->save("api_driver_tracking", $data);
         return $trackid;
     }
