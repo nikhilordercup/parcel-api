@@ -746,7 +746,7 @@ class loadShipment extends Library
 
     private function _get_active_driver()
     {
-        $sql     = "SELECT t1.id AS driver_id, t1.name AS driver_name FROM " . DB_PREFIX . "users AS t1 INNER JOIN " . DB_PREFIX . "company_users AS t2 ON t1.id = t2.user_id WHERE t1.user_level = 4 AND t2.company_id = " . $this->company_id . " ORDER BY driver_name";
+        $sql     = "SELECT t1.id AS driver_id, t1.name AS driver_name FROM " . DB_PREFIX . "users AS t1 INNER JOIN " . DB_PREFIX . "company_users AS t2 ON t1.id = t2.user_id WHERE t1.user_level = 4 AND t1.status = 1 AND t2.company_id = " . $this->company_id . " ORDER BY driver_name";
         $records = $this->db->getAllRecords($sql);
         return $records;
     }
