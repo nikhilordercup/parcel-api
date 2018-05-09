@@ -251,6 +251,7 @@ class Controller extends Icargo{
             if($userLists){
                 $customerLists[$key]["default_user_id"] = $item["id"];
                 $customerLists[$key]["users"][] = array("id"=>$item["id"],"name"=>$item["name"],"email"=>$item["email"],"is_default"=>0,"collection_address"=>$this->_getCustomerCollectionAddressByCustomerId($item["id"]));
+
                 foreach($userLists as $user_key=>$userItem){
 
                     $customerLists[$key]["users"][] = array("id"=>$userItem["id"],"name"=>$userItem["name"],"email"=>$userItem["email"],"is_default"=>$userItem["is_default"],"collection_address"=>$this->_getUserCollectionAddressByUserId($userItem["id"]));

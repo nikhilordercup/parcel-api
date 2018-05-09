@@ -8,12 +8,20 @@ class Ws_Model_Rest
     
     public function save($table, $data)
     {
-        return $this->db->save($table, $data);
+        try{
+            return $this->db->save($table, $data);
+        }catch(Exception $e){
+
+        }
     }
     
     public function update($table, $data, $condition)
     {
-        return $this->db->update($table, $data, $condition);
+        try{
+            return $this->db->update($table, $data, $condition);
+        }catch(Exception $e){
+
+        }
     }
     
     public function get_shipment_ticket_by_shipment_route_id($shipment_route_id)
