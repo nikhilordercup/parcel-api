@@ -923,7 +923,12 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 	/****get all address list from db by customer id****/
 	public function getCustomerAddressDataByCustomerId($param){  
         $data =  $this->modelObj->getCustomerAddressDataByCustomerId($param->customer_id);
-        return $data;
+        $result = array();
+        foreach($data as $item){
+            $item["warehouse_address"] = ($item["warehouse_address"]=="Y") ? "Y" : "N" ;
+            array_push($result, $item);
+        }
+        return $result;
 	}
 
 	
@@ -1116,6 +1121,22 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 			$response = array("status"=>"error","message"=>"No default user found");
 		return $response;
 	}
-	
+
+	public function setCustomerDefaultWarehouse($param){
+	    if($param->status==1){
+            //set other address as "N"
+            $this->modelObj->disableCustomerWarehouseAddress($param);
+            //Set requested address as "Y"
+            $status = $this->modelObj->searchCustomerAddressByAddressId($param);
+            if($status>0){
+                $status = $this->modelObj->enableCustomerWarehouseAddress($param);
+            }else{
+                $status = $this->modelObj->saveCustomerWarehouseAddress($param);
+            }
+        }else{
+            $this->modelObj->disableCustomerWarehouseAddress($param);
+        }
+        return array("status"=>"success","message"=>"Warehouse updated successfully");
+    }
  }
 ?>
