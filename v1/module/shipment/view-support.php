@@ -522,7 +522,7 @@ class View_Support extends Icargo{
    return array('message'=>'Total '.$countdata.' '.$actions,'status'=>true);   
 }
     
-    public function pickup_by_driver(){ echo 54555;die;
+    public function pickup_by_driver(){
 	$shipRoute_id 	= $this->shipment_route_id;
 	$route_data     = $this->modelObj->_get_assigned_route_detail($shipRoute_id);
 	$driverid 	    = $route_data['driver_id'];
@@ -698,7 +698,8 @@ class View_Support extends Icargo{
 
 
         $status = $this->modelObj->releaseShipment(implode("','",$this->shipment_ticket));
-		$numaffected = $this->modelObj->getAffectedRows();
+
+        $numaffected = $this->modelObj->getAffectedRows();
 
 		if($driverid>0  and $numaffected>0){
             $status = $this->modelObj->releaseShipmentFromDriver(implode("','",$this->shipment_ticket));

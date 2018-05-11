@@ -125,10 +125,6 @@ class Firebase_Route_Assign extends Firebase
 
         $this->_route_type  = $this->_get_route_type($route_data);
         
-        //if($shipment['shipment_service_type']=="P")
-        //    $this->_route_type             = "collection";
-        //$tempData = $this->_shipmentDrops($this->_getDropOfCurrentRoute());
-        
         $tempData = $this->_shipmentDrops($route_data);
 
         $routeInfo['total_parcel']  = $tempData['total_parcel'];
@@ -150,7 +146,7 @@ class Firebase_Route_Assign extends Firebase
     }
 	
 	private function _shipmentDrops($shipmentDrops)
-	{ 	
+	{
 		$total_parcel = 0;
 		$route_all_shipments_tickets = array();
 		$drop_count = count($shipmentDrops);
@@ -200,7 +196,6 @@ class Firebase_Route_Assign extends Firebase
 				$shipmentDrops[$key]["status"] = 'pending';  
 				$shipmentDrops[$key]["time_remaining"] = $minutes;
 				$shipmentDrops[$key]["shipments"] = $shipData;
-				//$shipmentDrops[$key]["shipment_parcels"] = $parcels;
 				$shipmentDrops[$key][".priority"] = $drop_count--;
 				$job_count += count($shipData);
 				array_push($time_remaining,$minutes);
