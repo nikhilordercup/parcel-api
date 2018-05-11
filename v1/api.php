@@ -1817,6 +1817,14 @@ $app->post('/downloadReportCsv', function() use($app){
     echoResponse(200, $response);
 });
 
+$app->post('/setCustomerDefaultWarehouse', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','address_id','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->setCustomerDefaultWarehouse($r);
+    echoResponse(200, $response);
+});
+
 /*end download report csv*/
 
 
