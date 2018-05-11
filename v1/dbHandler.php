@@ -13,19 +13,19 @@ class DbHandler {
     /**
      * Start transaction
      */
-    public function startTransaction() {return;
+    public function startTransaction() {
         $this->conn->begin_transaction();
     }
     /**
      * Start transaction
      */
-    public function commitTransaction() {return;
+    public function commitTransaction() {
         $this->conn->commit();
     }
     /**
      * Start transaction
      */
-    public function rollBackTransaction() {return;
+    public function rollBackTransaction() {
         $this->conn->rollBack();
     }
     /**
@@ -110,7 +110,6 @@ class DbHandler {
 		if($condition)
 			$query .= " WHERE $condition";
 		$query .= ";";
-
         $r = $this->conn->query($query);
         if($r)
         	return $r;
