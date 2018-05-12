@@ -479,7 +479,7 @@ class View_Support extends Icargo{
             $ticket    	   = str_replace('"', '', $valticket);
             $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
             $status        = $this->modelObj->editContent("shipment", array('is_driver_accept' => 'YES'), $condition);
-            $condition2    = "shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
+            $condition2    = "shipment_accepted='Pending' AND shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
             $status2       = $this->modelObj->editContent("driver_shipment", array('shipment_accepted' => 'YES','taken_action_by' => 'Controller'
             ), $condition2);
 
