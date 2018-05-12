@@ -57,8 +57,7 @@ class Customer_Model {
 public function getAllCouriersofCustomer($componyId,$customerId){
      $record = array();
 	 $sqldata ='t1.id AS id,t1.courier_id AS courier_id,t1.status, t1.account_number,t1.company_ccf_value as ccf,
-                t1.company_surcharge_value as surcharge,t2.name,
-                t2.code,t2.icon';
+                t1.company_surcharge_value as surcharge,t2.name,t2.code,t2.icon, t1.is_internal AS internal';
       $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "courier_vs_company AS t1
 			 INNER JOIN " . DB_PREFIX . "courier AS t2 ON t1.courier_id = t2.id
              WHERE t1.company_id  = '".$componyId."' AND t1.status = '1'";

@@ -103,6 +103,7 @@ class Firebase{
 		$temp  = array();
         $temp1 = array();
         $shipments = $this->_getShipmentDrop();//$this->modelObj->getShipmentDrop($this->_getRouteId());
+
         foreach($shipments as $key => $shipment){
             $drop = $this->_getRouteDrop(array("postcode"=>$shipment['shipment_postcode'],"address_1"=>$shipment['shipment_address1']), true);
             

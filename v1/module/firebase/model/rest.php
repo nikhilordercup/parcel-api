@@ -75,7 +75,8 @@ class Firebase_Model_Rest
         CA.shipment_customer_country, CA.is_receivedinwarehouse, CA.warehousereceived_date, CA.is_driverpickupfromwarehouse, CA.driver_pickuptime, CA.estimatedtime, 
         CA.distancemiles, CA.shipment_routed_id, CA.shipment_latitude, CA.shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, DS.driver_id 
         FROM " . DB_PREFIX . "shipment AS CA INNER JOIN " . DB_PREFIX . "driver_shipment AS DS ON CA.shipment_ticket = DS.shipment_ticket 
-        WHERE CA.shipment_routed_id = '$shipment_routed_id' AND CA.current_status  = 'O' AND DS.shipment_status  = 'N'";
+        WHERE CA.shipment_routed_id = '$shipment_routed_id' AND CA.current_status  = 'O' AND DS.shipment_status  = 'N' AND
+        (DS.shipment_accepted='Pending' OR DS.shipment_accepted='YES')";
 
        /*  $sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
         CA.shipment_total_item, ABT.postcode AS shipment_postcode, ABT.address_line1 AS `shipment_address1`, ABT.address_line2 AS shipment_address2, CA.shipment_required_service_starttime, 
@@ -105,7 +106,6 @@ class Firebase_Model_Rest
         CA.distancemiles, CA.shipment_routed_id, ABT.latitude AS shipment_latitude, ABT.longitude AS shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, CA.assigned_driver AS driver_id
         FROM " . DB_PREFIX . "shipment AS CA INNER JOIN " . DB_PREFIX . "address_book AS ABT ON CA.address_id = ABT.id 
         WHERE CA.shipment_routed_id = '$shipment_routed_id'  AND  CA.shipment_ticket IN('$ticket') AND CA.current_status  = 'O'";
-
         $records = $this->db->getAllRecords($sql);
         return $records;
     }
