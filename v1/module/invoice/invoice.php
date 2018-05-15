@@ -22,7 +22,7 @@ class Invoice extends Icargo{
       $_company_id          = $param->company_id;
       $customerfilter = isset($param->customer)?"AND A.customer_id = '".$param->customer."'":" ";
       $invoicedDocketData = $this->modelObj->getAllInvoicedDocket($_company_id,$_start_date,$_end_date,$customerfilter);
-      $tempdata = array();
+      $tempdatap = array();
       foreach($invoicedDocketData as $key=>$val){
        $tempdatap[$val['customer_id']]['shipments'][] = $val;
           $tempdatap[$val['customer_id']]['total']['totalshipment'][] = 1;

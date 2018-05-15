@@ -118,6 +118,7 @@ class Process_Route
         $data['status']       = '1';
         $data['company_id']   = $this->company_id;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['event_time']   = date("Y-m-d H:i", strtotime("now"));
         $trackid              = $this->model_rest->save("api_driver_tracking", $data);
         return $trackid;
     }

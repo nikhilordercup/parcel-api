@@ -159,7 +159,7 @@ class Report extends Icargo{
 				$reportData[$driverId]['total_distance_meter'] = $reportData[$driverId]['total_distance_meter'] + $totalMiles['total_transit_distance'];
 			}
 			
-			$reportData[$driverId]['total_distance_miles'] = $reportData[$driverId]['total_distance_meter'] / 1609.344;
+			//$reportData[$driverId]['total_distance_miles'] = $reportData[$driverId]['total_distance_meter'] / 1609.344;
 			
 			$reportData[$driverId]['driver_name'] = $driverName['name'];
 			
@@ -168,16 +168,16 @@ class Report extends Icargo{
 				$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
 				$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
 				$reportData[$driverId]['no_of_days'] = $no_of_days;
-				$reportData[$driverId]['daily_drop_rate'] = $reportData[$driverId]['no_of_drops'] / $no_of_days;
-				$reportData[$driverId]['average_speed'] = $reportData[$driverId]['total_distance_meter'] / $reportData[$value['driver_id']]['time_taken'];
-				$reportData[$driverId]['average_time_per_drop'] = $reportData[$value['driver_id']]['time_taken'] / $reportData[$driverId]['no_of_drops'];
+				//$reportData[$driverId]['daily_drop_rate'] = $reportData[$driverId]['no_of_drops'] / $no_of_days;
+				//$reportData[$driverId]['average_speed'] = $reportData[$driverId]['total_distance_meter'] / $reportData[$value['driver_id']]['time_taken'];
+				//$reportData[$driverId]['average_time_per_drop'] = $reportData[$value['driver_id']]['time_taken'] / $reportData[$driverId]['no_of_drops'];
 			}else{
 				$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
 				$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
 				$reportData[$driverId]['no_of_days'] = $no_of_days;
-				$reportData[$driverId]['daily_drop_rate'] = 0.0;
-				$reportData[$driverId]['average_speed'] = 0.0;
-				$reportData[$driverId]['average_time_per_drop'] = 0.0;
+				//$reportData[$driverId]['daily_drop_rate'] = 0.0;
+				//$reportData[$driverId]['average_speed'] = 0.0;
+				//$reportData[$driverId]['average_time_per_drop'] = 0.0;
 			}
 				
 		}

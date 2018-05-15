@@ -43,7 +43,7 @@ class AllShipment_Model
 
     function deleteContent($sql)
         {
-        return $this->db->query($sql);
+        return $this->db->delete($sql);
         }
 
     public
@@ -157,6 +157,7 @@ SELECT  S.warehouse_id as warehouse_id,
          S.shipment_required_service_date as expecteddate,
          S.shipment_required_service_starttime as expectedstarttime,
          S.shipment_required_service_endtime as expectedendtime,
+         S.shipment_ticket,
          UTT.name as customer,
          SST.carrier as carrierid,
          SST.service_name as service,
@@ -420,8 +421,43 @@ SELECT  S.warehouse_id as warehouse_id,
 		else
 			return 0;
 	} 
+     public
     
-    
-        
-  }
+     function getShipmentLifeCycleHistoryByIdentity($identity){
+        $record = array();
+        $sqldata = 'R1.*,R2.name,R3.route_name,S.shipment_service_type,R4.name as actions ';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_life_history AS R1
+                LEFT JOIN " . DB_PREFIX . "users AS R2  ON R1.driver_id = R2.id
+                LEFT JOIN " . DB_PREFIX . "shipment AS S  ON R1.shipment_ticket = S.shipment_ticket
+                LEFT JOIN " . DB_PREFIX . "shipment_route AS R3  ON R1.route_id = R3.shipment_route_id
+                LEFT JOIN " . DB_PREFIX . "shipments_master AS R4 ON R1.internel_action_code = R4.tracking_internal_code 
+                WHERE R1.instaDispatch_loadIdentity = '" . $identity . "'
+                AND  R4.is_used_for_tracking = 'YES' 
+                ORDER BY S.shipment_service_type,R1.his_id ASC";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+        }
+    function getShipmentPodByShipmentTicket($tickets){
+        $record = array();
+        $sqldata = 'R1.*';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_pod AS R1
+                WHERE R1.shipment_ticket IN ($tickets)";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+        }
+   function allowedTracking(){
+        $record = array();
+        $sqldata = 'R1.tracking_internal_code as id,R1.name';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_master AS R1
+                    WHERE R1.is_used_for_tracking = 'YES'";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+        }
+     function deleteTracking($hisid){
+       $sql = "DELETE  FROM " . DB_PREFIX . "shipment_life_history 
+                    WHERE his_id = '".$hisid."'";
+        $record = $this->deleteContent($sql);
+        return $record;
+        }
+    }
 ?>

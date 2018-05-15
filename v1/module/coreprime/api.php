@@ -212,8 +212,9 @@ class Module_Coreprime_Api extends Icargo
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
         $post_data["constants"] = [];
-        $input = $this->_filterApiResponsewithAllowedServicesforCustomer(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$carrier['courier_id']);
-        $data = $this->_filterApiResponse($input);
+      //$input = $this->_filterApiResponsewithAllowedServicesforCustomer(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$carrier['courier_id']);
+      //$data = $this->_filterApiResponse($input);
+        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true));
         $this->customerccf->calculate($data, $carrier['courier_id'], $param->customer_id, $param->company_id);
         if(count($data)>0){
             switch(strtoupper($response_filter_type))
