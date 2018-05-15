@@ -269,7 +269,7 @@ $app->post('/movetodispute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','disputeid','company_id','warehouse_id','shipment_ticket'),$r);
-	$params = array('shipment_ticket'=>$r->shipment_ticket,'disputeid'=>$r->disputeid,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
+	$params = array('shipment_ticket'=>$r->shipment_ticket,'disputeid'=>$r->disputeid,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type);
 	$obj = new loadShipment($params);
 	$response["actions"] = $obj->moveToDispute();
 	echoResponse(200, $response);
@@ -1849,4 +1849,46 @@ $app->post('/setInternalCarrier', function() use($app){
 		echo $sql.'<br>';
 	}
 });*/
+$app->post('/updateShipmentTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Settings($r);
+    $response = $obj->updateShipmentTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/updateInternalTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Settings($r);
+    $response = $obj->updateInternalTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/allowedTrackingstatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->allowedTrackingstatus($r);
+    echoResponse(200, $response);
+});
+$app->post('/addCustomTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->addCustomTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/deleteCustomTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->deleteCustomTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/addCustomPod', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->addCustomPod($r);
+    echoResponse(200, $response);
+});
 ?>

@@ -291,5 +291,36 @@
             }
             return $url;
         }
-    }
+        
+        public function get_address_by_latlong($lat,$long){
+            $api_url = "http://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long=true";
+            $query   = $this->get_curlresponse($api_url);
+            if($query!='Error'){
+                $json = json_decode($query);
+                if($json->status=="OK"){
+                    print_r($json);die;
+                   $postcodeValid = false;
+                    foreach($json->results[0]->address_components as $val){
+                       if(in_array('postal_code',$val->types)){
+                           $postdata = str_replace(' ','',$val->long_name);
+                           $addressdatadata = str_replace(' ','',urldecode($address));
+                           $postcodeValid = ($postdata==$addressdatadata)?true:false;
+                       }
+                   }
+                if($postcodeValid) {
+                     return array("latitude"=>$json->results[0]->geometry->location->lat, "longitude"=>$json->results[0]->geometry->location->lng, 'geo_location'=>$json,"status"=>"success") ;
+                }else{
+                      return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+                 }
+                 }elseif($json->status=="OVER_QUERY_LIMIT"){
+                   return $this->get_lat_long_by_postcode(urldecode($address));
+                }
+                 else{
+                  return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+                 }
+            }else{
+                 return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+            }
+		}
+     }
 ?>
