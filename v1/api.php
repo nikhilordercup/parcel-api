@@ -1825,6 +1825,16 @@ $app->post('/setCustomerDefaultWarehouse', function() use($app){
     echoResponse(200, $response);
 });
 
+$app->post('/setInternalCarrier', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id','carrier_id','status'),$r);
+    $obj = new Master($r);
+    $response = $obj->setCompanyInternalCarrier($r);
+    echoResponse(200, $response);
+});
+
+
+
 /*end download report csv*/
 
 

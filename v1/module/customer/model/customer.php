@@ -472,5 +472,16 @@ public function checkCustomerEmailExist($company_email){
         $record = $this->db->getOneRecord($sql);
         return $record['exist'];
     }
+
+    public function disableCompanyInternalCarrier($status, $company_id){
+
+        return $this->db->updateData($sql);
+    }
+
+    public function updateCompanyInternalCarrier($status, $company_id, $carrier_id){
+        $record = array();
+
+        return $this->db->updateData($sql);
+    }
 }
 ?>

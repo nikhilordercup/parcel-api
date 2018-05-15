@@ -832,6 +832,7 @@ public function getAllCourierDataOfSelectedCustomer($param){
           $data[$key]['action'] = 'editSelectedCustomerAccountStatusFromView';
           $data[$key]['actioncode'] = 'INNER';
           $data[$key]['status'] = ($data[$key]['customer_status']==1)?true:false;
+          $data[$key]['internal'] = ($data[$key]['internal']==1)?true:false;
           $data[$key]['customer_id'] = $param->customer_id;
       }
    
@@ -1053,41 +1054,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 		}
 		return $response;
 	}
-	
-	/* public function setDefaultUser($param){
-	    $isDefaultUserExist = $this->modelObj->checkDefaultUserExist($param->company_id,$param->customer_id);
-	    if($param->is_default==1){ 
-			if($isDefaultUserExist['exist']>0){
-				$condition = "id = ".$isDefaultUserExist['id']."";
-				$removeExistingDefaultUser = $this->_parentObj->db->update('users', array("is_default"=>0), $condition);
-				if($removeExistingDefaultUser){
-					$condition = "id = ".$param->data->action."";
-					$addNewDefaultUser = $this->_parentObj->db->update('users', array("is_default"=>$param->is_default), $condition);
-					if($addNewDefaultUser)
-						return array("status"=>"success","message"=>"Default user added successfully");
-					else
-						return array("status"=>"error","message"=>"Unable to add default user,please try again later");
-				}else{
-					return array("status"=>"error","message"=>"Unable to add default user,please try again later");
-				}
-			}else{
-			  $condition = "id = ".$param->data->action."";
-			  $addNewDefaultUser = $this->_parentObj->db->update('users', array("is_default"=>$param->is_default), $condition);
-			} 
-		}else{
-			if($isDefaultUserExist['exist']==0){
-				return array("status"=>"error","message"=>"Please select atleast one default user");
-			}else{
-			  $condition = "id = ".$param->data->action."";
-			  $updateDefaultUser = $this->_parentObj->db->update('users', array("is_default"=>$param->is_default), $condition);
-			  if($updateDefaultUser)
-					return array("status"=>"success","message"=>"Default user updated successfully");
-			  else
-					return array("status"=>"error","message"=>"Unable to update default user,please try again later");
-			}
-		}
-	} */
-	
+
 	public function setDefaultUser($param){
 		if($param->default_exist=='Y'){ 
 			$condition = "id = ".$param->default_user_id."";
@@ -1138,5 +1105,5 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         }
         return array("status"=>"success","message"=>"Warehouse updated successfully");
     }
- }
+}
 ?>
