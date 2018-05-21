@@ -1643,11 +1643,11 @@ $app->post('/getParcelPackage', function() use ($app){
 
 $app->post('/getNextdayAvailableCarrier', function() use ($app){
 
-    echo '[{"ukmail":{"services":{"1":[{"rate":{"price":"4.5","rate_type":"Weight","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"\/icons\/original\/missing.png","max_delivery_time":null,"service_name":"Next working day","service_code":"1","service_icon":null,"service_description":"Next working day description"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0,"fuel_surcharge":0.16},"taxes":{"total_tax":0.466}}]},"carrier_info":{"carrier_code":"ukmail","carrier_name":"UkMail","carrier_icon":"assets\/images\/carrier\/dhl.png","carrier_description":"courier information goes here","carrier_id":"2"}}}]';die;
+    //echo '[{"ukmail":{"services":{"1":[{"rate":{"price":"4.5","rate_type":"Weight","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"\/icons\/original\/missing.png","max_delivery_time":null,"service_name":"Next working day","service_code":"1","service_icon":null,"service_description":"Next working day description"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0,"fuel_surcharge":0.16},"taxes":{"total_tax":0.466}}]},"carrier_info":{"carrier_code":"ukmail","carrier_name":"UkMail","carrier_icon":"assets\/images\/carrier\/dhl.png","carrier_description":"courier information goes here","carrier_id":"2"}}}]';die;
 
     $r = json_decode($app->request->getBody());
     $obj = new Nextday($r);
-    $response = $obj->searchNextdayAvailableCarrier();
+    $response = $obj->searchNextdayCarrierAndPrice();
 
 
     if($response["status"]=="error"){
@@ -1659,8 +1659,9 @@ $app->post('/getNextdayAvailableCarrier', function() use ($app){
 
 $app->post('/bookNextDayJob', function() use ($app){
     $r = json_decode($app->request->getBody());
-    $obj = new Booking($r);
-    $obj->saveNextDayBooking($r);
+    $obj = new Nextday($r);
+    $response = $obj->saveBooking($r);
+    echoResponse(200, $response);
 });
 
 $app->post('/savePackage', function() use ($app){
@@ -1683,8 +1684,6 @@ $app->post('/getPriceDetails', function() use ($app){
         echoResponse(200, $response);
     }
 });
-
-
 
 /*end of report module comment by kavita 20march2018*/
 
@@ -1709,7 +1708,6 @@ $app->post('/getNextdayAvailableCarrier', function() use ($app){
     $obj = new Nextday($r);
     $response = $obj->searchNextdayAvailableCarrier();
 
-
     if($response["status"]=="error"){
         echoResponse(500, $response);
     }else{
@@ -1733,6 +1731,7 @@ $app->post('/savePackage', function() use ($app){
         echoResponse(200, $response);
     }
 });
+
 $app->post('/getPriceDetails', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new allShipments($r);
@@ -1873,6 +1872,22 @@ $app->post('/addCustomPod', function() use ($app) {
     verifyRequiredParams(array('access_token','company_id','email'),$r);
     $obj = new allShipments($r);
     $response = $obj->addCustomPod($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/saveCarrier', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Master($r);
+    $response = $obj->saveCarrier($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/getAllWarehouseAddressByCompanyAndUser', function() use ($app) {
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new Controller($r);
+    $response = $obj->getAllWarehouseAddressByCompanyAndUser(array("company_id"=>$r->company_id,"user_id"=>$r->user_id));
     echoResponse(200, $response);
 });
 ?>

@@ -8,6 +8,8 @@ require '../vendor/autoload.php';
 
 \Slim\Slim::registerAutoloader();
 
+use Firebase\JWT\JWT;
+
 $app = new \Slim\Slim();
 
 /*$corsOptions = array(
@@ -103,8 +105,10 @@ require_once 'module/carrier/Environment.php';
 require_once 'module/carrier/model/carrier.php';
 require_once 'module/carrier/CustomerCostFactor.php';
 
+require_once 'module/booking/model/Booking.php';
 require_once 'module/booking/Shipment.php';
 require_once 'module/booking/Booking.php';
+
 require_once 'module/carrier/Carrier.php';
 require_once 'module/carrier/Ukmail.php';
 require_once 'module/nextday/Nextday.php';
@@ -148,12 +152,27 @@ function verifyRequiredParams($required_fields,$request_params) {
 
 function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
+
+    $key = "example_key";
+
+    $token = array(
+        "iss" => "http://example.org",
+        "aud" => "http://example.com",
+        "iat" => 1356999524,
+        "nbf" => 1357000000
+    );
+
+    $jwt = JWT::encode($response, $key);
+
+echo $jwt;die;
     // Http response code
     $app->status($status_code);
 
     // setting response content type to json
     $app->contentType('application/json');
 
+
+print_r($response);die;
     echo json_encode($response);
 }
 

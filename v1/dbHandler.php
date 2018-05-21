@@ -41,6 +41,7 @@ class DbHandler {
     public function getAllRecords($query) {
 		$result = array();
 		$stmt = $this->conn->query($query) or die($this->conn->error.__LINE__);
+		//print_r($query);die;
 		while ($row = $stmt->fetch_assoc()) {
 			array_push($result, $row);
 		}
@@ -86,7 +87,7 @@ class DbHandler {
         }*/
     }
 	
-	private function _prepare_sql_col_val_statement($data){
+	private function _prepare_sql_col_val_statement($data){print_r($data);
 		$stmt = array();
 		foreach($data as $key => $value){
 			array_push($stmt, "`$key` = '". addslashes($value)."'");

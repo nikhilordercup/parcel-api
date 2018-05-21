@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "a9a98c94f77d068e8426e1b7ddd65dc2",
+    "content-hash": "6eea5e9f84e92ce47e9ab17aae811d7a",
     "packages": [
         {
             "name": "chargebee/chargebee-php",
-            "version": "v2.4.7",
+            "version": "v2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/chargebee/chargebee-php.git",
-                "reference": "82d6a80febf04a3ba8f8df6f0e042d2ba594c108"
+                "reference": "235846096d9d0db94ed9d91845aab913bf1ddae2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/82d6a80febf04a3ba8f8df6f0e042d2ba594c108",
-                "reference": "82d6a80febf04a3ba8f8df6f0e042d2ba594c108",
+                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/235846096d9d0db94ed9d91845aab913bf1ddae2",
+                "reference": "235846096d9d0db94ed9d91845aab913bf1ddae2",
                 "shasum": ""
             },
             "type": "library",
@@ -38,7 +38,53 @@
                 "recurring billing",
                 "subscription billing"
             ],
-            "time": "2018-03-29T14:42:34+00:00"
+            "time": "2018-05-14T13:03:06+00:00"
+        },
+        {
+            "name": "firebase/php-jwt",
+            "version": "v5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/firebase/php-jwt.git",
+                "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
+                "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": " 4.8.35"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Firebase\\JWT\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Neuman Vong",
+                    "email": "neuman+pear@twilio.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Anant Narayanan",
+                    "email": "anant@php.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
+            "homepage": "https://github.com/firebase/php-jwt",
+            "time": "2017-06-27T22:17:23+00:00"
         },
         {
             "name": "phpmailer/phpmailer",

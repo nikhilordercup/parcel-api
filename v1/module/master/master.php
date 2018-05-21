@@ -364,15 +364,15 @@ class Master extends Icargo{
         return $this->_parentObj->db->updateData($sql);
     }
 
-    private function _updateCompanyInternalCarrier($status, $company_id, $carrier_id){
-        $sql = "UPDATE " . DB_PREFIX . "courier_vs_company SET is_internal = '$status' WHERE company_id = '$company_id' AND courier_id = '$carrier_id'";
+    private function _updateCompanyInternalCarrier($status, $company_id, $carrier_id, $row_id){
+        $sql = "UPDATE " . DB_PREFIX . "courier_vs_company SET is_internal = '$status' WHERE id='$row_id'";
         return $this->_parentObj->db->updateData($sql);
     }
 
     public function setCompanyInternalCarrier($param){
         $this->_disableCompanyInternalCarrier($param->status, $param->company_id);
 
-        $status = $this->_updateCompanyInternalCarrier($param->status, $param->company_id, $param->carrier_id);
+        $status = $this->_updateCompanyInternalCarrier($param->status, $param->company_id, $param->carrier_id, $param->id);
 
         if($status){
             return array("status"=>"success", "message"=>"Carrier updated successfully");
@@ -380,6 +380,63 @@ class Master extends Icargo{
             return array("status"=>"error", "message"=>"Carrier not updated");
         }
     }
-    
+
+    public function saveCarrier($param){
+        try{
+            $this->_parentObj->db->startTransaction();
+            $data = array(
+                "courier_id" => $param->carrier_id,
+                "company_id" => $param->company_id,
+                "account_number" => $param->account_number,
+                "username" => $param->user_name,
+                "password" => $param->password,
+                "create_date" => date("Y-m-d"),
+                "created_by" => $param->created_by,
+                "status" => "1",
+                "token" => $param->coreprime_token,
+                "currency" => $param->currency_code,
+                "pickup" => $param->pickup,
+                "pickup_surcharge" => $param->pickup_surcharge,
+                "address_id" => $param->address_id,
+                "collection_start_at" => date("H:i:s", strtotime($param->collection_start_at)),
+                "collection_end_at" => date("H:i:s", strtotime($param->collection_end_at)),
+            );
+            $id = $this->_parentObj->db->save("courier_vs_company", $data);
+
+            if($id){
+                if(isset($param->carrier_image)){
+                    $libObj = new Library();
+                    $file = $libObj->saveImage("/images/carrier", $id, $param->carrier_image);
+                    $status = $this->_parentObj->db->updateData("UPDATE ".DB_PREFIX."courier_vs_company SET icon='$file' WHERE id = $id");
+                    if(!$status){
+                        $this->_parentObj->db->rollBackTransaction();
+                        return array("status"=>"error", "message"=>"Carrier not added");
+                    }
+                }
+
+                foreach($param->references as $item){
+                    $data = array(
+                        "carrier_id" => $param->carrier_id,
+                        "reference" => $item,
+                        "parent_id" => $id
+                    );
+                    $status = $this->_parentObj->db->save("carrier_company_reference", $data);
+                    if(!$status){
+                        $this->_parentObj->db->rollBackTransaction();
+                        return array("status"=>"error", "message"=>"Carrier not added");
+                    }
+                }
+                $this->_parentObj->db->commitTransaction();
+                return array("status"=>"success", "message"=>"Carrier added successfully");
+            }else{
+                $this->_parentObj->db->rollBackTransaction();
+                return array("status"=>"error", "message"=>"Carrier not added");
+            }
+
+        }catch(Exception $e){
+            $this->_parentObj->db->rollBackTransaction();
+            return array("status"=>"error", "message"=>"Carrier not added");
+        }
+    }
 }
 ?>

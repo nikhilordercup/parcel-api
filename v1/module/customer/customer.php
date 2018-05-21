@@ -1090,20 +1090,37 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 	}
 
 	public function setCustomerDefaultWarehouse($param){
-	    if($param->status==1){
-            //set other address as "N"
-            $this->modelObj->disableCustomerWarehouseAddress($param);
-            //Set requested address as "Y"
-            $status = $this->modelObj->searchCustomerAddressByAddressId($param);
-            if($status>0){
-                $status = $this->modelObj->enableCustomerWarehouseAddress($param);
+	    try{
+            $this->modelObj->startTransaction();
+            if($param->status==1){
+                //set other address as "N"
+                $status = $this->modelObj->disableCustomerWarehouseAddress($param);
+                if($status){
+                    //Set requested address as "Y"
+                    $status = $this->modelObj->searchCustomerAddressByAddressId($param);
+                    if($status>0){
+                        $status = $this->modelObj->enableCustomerWarehouseAddress($param);
+                    }else{
+                        $status = $this->modelObj->saveCustomerWarehouseAddress($param);
+                    }
+                    if($status){
+                        $this->modelObj->commitTransaction();
+                        return array("status"=>"success","message"=>"Warehouse updated successfully");
+                    }else{
+                        $this->modelObj->rollBackTransaction();
+                        return array("status"=>"error","message"=>"Warehouse not updated");
+                    }
+                }else{
+                    $this->modelObj->rollBackTransaction();
+                    return array("status"=>"error","message"=>"Warehouse not updated");
+                }
             }else{
-                $status = $this->modelObj->saveCustomerWarehouseAddress($param);
+                $this->modelObj->disableCustomerWarehouseAddress($param);
             }
-        }else{
-            $this->modelObj->disableCustomerWarehouseAddress($param);
+        }catch(Exception $e){
+            $this->modelObj->rollBackTransaction();
+            return array("status"=>"error","message"=>"Warehouse not updated");
         }
-        return array("status"=>"success","message"=>"Warehouse updated successfully");
     }
 }
 ?>
