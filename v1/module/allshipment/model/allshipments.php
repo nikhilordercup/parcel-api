@@ -58,19 +58,20 @@ class AllShipment_Model
         
     public function getAllShipmentsDrop($whareHouseId,$componyId,$limitstr,$filter){
         $record = array();
-        $sqldata ='S.instaDispatch_loadIdentity';
+        $subquery = ($whareHouseId!=0)?"AND S.warehouse_id  = '" . $whareHouseId . "'":"";
+        $sqldata = 'S.instaDispatch_loadIdentity';
+        /*$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "xyz AS S
+                WHERE S.warehouse_id  = '" . $whareHouseId . "'
+                AND S.company_id  = '" . $componyId . "'
+                ".$filter."
+                ".$limitstr."
+        "; */
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "xyz AS S
-                WHERE S.warehouse_id  = '" . $whareHouseId . "'
+                WHERE 1 ".$subquery."
                 AND S.company_id  = '" . $componyId . "'
                 ".$filter."
                 ".$limitstr."
-                "; 
-       /* $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_view AS S
-                WHERE S.warehouse_id  = '" . $whareHouseId . "'
-                AND S.company_id  = '" . $componyId . "'
-                ".$filter."
-                ".$limitstr."
-                "; */
+                ";
         $record = $this->db->getAllRecords($sql);
         return $record;
         
