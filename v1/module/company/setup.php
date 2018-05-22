@@ -73,7 +73,7 @@ class Setup extends Icargo{
             if(!isset($defaultRegData[$key]['status']))
                 $defaultRegData[$key]['status'] = true;
             
-            $defaultRegData[$key]['image'] = $libraryObj->base_url().'/assets/icons/'.$data['image'];
+            $defaultRegData[$key]['image'] = $data['image'];//$libraryObj->base_url().'/assets/icons/'.$data['image'];
         }
         
         //return $defaultRegData;
