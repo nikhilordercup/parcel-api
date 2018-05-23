@@ -324,7 +324,7 @@ public function checkCustomerEmailExist($company_email){
 
     /****get address list by customer id*****/         
 	public function getCustomerAddressDataByCustomerId($customerId){
-        $sql = "SELECT UAT.default_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=179 where ABT.customer_id = ".$customerId." AND ABT.status=1";
+        $sql = "SELECT UAT.warehouse_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=179 where ABT.customer_id = ".$customerId." AND ABT.status=1";
         $records = $this->db->getAllRecords($sql);
 	    return $records;
     }
@@ -440,7 +440,7 @@ public function checkCustomerEmailExist($company_email){
     }
 	
 	public function setDefaultAddress($param){	
-	    $this->db->delete("DELETE FROM ".DB_PREFIX."user_address WHERE user_id='".$param->userid."'");
+	    $this->db->delete("DELETE FROM ".DB_PREFIX."user_address WHERE user_id='".$param->userid."' AND default_address='Y'");
 		$data = array("user_id"=>$param->userid,"address_id"=>$param->id,"default_address"=>"Y");
 		return $this->db->save('user_address', $data);
        
@@ -464,15 +464,15 @@ public function checkCustomerEmailExist($company_email){
    	}
 
     public function disableCustomerWarehouseAddress($param){
-	    return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address='N' WHERE user_id = ".$param->customer_id);
+	    return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='N' WHERE user_id = ".$param->customer_id);
     }
 
     public function enableCustomerWarehouseAddress($param){
-		return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address='Y' WHERE user_id = '".$param->customer_id."' AND address_id = " . $param->address_id);
+		return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='Y' WHERE user_id = '".$param->customer_id."' AND address_id = " . $param->address_id);
     }
 
     public function saveCustomerWarehouseAddress($param){
-        $data = array("user_id"=>$param->customer_id,"address_id"=>$param->address_id,"default_address"=>"Y");
+        $data = array("user_id"=>$param->customer_id,"address_id"=>$param->address_id,"warehouse_address"=>"Y");
         return $this->db->save('user_address', $data);
     }
 

@@ -87,7 +87,7 @@ class DbHandler {
         }*/
     }
 	
-	private function _prepare_sql_col_val_statement($data){print_r($data);
+	private function _prepare_sql_col_val_statement($data){
 		$stmt = array();
 		foreach($data as $key => $value){
 			array_push($stmt, "`$key` = '". addslashes($value)."'");

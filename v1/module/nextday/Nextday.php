@@ -10,13 +10,23 @@ final class Nextday extends Booking
     function __construct($data){
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->_param = $data;
+        $this->customerccf = new CustomerCostFactor();
+
+        $this->collectionModel = new Collection();
+    }
+
+    private
+
+    function _getJobCollectionList($carriers, $address){
+        $this->collectionModel->getJobCollectionList($carriers, $address, $this->_param->customer_id, $this->_param->company_id, $this->_param->collection_date);
     }
 
     private
 
     function _getCustomerCarrierAccount(){
         $result = array();
-        $carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->customer_id);
+        $carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
+        $this->carrierList = array();
 
         foreach($carrier as $key => $item) {
             $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"]);
@@ -29,7 +39,20 @@ final class Nextday extends Booking
                     $this->services[$service["service_code"]] = $service;
                 }
 
-                $result[$key] = array(
+                array_push($result, array(
+                    "name"    => $item["carrier_code"],
+                    "account" => array(
+                        array(
+                            "credentials" => array(
+                                "username" => $item["username"],
+                                "password" => $item["password"],
+                                "account_number" => $item["account_number"]
+                            ),
+                            "services"    => implode(",", $serviceItems)
+                        )
+                    )
+                ));
+                /*$result[$key] = array(
                     "name" => $item["carrier_code"]
                 );
 
@@ -40,7 +63,9 @@ final class Nextday extends Booking
                         "account_number" => $item["account_number"]
                     ),
                     "services" => implode(",", $serviceItems)
-                );
+                );*/
+
+                $this->carrierList[$item["carrier_id"]] = $item;
             }
         }
         return $result;
@@ -48,7 +73,7 @@ final class Nextday extends Booking
 
     private
 
-    function _getCarrierInfo($data){print_r($data);die;
+    function _getCarrierInfo($data){
         $carrierInfo = $this->modelObj->getCarrierInfo($this->_param->customer_id);
         $customerCarrier = array();
         $customerCarrierService = array();
@@ -148,6 +173,41 @@ final class Nextday extends Booking
     public
 
     function searchNextdayCarrierAndPrice(){
+        /*$test1 = '{"carriers":[{"name":"UKMAIL","account":[{"credentials":{"username":"developers@ordercup.com","password":"B069807","account_number":"D919022"},"services":"1,2,3,4,5,9"}]}],"from":{"name":"","company":"","phone":"","street1":"Flat 1","street2":"Penfold Court","city":"Oxford","state":"Oxfordshire","zip":"OX3 9RL","country":"GBR","country_name":"United Kingdom"},"to":{"name":"","company":"","phone":"","street1":null,"street2":null,"city":null,"state":null,"zip":"OX39 4PU","country":"GBR","country_name":"United Kingdom"},"ship_date":"2018-05-21","extra":[],"currency":"GBP","package":[{"packaging_type":"Parcels","width":5,"length":5,"height":5,"dimension_unit":"CM","weight":5,"weight_unit":"KG"}],"transit":[{"transit_distance":27984,"transit_time":1670,"number_of_collections":0,"number_of_drops":0,"total_waiting_time":0}],"insurance":{"value":0,"currency":"GBP"}}';
+
+        $this->_getCustomerCarrierAccount();
+
+        $test1 = json_decode($test1);
+
+        //print_r($this->_param->customer_id);die;
+
+        $response = json_decode($this->_postRequest($test1));
+
+        $response = $this->_getCarrierInfo($response->rate);
+
+
+        return json_decode(json_encode($response),true);*/
+
+
+
+        //$response = '{"rate":{"UKMAIL":[{"D919022":[{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]}]}]}}';
+
+        //$response = json_decode($response);
+
+        //$response = $this->customerccf->calculate($response, 2, $this->_param->customer_id, $this->_param->company_id);
+
+        //print_r($response);die;
+
+
+
+        //$this->_getJobCollectionList("OX3 9RL");
+
+
+
+
+
+
+
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
             return $accountStatus;
@@ -160,25 +220,32 @@ final class Nextday extends Booking
         foreach($this->_param->delivery as $item)
             array_push($destinations, implode(",", (array) $item->geo_position));
 
-        $distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
+        //$distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
 
-        if($distanceMatrix->status=="success"){
+        //if($distanceMatrix->status=="success"){
 
             $this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
             $this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
+
             if(count($this->data)>0){
+//print_r($this->param);
+
+                $this->_getJobCollectionList($this->carrierList, $this->data["from"]);
+
+
                 $response = json_decode($this->_postRequest($this->data));
-return json_decode(json_encode($response),true);
+//print_r($response);die;
                 $response = $this->_getCarrierInfo($response->rate);
+
                 return array("status"=>"success",  "message"=>"Rate found", "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
                 return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
             }
-        }else{
-            return array("status"=>"error", "message"=>"Distance matrix api error");
-        }
+        //}else{
+        //    return array("status"=>"error", "message"=>"Distance matrix api error");
+        //}
     }
 
     public
@@ -222,7 +289,6 @@ return json_decode(json_encode($response),true);
 
         //save delivery address and delivery job
         foreach($this->_param->delivery as $key=> $item){
-            print_r($this->_param->delivery->$key);die;
             $execution_order++;
             $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
             if($addressInfo["status"]=="error"){
