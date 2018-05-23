@@ -173,84 +173,6 @@ class View_Support extends Icargo{
 		}
 		return $temp;
 	}
-    
-	private function _assigned_load_17_feb_2018(){
-		$common_obj = new Common();
-		$route_data = $this->modelObj->_get_assigned_route_detail($this->shipment_route_id);
-		
-		if(isset($this->save_post_id)){
-			$condition    = "shipment_route_id = '$this->shipment_route_id'";
-			$status       = $this->modelObj->editContent("shipment_route", array('firebase_id' => $this->post_id), $condition);
-		}
-		
-		$temp = array();
-		//if($route_data['is_active']=='Y'){
-			$records = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $this->shipment_route_id, $this->driver_Id);
-			foreach($records as $key => $record){
-                $shipment_service_type = ($record["shipment_service_type"]=="P") ? "Collection" : "Delivery";
-				$temp['info']['row_id'] = $key;
-				$temp['info']['shipment_routed_id'] = $record['shipment_routed_id'];
-				$temp['info']['driver_name'] = $record['driver_name'];
-				$temp['info']['load_group_type'] = $this->_get_route_type(substr($record['instaDispatch_loadGroupTypeCode'],0,1));
-				$temp['info']['shipment_postcodes'][] = $record['shipment_postcode'];
-				$temp['info']['shipment_ticket'][] = $record['shipment_ticket'];
-				$temp['info']['distance_miles'][] = $record['distance_miles'];
-				$temp['info']['cities'][] = $record['shipment_customer_city'];
-				$temp['info']['estimated_time'][] = strtotime($record['estimated_time']);
-				$temp['info']['shipment_count'] = (isset($temp['info']['shipment_count'])) ? ++$temp['info']['shipment_count'] : 1 ;
-				$temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
-
-            }
-           
-			if(count($temp)>0)
-			{
-				$route_data = $this->modelObj->_get_assigned_route_detail($temp['info']['shipment_routed_id']);
-				
-				$routeLabel  = 'NA';
-				if($route_data['driver_id'] > 0)
-				{
-					if($route_data['driver_accepted'] < 1)
-					{
-					$routeLabel = 'Pending';  
-					}
-					elseif(($route_data['driver_accepted'] > 0) && $route_data['is_route_started'] < 1)
-					{
-					$routeLabel = 'Accepted';  
-					}
-					elseif(($route_data['driver_accepted'] > 0) && $route_data['is_route_started'] > 0)
-					{
-					$routeLabel = 'On Route';
-					}			
-				}
-				$temp['info']['route_id'] = $route_data['route_id'];
-				//$temp['info']['post_id']  = $this->post_id;
-				
-				$temp['info']['is_pause'] = ($route_data['is_pause']==1)?'paused':'';
-				$temp['info']['assign_driver'] = $route_data['driver_id'];
-				$temp['info']['route_name'] = $route_data['route_name'];
-				$temp['info']['route_status'] = $route_data['status'];
-				$temp['info']['start_time'] = date("h:i A",strtotime($route_data['assign_start_time']));
-				$temp['info']['route_label'] = $routeLabel;
-				
-				
-				$postcodes = $temp['info']['shipment_postcodes'];
-                
-				$tickets = "'".implode("','", $temp['info']['shipment_ticket'])."'";
-				$cities = $temp['info']['cities']; 
-				$temp['info']['parcels'] = $this->modelObj->getShipmentParcels($tickets);
-				
-				
-				$temp['info']['parcel_count'] = count($temp['info']['parcels']);
-				$temp['info']['end_postcode'] = array_pop($postcodes);
-				$temp['info']['start_postcode'] = array_shift($postcodes);
-				$temp['info']['city'] = array_shift($cities);
-				
-				$temp['info']['route_duration'] = date("h:i A",strtotime(array_sum($temp['info']['estimated_time'])));
-			}
-		//}
-       // print_r($temp);die;
-		return $temp;
-	}
 
     private function _assigned_load(){
         $common_obj = new Common();
@@ -281,7 +203,7 @@ class View_Support extends Icargo{
                 //$temp['info']['cities'][] = $record['shipment_customer_city'];
                 //$temp['info']['estimated_time'][] = strtotime($record['estimated_time']);
                 $temp['info']['shipment_count'] = (isset($temp['info']['shipment_count'])) ? ++$temp['info']['shipment_count'] : 1 ;
-                $temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
+                $temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
                 array_push($postcodes, $record['shipment_postcode']);
                 array_push($shipmentTickets, $record['shipment_ticket']);
             }
@@ -416,7 +338,7 @@ class View_Support extends Icargo{
                     array_push($shipment_id, $item["shipment_id"]);
 
                     //array_push($records[$key]["shipment_geo_locations"], array("latitude"=>$item["latitude"], "longitude"=>$item["longitude"]));
-                    array_push($records[$key]["shipments"], array("service_type"=>$item["shipment_service_type"],"icargo_execution_order"=>$item["icargo_execution_order"],"drop_name"=>$this->_common_model_obj->getDropName(array("postcode"=>$item["postcode"],"address_1"=>$item["address_line1"])),"postcode"=>$item["postcode"],"shipment_id"=>$item["shipment_id"],"shipment_ticket"=>$item["shipment_ticket"],"shipment_geo_locations"=>array("latitude"=>$item["latitude"],"longitude"=>$item["longitude"])));
+                    array_push($records[$key]["shipments"], array("service_type"=>$item["shipment_service_type"],"icargo_execution_order"=>$item["icargo_execution_order"],"drop_name"=>$this->_common_model_obj->getDropName(array("postcode"=>$item["postcode"],"address_1"=>$item["address_line1"])),"postcode"=>$item["postcode"],"address_1"=>$item["address_line1"],"shipment_id"=>$item["shipment_id"],"shipment_ticket"=>$item["shipment_ticket"],"shipment_geo_locations"=>array("latitude"=>$item["latitude"],"longitude"=>$item["longitude"])));
                    
                     $records[$key]["load_group_type"] = $this->_get_route_type(substr($item['instaDispatch_loadGroupTypeCode'],0,1));
                 }
@@ -429,49 +351,6 @@ class View_Support extends Icargo{
         }
         return $records;
     }
-	private function _completed_load_BKP($param){
-        $records = $this->modelObj->getCompletedRouteShipmentDetailsByShipmentRouteId($this->company_id, $param["search_date"]);
-        $temp = array();
-        foreach($records as $key => $record){
-            $route_data = $this->modelObj->_get_assigned_route_detail($record['shipment_routed_id']);
-        
-		  if($route_data['is_active']=='N'){
-            $temp[$route_data['shipment_route_id']]['info']['row_id'] = $key;
-			$temp[$route_data['shipment_route_id']]['info']['route_id'] = $route_data['route_id'];
-			$temp[$route_data['shipment_route_id']]['info']['shipment_routed_id'] = $record['shipment_routed_id'];
-			$temp[$route_data['shipment_route_id']]['info']['load_group_type'] = $this->_get_route_type(substr($record['instaDispatch_loadGroupTypeCode'],0,1));
-			$temp[$route_data['shipment_route_id']]['info']['route_name'] = $route_data['route_name'];
-            $temp[$route_data['shipment_route_id']]['info']['driver_name'] = $route_data['name']; 
-			$temp[$route_data['shipment_route_id']]['info']['is_route_rejected'] = ($route_data['is_route_rejected']=='YES')?'Rejected':'';
-			$temp[$route_data['shipment_route_id']]['info']['route_status'] = $route_data['status'];
-			$temp[$route_data['shipment_route_id']]['info']['start_time'] = date("h:i A",strtotime($route_data['assign_start_time']));
-			$temp[$route_data['shipment_route_id']]['info']['shipment_postcodes'][] = $record['shipment_postcode'];
-			$temp[$route_data['shipment_route_id']]['info']['shipment_ticket'][] = $record['shipment_ticket'];
-			$temp[$route_data['shipment_route_id']]['info']['distance_miles'][] = $record['distance_miles'];
-			$temp[$route_data['shipment_route_id']]['info']['cities'][] = $record['shipment_customer_city'];
-			$temp[$route_data['shipment_route_id']]['info']['estimated_time'][] = strtotime($record['estimated_time']);
-			$temp[$route_data['shipment_route_id']]['info']['shipment_count'] = (isset($temp[$route_data['shipment_route_id']]['info']['shipment_count'])) ? ++$temp[$route_data['shipment_route_id']]['info']['shipment_count'] : 1 ;
-              
-            $temp[$route_data['shipment_route_id']]['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode']);
-              
-			$temp[$route_data['shipment_route_id']]['info']['servicedate'] = date("Y-m-d", strtotime($route_data['completed_date']));
-          }
-        } 
-		foreach($temp as $key => $data){
-			$postcodes = $data['info']['shipment_postcodes'];
-			$cities = $data['info']['cities'];
-			$temp[$key]['info']['parcels'] = $this->modelObj->getShipmentParcels("'".implode("','", $data['info']['shipment_ticket'])."'");
-			
-			$temp[$key]['info']['parcel_count'] = count($temp[$key]['info']['parcels']);
-			
-			$temp[$key]['info']['end_postcode'] = array_pop($postcodes);
-			$temp[$key]['info']['start_postcode'] = array_shift($postcodes);
-			$temp[$key]['info']['city'] = array_shift($cities);
-			
-			$temp[$key]['info']['route_duration'] = date("h:i A",strtotime(array_sum($data['info']['estimated_time'])));
-		}
-		return array_values($temp);
-	}
 	
     public function loadView($param){
 
@@ -974,7 +853,7 @@ class View_Support extends Icargo{
             $firebaseData["driver_id"] = $routeDetail["driver_id"];
 
         }
-        return array('status'=>$returnStatus,'message'=>'Total '.count($successBucket).' Shipment has been release and '.count($failBucket).' request has been failed',"firebaseData"=>$firebaseData);
+        return array('status'=>$returnStatus,'message'=>count($successBucket).' Job(s) has been assigned to route ' . $routeDetail["route_name"],"firebaseData"=>$firebaseData);
        }	
  
     public function assignShipment($shipmentDetails,$shipment_route_id,$companyid,$warehouseid) { 

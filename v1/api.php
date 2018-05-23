@@ -269,7 +269,7 @@ $app->post('/movetodispute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','disputeid','company_id','warehouse_id','shipment_ticket'),$r);
-	$params = array('shipment_ticket'=>$r->shipment_ticket,'disputeid'=>$r->disputeid,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
+	$params = array('shipment_ticket'=>$r->shipment_ticket,'disputeid'=>$r->disputeid,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type);
 	$obj = new loadShipment($params);
 	$response["actions"] = $obj->moveToDispute();
 	echoResponse(200, $response);
@@ -410,8 +410,12 @@ $app->post('/getMoveToOtherRouteAcions', function() use ($app) {
 $app->post('/assignToCurrentRoute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
+
+    $r->shipment_ticket = implode(',', $r->shipment_ticket);
 	verifyRequiredParams(array('access_token','email','shipment_route_id','company_id','warehouse_id','shipment_ticket'),$r);
-    $params = array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_ticket'=>$r->shipment_ticket,'shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
+
+	$shipmentTickets = explode(',', $r->shipment_ticket);
+    $params = array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_ticket'=>$shipmentTickets,'shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
 	$obj = new View_Support($params);
 	$response = $obj->assignToCurrentRoute();
 	echoResponse(200, $response);
@@ -1813,6 +1817,14 @@ $app->post('/downloadReportCsv', function() use($app){
     echoResponse(200, $response);
 });
 
+$app->post('/setCustomerDefaultWarehouse', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','address_id','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->setCustomerDefaultWarehouse($r);
+    echoResponse(200, $response);
+});
+
 /*end download report csv*/
 
 
@@ -1827,4 +1839,46 @@ $app->post('/downloadReportCsv', function() use($app){
 		echo $sql.'<br>';
 	}
 });*/
+$app->post('/updateShipmentTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Settings($r);
+    $response = $obj->updateShipmentTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/updateInternalTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Settings($r);
+    $response = $obj->updateInternalTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/allowedTrackingstatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->allowedTrackingstatus($r);
+    echoResponse(200, $response);
+});
+$app->post('/addCustomTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->addCustomTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/deleteCustomTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->deleteCustomTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/addCustomPod', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->addCustomPod($r);
+    echoResponse(200, $response);
+});
 ?>

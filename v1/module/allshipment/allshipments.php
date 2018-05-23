@@ -244,7 +244,7 @@ class allShipments extends Icargo{
       
    public function getSameDayShipmentDetails($param){
        $allInfo = $this->_getBasicInfoOfShipment($param['identity']); 
-       return array('sameday'=>array('basicinfo'=>$allInfo['basicInfo'],'priceinfo'=>$allInfo['priceinfo']));
+       return array('sameday'=>array('basicinfo'=>$allInfo['basicInfo'],'priceinfo'=>$allInfo['priceinfo'],'trackinginfo'=>$allInfo['trackinginfo'],'podinfo'=>$allInfo['podinfo']));
  }
     
    public function getNextDayShipmentDetails($param){
@@ -253,11 +253,14 @@ class allShipments extends Icargo{
       
   
    private function _getBasicInfoOfShipment($identity){
+      $trackinginfo = array();
       $shipmentsInfoData = $this->modelObj->getShipmentsDetail($identity);
       $priceversion     = $this->modelObj->getShipmentsPriceVersion($identity);
       $carrierPrice  = $this->modelObj->getShipmentsPriceDetailCarrier($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion);
       $customerPrice = $this->modelObj->getShipmentsPriceDetailCustomer($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion);
       $shipmentsPriceInfoData = $this->ManagePriceData($carrierPrice,$customerPrice);
+      $trackinginfo          = $this->getShipmentsTrackingDetails($identity);
+      
       //$shipmentsPriceInfoData = $this->ManagePriceData($this->modelObj->getShipmentsPriceDetail($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion));
        $basicInfo =  array();
       if(count($shipmentsInfoData)>0)
@@ -324,6 +327,7 @@ class allShipments extends Icargo{
                 $basicInfo['collectioncustomerpostcode'] = $val['postcode']; 
                 $basicInfo['collectioncustomerstate']    = $val['state'];
                 $basicInfo['collectiondate']             = $val['expecteddate'];
+                $basicInfo['shipment_ticket'][]          = $val['shipment_ticket'];
               }else{
                 $data = array();
                 $data['deliverycustomername']     = $val['customername'];
@@ -335,6 +339,7 @@ class allShipments extends Icargo{
                 $data['deliverycustomercity']     = $val['city']; 
                 $data['deliverycustomerpostcode'] = $val['postcode']; 
                 $data['deliverycustomerstate']    = $val['state']; 
+                $basicInfo['shipment_ticket'][]   = $val['shipment_ticket'];
                 $basicInfo['deliveryaddress'][] = $data; 
                  
              }
@@ -354,8 +359,9 @@ class allShipments extends Icargo{
          
           
           
-        } 
-      return array('basicInfo'=>$basicInfo,'priceinfo'=>$shipmentsPriceInfoData);
+        }
+      $podinfo  = $this->getShipmentsPodDetails('"'.implode('","',$basicInfo['shipment_ticket']).'"'); 
+      return array('basicInfo'=>$basicInfo,'priceinfo'=>$shipmentsPriceInfoData,'trackinginfo'=>$trackinginfo,'podinfo'=>$podinfo);
      }    
     
     
@@ -450,6 +456,8 @@ class allShipments extends Icargo{
         }
         return $datastatus;
     }
+    
+    
     public function getshipmentdetailsjsonAction($ticketid){
         $shipmentdetails             = $this->modelObj->getShipmentStatusDetails('"'.$ticketid.'"');
         $refNo                       = $shipmentdetails['instaDispatch_jobIdentity'];
@@ -999,6 +1007,191 @@ class allShipments extends Icargo{
         return array("surcharge_value"=>$surcharge_value,"operator"=>$operator,"price"=>$price,"company_surcharge_code"=>$company_surcharge_code,"company_surcharge_name"=>$company_surcharge_name,"courier_surcharge_code"=>$courier_surcharge_code,"courier_surcharge_name"=>$courier_surcharge_name,"level"=>$level,'surcharge_id'=>$surcharge_id);
     }
     
+    public function getShipmentsTrackingDetails($identity){
+     $shipmentLifeCycle =  $this->modelObj->getShipmentLifeCycleHistoryByIdentity($identity);
+     foreach($shipmentLifeCycle as $keys=>$dataVal){
+         $shipmentLifeCycle[$keys]['shipment_service_type'] = ($dataVal['shipment_service_type']=='P')?'Collection':'Delivery';
+         $shipmentLifeCycle[$keys]['create_date'] = date('Y/m/d',strtotime($dataVal['create_date']));
+         $shipmentLifeCycle[$keys]['is_custom_create'] = ($dataVal['is_custom_create']=='0')?'false':'true';
+     } 
+     return $shipmentLifeCycle;
+    }  
+     public function getShipmentsPodDetails($tickets){
+     $shipmentPod =  $this->modelObj->getShipmentPodByShipmentTicket($tickets);
+     $retrundata =  array();  
+     foreach($shipmentPod as $keys=>$dataVal){
+         $temp = array();
+         $temp['date']          = date('Y/m/d',strtotime($dataVal['create_date']));
+         $temp['time']          = date('H:m:s',strtotime($dataVal['create_date']));
+         $temp['recipient']     = $dataVal['contact_person'];
+         $temp['comment']       = $dataVal['comment'];
+         $temp['download']      = ($dataVal['pod_name']=='signature')?'true':'false';
+         $temp['action']        = $dataVal['value'];
+         $temp['ticket']        = $dataVal['shipment_ticket'];
+         $retrundata[] = $temp;
+     } 
+     return $retrundata;
+    }  
+    public function allowedTrackingstatus(){
+     $allowedTracking =  $this->modelObj->allowedTracking();
+     return $allowedTracking;
+    }  
+    
+    public function addCustomTracking($param){
+        $param = json_decode(json_encode($param),1);
+        $records = array();
+        if(is_array($param['data']) && count($param['data'])>0){
+            $tempval = array();
+            $tempval['shipment_ticket']             = $param['data']['reference']; 
+            $tempval['instaDispatch_loadIdentity']  = $param['job_identity']; 
+            $tempval['create_date']                 = date('Y-m-d',strtotime($param['data']['servicedate'])); 
+            $tempval['create_time']                 = date('H:m:s',strtotime($param['data']['servicedate'])); 
+            $tempval['actions']                     = $param['data']['events'];
+            $tempval['internel_action_code']        = $param['data']['events'];
+            $tempval['is_scaning']                  = 'NO';
+            $tempval['parcel_ticket']               = 'NULL';
+            $tempval['instaDispatch_pieceIdentity'] = 'NULL';
+            $tempval['driver_id']                   = '0';
+            $tempval['route_id']                    = '0';
+                
+            $tempval['status']                      = '1';
+            $tempval['company_id']                  = $param['company_id']; 
+            $tempval['action_taken_by']             = 'controller';
+            $tempval['is_custom_create']            = '1';
+            $adddata =   $this->modelObj->addContent('shipment_life_history',$tempval);
+            if($adddata){
+              return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity']));  
+            }
+        }
+    }
+   public function deleteCustomTracking($param){
+        $param = json_decode(json_encode($param),1);
+        if($param['data']){
+            $status = $this->modelObj->deleteTracking($param['data']);
+            if($status){
+              return array('status'=>'success','message'=>'data deleted successfully','data'=>array('identity'=>$param['job_identity']));  
+            }
+        }
+   }  
+    
+   public function addCustomPod($param){
+        $param = json_decode(json_encode($param),1);
+        $records = array();
+        if(is_array($param['data']) && count($param['data'])>0){
+            $tempval = array();
+            $tempval['shipment_ticket']     = $param['data']['reference']; 
+            $tempval['driver_id']           = '0';
+            $tempval['type']                = 'text';
+            $tempval['value']               = 'text';
+            $tempval['pod_name']            = 'NULL';
+            $tempval['comment']             = $param['data']['comment'];
+            $tempval['contact_person']      = $param['data']['contact_person'];
+            $tempval['status']              = '1';
+            $tempval['create_date']         = date('Y-m-d H:m:s',strtotime($param['data']['servicedate'])); 
+            $tempval['is_custom_create']    = '1';
+            $adddata =   $this->modelObj->addContent('shipments_pod',$tempval);
+            if($adddata){
+              return array('status'=>'success','message'=>'data added successfully','data'=>array('identity'=>$param['job_identity']));  
+            }
+        }
+    } 
+    
+    
+    
+  
+
+
+
+
+
+
+    
+    
+    public function shipmentdetailsAction____(){
+    
+        $podData = array();
+        $shipmentLifeCycle                              = $this->modelObj->getShipmentLifeCycleHistoryByIdentity($ticketid);
+        if ($shipmentdetails['current_status'] == 'D') {
+            $existingPodData = $this->modelObj->getExistingPodData($ticketid);
+            $contactName     = $commentData = '';
+            foreach ($existingPodData as $key => $pod) {
+                $contactName = $pod['delivery_contact_person'];
+                $commentData = $pod['delivery_comment'];
+           }
+            $podData['delivery_contact_person'] =  $contactName;
+            $podData['delivery_comment'] =  $commentData;
+        }
+        $returnData = array();
+        $shipmentAdditionaldetails                  = $this->modelObj->getShipmentAdditionalDetails($ticketid);
+        $returnData['shipmentData']                 = $shipmentdetails;
+        $returnData['podData']                      = $podData;
+        $returnData['shipmentAdditionaldetails']    = $shipmentAdditionaldetails;
+        $returnData['parcelData']                   = $parcelDetails;
+        $returnData['trackingData']                 = $shipmentTrackingDetails;
+        $returnData['shipmentHistoryData']          = $shipmentHistory;
+        $returnData['rejectHistoryData']            = $shipmentRejectHistory;
+        $returnData['shipmentLifeCycle']            = $shipmentLifeCycle;
+        $returnData['griddata']                     = $this->getshipmentdetailsjsonAction($ticketid); 
         
+        
+       
+        return $returnData;
+    }
+    public function shipmentTrackingDetails____($getShipmentStatus){
+        $shipmentStatus                  = $getShipmentStatus['current_status'];
+        $shipment_isRouted               = ($getShipmentStatus['is_shipment_routed'] == 1) ? 'Yes' : 'No';
+        $shipment_isDAssign              = ($getShipmentStatus['is_driver_assigned'] == 1) ? 'Yes' : 'No';
+        $shipment_isDAccept              = ($getShipmentStatus['is_driver_accept'] == 'Pending') ? 'Pending' : (($getShipmentStatus['is_driver_accept'] == 'YES') ? 'Accepted' : 'Rejected');
+        $shipmentDriver                  = $getShipmentStatus['name'];
+        $datastatus                      = array();
+        $datastatus['is_routed']         = $shipment_isRouted;
+        $datastatus['is_dassign']        = $shipment_isDAssign;
+        $datastatus['is_dassign_accept'] = $shipment_isDAccept;
+        $datastatus['divername']         = $shipmentDriver;
+        switch ($shipmentStatus) {
+            case 'C':
+                $datastatus['ship_status'] = 'Unassigned Shipments';
+                break;
+            case 'O':
+                if ($datastatus['is_dassign_accept'] == 'Rejected') {
+                    $datastatus['ship_status'] = 'Rejected Shipments';
+                } elseif ($datastatus['is_dassign_accept'] == 'Pending') {
+                    $datastatus['ship_status'] = 'Assigned Shipments';
+                } else {
+                    $datastatus['ship_status'] = 'Operational Shipments';
+                }
+                break;
+            case 'S':
+                $datastatus['ship_status'] = 'Saved Shipments';
+                break;
+            case 'Dis':
+                $datastatus['ship_status'] = 'Disputed Shipments';
+                break;
+            case 'Deleted':
+                $datastatus['ship_status'] = 'Deleted Shipments';
+                break;
+            case 'D':
+                $datastatus['ship_status'] = 'Delivered Shipments';
+                break;
+            case 'Ca':
+                $datastatus['ship_status'] = 'Carded Shipments';
+                break;
+            case 'Rit':
+                $datastatus['ship_status'] = 'Return Shipments';
+                break;
+        }
+        return $datastatus;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
 ?>
