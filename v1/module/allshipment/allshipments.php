@@ -17,7 +17,7 @@ class allShipments extends Icargo{
                  && ($param->data->customer!=''))?' AND S.customer_id =  "'.$param->data->customer.'" ':'';
        
        
-        $html .= (isset($param->warehouse_id) 
+        $html .= (isset($param->warehouse_id) && ($param->warehouse_id>0)
                  && ($param->warehouse_id!=''))?' AND S.warehouse_id = "'.$param->warehouse_id.'" ':'';
        
        
