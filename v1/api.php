@@ -1906,4 +1906,18 @@ $app->post('/imports/profile/samedaylist', function() use($app){
     $response = $obj->fetchAll($r->company_id,'Same Day');
     echoResponse(200, $response);
 });
+$app->post('/getAllCarrier', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new Settings($r);
+    $response = $obj->getAllCarrier($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllowedAllShipmentsStatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getAllowedAllShipmentsStatus($r);
+    echoResponse(200, $response);
+});
 ?>

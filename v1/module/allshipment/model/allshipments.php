@@ -113,7 +113,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     ADDR.country AS shipment_customer_country,
                     CI.accountnumber as shipment_customer_account,
                     UTT.name as shipment_customer_name,
-                    (SST.base_price +  SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,
+                    (SST.base_price + SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,
                     SST.service_name as shipment_service_name,
                     SST.carrier as carrier,
                     UT.name as booked_by,
@@ -200,7 +200,7 @@ SELECT  S.warehouse_id as warehouse_id,
         ';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "address_book AS ADDR ON ADDR.id = S.address_id
-                    LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.shipment_id = S.shipment_id
+                    LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON (SST.load_identity = S.instaDispatch_loadIdentity AND S.shipment_service_type = 'P')
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UT ON UT.id = S.booked_by
                     LEFT JOIN " . DB_PREFIX . "user_level AS UL ON UL.id = UT.user_level
@@ -438,7 +438,7 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
-    function getShipmentPodByShipmentTicket($tickets){
+  public  function getShipmentPodByShipmentTicket($tickets){
         $record = array();
         $sqldata = 'R1.*';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_pod AS R1
@@ -446,7 +446,7 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
-   function allowedTracking(){
+  public function allowedTracking(){
         $record = array();
         $sqldata = 'R1.tracking_internal_code as id,R1.name';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_master AS R1
@@ -454,11 +454,18 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
-     function deleteTracking($hisid){
+   public  function deleteTracking($hisid){
        $sql = "DELETE  FROM " . DB_PREFIX . "shipment_life_history 
                     WHERE his_id = '".$hisid."'";
         $record = $this->deleteContent($sql);
         return $record;
         }
-    }
+   public function getAllowedAllShipmentsStatus($companyid){
+         $record = array();
+         $sqldata ='t1.*';
+         $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "shipments_master AS t1 WHERE is_used_for_tracking = 'YES'";
+         $record = $this->db->getAllRecords($sql);
+         return  $record;  
+	 }
+  }
 ?>
