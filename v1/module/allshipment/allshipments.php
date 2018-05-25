@@ -17,7 +17,7 @@ class allShipments extends Icargo{
                  && ($param->data->customer!=''))?' AND S.customer_id =  "'.$param->data->customer.'" ':'';
        
        
-        $html .= (isset($param->warehouse_id) 
+        $html .= (isset($param->warehouse_id) && ($param->warehouse_id>0)
                  && ($param->warehouse_id!=''))?' AND S.warehouse_id = "'.$param->warehouse_id.'" ':'';
        
        
@@ -47,7 +47,7 @@ class allShipments extends Icargo{
                  && ($param->data->booked_by!=''))?' AND S.booked_by = "'.$param->data->booked_by.'" ':'';
        
        $html .= (isset($param->data->amount) 
-                 && ($param->data->amount!=''))?' AND S.amount =  '.$param->data->amount.' ':'';
+                 && ($param->data->amount!=''))?' AND S.amount >=  '.$param->data->amount.' ':'';
        
        $html .= (isset($param->data->isInvoiced) 
                  && ($param->data->isInvoiced!=''))?' AND S.isInvoiced = "'.$param->data->isInvoiced.'" ':'';
@@ -666,7 +666,7 @@ class allShipments extends Icargo{
         $isInvoiced = $getLastPriceVersion['isInvoiced'];
         $customerId  = $getLastPriceVersion['customer_id']; 
         $carrierId   = $getLastPriceVersion['carrier'];
-        $shipId    = $getLastPriceVersion['shipment_id'];
+        //$shipId    = $getLastPriceVersion['shipment_id'];
         $oldGrandTotal  = $getLastPriceVersion['grand_total'];
         $records = array();
         
@@ -715,7 +715,7 @@ class allShipments extends Icargo{
               $tempdata['price_code'] = $surcharge_code;
               $tempdata['price'] = $price;   
               $tempdata['load_identity'] = $getLastPriceVersion['load_identity'];
-              $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
+              //$tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
               $tempdata['shipment_type'] = '';   
               $tempdata['version'] = $priceVersion + 1;
               $tempdata['api_key'] = 'surcharges';
@@ -761,7 +761,7 @@ class allShipments extends Icargo{
               $tempdata['price_code'] = $surcharge_ccf_price['company_surcharge_code'];
               $tempdata['price'] = $surcharge_ccf_price['price'] + $price;   
               $tempdata['load_identity'] = $getLastPriceVersion['load_identity'];
-              $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
+             // $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
               $tempdata['shipment_type'] = '';   
               $tempdata['version'] = $priceVersion + 1;
               $tempdata['api_key'] = 'surcharges';
@@ -813,7 +813,7 @@ class allShipments extends Icargo{
                        $voucherdata['voucher_type']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?'DEBIT':'CREDIT';
                        $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
                        $voucherdata['amount']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?($temp['grand_total'] - $oldGrandTotal):($oldGrandTotal - $temp['grand_total']);
-                       $voucherdata['shipment_id']  = $shipId;
+                       //$voucherdata['shipment_id']  = $shipId;
                        $voucherdata['shipment_reference']  = $param['job_identity'];
                        $voucherdata['create_date']  = date('Y-m-d');
                        $voucherdata['created_by']  = $param['user'];
@@ -830,10 +830,10 @@ class allShipments extends Icargo{
                  $temp['price_update_applyto_customer'] = 'YES';
                  $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
                  $temp['price_version']  = $priceVersion + 1;
-                 $condition    = "shipment_id = '$shipId'";
+                 $condition    = "load_identity = '".$param['job_identity']."'";
                  $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
              } 
-         }
+         } 
         elseif($param['applypriceoncustomer'] == 'NO'){
              foreach($records as $data){
                $adddata =   $this->modelObj->addContent('shipment_price',$data);
@@ -843,7 +843,7 @@ class allShipments extends Icargo{
                  $temp['price_update_applyto_customer'] = 'NO';
                  $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
                  $temp['price_version']  = $priceVersion + 1;
-                 $condition    = "shipment_id = '$shipId'";
+                 $condition    = "load_identity = '".$param['job_identity']."'";
                  $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
              }  
          }
@@ -860,7 +860,7 @@ class allShipments extends Icargo{
         $isInvoiced = $getLastPriceVersion['isInvoiced'];
         $customerId  = $getLastPriceVersion['customer_id']; 
         $carrierId   = $getLastPriceVersion['carrier'];
-        $shipId    = $getLastPriceVersion['shipment_id'];
+        //$shipId    = $getLastPriceVersion['shipment_id'];
         $oldGrandTotal  = $getLastPriceVersion['grand_total'];
         $records = array();
         foreach($getLastPriceBreakdown as $key=>$val){
@@ -894,7 +894,7 @@ class allShipments extends Icargo{
               $tempdata['price_code'] = $surcharge_code;
               $tempdata['price'] = $price;   
               $tempdata['load_identity'] = $getLastPriceVersion['load_identity'];
-              $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
+              //$tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
               $tempdata['shipment_type'] = '';   
               $tempdata['version'] = $priceVersion + 1;
               $tempdata['api_key'] = 'surcharges';
@@ -938,7 +938,7 @@ class allShipments extends Icargo{
                        $voucherdata['voucher_type']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?'DEBIT':'CREDIT';
                        $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
                        $voucherdata['amount']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?($temp['grand_total'] - $oldGrandTotal):($oldGrandTotal - $temp['grand_total']);
-                       $voucherdata['shipment_id']  = $shipId;
+                       //$voucherdata['shipment_id']  = $shipId;
                        $voucherdata['shipment_reference']  = $param['job_identity'];
                        $voucherdata['create_date']  = date('Y-m-d');
                        $voucherdata['created_by']  = $param['user'];
@@ -955,7 +955,7 @@ class allShipments extends Icargo{
                  $temp['price_update_applyto_customer'] = 'YES';
                  $temp['version_reason'] = 'CUSTOMER_PRICE_UPDATE';
                  $temp['price_version']  = $priceVersion + 1;
-                 $condition    = "shipment_id = '$shipId'";
+                 $condition    = "load_identity = '".$param['job_identity']."'";
                  $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
              }
             if($status){
@@ -1184,7 +1184,10 @@ class allShipments extends Icargo{
     }
     
     
-    
+    public function getAllowedAllShipmentsStatus($param){
+         $data =  $this->modelObj->getAllowedAllShipmentsStatus($param->company_id);
+          return $data; 
+	}
     
     
     

@@ -3,6 +3,7 @@ class Settings extends Icargo{
     
     public $modelObj = null;
 	private $_user_id;
+    private $_copany_id = null;
 	protected $_parentObj;   
 	private function _setUserId($v){
 		$this->_user_id = $v;
@@ -11,6 +12,9 @@ class Settings extends Icargo{
 		return $this->_user_id;
 	}
 	public function __construct($data){
+        if(isset($data->company_id)){
+           $this->_copany_id =  $data->company_id;
+        }
 		$this->_parentObj = parent::__construct(array("email"=>$data->email, "access_token"=>$data->access_token));
         $this->modelObj  = Settings_Model::getInstanse();  
 	}
@@ -100,5 +104,9 @@ class Settings extends Icargo{
           }
       return $response; 
     }
+    public function getAllCarrier(){
+         $data =  $this->modelObj->getAllCarrier($this->_copany_id);
+         return $data; 
+	}
  }
 ?>

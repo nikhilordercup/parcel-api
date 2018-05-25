@@ -143,7 +143,25 @@ $app->post('/getShipmentStatus', function() use ($app){
 	    echoResponse(200, $records);
 	}
 });
-
+$app->post('/getSameDayShipmentStatus', function() use ($app){
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('warehouse_id','shipment_ticket','company_id'),$r);
+	$r->shipment_ticket = str_replace(',',"','",$r->shipment_ticket);  
+	$obj = new LoadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_ticket'=>$r->shipment_ticket,'access_token'=>$r->access_token)); //testLoadShipment
+	
+	$records = $obj->testCompanyConfiguration();
+	
+	if($records['status']){
+		$result = $obj->shipmentStatusSameDay();
+		//if($result['status']){
+			$obj->requestRoutesSamedayData();
+		//}
+		echoResponse(200, $records);
+	} else {
+	    echoResponse(200, $records);
+	}
+});
 $app->post('/getCompanyList', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
@@ -641,7 +659,7 @@ $app->post('/recoverRoute', function() use ($app){
 
 $app->post('/addRouteBox', function() use ($app){
 	$r = json_decode($app->request->getBody());
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'routetype'=>$r->routetype));
 	$response = $obj->addRouteBox();
 	echoResponse(200, $response);
 });
@@ -886,7 +904,7 @@ $app->post('/imports/profile/add', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','profile_name','access_token'),$r);
     $obj = new Profile();
-    $obj->save($r->company_id,'Next Day',$r->profile_name,json_encode($r->profile_data));
+    $obj->save($r->company_id,$r->profile_type,$r->profile_name,json_encode($r->profile_data));
     $response = [];
     echoResponse(200, $response);
 });
@@ -894,14 +912,14 @@ $app->post('/imports/profile/list', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','access_token'),$r);
     $obj = new Profile();
-    $response = $obj->fetchAll($r->company_id,'Next Day');
+    $response = $obj->fetchAll($r->company_id,$r->profile_type);
     echoResponse(200, $response);
 });
 $app->post('/imports/profile/update', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','profile_name','access_token','profile_id'),$r);
     $obj = new Profile();
-    $obj->update($r->profile_id,$r->company_id,'Next Day',$r->profile_name,json_encode($r->profile_data));
+    $obj->update($r->profile_id,$r->company_id,$r->profile_type,$r->profile_name,json_encode($r->profile_data));
     $response = [];
     echoResponse(200, $response);
 });
@@ -1879,6 +1897,27 @@ $app->post('/addCustomPod', function() use ($app) {
     verifyRequiredParams(array('access_token','company_id','email'),$r);
     $obj = new allShipments($r);
     $response = $obj->addCustomPod($r);
+    echoResponse(200, $response);
+});
+$app->post('/imports/profile/samedaylist', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','access_token'),$r);
+    $obj = new Profile();
+    $response = $obj->fetchAll($r->company_id,'Same Day');
+    echoResponse(200, $response);
+});
+$app->post('/getAllCarrier', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new Settings($r);
+    $response = $obj->getAllCarrier($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllowedAllShipmentsStatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getAllowedAllShipmentsStatus($r);
     echoResponse(200, $response);
 });
 ?>
