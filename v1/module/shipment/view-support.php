@@ -479,7 +479,7 @@ class View_Support extends Icargo{
             $ticket    	   = str_replace('"', '', $valticket);
             $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
             $status        = $this->modelObj->editContent("shipment", array('is_driver_accept' => 'YES'), $condition);
-            $condition2    = "shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
+            $condition2    = "shipment_accepted='Pending' AND shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
             $status2       = $this->modelObj->editContent("driver_shipment", array('shipment_accepted' => 'YES','taken_action_by' => 'Controller'
             ), $condition2);
 
@@ -522,7 +522,7 @@ class View_Support extends Icargo{
    return array('message'=>'Total '.$countdata.' '.$actions,'status'=>true);   
 }
     
-    public function pickup_by_driver(){ echo 54555;die;
+    public function pickup_by_driver(){
 	$shipRoute_id 	= $this->shipment_route_id;
 	$route_data     = $this->modelObj->_get_assigned_route_detail($shipRoute_id);
 	$driverid 	    = $route_data['driver_id'];
@@ -680,69 +680,40 @@ class View_Support extends Icargo{
 		return array('status' => $returnstatus,'message' =>$msg,'left'=>$checkMoreShipmentofthisRoute);
     }
     
-    public function withdrawrouteandsave(){ 
+    public function withdrawrouteandsave(){
+		$this->modelObj->startTransaction();
+
+		if(!is_array($this->shipment_ticket)){
+           $this->shipment_ticket = explode(",", str_replace("\",\"",",",$this->shipment_ticket));
+		}
         $checkMoreShipmentofthisRouteDriver = 0;
 		$shipment_route_id 	= $this->shipment_route_id;
-		$route_data         = $this->modelObj->_get_assigned_route_detail($shipment_route_id);
-
-        $driverid 	        = $route_data['driver_id'];
+		$route_data         = $this->modelObj->_get_assigned_route_detail($this->shipment_route_id);
+		$driverid 	        = $route_data['driver_id'];
 		$driverUsername     = $route_data['name'];
 		$company_id 	    = $this->company_id;
-		$ticketids          = '"' .$this->shipment_ticket. '"';
-        //"shipmet_tickets"=>$this->shipment_ticket, 
-        $firebaseObj = new Firebase_Shipment_Withdraw_From_Route(array("driver_id"=>$driverid, "shipment_route_id"=>$shipment_route_id));
+		$firebaseObj = new Firebase_Shipment_Withdraw_From_Route(array("driver_id"=>$driverid, "shipment_route_id"=>$this->shipment_route_id));
         
         $firebase_data = $firebaseObj->withdrawShipmentFromRoute();
-        
-        $releseShipment     = array();
-        $releseShipment['is_driver_assigned']       = '0';
-        $releseShipment['is_driver_accept']         = 'Pending';
-        $releseShipment['assigned_driver']          = '0';
-        $releseShipment['assigned_vehicle']         = '0';
-        $releseShipment['current_status']           = 'S';
-        $releseShipment['distancemiles']            = '0.00';
-        $releseShipment['estimatedtime']            = '0.00';
-        //$releseShipment['icargo_execution_order']   = '0';
 
-        if($route_data["instaDispatch_loadGroupTypeCode"]=="SAME"){
-            unset($releseShipment['icargo_execution_order']);
-        }
-       
-        $condition                                  = "shipment_ticket IN(" . $ticketids . ")"; 
-        $status                                     = $this->modelObj->editContent("shipment", $releseShipment, $condition);
-		$numaffected = $this->modelObj->getAffectedRows();
-		
+
+        $status = $this->modelObj->releaseShipment(implode("','",$this->shipment_ticket));
+
+        $numaffected = $this->modelObj->getAffectedRows();
+
 		if($driverid>0  and $numaffected>0){
-			$driverShipment                             = array();
-			$driverShipment['shipment_accepted']        = 'Release';
-			$driverShipment['is_driveraction_complete'] = 'Y';
-			$status                                     = $this->modelObj->editContent("driver_shipment", $driverShipment, $condition);
-			
-			// check more shipment exist in this Route and Driver
-			   $alltickets                                 = explode(",", $ticketids);
-			   foreach ($alltickets as $valticket) {
-					$tickets = str_replace('"', '', $valticket);
-					$actions     = "Relese from Driver";
-					$actionsCode = 'RELEASEFROMDRIVER';
-					$this->_add_shipment_life_history($valticket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
-				}
-             $checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $shipment_route_id);
+            $status = $this->modelObj->releaseShipmentFromDriver(implode("','",$this->shipment_ticket));
+            foreach ($this->shipment_ticket as $shipment_ticket)
+                $this->_add_shipment_life_history($shipment_ticket, "Relese from Driver", $driverid, $this->shipment_route_id, "RELEASEFROMDRIVER",$company_id);
+
+			$checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $this->shipment_route_id);
             
-			 if ($checkMoreShipmentofthisRouteDriver == '0') { 
-                 $condition = "shipment_route_id = '" . $shipment_route_id . "'"; 
-				 $datatobeupdate = array();
-				 $datatobeupdate['assign_start_time'] = '00:00:00'; 
-				 $datatobeupdate['actual_start_time'] = '00:00:00'; 
-				 $datatobeupdate['is_current'] = 'N'; 
-				 $datatobeupdate['driver_accepted'] = '0'; 
-				 $datatobeupdate['is_route_started'] = '0'; 
-				 $datatobeupdate['driver_id'] = '0'; 
-				 $datatobeupdate['is_active'] = 'Y'; 
-				 $datatobeupdate['status'] = '1';   
-                 $status    = $this->modelObj->editContent("shipment_route",$datatobeupdate, $condition);
-             }
-           }
+			if ($checkMoreShipmentofthisRouteDriver == '0')
+                $status = $this->modelObj->releaseShipmentFromRoute($this->shipment_route_id);
+		}
 		$returnstatus = ($numaffected>0) ? true : false;
+
+        $this->modelObj->commitTransaction();
         
 		return array('status' => $returnstatus,'message' => 'Total '.$numaffected.' Shipment has been released from route, left shipment(s) '.$checkMoreShipmentofthisRouteDriver, 'firebase_data'=>$firebase_data);
     }  
@@ -767,9 +738,7 @@ class View_Support extends Icargo{
 		  $driver_username = $route_data['name'];
 		}
 		$data = array('routeLabel'=>$routeLabel,'driver_id'=>$route_data['driver_id'],'driver_username'=>$route_data['name'],'route_type'=>$route_type);
-	    
-		
-		
+
 		return $data;
   }
 	 

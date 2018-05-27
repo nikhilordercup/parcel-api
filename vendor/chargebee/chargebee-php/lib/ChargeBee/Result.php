@@ -26,6 +26,12 @@ class ChargeBee_Result
         return $customer;
     }
 
+    function contact() 
+    {
+        $contact = $this->_get('contact', 'ChargeBee_Contact');
+        return $contact;
+    }
+
     function paymentSource() 
     {
         $payment_source = $this->_get('payment_source', 'ChargeBee_PaymentSource', 
@@ -37,6 +43,12 @@ class ChargeBee_Result
     {
         $third_party_payment_method = $this->_get('third_party_payment_method', 'ChargeBee_ThirdPartyPaymentMethod');
         return $third_party_payment_method;
+    }
+
+    function virtualBankAccount() 
+    {
+        $virtual_bank_account = $this->_get('virtual_bank_account', 'ChargeBee_VirtualBankAccount');
+        return $virtual_bank_account;
     }
 
     function card() 

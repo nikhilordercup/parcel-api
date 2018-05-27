@@ -14,8 +14,8 @@ $app->post('/signUp', function() use ($app) {
 	
     $response = array();
     $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('email','name', 'password','city', 'state','country'),$r->company);
-	
+
+    verifyRequiredParams(array('email','name', 'password','city', 'state'),$r->company);//,'country'
 	$phone = $r->company->phone;
 	$email = $r->company->email;
 	$password = $r->company->password;
@@ -24,7 +24,6 @@ $app->post('/signUp', function() use ($app) {
 	$r->company->register_in_firebase = 1; 
 	$r->company->user_level = 2; 
     $isUserExists = $db->getOneRecord("select 1 from icargo_users where email='".$email."'");//phone='$phone' or
-
     if(!$isUserExists){
         $r->company->password = passwordHash::hash($password);
         $table_name = "users";
@@ -43,10 +42,11 @@ $app->post('/signUp', function() use ($app) {
             'uid'=>$r->company->uid,
             'register_in_firebase'=>$r->company->register_in_firebase,
             'state'=>$r->company->state,
-            'country'=>$r->company->country,
+            'country'=>$r->company->country->short_name,
             'parent_id'=>0
         );
         $user = $db->save("users",$data);
+
 
         //$user = $db->insertIntoTable($r->company, $column_names, $table_name);
         if ($user != NULL) {
@@ -61,6 +61,11 @@ $app->post('/signUp', function() use ($app) {
                 "shipment_ticket_prefix"=>"ICARGOS$user",
                 "parcel_end_number"=>"00000000000",
                 "parcel_ticket_prefix"=>"ICARGOP$user",
+                "invoice_prefix"=>"ICARGOINV$user",
+                "quote_prefix"=>"IQ$user",
+                "voucher_prefix"=>"ICARGOV$user",
+                "voucher_end_number"=>"00000",
+                "invoice_end_number"=>"00000000",
                 "company_id"=>$user,
                 "created_by"=>"0",
                 "org_name"=>"",
@@ -76,15 +81,15 @@ $app->post('/signUp', function() use ($app) {
             
 			//register user plan
 			//chargebee customer data
-			$chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,"billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,"billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,"billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,"customer_email"=>$r->company->email);
+			$chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->country->alpha2_code,"billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,"billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,"billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,"customer_email"=>$r->company->email);
 
 			//chargebee customer registration
 			$obj = new Module_Chargebee($chargebee_customer_data);
 			$customerData = $obj->createCustomer($chargebee_customer_data);
-			
+
 			//chargebee associate to trial plan
 			$chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
-			$basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan where plan_id='".$r->company->plan_id."'");
+			$basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan where plan_id='".$r->company->plan->plan_id."'");
 			
 			
 			$chargebee_customer_data = (object) array(
@@ -96,7 +101,7 @@ $app->post('/signUp', function() use ($app) {
 				//"trial_end"=>$r->company->state,
 				"billing_cycles"=>$basic_plan["billing_cycle"],
 			);
-			
+
 			if(strtolower($basic_plan["trial_period_unit"])=="month"){
 				$trial_period = 30*$basic_plan["trial_period"];
 				$chargebee_customer_data->trial_end = date('Y-m-d', strtotime("+$trial_period days"));
@@ -130,8 +135,7 @@ $app->post('/signUp', function() use ($app) {
 $app->post('/listAllPlanForCustomerRegistration', function() use ($app){
 	$db = new DbHandler();
 	$planData = $db->getAllRecords("SELECT plan_id,plan_name FROM " . DB_PREFIX ."chargebee_plan WHERE status='active'");
-
     $countryData = $db->getAllRecords("SELECT * FROM " . DB_PREFIX ."countries");
-	echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
+    echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
 });
 ?>

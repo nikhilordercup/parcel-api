@@ -138,7 +138,8 @@ class Carrier_Model_Carrier
                 COMCOUR.company_surcharge_value AS company_carrier_ccf,
                 COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator,
                 COURSER.surcharge_name AS courier_surcharge_name,
-                COURSER.surcharge_code AS courier_surcharge_code
+                COURSER.surcharge_code AS courier_surcharge_code,
+                COMCOUR.pickup,COMCOUR.pickup_surcharge
                 FROM " . DB_PREFIX . "company_vs_customer_vs_surcharge CCST
                 INNER JOIN " . DB_PREFIX . "courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
                 INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
@@ -166,7 +167,8 @@ class Carrier_Model_Carrier
         CINFO.surcharge AS customer_surcharge,
         CINFO.ccf_operator_surcharge AS customer_operator,
         COMCOUR.company_surcharge_value AS company_carrier_ccf,
-        COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator
+        COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator,
+        COMCOUR.pickup,COMCOUR.pickup_surcharge
         FROM " . DB_PREFIX . "courier_vs_company_vs_customer as CCC 
         INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCC.customer_id
         INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCC.courier_id AND  COMCOUR.company_id =  CCC.company_id )

@@ -21,44 +21,68 @@ class Module_Package_Index extends Icargo
         try {
             $this->modelObj->startTransaction();
             if ($param->displayOrder > 0) {
-                $allPackages = $this->modelObj->getAllPackagesByCreatedUserId($param->createdBy);
+                $allPackages = $this->modelObj->getAllPackagesByCreatedUserId($param->created_by);
                 foreach ($allPackages as $item) {
-                    if ($item["display_order"] >= $param->displayOrder) {
+                    if ($item["display_order"] >= $param->display_order) {
                         //update display order [increment by one]
                         $status = $this->modelObj->updatePackage(array("display_order" => $item["display_order"] + 1), "id=" . $item["id"]);
                     }
                 }
             }
 
+            $display_order = (isset($param->display_order)) ? $param->display_order : 0 ;
+
             $package_id = $this->modelObj->savePackage(array(
-                "type" => $param->newType,
+                "type" => $param->new_type,
                 "contents" => $param->content,
                 "description" => $param->description,
-                "commodity_code" => $param->commodityCode,
+                "commodity_code" => $param->commodity_code,
                 "weight" => $param->weight,
-
                 "length" => $param->length,
                 "width" => $param->width,
                 "height" => $param->height,
-                "display_order" => $param->displayOrder,
+                "display_order" => $display_order,
                 "company_id" => $param->company_id,
-                "created_by" => $param->createdBy
+                "created_by" => $param->created_by
             ));
 
-            if ($param->allowOther and $package_id) {
-                $allowedUsers = $this->modelObj->getAllCustomerAndUserByCompanyId($param->company_id);
-                foreach ($allowedUsers as $item) {
-                    $this->modelObj->saveAllowedUserPackage(array(
-                        "user_id" => $item["user_id"],
-                        "package_id" => $package_id
-                    ));
+            $allowedUsers= array();
+            $allowedUsers[$param->customer_id] = $param->customer_id;
+
+            if ($param->allow_other and $package_id) {
+                $items = $this->modelObj->getUserByCustomerId($param->customer_id);
+
+                foreach($items as $item){
+                    $allowedUsers[$item["user_id"]] = $item["user_id"];
                 }
             }
+
+            foreach ($allowedUsers as $item) {
+                $status = $this->modelObj->saveAllowedUserPackage(array(
+                    "user_id" => $item,
+                    "package_id" => $package_id
+                ));
+            }
+
             $this->modelObj->commitTransaction();
-            return array("status"=>"success", "message"=>"Package saved successfully");
+
+            return array("status"=>"success", "message"=>"Package saved successfully","package_lists"=>$this->_getPackages($param->created_by));
         }catch(Exception $e){
+            print_r($e);die;
             $this->modelObj->rollBackTransaction();
             return array("status"=>"error", "message"=>"Package not saved. Record rollback.");
         }
     }
+
+    private
+
+    function _getPackages($user_id){
+        return $this->modelObj->getParcelPackageByUserId($user_id);
+    }
+
+    public
+    function getPackages($param){
+        return $this->_getPackages($param->user_id);
+    }
+
 }

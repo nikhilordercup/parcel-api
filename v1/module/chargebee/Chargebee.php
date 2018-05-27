@@ -413,13 +413,14 @@ class Module_Chargebee extends Icargo
 				"billing_city"=>$param->billing_city,
 				"billing_state"=>$param->billing_state,
 				"billing_zip"=>$param->billing_zip,
-				"billing_country"=>$param->billing_country
+				"billing_country"=>$param->billing_country,
+                "user_id"=>"0"
 			);
 
 			$customer_info = $this->_createCustomer($data);
 			
 			$data["chargebee_customer_id"] = $customer_info['chargebee_customer_id'];
-			
+
 			$this->modelObj->saveCustomer($data);
 			$response = array("status"=>"success","message"=>"Customer created successfully","customer_info"=>$customer_info);
 			return $response;

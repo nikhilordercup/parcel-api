@@ -70,8 +70,9 @@ class Master extends Icargo{
     
     public function getAllCouriers($param){  
       $subquery = ($param->viewid!='courier') ?' AND t2.status = 1 AND t1.status = 1':'';
-      $data =  $this->_parentObj->db->getAllRecords("SELECT t1.id AS id,t1.courier_id AS cid,t1.status, t1.account_number,t1.company_ccf_operator_service as ccf_operator,t1.company_ccf_operator_surcharge as surcharge_operator,t1.company_ccf_value as ccf,t1.company_surcharge_value as surcharge,t2.name,t2.code,t2.icon,t2.description,t2.is_self  FROM ".DB_PREFIX."courier_vs_company AS t1 INNER JOIN ".DB_PREFIX."courier AS t2 ON t1.courier_id = t2.id WHERE t1.company_id = ".$this->_company_id." $subquery");
+      $data =  $this->_parentObj->db->getAllRecords("SELECT t1.pickup AS support_pickup, t1.pickup_surcharge AS pickup_surcharge, t1.is_internal AS internal, t1.id AS id,t1.courier_id AS cid,t1.status, t1.account_number,t1.company_ccf_operator_service as ccf_operator,t1.company_ccf_operator_surcharge as surcharge_operator,t1.company_ccf_value as ccf,t1.company_surcharge_value as surcharge,t2.name,t2.code,t2.icon,t2.description,t2.is_self  FROM ".DB_PREFIX."courier_vs_company AS t1 INNER JOIN ".DB_PREFIX."courier AS t2 ON t1.courier_id = t2.id WHERE t1.company_id = ".$this->_company_id." $subquery");
        foreach( $data as $key=>$val){
+           $data[$key]['internal'] = ($val["internal"]==1) ? true :  false;
            $data[$key]['action'] = 'editCourierAccount';
            $data[$key]['actioncode'] = 'INNER';
            $data[$key]['status'] = ($val['status']==1)?true:false;
@@ -243,17 +244,32 @@ class Master extends Icargo{
   
     
     public function editCourierAccount($param){
+
        $ccf_history_id  = $this->saveccfHistoryForCarrier($param,'CARRIER');   
-       
+       $support_pickup = ($param->data->support_pickup=='true') ? 1 : 0 ;
+       $ccf_operator = $param->data->ccf_operator;
+       $surcharge_operator = $param->data->surcharge_operator;
+       $surcharge = $param->data->surcharge;
+       $surcharge = $param->data->surcharge;
+       $ccf = $param->data->ccf;
+       $update_date = date('Y-m-d');
+       $user_id = $param->user_id;
+       $pickup_surcharge = $param->data->pickup_surcharge;
+
+       $id = $param->data->id;
+
+
        $updateData = $this->_parentObj->db->updateData("UPDATE ".DB_PREFIX."courier_vs_company SET 
-       ccf_history='".$ccf_history_id."',
-       company_ccf_operator_service='".$param->data->ccf_operator."',
-       company_ccf_operator_surcharge='".$param->data->surcharge_operator."',
-       company_surcharge_value='".$param->data->surcharge."',
-       company_ccf_value='".$param->data->ccf."',
-       update_date='".date('Y-m-d')."',
-       updated_by='".$param->user_id."' 
-       WHERE id = ".$param->data->id."");
+       ccf_history='$ccf_history_id',
+       company_ccf_operator_service='$ccf_operator',
+       company_ccf_operator_surcharge='$surcharge_operator',
+       company_surcharge_value='$surcharge',
+       company_ccf_value='$ccf',
+       update_date='$update_date',
+       updated_by='$user_id',
+       pickup='$support_pickup',
+       pickup_surcharge='$pickup_surcharge'
+       WHERE id = '$id'");
 		if ($updateData != NULL) {
 			$response["status"] = "success";
 			$response["message"] = "Courier details updated successfully";
@@ -324,12 +340,7 @@ class Master extends Icargo{
         return $response;
         
     }
-    
-  
-    
-    
-    
-    
+
     public function saveData($data){ 
         
        $img = file_get_contents('"'.$data->icon[0]->lfDataUrl.'"');
@@ -347,6 +358,85 @@ class Master extends Icargo{
     //print_r($data->icon[0]->lfDataUrl);die;
    
     }
-    
+
+    private function _disableCompanyInternalCarrier($status, $company_id){
+        $sql = "UPDATE " . DB_PREFIX . "courier_vs_company SET is_internal = '0' WHERE company_id = '$company_id'";
+        return $this->_parentObj->db->updateData($sql);
+    }
+
+    private function _updateCompanyInternalCarrier($status, $company_id, $carrier_id, $row_id){
+        $sql = "UPDATE " . DB_PREFIX . "courier_vs_company SET is_internal = '$status' WHERE id='$row_id'";
+        return $this->_parentObj->db->updateData($sql);
+    }
+
+    public function setCompanyInternalCarrier($param){
+        $this->_disableCompanyInternalCarrier($param->status, $param->company_id);
+
+        $status = $this->_updateCompanyInternalCarrier($param->status, $param->company_id, $param->carrier_id, $param->id);
+
+        if($status){
+            return array("status"=>"success", "message"=>"Carrier updated successfully");
+        }else{
+            return array("status"=>"error", "message"=>"Carrier not updated");
+        }
+    }
+
+    public function saveCarrier($param){
+        try{
+            $this->_parentObj->db->startTransaction();
+            $data = array(
+                "courier_id" => $param->carrier_id,
+                "company_id" => $param->company_id,
+                "account_number" => $param->account_number,
+                "username" => $param->user_name,
+                "password" => $param->password,
+                "create_date" => date("Y-m-d"),
+                "created_by" => $param->created_by,
+                "status" => "1",
+                "token" => $param->coreprime_token,
+                "currency" => $param->currency_code,
+                "pickup" => $param->pickup,
+                "pickup_surcharge" => $param->pickup_surcharge,
+                "address_id" => $param->address_id,
+                "collection_start_at" => date("H:i:s", strtotime($param->collection_start_at)),
+                "collection_end_at" => date("H:i:s", strtotime($param->collection_end_at)),
+            );
+            $id = $this->_parentObj->db->save("courier_vs_company", $data);
+
+            if($id){
+                if(isset($param->carrier_image)){
+                    $libObj = new Library();
+                    $file = $libObj->saveImage("/images/carrier", $id, $param->carrier_image);
+                    $status = $this->_parentObj->db->updateData("UPDATE ".DB_PREFIX."courier_vs_company SET icon='$file' WHERE id = $id");
+                    if(!$status){
+                        $this->_parentObj->db->rollBackTransaction();
+                        return array("status"=>"error", "message"=>"Carrier not added");
+                    }
+                }
+
+                foreach($param->references as $item){
+                    $data = array(
+                        "carrier_id" => $param->carrier_id,
+                        "reference" => $item,
+                        "parent_id" => $id
+                    );
+                    $status = $this->_parentObj->db->save("carrier_company_reference", $data);
+                    if(!$status){
+                        $this->_parentObj->db->rollBackTransaction();
+                        return array("status"=>"error", "message"=>"Carrier not added");
+                    }
+                }
+                $this->_parentObj->db->commitTransaction();
+                return array("status"=>"success", "message"=>"Carrier added successfully");
+            }else{
+                $this->_parentObj->db->rollBackTransaction();
+                return array("status"=>"error", "message"=>"Carrier not added");
+            }
+
+        }catch(Exception $e){
+            $this->_parentObj->db->rollBackTransaction();
+            return array("status"=>"error", "message"=>"Carrier not added");
+        }
+    }
 }
 ?>

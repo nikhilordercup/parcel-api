@@ -5,7 +5,7 @@
 
         public $google_api_key = "AIzaSyBIh4rhpvo0WBRWUEvzZLUI5ikWa_OyuPE";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
 
-        public function _getInstance(){
+        public static function _getInstance(){
             if(self::$_obj==NULL){
                 self::$_obj = new Library();
             }
@@ -322,5 +322,42 @@
                  return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
             }
 		}
-     }
+
+		public function saveImage($file_path, $file_name, $encoded_string){
+            $path = $this->base_path().$file_path;
+            $root = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
+            //echo "$root-$path";die;
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $data = $encoded_string;
+
+            $type = array("png");
+            return "abc.png";
+            if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
+                $data = substr($data, strpos($data, ',') + 1);
+                $type = strtolower($type[1]); // jpg, png, gif
+
+                if (!in_array($type, [ 'jpg', 'jpeg', 'gif', 'png' ])) {
+                    throw new \Exception('invalid image type');
+                }
+
+                $data = base64_decode($data);
+
+                if ($data === false) {
+                    throw new \Exception('base64_decode failed');
+                }
+            } else {
+                throw new \Exception('did not match data URI with image data');
+            }
+
+            if(file_put_contents("$path/$file_name.{$type}", $data)){
+
+                return $this->get_api_url()."$file_path$file_name.{$type}";
+            }
+            return false;
+        }
+   }
 ?>

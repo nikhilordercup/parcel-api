@@ -48,7 +48,6 @@ class Route_Complete extends Icargo{
 		if($status['status']==true){
 			//save driver time tracking
 			$apiTrackingData = $this->getDriverTimeTracking(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$this->driver_id));
-			//echo '<pre/>';print_r($apiTrackingData);die;
 			$itemCount = count($apiTrackingData);
 			$itemCount--;
 			$j = 0;
