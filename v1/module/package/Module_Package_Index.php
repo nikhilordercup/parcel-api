@@ -20,7 +20,7 @@ class Module_Package_Index extends Icargo
     {
         try {
             $this->modelObj->startTransaction();
-            if ($param->displayOrder > 0) {
+            if ($param->display_order > 0) {
                 $allPackages = $this->modelObj->getAllPackagesByCreatedUserId($param->created_by);
                 foreach ($allPackages as $item) {
                     if ($item["display_order"] >= $param->display_order) {

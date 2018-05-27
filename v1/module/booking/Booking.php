@@ -95,10 +95,10 @@ class Booking extends Icargo
         $postcode = $this->postcodeObj->validate($data->postcode);
         if($postcode) {
             $param["postcode"]      = $data->postcode;
-            $param["address_line1"] = $data->address_line1;
-            $param["address_line2"] = $data->address_line2;
-            $param["city"]          = $data->city;
-            $param["state"]         = $data->state;
+            $param["address_line1"] = (isset($data->address_line1)) ? $data->address_line1 : "";
+            $param["address_line2"] = (isset($data->address_line2)) ? $data->address_line2 : "";
+            $param["city"]          = (isset($data->city)) ? $data->city : "";
+            $param["state"]         = (isset($data->state)) ? $data->state : "";
             $param["country"]       = $data->country->short_name;
             $param["iso_code"]      = $data->country->alpha2_code;
             $param["company_name"]  = "";
@@ -122,7 +122,7 @@ class Booking extends Icargo
                 $param["version_id"] = "version_1";
             }
             else{
-                $version = explode("_", $addressVersion["version_id"]);
+                $version = explode("_", $addressVersion);
                 $param["version_id"] = "version_".($version[1]+1);
             }
             $address_id = $this->modelObj->saveAddress($param);
@@ -142,23 +142,24 @@ class Booking extends Icargo
 
         $ticketNumber = $this->modelObj->generateTicketNo($company_id);
 
+
         if($ticketNumber){
-            $timestamp = $param["timestamp"];
+            //$timestamp = $param["timestamp"];
 
 
-            $data["notification_status"] = $param2->notification;
+            $data["notification_status"] = (isset($param2->notification)) ? $param2->notification : "";
             $data['shipment_address1'] = $addressInfo->address_line1;
-            $data['shipment_address2'] = $addressInfo->address_line2;
-            $data['shipment_customer_city'] = $addressInfo->city;
+            $data['shipment_address2'] = (isset($addressInfo->address_line2)) ? $addressInfo->address_line2 : "";
+            $data['shipment_customer_city'] = (isset($addressInfo->city)) ? $addressInfo->city : "";
             $data['shipment_postcode'] = $addressInfo->postcode;
             $data['shipment_customer_country'] = $addressInfo->country;
-            $data['shipment_instruction'] = $param2->pickup_instruction;
+            $data['shipment_instruction'] = (isset($param2->pickup_instruction)) ? $param2->pickup_instruction : "";
             $data['shipment_country_code'] = $param2->country->alpha3_code;
 
             //customer info
-            $data['shipment_customer_name']    = $param2->name;
-            $data['shipment_customer_email']   = $param2->email;
-            $data['shipment_customer_phone']   = $param2->phone;
+            $data['shipment_customer_name']    = (isset($param2->name)) ? $param2->name : "";
+            $data['shipment_customer_email']   = (isset($param2->email)) ? $param2->email : "";
+            $data['shipment_customer_phone']   = (isset($param2->phone)) ? $param2->phone : "";
 
             /*data not saved*/
             $data['shipment_total_weight']     = 0;//$param["weight"];
@@ -191,7 +192,7 @@ class Booking extends Icargo
             $data['instaDispatch_objectTypeName'] = "JobLoad";
 
             $data['instaDispatch_objectTypeId'] = 0;
-            $data['instaDispatch_accountNumber'] = $param["accountNumber"];
+            $data['instaDispatch_accountNumber'] = "";//$param["accountNumber"];
             $data['instaDispatch_businessName'] = $company_code;
             $data['instaDispatch_statusCode'] = "UNATTAINDED";
             $data['instaDispatch_jobTypeCode'] = $job_type_code;
