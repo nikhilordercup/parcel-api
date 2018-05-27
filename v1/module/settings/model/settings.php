@@ -35,6 +35,18 @@ class Settings_Model {
          $record = $this->db->getAllRecords($sql);
          return  $record;  
 	 }
+    public function getAllCarrier($companyid){
+         $record = array();
+         $sqldata ='t1.courier_id as id,t2.name';
+         $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "courier_vs_company AS t1
+                LEFT JOIN " . DB_PREFIX . "courier AS t2 on t1.courier_id = t2.id
+                WHERE t1.company_id = '$companyid'";
+         $record = $this->db->getAllRecords($sql);
+         return  $record;  
+	 }
+    
+    
+    
     
   }
 ?>

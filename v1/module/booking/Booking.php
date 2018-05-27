@@ -135,7 +135,6 @@ class Booking extends Icargo
     protected
 
     function _saveShipment($param1, $param2, $parcel, $address_info, $warehouse_id, $company_id, $company_code, $service_date, $collection_end_at, $load_group_type_code, $job_type_code, $load_group_type_name, $shipment_service_type, $execution_order){
-        
         $param1 = (object)$param1;
         $param2 = (object)$param2;
         $addressInfo = (object)$address_info;

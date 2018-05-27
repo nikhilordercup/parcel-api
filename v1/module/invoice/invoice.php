@@ -8,8 +8,11 @@ class Invoice extends Icargo{
     }
     
    public function getallinvoice($param){
-         $invoiceData = $this->modelObj->getAllInvice($param->warehouse_id,$param->company_id);
-         return $invoiceData;
+	if(isset($param->customer_id))
+		$invoiceData = $this->modelObj->getAllInvoiceByCustomerId($param->warehouse_id,$param->company_id,$param->customer_id);
+	else
+		$invoiceData = $this->modelObj->getAllInvice($param->warehouse_id,$param->company_id);
+	return $invoiceData;
    }
   public function createInvoice($param){
       $_start_date          = $param->start_date;

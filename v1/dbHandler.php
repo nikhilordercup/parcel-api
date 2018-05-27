@@ -133,14 +133,6 @@ class DbHandler {
         	throw new Exception($this->conn->error.__LINE__." query : $query");
         }
 
-		/*$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-
-        if ($r) {
-			$new_row_id = $this->conn->insert_id;
-			return $new_row_id;
-		} else {
-			return NULL;
-        }*/
 	}
 	
 	public function getSession(){

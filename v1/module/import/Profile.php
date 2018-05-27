@@ -34,4 +34,6 @@ class Profile
         $sql="DELETE FROM ".DB_PREFIX."csv_import_profiles WHERE profile_id=$profileId";
         $this->_db->delete($sql);
     }
+    
+    
 }

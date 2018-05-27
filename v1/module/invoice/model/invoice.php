@@ -162,7 +162,20 @@ class AllInvoice_Model
                 WHERE S1.invoice_reference  = '" . $ref . "'";
          $record = $this->db->getRowRecord($sql);
          return  $record;     
-    } 
+    }
+
+	public function getAllInvoiceByCustomerId($whareHouseId,$companyId,$customerId){
+        $record = array();
+        $sqldata = 'I.invoice_reference,I.total_ammount as total_amount,I.raised_on,
+                    I.deu_date as due_on,I.from,I.to,I.voucer as voucher,
+                    I.tot_shipmets as shipments,I.tot_item as item,I.invoice_status as status,
+                    CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
+                    LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = I.customer_id
+                    WHERE I.company_id  = '".$companyId ."' AND I.customer_id  = ".$customerId."";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+     }	
     
    }
 ?>
