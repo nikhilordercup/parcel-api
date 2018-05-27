@@ -130,7 +130,7 @@ class DbHandler {
             $new_row_id = $this->conn->insert_id;
             return $new_row_id;
         } else {
-        	throw new Exception($this->conn->error.__LINE__);
+        	throw new Exception($this->conn->error.__LINE__." query : $query");
         }
 
 		/*$r = $this->conn->query($query) or die($this->conn->error.__LINE__);

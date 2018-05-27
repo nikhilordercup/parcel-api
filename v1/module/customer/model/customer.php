@@ -451,7 +451,7 @@ public function checkCustomerEmailExist($company_email){
 	}
 	
 	public function checkDefaultUserExist(/*$company_id,*/$customer_id){
-		return $this->db->getRowRecord("SELECT COUNT(*) as exist, UT.id FROM  ".DB_PREFIX."users as UT WHERE UT.is_default=1 AND (UT.parent_id=".$customer_id." OR UT.id=".$customer_id.")");
+	    return $this->db->getRowRecord("SELECT UT.id FROM  ".DB_PREFIX."users as UT WHERE UT.is_default=1 AND (UT.parent_id=".$customer_id." OR UT.id=".$customer_id.")");
 		//return $this->db->getRowRecord("SELECT COUNT(*) as exist, UT.id FROM  ".DB_PREFIX."users as UT LEFT JOIN ".DB_PREFIX."company_users as CUT ON UT.parent_id = CUT.user_id WHERE UT.is_default=1 AND CUT.company_id=".$company_id." AND (UT.parent_id=".$customer_id." OR UT.id=".$customer_id.")");
 	}
 

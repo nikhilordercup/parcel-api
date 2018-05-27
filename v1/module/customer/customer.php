@@ -1082,7 +1082,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 	public function getCustomerDefaultUser($param){
 		$data =  $this->modelObj->checkDefaultUserExist(/* $param->company_id, */$param->customer_id);
 		$response = array();
-		if($data['exist']>0)
+		if(count($data)>0)
 			$response = array("status"=>"success","message"=>"Default user found","default_user_id"=>$data['id']);
 		else
 			$response = array("status"=>"error","message"=>"No default user found");

@@ -30,6 +30,8 @@ class Module_Package_Index extends Icargo
                 }
             }
 
+            $displayOrder = (isset($param->displayOrder)) ? $param->displayOrder : 0 ;
+
             $package_id = $this->modelObj->savePackage(array(
                 "type" => $param->newType,
                 "contents" => $param->content,
@@ -40,25 +42,48 @@ class Module_Package_Index extends Icargo
                 "length" => $param->length,
                 "width" => $param->width,
                 "height" => $param->height,
-                "display_order" => $param->displayOrder,
+                "display_order" => $displayOrder,
                 "company_id" => $param->company_id,
                 "created_by" => $param->createdBy
             ));
 
+            $allowedUsers= array();
+            $allowedUsers[$param->createdBy] = $param->createdBy;
+
             if ($param->allowOther and $package_id) {
-                $allowedUsers = $this->modelObj->getAllCustomerAndUserByCompanyId($param->company_id);
-                foreach ($allowedUsers as $item) {
-                    $this->modelObj->saveAllowedUserPackage(array(
-                        "user_id" => $item["user_id"],
-                        "package_id" => $package_id
-                    ));
+                $items = $this->modelObj->getAllCustomerAndUserByCompanyId($param->company_id);
+
+                foreach($items as $item){
+                    $allowedUsers[$item["user_id"]] = $item["user_id"];
                 }
             }
+
+            foreach ($allowedUsers as $item) {
+                $status = $this->modelObj->saveAllowedUserPackage(array(
+                    "user_id" => $item,
+                    "package_id" => $package_id
+                ));
+            }
+
             $this->modelObj->commitTransaction();
-            return array("status"=>"success", "message"=>"Package saved successfully");
+
+            return array("status"=>"success", "message"=>"Package saved successfully","package_lists"=>$this->_getPackages($param->createdBy));
         }catch(Exception $e){
+            print_r($e);die;
             $this->modelObj->rollBackTransaction();
             return array("status"=>"error", "message"=>"Package not saved. Record rollback.");
         }
     }
+
+    private
+
+    function _getPackages($user_id){
+        return $this->modelObj->getParcelPackageByUserId($user_id);
+    }
+
+    public
+    function getPackages($param){
+        return $this->_getPackages($param->user_id);
+    }
+
 }

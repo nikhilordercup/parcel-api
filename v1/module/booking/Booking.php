@@ -54,9 +54,7 @@ class Booking extends Icargo
 
     protected
 
-    function
-
-    _getDistanceMatrix($origin, $destinations, $timestamp){
+    function _getDistanceMatrix($origin, $destinations, $timestamp){
         return (object)Library::_getInstance()->multiple_destinations_distance_and_duration(
             array(
                 "origin" => $origin,
@@ -68,9 +66,7 @@ class Booking extends Icargo
 
     protected
 
-    function
-
-    _checkCustomerAccountStatus($customer_id){
+    function _checkCustomerAccountStatus($customer_id){
         $accountStatus = $this->modelObj->checkCustomerAccountStatus($customer_id);
         if(!$accountStatus){
             return array("status"=>"error", "message"=>"Customer account disabled.");
@@ -81,17 +77,20 @@ class Booking extends Icargo
 
     protected
 
-    function
-
-    _getCompanyCode($company_id){
+    function _getCompanyCode($company_id){
         $this->modelObj->getCompanyCode($company_id);
     }
 
     protected
 
-    function
+    function getCustomerWarehouseIdByCustomerId($company_id, $customer_id){
+        $data = $this->modelObj->getCustomerWarehouseIdByCustomerId($company_id, $customer_id);
+        return $data["warehouse_id"];
+    }
 
-    _saveAddressData($data, $customer_id){
+    protected
+
+    function _saveAddressData($data, $customer_id){
         $data = (object)$data;
         $postcode = $this->postcodeObj->validate($data->postcode);
         if($postcode) {
@@ -135,9 +134,8 @@ class Booking extends Icargo
 
     protected
 
-    function
-
-    _saveShipment($param1, $param2, $parcel, $address_info, $company_id, $company_code, $service_date, $load_group_type_code, $job_type_code, $load_group_type_name, $shipment_service_type, $execution_order){
+    function _saveShipment($param1, $param2, $parcel, $address_info, $warehouse_id, $company_id, $company_code, $service_date, $collection_end_at, $load_group_type_code, $job_type_code, $load_group_type_name, $shipment_service_type, $execution_order){
+        
         $param1 = (object)$param1;
         $param2 = (object)$param2;
         $addressInfo = (object)$address_info;
@@ -182,15 +180,13 @@ class Booking extends Icargo
                 $param["parcel_id"] = 0;
 
             $data['shipment_required_service_starttime']       = date("H:i:s", strtotime($service_date));
-            $data['shipment_required_service_endtime']         = date("H:i:s", strtotime($service_date));
+            $data['shipment_required_service_endtime']         = date("H:i:s", strtotime($collection_end_at));
 
             $data['shipment_total_item']       = count((array)$parcelInfo);
 
-            $warehouse_id = $param["warehouse_id"];
-
             $data['instaDispatch_loadGroupTypeCode'] = strtoupper($load_group_type_code);
             $data['instaDispatch_docketNumber'] = $ticketNumber;
-            $data['instaDispatch_loadIdentity'] = (isset($param2->loadIdentity)) ? $param2->loadIdentity : $ticketNumber;
+            $data['instaDispatch_loadIdentity'] = (isset($param2->load_identity)) ? $param2->load_identity : $ticketNumber;
             $data['instaDispatch_jobIdentity'] = $ticketNumber;
             $data['instaDispatch_objectIdentity'] = $ticketNumber;
             $data['instaDispatch_objectTypeName'] = "JobLoad";
@@ -211,7 +207,6 @@ class Booking extends Icargo
             $data['shipment_isDutiable'] = "false";
             $data['error_flag'] = "0";
 
-
             $data['shipment_xml_reference'] = "";//$param["file_name"];
 
             $data['shipment_total_attempt'] = '0';
@@ -226,7 +221,7 @@ class Booking extends Icargo
             $data['dataof'] = $company_code;
             $data['waitAndReturn'] = "false";
             $data['company_id'] = $company_id;
-            $data['warehouse_id'] = $param1->warehouse_id;
+            $data['warehouse_id'] = $warehouse_id;
             $data['address_id'] = 0;
             $data['shipment_service_type'] = $shipment_service_type;
 
@@ -248,6 +243,8 @@ class Booking extends Icargo
 
             $data["booking_ip"] = $_SERVER['REMOTE_ADDR'];
 
+            $data["carrier_code"] = (isset($param2->carrier_code)) ? $param2->carrier_code : "";
+
             $shipmentId = $this->modelObj->saveShipment($data);
 
             if($shipmentId){
@@ -262,9 +259,8 @@ class Booking extends Icargo
 
     protected
 
-    function
+    function _saveParcel($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type){
 
-    _saveParcel($shipment_id,$shipment_ticket,$company_id,$company_code,$parcel,$parcel_type){
         $parcel = (object)$parcel;
         $parcelTicketNumber = $this->modelObj->generateParcelTicketNumber($company_id);
         $parcelData = array();
@@ -277,15 +273,15 @@ class Booking extends Icargo
         $parcelData['shipment_ticket'] = $shipment_ticket;
 
 
-        $parcelData['package']       = $parcel->package;
+        $parcelData['package']       = $parcel->package->name;
         $parcelData['parcel_ticket'] = $parcelTicketNumber;
         $parcelData['parcel_weight'] = $parcel->weight;
         $parcelData['parcel_height'] = $parcel->height;
         $parcelData['parcel_length'] = $parcel->length;
         $parcelData['parcel_width']  = $parcel->width;
+        $parcelData["quantity"]      = $parcel->quantity;
         $parcelData['parcel_type']   = $parcel_type;//($valuedata['purposeTypeName'] == 'Collection') ? 'P' : 'D';
 
-        $parcelData['create_date'] = "NOW()";
         $parcelData['dataof'] = $company_code;
         $parcelData['status'] = '1';
         /* add some new data for same day*/
@@ -294,11 +290,12 @@ class Booking extends Icargo
         $parcelData['objectIdentity'] = $shipment_ticket;
         $parcelData['availabilityTypeId'] = 0;
         $parcelData['availabilityTypeCode'] = "UNKN";
-
+        $parcelData['company_id'] = $company_id;
+        $parcelData['warehouse_id'] = $warehouse_id;
 
         $parcel_id = $this->modelObj->saveParcel($parcelData);
 
-        if($parcelId){
+        if($parcel_id){
             return array("status"=>"success", "parcel_id"=>$parcel_id);
         }else{
             return array("status"=>"error", "message"=>"Parcel not saved");
@@ -307,12 +304,224 @@ class Booking extends Icargo
 
     protected
 
-    function _postRequest($data){
+    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id){
+
+        $service_data = array();
+
+        $price_version = $this->modelObj->findPriceNextVersionNo($load_identity);
+
+        //save price breakdown
+        $surchargeAndTaxValue = $this->_savePriceBreakdown($serviceOpted, $surcharges, $load_identity, $price_version);
+
+        if($surchargeAndTaxValue["status"]=="success"){
+            $service_data["service_name"] = $serviceOpted->service_info->name;
+            $service_data["rate_type"] = $serviceOpted->rate->rate_type;
+            $service_data["currency"] = $serviceOpted->rate->currency;
+
+            $service_data["courier_commission_type"] = $serviceOpted->rate->info->operator;
+            $service_data["courier_commission"] = $serviceOpted->rate->info->ccf_value;
+            $service_data["courier_commission_value"] = $serviceOpted->rate->info->price;
+
+            $service_data["base_price"] = $serviceOpted->rate->info->original_price;
+            $service_data["surcharges"] = $surchargeAndTaxValue["total_surcharge_value"];
+            $service_data["taxes"] = $surchargeAndTaxValue["total_tax_value"];
+
+            $service_data["total_price"] = $serviceOpted->rate->info->price_with_ccf;
+            $service_data["grand_total"] = $service_data["total_price"] + $service_data["surcharges"] + $service_data["taxes"];
+            $service_data["charge_from_base"] = (!empty($serviceOpted->charge_from_base)) ? $serviceOpted->charge_from_base : "0";
+
+            $service_data["customer_id"] = $customer_id;
+            $service_data["price_version"] = $price_version;
+            $service_data["load_identity"] = $load_identity;
+
+            $service_data["transit_distance"] = "00.00";
+            $service_data["transit_time"] = "00.00";
+            $service_data["transit_distance_text"] = "NA";
+
+            $service_data["transit_time_text"] = "NA";
+            $service_data["carrier"] = $serviceOpted->carrier_info->carrier_id;
+            $service_data["isInvoiced"] = "NO";
+
+            $service_data["invoice_reference"] = "";
+            $service_data["service_request_string"] = $this->serviceRequestString;
+            $service_data["service_response_string"] = $this->serviceResponseString;
+
+            $service_id = $this->modelObj->saveShipmentService($service_data);
+            if($service_id>0){
+                return array("status"=>"success", "message"=>"shipment service saved", "service_id"=>$service_id);
+            }
+            return array("status"=>"error", "message"=>"shipment service not saved");
+        }
+        return $surchargeAndTaxValue;
+    }
+
+    private
+
+    function _savePriceBreakdown($data, $surcharges, $load_identity, $price_version){
+        $totalSurchargeValue = 0;
+        $totalTaxValue = 0;
+
+        $price_breakdown = array();
+
+        $price_breakdown["load_identity"] = $load_identity;
+        $price_breakdown["shipment_type"] = $data->rate->shipment_type;
+        $price_breakdown["version"]       = $price_version;
+        $price_breakdown["api_key"]       = "service";
+        $price_breakdown["price_code"]    = $data->rate->info->courier_service_code;
+        $price_breakdown["ccf_operator"]  = $data->rate->info->operator;
+        $price_breakdown["ccf_value"]     = $data->rate->info->ccf_value;
+        $price_breakdown["ccf_level"]     = $data->rate->info->level;
+        $price_breakdown["baseprice"]     = $data->rate->info->original_price;
+        $price_breakdown["ccf_price"]     = $data->rate->info->price;
+        $price_breakdown["price"]         = $data->rate->info->price_with_ccf;
+        $price_breakdown["service_id"]    = $data->rate->info->service_id;
+        $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
+
+        $status = $this->modelObj->saveShipmentPrice($price_breakdown);
+        if($status>0){
+            //save surcharges
+            if(is_object($surcharges)){
+                foreach($surcharges as $surcharge_code => $item){
+                    $price_breakdown = array();
+
+                    $price_breakdown["load_identity"] = $load_identity;
+                    $price_breakdown["shipment_type"] = $data->rate->shipment_type;
+                    $price_breakdown["version"]       = $price_version;
+                    $price_breakdown["api_key"]       = "surcharges";
+                    $price_breakdown["price_code"]    = $surcharge_code;
+                    $price_breakdown["ccf_operator"]  = $item->operator;
+                    $price_breakdown["ccf_value"]     = $item->surcharge_value;
+                    $price_breakdown["ccf_level"]     = $item->level;
+                    $price_breakdown["baseprice"]     = $item->original_price;
+                    $price_breakdown["ccf_price"]     = $item->price;
+                    $price_breakdown["price"]         = $item->price_with_ccf;
+                    $price_breakdown["service_id"]    = $item->surcharge_id;
+                    $price_breakdown["carrier_id"]    = $item->carrier_id;
+                    $status = $this->modelObj->saveShipmentPrice($price_breakdown);
+                    if(!$status){
+                        return array("status"=>"error", "message"=>"shipment price breakdown not saved");
+                    }
+                    $totalSurchargeValue += $item->price_with_ccf;
+                }
+            }
+
+            //save taxes
+            if(isset($data->taxes)){
+                $price_breakdown = array();
+                $counter = 0;
+                foreach($data->taxes as $tax_type=>$tax_value){
+                    if($counter==0){
+                        $price_breakdown["load_identity"] = $load_identity;
+                        $price_breakdown["shipment_type"] = $data->rate->shipment_type;
+                        $price_breakdown["version"]       = $price_version;
+                        $price_breakdown["price_code"]    = $tax_type;
+                        $price_breakdown["price"]         = $tax_value;
+                        //
+                        $price_breakdown["baseprice"]     = $data->rate->info->original_price;
+                        $price_breakdown["api_key"]       = "taxes";
+                        $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
+                    }else{
+                        $price_breakdown["ccf_operator"]  = ($tax_type=="tax_percentage") ? "PERCENTAGE" : "NONE";
+                        $price_breakdown["ccf_value"]     = $tax_value;
+                    }
+                    $counter++;
+                }
+                $status = $this->modelObj->saveShipmentPrice($price_breakdown);
+                if(!$status){
+                    return array("status"=>"error", "message"=>"shipment price breakdown not saved");
+                }
+                $totalTaxValue += $price_breakdown["price"];
+            }
+            return array("status"=>"success","total_surcharge_value"=>number_format($totalSurchargeValue, 2), "total_tax_value"=>number_format($totalTaxValue, 2));
+        }
+
+
+        return array("status"=>"error", "message"=>"shipment price breakdown not saved");
+    }
+
+    protected
+
+    function _saveShipmentAttribute($param, $load_identity){
+        if(isset($param->icon)){
+            $_attribute["column_name"] = "icon";
+            $_attribute["value"] = $param->icon;
+            $_attribute["api_key"] = "icon";
+            $_attribute["load_identity"] = $load_identity;
+            $status = $this->modelObj->saveShipmentAttribute($_attribute);
+            if($status==0){
+                return array("status"=>"error", "message"=>"shipment attribute not saved");
+            }
+        }
+        if(isset($param->dimensions)){
+            foreach($param->dimensions as $column=>$item){
+                $_attribute["column_name"] = $column;
+                $_attribute["value"] = $item;
+                $_attribute["api_key"] = "dimensions";
+                $_attribute["load_identity"] = $load_identity;
+                $status = $this->modelObj->saveShipmentAttribute($_attribute);
+                if($status==0){
+                    return array("status"=>"error", "message"=>"shipment attribute not saved");
+                }
+            }
+        }
+        if(isset($param->weight)){
+            foreach($param->weight as $column=>$item){
+                $_attribute["column_name"] = $column;
+                $_attribute["value"] = $item;
+                $_attribute["api_key"] = "weight";
+                $_attribute["load_identity"] = $load_identity;
+                $status = $this->modelObj->saveShipmentAttribute($_attribute);
+                if($status==0){
+                    return array("status"=>"error", "message"=>"shipment attribute not saved");
+                }
+            }
+        }
+        if(isset($param->time)){
+            foreach($param->time as $column=>$item){
+                $_attribute["column_name"] = $column;
+                $_attribute["value"] = ($item!="") ? $item : 0;
+                $_attribute["api_key"] = "time";
+                $_attribute["load_identity"] = $load_identity;
+                $status = $this->modelObj->saveShipmentAttribute($_attribute);
+                if($status==0){
+                    return array("status"=>"error", "message"=>"shipment attribute not saved");
+                }
+            }
+        }
+
+        return array("status"=>"success", "message"=>"shipment attribute saved");
+    }
+
+    protected
+
+    function _saveShipmentCollection($data){
+
+        $collection_data = array();
+
+        $collection_data["carrier_code"]         = $data->carrier_code;
+        $collection_data["pickup_surcharge"]     = $data->pickup_surcharge;
+        $collection_data["collection_date_time"] = $data->collection_date_time;
+        $collection_data["is_regular_pickup"]    = $data->is_regular_pickup;
+        $collection_data["pickup"]               = $data->pickup;
+        $collection_data["service_id"]           = $data->service_id;
+
+        $status = $this->modelObj->saveShipmentCollection($collection_data);
+        if($status==0){
+            return array("status"=>"error", "message"=>"shipment collection detail not saved");
+        };
+        return array("status"=>"success", "message"=>"shipment collection detail saved");
+    }
+
+    protected
+
+    function _postRequest($data_string){
+
         //$server_output = '{"status":"success","message":"Rate found","data":{"UKMAIL":[{"D919022":[{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":null},"weight":{"weight":9999,"unit":null},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"2","name":"Testing 2"}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":1.025,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"4","name":"Testing 4"}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":2.525,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"5","name":"Testing 5"}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":1.525,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"3","name":"Testing 3"}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":1.325,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"9","name":"Testing 9"}}]},{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":0.525,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"1","name":"Testing 1"}}]}]}]},"service_time":"11:20","service_date":"21/May/2018"}';
         //return json_decode($server_output);
 
-        ///return '{"rate":{"UKMAIL":[{"D919022":[{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]}]}]}}';
-        $data_string = json_encode($data);
+        //return '{"rate":{"UKMAIL":[{"D919022":[{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]}]}]}}';
+
+        //$data_string = json_encode($data);
 
         $ch = curl_init($this->access_url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
