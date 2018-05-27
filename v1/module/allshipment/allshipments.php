@@ -588,7 +588,7 @@ class allShipments extends Icargo{
         if(count($data)>0){
             $return['service']['courier'] = array();
             $return['surcharges']['courier'] = array();
-            $return['taxes']['courier'] = array();
+            $return['taxes']['courier'] = array('baseprice'=>0);
             $return['subtotal']['courier'] = array();
             $carrierSurcharge = array(); 
             foreach($data as $key=>$vel){ 
@@ -619,7 +619,7 @@ class allShipments extends Icargo{
         if(count($data)>0){
             $return['service']['customer'] = array();
             $return['surcharges']['customer'] = array();
-            $return['taxes']['customer'] = array();
+            $return['taxes']['customer'] = array('baseprice'=>0);
             $return['subtotal']['customer'] = array();
             $customerSurcharge[] =  array();
             foreach($data as $key=>$vel){ 
