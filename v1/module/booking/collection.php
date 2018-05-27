@@ -193,7 +193,6 @@ final Class Collection{
 
     function _findInternalCourier(){
         $internalCarrier = $this->_getInternalCarrier();
-
         if(count($internalCarrier)>0){
             //step 1
             if(count($this->_findInOperationalArea())>0){
@@ -205,7 +204,7 @@ final Class Collection{
 
                 $pickupSurcharge = 0;
 
-                if($this->isRegularPickup==no){
+                if($this->isRegularPickup=="no"){
                     //add pickup surcharge
                     $pickupSurcharge = $internalCarrier["pickup_surcharge"];
                 }
@@ -214,6 +213,8 @@ final Class Collection{
                 $internalCarrier["pickup_surcharge"] = $pickupSurcharge;
 
                 $internalCarrier["collection_date_time"] = $collectionDateTime;
+                $internalCarrier["is_regular_pickup"] = $this->isRegularPickup;
+               
                 $this->internalCarrier = $this->_prepareCollectionList($internalCarrier);
             }
         }

@@ -28,6 +28,7 @@ final class Nextday extends Booking
     function _getCustomerCarrierAccount(){
         $result = array();
         $carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
+       
         foreach($carrier as $key => $item) {
             $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"]);
 
@@ -79,7 +80,6 @@ final class Nextday extends Booking
                         foreach($item as $service_code => $services){
 
                             //calculate service ccf
-                            //$serviceCode,$service, $courier_id, $customer_id, $company_id
                             $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $services[0]->rate->price, $this->carrierList[$carrier_code]["carrier_id"],$this->_param->customer_id, $this->_param->company_id);//$services[0]->rate
 
                             $services[0]->rate->price = $serviceCcf["price_with_ccf"];
@@ -229,10 +229,10 @@ final class Nextday extends Booking
                     "name" => "",
                     "company" => "",
                     "phone" => "",
-                    "street1" => $this->_param->delivery->$key->address_line1,
-                    "street2" => $this->_param->delivery->$key->address_line2,
-                    "city" => $this->_param->delivery->$key->city,
-                    "state" => $this->_param->delivery->$key->state,
+                    "street1" => (isset($this->_param->delivery->$key->address_line1)) ? $this->_param->delivery->$key->address_line1 : "",
+                    "street2" => (isset($this->_param->delivery->$key->address_line2)) ? $this->_param->delivery->$key->address_line2 : "",
+                    "city" => (isset($this->_param->delivery->$key->city)) ? $this->_param->delivery->$key->city : "",
+                    "state" => (isset($this->_param->delivery->$key->city)) ? $this->_param->delivery->$key->state : "",
                     "zip" => $this->_param->delivery->$key->postcode,
                     "country" => $this->_param->delivery_country->alpha3_code,
                     "country_name" => $this->_param->delivery_country->short_name
@@ -260,8 +260,8 @@ final class Nextday extends Booking
             }
 
             $this->data["transit"][] = array(
-                "transit_distance" => $this->distanceMatrixInfo->value,
-                "transit_time" => $this->durationMatrixInfo->value,
+                "transit_distance" => 0,//$this->distanceMatrixInfo->value,
+                "transit_time" => 0,//$this->durationMatrixInfo->value,
                 "number_of_collections" => 0,
                 "number_of_drops" => 0,
                 "total_waiting_time" => 0
