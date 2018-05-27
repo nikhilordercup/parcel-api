@@ -23,6 +23,7 @@ class Route_Model_Complete{
 	
 	// get all data by route id
 	public function getDriverApiTrackingData($param){
+	    //echo "SELECT * FROM " . DB_PREFIX . "api_driver_tracking WHERE route_id = '".$param['shipment_route_id']."' AND driver_id = '".$param['driver_id']."' group by create_date";die;
 		$apiData = $this->getInstance()->getAllRecords("SELECT * FROM " . DB_PREFIX . "api_driver_tracking WHERE route_id = '".$param['shipment_route_id']."' AND driver_id = '".$param['driver_id']."' group by create_date");
 		return $apiData;
 	}

@@ -272,5 +272,11 @@ class Controller extends Icargo{
         }
         return $customerLists;
     }
+
+    public function getAllWarehouseAddressByCompanyAndUser($param){
+        $sql = "SELECT `ABT`.`id`,`ABT`.`address_line1`, `ABT`.`address_line2`, `ABT`.`postcode`, `ABT`.`city`, `ABT`.`state`, `ABT`.`country` FROM `". DB_PREFIX  ."address_book` AS `ABT` INNER JOIN `". DB_PREFIX ."user_address` AS `UAT` ON `ABT`.`id` = `UAT`.`address_id` WHERE `UAT`.`default_address`='Y' AND `ABT`.`customer_id`=".$param['user_id']." AND `ABT`.`status`=1";
+        $records = $this->_parentObj->db->getAllRecords($sql);
+        return $records;
+    }
 }
 ?>

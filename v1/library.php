@@ -5,7 +5,7 @@
 
         public $google_api_key = "AIzaSyBIh4rhpvo0WBRWUEvzZLUI5ikWa_OyuPE";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
 
-        public function _getInstance(){
+        public static function _getInstance(){
             if(self::$_obj==NULL){
                 self::$_obj = new Library();
             }
@@ -291,5 +291,73 @@
             }
             return $url;
         }
-    }
+        
+        public function get_address_by_latlong($lat,$long){
+            $api_url = "http://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long=true";
+            $query   = $this->get_curlresponse($api_url);
+            if($query!='Error'){
+                $json = json_decode($query);
+                if($json->status=="OK"){
+                    print_r($json);die;
+                   $postcodeValid = false;
+                    foreach($json->results[0]->address_components as $val){
+                       if(in_array('postal_code',$val->types)){
+                           $postdata = str_replace(' ','',$val->long_name);
+                           $addressdatadata = str_replace(' ','',urldecode($address));
+                           $postcodeValid = ($postdata==$addressdatadata)?true:false;
+                       }
+                   }
+                if($postcodeValid) {
+                     return array("latitude"=>$json->results[0]->geometry->location->lat, "longitude"=>$json->results[0]->geometry->location->lng, 'geo_location'=>$json,"status"=>"success") ;
+                }else{
+                      return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+                 }
+                 }elseif($json->status=="OVER_QUERY_LIMIT"){
+                   return $this->get_lat_long_by_postcode(urldecode($address));
+                }
+                 else{
+                  return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+                 }
+            }else{
+                 return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
+            }
+		}
+
+		public function saveImage($file_path, $file_name, $encoded_string){
+            $path = $this->base_path().$file_path;
+            $root = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
+            //echo "$root-$path";die;
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $data = $encoded_string;
+
+            $type = array("png");
+            return "abc.png";
+            if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
+                $data = substr($data, strpos($data, ',') + 1);
+                $type = strtolower($type[1]); // jpg, png, gif
+
+                if (!in_array($type, [ 'jpg', 'jpeg', 'gif', 'png' ])) {
+                    throw new \Exception('invalid image type');
+                }
+
+                $data = base64_decode($data);
+
+                if ($data === false) {
+                    throw new \Exception('base64_decode failed');
+                }
+            } else {
+                throw new \Exception('did not match data URI with image data');
+            }
+
+            if(file_put_contents("$path/$file_name.{$type}", $data)){
+
+                return $this->get_api_url()."$file_path$file_name.{$type}";
+            }
+            return false;
+        }
+   }
 ?>
