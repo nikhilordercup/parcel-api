@@ -79,7 +79,9 @@ final class Nextday extends Booking
                         foreach($item as $service_code => $services){
 
                             //calculate service ccf
-                            $serviceCcf = $this->customerccf->calculateServiceCcf($this->carrierList[$carrier_code]["carrier_id"],$carrierCode,$this->_param->customer_id, $this->_param->company_id, $service_code, $services[0]->rate);
+                            //$serviceCode,$service, $courier_id, $customer_id, $company_id
+                            $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $services[0]->rate->price, $this->carrierList[$carrier_code]["carrier_id"],$this->_param->customer_id, $this->_param->company_id);//$services[0]->rate
+
                             $services[0]->rate->price = $serviceCcf["price_with_ccf"];
                             $services[0]->rate->info = $serviceCcf;
 
@@ -125,7 +127,7 @@ final class Nextday extends Booking
                                         }else{
                                             $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$carrier_code]["carrier_id"], $surcharge_price);
                                         }
-
+                                        //print_r($surchargeCcf);
                                         $collected_item["surcharges"][$surcharge_code] = $surchargeCcf;
 
                                         $surchargeWithCcfPrice += $surchargeCcf["price_with_ccf"];
@@ -237,15 +239,11 @@ final class Nextday extends Booking
                 ),
                 "ship_date" => date("Y-m-d", strtotime($this->_param->collection_date)),
                 "extra" => array(
-                    //"pickup_scheduled" => "0"
+
                 ),
                 "currency" => $this->_param->currency,
 
             );
-
-            if($this->regular_pickup=="no"){
-                //$this->data["extra"]["pickup_scheduled"] = "1";
-            }
 
             $this->data["package"] = array();
 
@@ -304,6 +302,7 @@ final class Nextday extends Booking
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
                 $response = json_decode($responseStr);
+
                 $response = $this->_getCarrierInfo($response->rate);
 
                 if(isset($response->status) and $response->status="error"){
@@ -321,7 +320,6 @@ final class Nextday extends Booking
     public
 
     function saveBooking(){
-//print_r($this->_param);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
             return $accountStatus;

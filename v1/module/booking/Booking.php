@@ -498,7 +498,7 @@ class Booking extends Icargo
         $collection_data = array();
 
         $collection_data["carrier_code"]         = $data->carrier_code;
-        $collection_data["pickup_surcharge"]     = $data->pickup_surcharge;
+        //$collection_data["pickup_surcharge"]     = $data->pickup_surcharge;
         $collection_data["collection_date_time"] = $data->collection_date_time;
         $collection_data["is_regular_pickup"]    = $data->is_regular_pickup;
         $collection_data["pickup"]               = $data->pickup;
