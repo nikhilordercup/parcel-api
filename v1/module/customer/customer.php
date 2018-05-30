@@ -1017,6 +1017,13 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 	
 	public function editAddress($param){
 		$response = array();
+
+		$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country, $param->postcode, $param->address_type, $param->email);
+
+        $searchString = preg_replace('!\s+!', '', strtolower(implode('',$searchString)));
+
+        $param->search_string = $searchString;
+        
 		$data =  $this->modelObj->editAddress($param);
 		if ($data!= NULL) {
 			$response["status"] = "success";
