@@ -134,9 +134,7 @@ class Process_Route
             {
                 $shipmentDetails    = $shipmentDetails[0];
                 $condition          = "shipment_ticket IN('$ticket')";
-                //$this->model_rest->update('shipment', array('is_driver_accept' => 'YES'), $condition);
-                
-                
+
                 $shpDataArr = array();
                 $shpDataArr['is_driver_accept'] = 'YES';
                 $shpDataArr['is_receivedinwarehouse'] = 'YES';
@@ -145,10 +143,8 @@ class Process_Route
                 $shpDataArr['driver_pickuptime'] = date('Y-m-d H:m:s');
 
                 $this->model_rest->update('shipment', $shpDataArr, $condition);
-                
-                
-                
-                $condition         = "shipment_route_id = '" . $shipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $shipmentDetails['assigned_driver'] . "'  AND shipment_ticket IN('$ticket')";
+
+                $condition         = "shipment_accepted='Pending' AND shipment_route_id = '" . $shipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $shipmentDetails['assigned_driver'] . "'  AND shipment_ticket IN('$ticket')";
                 $status = $this->model_rest->update('driver_shipment', array(
                         'shipment_accepted' => 'YES',
                         'taken_action_by' => 'Driver'

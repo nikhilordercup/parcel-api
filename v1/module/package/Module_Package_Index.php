@@ -20,45 +20,74 @@ class Module_Package_Index extends Icargo
     {
         try {
             $this->modelObj->startTransaction();
-            if ($param->displayOrder > 0) {
-                $allPackages = $this->modelObj->getAllPackagesByCreatedUserId($param->createdBy);
+            if (isset($param->display_order) and $param->display_order > 0) {
+                $allPackages = $this->modelObj->getAllPackagesByCreatedUserId($param->created_by);
                 foreach ($allPackages as $item) {
-                    if ($item["display_order"] >= $param->displayOrder) {
+                    if ($item["display_order"] >= $param->display_order) {
                         //update display order [increment by one]
                         $status = $this->modelObj->updatePackage(array("display_order" => $item["display_order"] + 1), "id=" . $item["id"]);
                     }
                 }
             }
 
-            $package_id = $this->modelObj->savePackage(array(
-                "type" => $param->newType,
-                "contents" => $param->content,
-                "description" => $param->description,
-                "commodity_code" => $param->commodityCode,
-                "weight" => $param->weight,
+            $display_order = (isset($param->display_order)) ? $param->display_order : 0 ;
 
+            $is_internal = ($param->is_internal==1) ? "1" : "0" ;
+
+            $package_code = ($is_internal==1) ? "Parcels" : "";
+
+            $package_id = $this->modelObj->savePackage(array(
+                "type" => $param->new_type,
+                "contents" => (isset($param->content)) ? $param->content : "",
+                "description" => (isset($param->content)) ? $param->description : "",
+                "commodity_code" => (isset($param->commodity_code)) ? $param->commodity_code : "",
+                "weight" => $param->weight,
                 "length" => $param->length,
                 "width" => $param->width,
                 "height" => $param->height,
-                "display_order" => $param->displayOrder,
+                "display_order" => $display_order,
                 "company_id" => $param->company_id,
-                "created_by" => $param->createdBy
+                "created_by" => $param->created_by,
+                "is_internal" => $is_internal,
+                "package_code" => $package_code
             ));
 
-            if ($param->allowOther and $package_id) {
-                $allowedUsers = $this->modelObj->getAllCustomerAndUserByCompanyId($param->company_id);
-                foreach ($allowedUsers as $item) {
-                    $this->modelObj->saveAllowedUserPackage(array(
-                        "user_id" => $item["user_id"],
-                        "package_id" => $package_id
-                    ));
+            $allowedUsers= array();
+            $allowedUsers[$param->customer_id] = $param->customer_id;
+
+            if (isset($param->allow_other) and $package_id) {
+                $items = $this->modelObj->getUserByCustomerId($param->customer_id);
+
+                foreach($items as $item){
+                    $allowedUsers[$item["user_id"]] = $item["user_id"];
                 }
             }
+
+            foreach ($allowedUsers as $item) {
+                $status = $this->modelObj->saveAllowedUserPackage(array(
+                    "user_id" => $item,
+                    "package_id" => $package_id
+                ));
+            }
+
             $this->modelObj->commitTransaction();
-            return array("status"=>"success", "message"=>"Package saved successfully");
+
+            return array("status"=>"success", "message"=>"Package saved successfully","package_lists"=>$this->_getPackages($param->customer_id));
         }catch(Exception $e){
             $this->modelObj->rollBackTransaction();
             return array("status"=>"error", "message"=>"Package not saved. Record rollback.");
         }
     }
+
+    private
+
+    function _getPackages($user_id){
+        return $this->modelObj->getParcelPackageByUserId($user_id);
+    }
+
+    public
+    function getPackages($param){
+        return $this->_getPackages($param->user_id);
+    }
+
 }

@@ -8,6 +8,8 @@ require '../vendor/autoload.php';
 
 \Slim\Slim::registerAutoloader();
 
+use Firebase\JWT\JWT;
+
 $app = new \Slim\Slim();
 
 /*$corsOptions = array(
@@ -103,8 +105,10 @@ require_once 'module/carrier/Environment.php';
 require_once 'module/carrier/model/carrier.php';
 require_once 'module/carrier/CustomerCostFactor.php';
 
+require_once 'module/booking/model/Booking.php';
 require_once 'module/booking/Shipment.php';
 require_once 'module/booking/Booking.php';
+
 require_once 'module/carrier/Carrier.php';
 require_once 'module/carrier/Ukmail.php';
 require_once 'module/nextday/Nextday.php';
@@ -113,9 +117,11 @@ require_once 'module/allshipment/model/allshipments.php';
 
 require_once 'module/shipment/shipment_tracking.php';
 
-require_once 'pod_signature.php';
+require_once 'pod_signature.php';//no need to keep separate file to save image. This is already defined in libraray
 
 require_once 'module/package/Module_Package_Index.php';
+
+require_once 'module/booking/collection.php';
 
 
 /**
@@ -146,14 +152,52 @@ function verifyRequiredParams($required_fields,$request_params) {
     }
 }
 
-function echoResponse($status_code, $response) {
+function echoResponse($status_code, $response) {//print_r($response);die;
     $app = \Slim\Slim::getInstance();
+
+    $privateKey = <<<EOD
+-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQC8kGa1pSjbSYZVebtTRBLxBz5H4i2p/llLCrEeQhta5kaQu/Rn
+vuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t0tyazyZ8JXw+KgXTxldMPEL9
+5+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4ehde/zUxo6UvS7UrBQIDAQAB
+AoGAb/MXV46XxCFRxNuB8LyAtmLDgi/xRnTAlMHjSACddwkyKem8//8eZtw9fzxz
+bWZ/1/doQOuHBGYZU8aDzzj59FZ78dyzNFoF91hbvZKkg+6wGyd/LrGVEB+Xre0J
+Nil0GReM2AHDNZUYRv+HYJPIOrB0CRczLQsgFJ8K6aAD6F0CQQDzbpjYdx10qgK1
+cP59UHiHjPZYC0loEsk7s+hUmT3QHerAQJMZWC11Qrn2N+ybwwNblDKv+s5qgMQ5
+5tNoQ9IfAkEAxkyffU6ythpg/H0Ixe1I2rd0GbF05biIzO/i77Det3n4YsJVlDck
+ZkcvY3SK2iRIL4c9yY6hlIhs+K9wXTtGWwJBAO9Dskl48mO7woPR9uD22jDpNSwe
+k90OMepTjzSvlhjbfuPN1IdhqvSJTDychRwn1kIJ7LQZgQ8fVz9OCFZ/6qMCQGOb
+qaGwHmUK6xzpUbbacnYrIM6nLSkXgOAwv7XXCojvY614ILTK3iXiLBOxPu5Eu13k
+eUz9sHyD6vkgZzjtxXECQAkp4Xerf5TGfQXGXhxIX52yH+N2LtujCdkQZjXAsGdm
+B2zNzvrlgRmgBrklMTrMYgm1NPcW+bRLGcwgW2PTvNM=
+-----END RSA PRIVATE KEY-----
+EOD;
+
+    $publicKey = <<<EOD
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8kGa1pSjbSYZVebtTRBLxBz5H
+4i2p/llLCrEeQhta5kaQu/RnvuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t
+0tyazyZ8JXw+KgXTxldMPEL95+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4
+ehde/zUxo6UvS7UrBQIDAQAB
+-----END PUBLIC KEY-----
+EOD;
+
+
+    $jwtString = JWT::encode($response, $privateKey, 'RS256');
+    //echo "Encode:\n" . print_r($jwt, true) . "\n";
+
+    //$decoded = JWT::decode($jwt, $publicKey, array('RS256'));
+
+    //$decoded_array = (array) $decoded;
+    //echo "Decode:\n" . print_r($decoded_array, true) . "\n";
+
     // Http response code
     $app->status($status_code);
 
     // setting response content type to json
     $app->contentType('application/json');
 
+    //echo $jwtString;
     echo json_encode($response);
 }
 
