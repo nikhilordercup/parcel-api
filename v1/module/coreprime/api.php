@@ -37,77 +37,12 @@ class Module_Coreprime_Api extends Icargo
         return $server_output;
     }
     private
-    function _filterApiResponse($input,$customer_id,$company_id)
+    function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse)
     {
         if (is_array($input)) {
             $temparray = array();
             foreach ($input["rate"] as $carriercode => $service_list) {
                 foreach ($service_list as $service_key => $list) {
-<<<<<<< HEAD
-                    foreach ($list as $accountkey => $accountdata) {  
-                     foreach ($accountdata as $key => $serviceitem) {  
-                       foreach ($serviceitem as $servicecode => $servicedata) { 
-                        foreach ($servicedata as $serkey => $item) {
-                        if (isset($item["rate"]["error"])) {
-                            unset($input["rate"][$carriercode][$service_key][$accountkey][$key]);
-                            if (count($input["rate"][$carriercode][$service_key][$accountkey]) == 0) {
-                                unset($input["rate"][$carriercode][$service_key][$accountkey]);
-                              }
-                            }
-                        else{
-                          $total_surcharge = 0;
-                          $base_price = 0;
-                          $total_price = 0;
-                          $total_tax = 0;
-                          $carrier = $this->modelObj->getCarrierIdByCode($carriercode);
-                          $res = $this->_calculateSamedayServiceccf($servicecode,$item['rate'],$carrier['id'],$customer_id,$company_id);    
-                          $res['service_options'] = $item['service_options'];
-                          $res['taxes'] = $item['taxes'];
-                          $res['ccf_surcharges'] = new StdClass();
-                          $res['ccf_surcharges']->alldata = array();
-                           foreach ($item['surcharges'] as $surcharge_code => $price) {  
-                            $sur =     $this->_calculateSamedaySurchargeccf($surcharge_code, $customer_id, $company_id, $carrier['id'],$price);
-                            $res['surcharges'][$surcharge_code] = $sur['surcharges'][$surcharge_code];
-                            $res['ccf_surcharges']->alldata[$surcharge_code] = $sur['ccf_surcharges'];
-                           } 
-                          $base_price = $res['price'];
-                          if(isset($res['ccf_surcharges'])){
-                                foreach($res['ccf_surcharges']->alldata as $surcharge_name=>$surcharge_val){
-                                  $total_surcharge += $surcharge_val['price'];
-                               }
-                            }
-                            //print_r($res);die;
-                            $price_without_tax = number_format($total_surcharge + $base_price,2,'.','');
-                            $customer_tax_amt = 0;
-                            if(isset($res['taxes'])){
-                                $temparray["rate"][$carriercode][$key]["taxes"] = $res['taxes'];
-                                $total_tax_val  = isset($res['taxes']['tax_percentage'])?$res['taxes']['tax_percentage']:0;
-                                $customer_tax_amt = number_format((($price_without_tax *$total_tax_val)/100),2,'.','');
-                            }
-                            $total_price = number_format($total_surcharge + $base_price + $customer_tax_amt,2,'.','');
-                            $temparray["rate"][$carriercode][$key]["pricewithouttax"] = $price_without_tax;
-                            $temparray["rate"][$carriercode][$key]["chargable_tax"] = $customer_tax_amt;
-                            $temparray["rate"][$carriercode][$key]["service_name"] = $res['service_name'];
-                            $temparray["rate"][$carriercode][$key]["rate_type"] = $res['rate_type'];
-                            $temparray["rate"][$carriercode][$key]["message"] = $res['message'];
-                            $temparray["rate"][$carriercode][$key]["currency"] = $res['currency'];
-                            $temparray["rate"][$carriercode][$key]["total_price"] = $total_price;
-                            $temparray["rate"][$carriercode][$key]["otherinfo"] = $res['info'];
-                            $temparray["rate"][$carriercode][$key]["base_price"] = $base_price;
-                            $temparray["rate"][$carriercode][$key]["icon"] = $res['service_options']['icon'];
-                            $temparray["rate"][$carriercode][$key]["max_delivery_time"] = $res['service_options']['max_delivery_time'];
-                            $temparray["rate"][$carriercode][$key]["dimensions"] = $res['service_options']['dimensions'];
-                            $temparray["rate"][$carriercode][$key]["weight"] = $res['service_options']['weight'];
-                            $temparray["rate"][$carriercode][$key]["time"] = $res['service_options']['time'];
-                            $temparray["rate"][$carriercode][$key]["surcharges"] = array();
-                            $temparray["rate"][$carriercode][$key]["surchargesinfo"] = array();
-                            if(isset($res['surcharges'])){
-                              $temparray["rate"][$carriercode][$key]["surcharges"] = $res['surcharges'];
-                              $temparray["rate"][$carriercode][$key]["surchargesinfo"] = $res['ccf_surcharges']->alldata;
-                            }
-                           }
-                         }
-=======
                     foreach ($list as $accountkey => $accountdata) {
                         foreach ($accountdata as $key => $serviceitem) {
                             foreach ($serviceitem as $servicecode => $servicedata) {
@@ -152,6 +87,7 @@ class Module_Coreprime_Api extends Icargo
                                         $temparray["rate"][$carriercode][$key]["pricewithouttax"] = $price_without_tax;
                                         $temparray["rate"][$carriercode][$key]["chargable_tax"] = $customer_tax_amt;
                                         $temparray["rate"][$carriercode][$key]["service_name"] = $res['service_name'];
+                                        $temparray["rate"][$carriercode][$key]["charge_from_base"] =  ($charge_from_warehouse)?'1':'0';
                                         $temparray["rate"][$carriercode][$key]["rate_type"] = $res['rate_type'];
                                         $temparray["rate"][$carriercode][$key]["message"] = $res['message'];
                                         $temparray["rate"][$carriercode][$key]["currency"] = $res['currency'];
@@ -172,15 +108,10 @@ class Module_Coreprime_Api extends Icargo
                                     }
                                 }
                             }
->>>>>>> 2a82377e81c10c1c8c89d2692a300acd55cffb5c
                         }
                     }
                 }
-<<<<<<< HEAD
-            }   
-=======
             }
->>>>>>> 2a82377e81c10c1c8c89d2692a300acd55cffb5c
             return json_decode(json_encode($temparray));
         } else {
             return array();
@@ -194,11 +125,12 @@ class Module_Coreprime_Api extends Icargo
         $param->customer_id = $param->customer_id;
         $transit_distance = $param->transit_distance;
         $transit_time = $param->transit_time;
+        $chargefromBase = $this->modelObj->getCustomerChargeFromBase($param->customer_id);
         $waypointCount = 0;
         if (isset($param->waypoint_lists)) {
             $waypointCount = count($param->waypoint_lists);
         }
-        $charge_from_warehouse = true;
+        $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
         if (!isset($param->from_postcode)) {
             $error["from_postcode"] = "Collection postcode is mandatory";
         }
@@ -261,7 +193,7 @@ class Module_Coreprime_Api extends Icargo
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
-        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id);
+        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse);
         return array("status" => "success","rate"=>$data);
     }
 
@@ -281,12 +213,6 @@ class Module_Coreprime_Api extends Icargo
             return array();
         }
     }
-<<<<<<< HEAD
-     private function _calculateSamedayServiceccf($serviceCode,$service, $courier_id, $customer_id, $company_id){
-        $service_ccf_price = $this->customerccf->calculateServiceCcf($serviceCode,$service, $courier_id, $customer_id, $company_id);
-        $service_ccf_price['courier_id'] = $courier_id;
-        $service['price'] = $service_ccf_price["price"] + $service['price'];
-=======
     private function _calculateSamedayServiceccf($serviceCode,$service, $courier_id, $customer_id, $company_id){
 
         $service_ccf_price = $this->customerccf->calculateServiceCcf($serviceCode,$service['price'], $courier_id, $customer_id, $company_id);
@@ -294,7 +220,6 @@ class Module_Coreprime_Api extends Icargo
         $service['price'] = $service_ccf_price["price"] + $service['price'];
 
 
->>>>>>> 2a82377e81c10c1c8c89d2692a300acd55cffb5c
         $service['service_name'] =
             isset($service_ccf_price["company_service_name"]) ?
                 $service_ccf_price["company_service_name"] : $service_ccf_price["courier_service_name"];
@@ -305,20 +230,6 @@ class Module_Coreprime_Api extends Icargo
         $service['price_with_ccf'] = $service_ccf_price["price"] + $service['price'];
         return $service;
     }
-<<<<<<< HEAD
-    
-    private function _calculateSamedaySurchargeccf($surcharge_code, $customer_id, $company_id, $courier_id,$price){
-        $tempdatasurcharge = array();
-        $surcharge_ccf_price = $this->customerccf->calculateSurchargeCcf($surcharge_code, $customer_id, $company_id, $courier_id,$price);
-         $surcharge_ccf_price["original_price"] = $price;
-                    $tempdatasurcharge['surcharges'][$surcharge_code] = $surcharge_ccf_price['price'] +$price;
-                    $datatemp = array('price' => $surcharge_ccf_price['price'] + $price, 'info' => $surcharge_ccf_price,'price_with_ccf'=>$surcharge_ccf_price['price'] + $price);
-                    $tempdatasurcharge['ccf_surcharges'] = $datatemp;
-        return $tempdatasurcharge;
-       
-    } 
-}   
-=======
 
     private function _calculateSamedaySurchargeccf($surcharge_code, $customer_id, $company_id, $courier_id,$price){
         $tempdatasurcharge = array();
@@ -331,5 +242,4 @@ class Module_Coreprime_Api extends Icargo
 
     }
 }
->>>>>>> 2a82377e81c10c1c8c89d2692a300acd55cffb5c
 ?>

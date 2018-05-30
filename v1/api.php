@@ -1789,17 +1789,17 @@ $app->post('/getQuoteData', function() use($app){
 $app->post('/updateCarrierPrice', function() use ($app) { 
 	$response = array();
 	$r = json_decode($app->request->getBody()); 
-	verifyRequiredParams(array('email','access_token','job_identity'),$r);
+	verifyRequiredParams(array('email','access_token','job_identity','job_type'),$r);
 	$obj = new allShipments($r);
-	$records = $obj->updateCarrierPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user));
+	$records = $obj->updateCarrierPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user,'job_type'=>$r->job_type));
 	echoResponse(200, $records);
 });
 $app->post('/updateCustomerPrice', function() use ($app) { 
 	$response = array();
 	$r = json_decode($app->request->getBody()); 
-	verifyRequiredParams(array('email','access_token','job_identity'),$r);
+	verifyRequiredParams(array('email','access_token','job_identity','job_type'),$r);
 	$obj = new allShipments($r);
-	$records = $obj->updateCustomerPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user));
+	$records = $obj->updateCustomerPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user,'job_type'=>$r->job_type));
 	echoResponse(200, $records);
 });
 
@@ -1903,6 +1903,7 @@ $app->post('/getAllWarehouseAddressByCompanyAndUser', function() use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Controller($r);
     $response = $obj->getAllWarehouseAddressByCompanyAndUser(array("company_id" => $r->company_id, "user_id" => $r->user_id));
+    echoResponse(200, $response);
 });
 
 $app->post('/imports/profile/samedaylist', function() use($app){
@@ -1924,6 +1925,13 @@ $app->post('/getAllowedAllShipmentsStatus', function() use ($app) {
     verifyRequiredParams(array('access_token','company_id','user_id'),$r);
     $obj = new allShipments($r);
     $response = $obj->getAllowedAllShipmentsStatus($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllowedAllServices', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getAllowedAllServices($r);
     echoResponse(200, $response);
 });
 ?>

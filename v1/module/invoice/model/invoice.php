@@ -124,8 +124,8 @@ class AllInvoice_Model
                     S1.instaDispatch_loadGroupTypeCode,
                     S1.shipment_service_type,
                     S1.icargo_execution_order,
-                    ADDR.postcode as shipment_postcode,
-                    ADDR.country AS shipment_customer_country';
+                    S1.shipment_postcode as shipment_postcode,
+                    S1.shipment_customer_country AS shipment_customer_country';
          $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "shipment AS S1
                  LEFT JOIN " . DB_PREFIX . "address_book AS ADDR ON ADDR.id = S1.address_id
           WHERE S1.instaDispatch_loadIdentity  = '" . $shipmentRef . "'";
@@ -151,6 +151,7 @@ class AllInvoice_Model
                     CUS.billing_city AS customercity,CUS.billing_country AS customercountry,
                     CUS.billing_phone AS customerphone,CUS.accountnumber AS customeraccount,
                     CUS.vatnumber AS customervat,S1.invoice_reference AS customerinvoiceref,
+                    CUS.billing_state AS customerstate,
                     DATE_FORMAT(S1.raised_on,"%Y-%m-%d")  AS customerinvoicedate,S1.invoice_reference AS customerinvoiceref,
                     DATE_FORMAT(S1.deu_date,"%Y-%m-%d")  AS customerinvoiceduedate,
                     S1.base_amount AS baseprice,S1.surcharge_total AS surcharge,

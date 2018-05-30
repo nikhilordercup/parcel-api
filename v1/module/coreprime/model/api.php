@@ -38,7 +38,7 @@ class Coreprime_Model_Api
         $sql = "SELECT C3.username,C3.password,C3.courier_id,C1.account_number,C3.token,C3.currency,C2.code,C2.icon 
         FROM " . DB_PREFIX . "courier_vs_company_vs_customer as C1 
         INNER JOIN " . DB_PREFIX . "courier as C2 on C1.courier_id = C2.id 
-        INNER JOIN " . DB_PREFIX . "courier_vs_company as C3 on C1.courier_id = C3.courier_id AND C3.company_id = '$company' 
+        INNER JOIN " . DB_PREFIX . "courier_vs_company as C3 on C1.courier_id = C3.id AND C3.company_id = '$company' 
         WHERE C1.customer_id = '$customerId' AND C2.is_apiused = 'YES' AND C1.status = 1";
         return $this->_db->getAllRecords($sql);
     }
@@ -68,7 +68,12 @@ class Coreprime_Model_Api
         $sql = "SELECT id FROM " . DB_PREFIX . "courier WHERE code = '$code'";
         return $this->_db->getRowRecord($sql);
     }
-
+public function getCustomerChargeFromBase($customerId)
+    {
+        $sql = "SELECT charge_from_base FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customerId'";
+        return $this->_db->getRowRecord($sql);
+   
+    }
     
     
 }

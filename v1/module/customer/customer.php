@@ -69,6 +69,7 @@ class Customer extends Icargo{
                 $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
                 $customerinfo['available_credit'] = $customerinfo['creditlimit'];
                 $customerinfo['invoicecycle'] = $param->customer->invoicecycle;
+                $customerinfo['charge_from_base'] = $param->customer->charge_from_base;
                 $this->modelObj->addContent('customer_info',$customerinfo);
              
              if($customerinfo['customer_type']=='POSTPAID'){
@@ -557,7 +558,7 @@ class Customer extends Icargo{
       $data['customer']['available_credit'] = $data['customer']['creditlimit'];
       $data['customer']['invoicecycle'] = (int)$customerpersonaldata['invoicecycle'];
       $data['customer']['type'] = $customerpersonaldata['customer_type'];
-      
+      $data['customer']['charge_from_base'] = $customerpersonaldata['charge_from_base'];
       
      $data['customerbilling']['name'] = $customerbillingdata['name'];
      $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
@@ -693,10 +694,10 @@ class Customer extends Icargo{
             $customerinfo['vatnumber']      = isset($param->customer->vatnumber)?$param->customer->vatnumber:'';
             $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
             $customerinfo['invoicecycle'] = isset($param->customer->invoicecycle)?$param->customer->invoicecycle:0;
-            $condition = "user_id = '" . $param->customer_id . "'"; 
+            $customerinfo['charge_from_base'] = isset($param->customer->charge_from_base)?$param->customer->charge_from_base:'YES';
+              $condition = "user_id = '" . $param->customer_id . "'"; 
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);  
               
-            
             if($customerinfoStatus){
             if(key_exists('customerpickup',$param) && is_object($param->customerpickup)){ 
                  $param->customerpickup->customer_id = $param->customer_id;

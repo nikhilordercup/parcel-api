@@ -61,7 +61,7 @@ class allShipments extends Icargo{
         $html2 .= (isset($param->data->shipment_status) 
                  && ($param->data->shipment_status!='select'))?' AND  S.current_status = "'.$param->data->shipment_status[0].'"':'';
        $html2 .= (isset($param->data->postcode) 
-                 && ($param->data->postcode!=''))?' AND ADDR.postcode LIKE "%'.$param->data->postcode.'%"':'';
+                 && ($param->data->postcode!=''))?' AND S.shipment_postcode LIKE "%'.$param->data->postcode.'%"':'';
        
        $html2 .= (isset($param->data->pickup_date) 
                  && ($param->data->pickup_date!=''))?' AND S.shipment_required_service_date =  "'.$param->data->pickup_date.'" AND S.shipment_service_type = "P"':'';
@@ -247,8 +247,9 @@ class allShipments extends Icargo{
        return array('sameday'=>array('basicinfo'=>$allInfo['basicInfo'],'priceinfo'=>$allInfo['priceinfo'],'trackinginfo'=>$allInfo['trackinginfo'],'podinfo'=>$allInfo['podinfo']));
  }
     
-   public function getNextDayShipmentDetails($param){
-        print_r($param);die;
+    public function getNextDayShipmentDetails($param){
+        $allInfo = $this->_getBasicInfoOfShipment($param['identity']); 
+        return array('nextday'=>array('basicinfo'=>$allInfo['basicInfo'],'priceinfo'=>$allInfo['priceinfo'],'trackinginfo'=>$allInfo['trackinginfo'],'podinfo'=>$allInfo['podinfo']));
      }
       
   
@@ -271,6 +272,7 @@ class allShipments extends Icargo{
         $basicInfo['chargeableunit']        = $shipmentsInfoData[0]['chargeableunit'];
         $basicInfo['user']                  = $shipmentsInfoData[0]['user'];
         $basicInfo['carrier']               = $shipmentsInfoData[0]['carrier'];
+        $basicInfo['carriername']               = $shipmentsInfoData[0]['carriername'];
         $basicInfo['reference']             = $shipmentsInfoData[0]['reference'];
         $basicInfo['carrierreference']      = $shipmentsInfoData[0]['carrierreference'];
         $basicInfo['carrierbillingacount']  = $shipmentsInfoData[0]['carrierbillingacount'];
@@ -652,12 +654,6 @@ class allShipments extends Icargo{
     }
     
     
-    
-    
-    
-    
-    
-    
     public function updateCarrierPrice($param){
         $param = json_decode(json_encode($param),1);
         $getLastPriceVersion = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
@@ -789,13 +785,19 @@ class allShipments extends Icargo{
             $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
             $temp['price_version']  = $priceVersion + 1;
             $temp['surcharges']     = 0;
-            foreach($records as $data){
+            $temp['taxes']     = 0;
+            $temp['total_price']     = 0;
+            $taxPrice = $this->getTaxPrice($records);
+            foreach($records as $key=>$data){
                 if($data['api_key']=='service'){
                   $temp['base_price'] =  $data['baseprice'];
                   $temp['courier_commission_value'] =  $data['ccf_price'];
                   $temp['total_price'] =  $data['price'];
                 }elseif($data['api_key']=='taxes'){
-                  $temp['taxes'] =  $data['price'];  
+                    $data['price'] = $taxPrice['tax_amt'];
+                    $data['baseprice'] = $taxPrice['base_price'];
+                    $data['ccf_price'] = $taxPrice['tax_amt'];
+                    $temp['taxes'] =  $data['price'];  
                 }else{
                     if($data['apply_to_customer']!='NO'){
                         $temp['surcharges'] +=  $data['price']; 
@@ -849,10 +851,10 @@ class allShipments extends Icargo{
          }
         else{}
         if($status){
-            return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity']));
+            return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity'],'job_type'=>$param['job_type']));
         } 
     }   
-    public function updateCustomerPrice($param){
+    public function updateCustomerPrice($param){ 
         $param = json_decode(json_encode($param),1);
         $getLastPriceVersion = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
         $priceVersion = $getLastPriceVersion['price_version'];
@@ -915,6 +917,9 @@ class allShipments extends Icargo{
         }
         $temp = array();
             $temp['surcharges']     = 0;
+            $temp['total_price']  = 0;
+            $temp['taxes'] =  0;
+            $taxPrice = $this->getTaxPrice($records);
             foreach($records as $data){
                 if($data['api_key']=='service'){
                   $temp['base_price'] =  $data['baseprice'];
@@ -922,9 +927,14 @@ class allShipments extends Icargo{
                   $temp['courier_commission_type']  =  $data['ccf_operator'];
                   $temp['courier_commission']       =  $data['ccf_value'];   
                   $temp['total_price'] =  $data['price'];
-                }elseif($data['api_key']=='taxes'){
+                }
+                elseif($data['api_key']=='taxes'){
+                  $data['price'] = $taxPrice['tax_amt'];
+                  $data['baseprice'] = $taxPrice['base_price'];
+                  $data['ccf_price'] = $taxPrice['tax_amt'];
                   $temp['taxes'] =  $data['price'];  
-                }else{
+                }
+                else{
                   $temp['surcharges'] +=  $data['price'];    
                 }
                 $adddata =   $this->modelObj->addContent('shipment_price',$data);
@@ -959,12 +969,9 @@ class allShipments extends Icargo{
                  $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
              }
             if($status){
-                return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity']));
+                return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity'],'job_type'=>$param['job_type']));
             } 
     }   
-    
-    
-    
     
     public function getbookedCarrierSurcharge($param){ 
      $returndata = array();
@@ -1188,8 +1195,54 @@ class allShipments extends Icargo{
          $data =  $this->modelObj->getAllowedAllShipmentsStatus($param->company_id);
           return $data; 
 	}
+     public function getAllowedAllServices($param){
+         $data =  $this->modelObj->getAllowedAllServices($param->company_id);
+          return $data; 
+	}
     
-    
+    public function getTaxPrice($records){
+         $temp['total_price'] = 0;
+         $temp['surcharges'] = 0; 
+         $temp['taxes'] = 0;
+         $isTax = false;
+         $returnTax = array();
+        if(count($records)>0){ 
+         foreach($records as $data){
+                if($data['api_key']=='service'){
+                  $temp['total_price'] =  $data['price'];
+                }
+                elseif($data['api_key']=='taxes'){
+                  $isTax = true;
+                  $temp['taxes'] =  $data['price']; 
+                  $temp['taxes_operator'] =  $data['ccf_operator'];
+                  $temp['taxes_value'] =  $data['ccf_value']; 
+                }
+                else{
+                    if($data['apply_to_customer']!='NO'){
+                        $temp['surcharges'] +=  $data['price']; 
+                    }
+                       
+                }   
+             }
+          if($isTax){
+             $basePrice = $temp['total_price'] + $temp['surcharges'];
+             if($temp['taxes_operator']=='PERCENTAGE'){
+              $taxamt =   number_format((($basePrice*$temp['taxes_value'])/100),2);
+              $returnTax['base_price'] = $basePrice;
+              $returnTax['tax_amt'] = $taxamt;
+             }elseif($temp['taxes_operator']=='FLAT'){
+              $taxamt =   $temp['taxes_value'];
+               $returnTax['base_price'] = $basePrice;
+               $returnTax['tax_amt'] = $taxamt;
+             }else{
+                $taxamt = 0; 
+                  $returnTax['base_price'] = $basePrice;
+                  $returnTax['tax_amt'] = $taxamt;
+             }
+         }
+        }
+     return $returnTax;
+     }
     
     
     
