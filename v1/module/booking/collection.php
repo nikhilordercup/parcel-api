@@ -61,7 +61,7 @@ final Class Collection{
     private
 
     function _findList(){
-        $this->_findInternalCourier();
+        //$this->_findInternalCourier();
         $this->_findCourier($this->carriers);
     }
 
@@ -150,13 +150,14 @@ final Class Collection{
 
             $item["is_regular_pickup"]    = $this->isRegularPickup;
             $item["collection_date_time"] = $collectionDateTime;
-
             $collectionList = $this->_prepareCollectionList($item);
 
             if($item["pickup"]==1 || $this->isRegularPickup=="yes"){
                 //collected by carrier itself
                 $collectionList["collected_by"][] = array(
                     "carrier_code"         => $collectionList["carrier_code"],
+                    "account_number"       => $collectionList["account_number"],
+                    "is_internal"             => $collectionList["internal"],
                     "name"                 => $collectionList["name"],
                     "icon"                 => $collectionList["icon"],
                     "pickup_surcharge"     => $collectionList["pickup_surcharge"],
@@ -169,7 +170,7 @@ final Class Collection{
                 );
             }
                 //else{
-                $collectionList["collected_by"][] = array(
+                /*$collectionList["collected_by"][] = array(
                     "carrier_code"         => $this->internalCarrier["carrier_code"],
                     "name"                 => $this->internalCarrier["name"],
                     "icon"                 => $this->internalCarrier["icon"],
@@ -180,7 +181,7 @@ final Class Collection{
                     "is_regular_pickup"    => $this->isRegularPickup,
                     "carrier_id"           => $this->internalCarrier["carrier_id"],
                     "pickup"               => $this->internalCarrier["pickup"]
-                );
+                );*/
             //}
 
             $this->collectionList[] = $collectionList;
@@ -189,7 +190,7 @@ final Class Collection{
         }
     }
 
-    private
+    /*private
 
     function _findInternalCourier(){
         $internalCarrier = $this->_getInternalCarrier();
@@ -218,7 +219,7 @@ final Class Collection{
                 $this->internalCarrier = $this->_prepareCollectionList($internalCarrier);
             }
         }
-    }
+    }*/
 
     private
 
