@@ -16,7 +16,6 @@ class Module_Addressbook_Addressbook extends Icargo{
     function getAllAddresses($param)
     {
         $response = array();
-		
 		//added by kavita for search button 19march2018
 	    if(isset($param->origin) && $param->origin=='api')
 	    {

@@ -435,7 +435,7 @@ public function checkCustomerEmailExist($company_email){
     }
 	
 	public function editAddress($param){
-        return $this->db->updateData("UPDATE ".DB_PREFIX."address_book SET name='".$param->name."',email='".$param->user_email."',address_type='".$param->address_type."',phone='".$param->phone."',address_line1='".$param->address_1."',address_line2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country."' WHERE id = ".$param->id."");
+        return $this->db->updateData("UPDATE ".DB_PREFIX."address_book SET search_string = '$param->search_string', name='".$param->name."',email='".$param->user_email."',address_type='".$param->address_type."',phone='".$param->phone."',address_line1='".$param->address_1."',address_line2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country."' WHERE id = ".$param->id."");
     }
 	
 	public function setDefaultAddress($param){	

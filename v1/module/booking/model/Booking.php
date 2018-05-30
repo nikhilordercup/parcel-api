@@ -3,15 +3,15 @@
 class Booking_Model_Booking
 {
 
-    public static $_db = NULL;
+    public static $_dbObj = NULL;
 
     public
 
     function __construct(){
-        if (self::$_db == NULL) {
-            self::$_db = new DbHandler();
+        if (self::$_dbObj == NULL) {
+            self::$_dbObj = new DbHandler();
         }
-        $this->_db = self::$_db;
+        $this->_db = self::$_dbObj;
     }
 
     /**
@@ -44,16 +44,14 @@ class Booking_Model_Booking
     public
 
     function getCustomerCarrierAccount($company_id, $customer_id){
-        //$sql = "SELECT CT.id AS carrier_id, CT.name, CCT.account_number, CCT.username AS username, CCT.password AS password FROM " .  DB_PREFIX . "courier_vs_company_vs_customer AS CCCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCCT.courier_id = CT.id INNER JOIN " . DB_PREFIX . "courier_vs_company AS CCT ON CCT.company_id = CCCT.company_id WHERE CCCT.customer_id = '$customer_id' AND CCCT.status = 1 AND CCT.status = 1 AND CT.status=1;";
-        $sql = "SELECT CT.description as description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.account_number, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at FROM " . DB_PREFIX . "courier_vs_company_vs_customer AS CCCT INNER JOIN " . DB_PREFIX . "courier_vs_company AS CCT ON CCT.company_id = CCCT.company_id AND CCT.courier_id = CCCT.courier_id INNER JOIN " . DB_PREFIX . "courier AS CT ON CCCT.courier_id = CT.id WHERE CCCT.customer_id = '$customer_id' AND CCCT.company_id = '$company_id' AND CCCT.status = 1 AND CT.status=1 AND CCT.is_internal='0'";
+        $sql = "SELECT CT.description as description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.account_number, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at FROM " . DB_PREFIX . "courier_vs_company_vs_customer AS CCCT INNER JOIN " . DB_PREFIX . "courier_vs_company AS CCT ON CCT.company_id = CCCT.company_id AND CCT.courier_id = CCCT.courier_id INNER JOIN " . DB_PREFIX . "courier AS CT ON CCCT.courier_id = CT.id WHERE CCCT.customer_id = '$customer_id' AND CCCT.company_id = '$company_id' AND CCCT.status = 1";//AND CT.status=1
         return $this->_db->getAllRecords($sql);
     }
 
     public
 
     function getCustomerCarrierServices($customer_id, $carrier_id){
-        $sql = "SELECT CST.service_code, CST.service_name
-        FROM " . DB_PREFIX . "company_vs_customer_vs_services AS CCST INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS CSCT ON CCST.id = CSCT.service_id INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON CST.id = CSCT.service_id WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.courier_id= '$carrier_id' AND CCST.company_customer_id='$customer_id'";
+        $sql = "SELECT DISTINCT(CST.service_code) AS service_code, CST.service_name FROM " . DB_PREFIX . "company_vs_customer_vs_services AS CCST INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS CSCT ON CCST.service_id = CSCT.service_id INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON CST.id = CSCT.service_id WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.courier_id= '$carrier_id' AND CCST.company_customer_id='$customer_id'";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -75,7 +73,7 @@ class Booking_Model_Booking
 
     function getAddressBySearchStringAndCustomerId($customer_id, $search_string){
         $record = $this->_db->getRowRecord("SELECT version_id AS version_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'");
-        return $record['address_id'];
+        return $record['version_id'];
     }
 
     private
@@ -132,7 +130,7 @@ class Booking_Model_Booking
         //$ticket_number = "$ticket_number$check_digit";
 
         // update ticket number
-        $this->_db->updateData("UPDATE " . DB_PREFIX . "configuration SET parcel_end_number = parcel_end_number + 1 WHERE company_id = " . company_id);
+        $this->_db->updateData("UPDATE " . DB_PREFIX . "configuration SET parcel_end_number = parcel_end_number + 1 WHERE company_id = " . $company_id);
 
         if ($this->_testParcelTicket($ticket_number)) {
             $this->generateParcelTicketNumber();
@@ -164,7 +162,7 @@ class Booking_Model_Booking
     public
 
     function getInternalCarrier($company_id){
-        $sql = "SELECT CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.pickup, CCT.pickup_surcharge, CCT.collection_start_at, CCT.collection_end_at, CCT.is_internal AS internal FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id=CT.id WHERE CCT.company_id='$company_id' AND CCT.status='1'";
+        $sql = "SELECT CT.description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.account_number, CCT.pickup, CCT.pickup_surcharge, CCT.collection_start_at, CCT.collection_end_at, CCT.is_internal AS internal, CCT.username, CCT.password FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id=CT.id WHERE CCT.company_id='$company_id' AND CCT.status='1'";
         return $this->_db->getRowRecord($sql);
     }
 
@@ -239,6 +237,26 @@ class Booking_Model_Booking
     function saveShipmentCollection($data){
         $id = $this->_db->save("shipment_collection", $data);
         return $id;
+    }
+
+    public
+
+    function getParcelDimesionByShipmentId($shipment_id){
+        $sql = "SELECT parcel_weight, parcel_height, parcel_length, parcel_width FROM " . DB_PREFIX . "shipments_parcel AS SPT WHERE SPT.shipment_id='$shipment_id'";
+        return $this->_db->getAllRecords($sql);
+    }
+
+    public
+
+    function saveShipmentDimension($data, $shipment_id){
+        return $this->_db->update("shipment", $data, "shipment_id='$shipment_id'");
+    }
+
+    public
+
+    function isCarrierInternal($carrier_code, $company_id){
+        //NEED TO FIX
+        return $this->_db->getRowRecord("SELECT is_internal FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CT.id=CCT.courier_id WHERE CT.code='$carrier_code' AND CCT.company_id='$company_id'");
     }
 }
 ?>
