@@ -100,7 +100,7 @@ class Booking extends Icargo
             $param["city"]          = (isset($data->city)) ? $data->city : "";
             $param["state"]         = (isset($data->state)) ? $data->state : "";
             $param["country"]       = $data->country->short_name;
-            $param["iso_code"]      = $data->country->alpha2_code;
+            $param["iso_code"]      = $data->country->alpha3_code;
             $param["company_name"]  = "";
 
             $param["search_string"] = str_replace(' ','',implode('',$param));;
@@ -134,7 +134,7 @@ class Booking extends Icargo
 
     protected
 
-    function _saveShipment($param1, $param2, $parcel, $address_info, $warehouse_id, $company_id, $company_code, $service_date, $collection_end_at, $load_group_type_code, $job_type_code, $load_group_type_name, $shipment_service_type, $execution_order){
+    function _saveShipment($param1, $param2, $parcel, $address_info, $warehouse_id, $company_id, $company_code, $service_date, $collection_end_at, $load_group_type_code, $job_type_code, $load_group_type_name, $shipment_service_type, $execution_order, $carrier_account_number=null, $is_internal=0){
         $param1 = (object)$param1;
         $param2 = (object)$param2;
         $addressInfo = (object)$address_info;
@@ -144,8 +144,6 @@ class Booking extends Icargo
 
 
         if($ticketNumber){
-            //$timestamp = $param["timestamp"];
-
 
             $data["notification_status"] = (isset($param2->notification)) ? $param2->notification : "";
             $data['shipment_address1'] = $addressInfo->address_line1;
@@ -245,6 +243,10 @@ class Booking extends Icargo
 
             $data["carrier_code"] = (isset($param2->carrier_code)) ? $param2->carrier_code : "";
 
+            $data["carrier_account_number"] = ($carrier_account_number!=null) ? $carrier_account_number : "";
+
+            $data["is_internal"] = $is_internal;
+            
             $shipmentId = $this->modelObj->saveShipment($data);
 
             if($shipmentId){
@@ -273,13 +275,13 @@ class Booking extends Icargo
         $parcelData['shipment_ticket'] = $shipment_ticket;
 
 
-        $parcelData['package']       = $parcel->package->name;
+        $parcelData['package']       = $parcel->package_code;
         $parcelData['parcel_ticket'] = $parcelTicketNumber;
         $parcelData['parcel_weight'] = $parcel->weight;
         $parcelData['parcel_height'] = $parcel->height;
         $parcelData['parcel_length'] = $parcel->length;
         $parcelData['parcel_width']  = $parcel->width;
-        $parcelData["quantity"]      = $parcel->quantity;
+        //$parcelData["quantity"]      = $parcel->quantity;
         $parcelData['parcel_type']   = $parcel_type;//($valuedata['purposeTypeName'] == 'Collection') ? 'P' : 'D';
 
         $parcelData['dataof'] = $company_code;
@@ -522,7 +524,6 @@ class Booking extends Icargo
         //return '{"rate":{"UKMAIL":[{"D919022":[{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]}]}]}}';
 
         //$data_string = json_encode($data);
-
         $ch = curl_init($this->access_url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
@@ -536,6 +537,45 @@ class Booking extends Icargo
         $server_output = curl_exec ($ch);
         curl_close ($ch);
         return $server_output;
+    }
+
+    protected
+
+    function _getParcelDimesionByShipmentId($shipment_id){
+        $data = $this->modelObj->getParcelDimesionByShipmentId($shipment_id);
+
+        $totalWeight = 0;
+        $totalVolume = 0;
+        $heighestLength = 0;
+        $heighestWidth = 0;
+        $heighestHeight = 0;
+        $heighestWeight = 0;
+
+        foreach($data as $item){
+            $totalWeight += $item["parcel_weight"];
+
+            if($item["parcel_length"]>$heighestLength)
+                $heighestLength = $item["parcel_length"];
+
+            if($item["parcel_width"]>$heighestWidth)
+                $heighestWidth = $item["parcel_width"];
+
+            if($item["parcel_height"]>$heighestHeight)
+                $heighestHeight = $item["parcel_height"];
+
+            if($item["parcel_weight"]>$heighestWeight)
+                $heighestWeight = $item["parcel_weight"];
+
+            $totalVolume += ($item["parcel_length"]*$item["parcel_width"]*$item["parcel_height"]);
+        }
+        return array("total_item"=>count($data),"total_volume"=>$totalVolume,"total_weight"=>$totalWeight, "heighest_length"=>$heighestLength, "heighest_width"=>$heighestWidth, "heighest_height"=>$heighestHeight, "heighest_weight"=>$heighestWeight);
+    }
+
+    protected
+
+    function _saveShipmentDimension($param, $shipment_id){
+        $data = array("shipment_highest_weight"=>$param["heighest_weight"] ,"shipment_highest_height"=>$param["heighest_height"] ,"shipment_total_item"=>$param["total_item"], "shipment_total_weight"=>$param["total_weight"], "shipment_total_volume"=>$param["total_volume"], "shipment_highest_length"=>$param["heighest_length"],"shipment_highest_width"=>$param["heighest_width"]);
+        $this->modelObj->saveShipmentDimension($data, $shipment_id);
     }
 }
 ?>

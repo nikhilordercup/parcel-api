@@ -28,46 +28,56 @@ final class Nextday extends Booking
     function _getCustomerCarrierAccount(){
         $result = array();
         $carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
-       
-        foreach($carrier as $key => $item) {
-            $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"]);
 
-            if(count($services)>0){
-                foreach($services as $service)
-                    $carrier[$key]["services"][$service["service_code"]] = $service;
-            }
-        }
+        if(count($carrier)>0){
+            foreach($carrier as $key => $item) {
+                $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"]);
 
-        $collectionList = $this->_getJobCollectionList($carrier, $this->_fromAddress(0));
-        if(count($collectionList)>0){
-            foreach($collectionList as $item){
-                if(count($item["services"])>0){
-                    $serviceItems = array();
-                    $isRegularPickup = ($item["is_regular_pickup"]=="no") ? "1" : "0";
-
-                    foreach($item["services"] as $service){
-                        array_push($serviceItems, $service["service_code"]);
-                    }
-
-                    array_push($result, array(
-                        "name"    => $item["carrier_code"],
-                        "account" => array(
-                            array(
-                                "credentials" => array(
-                                    "username" => $item["username"],
-                                    "password" => $item["password"],
-                                    "account_number" => $item["account_number"]
-                                ),
-                                "services"         => implode(",", $serviceItems),
-                                "pickup_scheduled" => $isRegularPickup
-                            )
-                        )
-                    ));
-                    $this->carrierList[$item["carrier_code"]] = $item;
+                if(count($services)>0){
+                    foreach($services as $service)
+                        $carrier[$key]["services"][$service["service_code"]] = $service;
                 }
             }
+
+            $collectionIndex = 0;
+
+            $collectionList = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
+
+            if(count($collectionList)>0){
+                foreach($collectionList as $item){
+                    if(count($item["services"])>0){
+                        $serviceItems = array();
+                        $isRegularPickup = ($item["is_regular_pickup"]=="no") ? "1" : "0";
+
+                        foreach($item["services"] as $service){
+                            array_push($serviceItems, $service["service_code"]);
+                        }
+
+                        array_push($result, array(
+                            "name"    => $item["carrier_code"],
+                            "account" => array(
+                                array(
+                                    "credentials" => array(
+                                        "username" => $item["username"],
+                                        "password" => $item["password"],
+                                        "account_number" => $item["account_number"]
+                                    ),
+                                    "services"         => implode(",", $serviceItems),
+                                    "pickup_scheduled" => $isRegularPickup
+                                )
+                            )
+                        ));
+                        $this->carrierList[$item["carrier_code"]] = $item;
+                    }
+                }
+                if(count($result)>0){
+                    return array("status"=>"success", "data"=>$result);
+                }
+                return array("status"=>"error", "message"=>"Service not configured");
+            }
+            return array("status"=>"error", "message"=>"Collection list not configured");
         }
-        return $result;
+        return array("status"=>"error", "message"=>"Carrier not configured");
     }
 
     private
@@ -77,117 +87,98 @@ final class Nextday extends Booking
             foreach($lists as $key1 => $list){
                 foreach($list as $key2 => $items){
                     foreach($items as $key3 => $item){
-                        foreach($item as $service_code => $services){
+                        foreach($item as $service_code => $services) {
 
                             //calculate service ccf
-                            $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $services[0]->rate->price, $this->carrierList[$carrier_code]["carrier_id"],$this->_param->customer_id, $this->_param->company_id);//$services[0]->rate
+                            if (!isset($services[0]->rate->error)) {
+                                $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $services[0]->rate->price, $this->carrierList[$carrier_code]["carrier_id"], $this->_param->customer_id, $this->_param->company_id);//$services[0]->rate
+                                $services[0]->rate->price = $serviceCcf["price_with_ccf"];
+                                $services[0]->rate->info = $serviceCcf;
 
-                            $services[0]->rate->price = $serviceCcf["price_with_ccf"];
-                            $services[0]->rate->info = $serviceCcf;
-
-                            //$service_code
-                            foreach($services as $key5 => $service){
-                                if(isset($service->rate->error)){
-                                    return (object)array("status"=>"error", "message"=>$service->rate->error);
-                                }
-
-                                //set tax number format
-                                if(isset($service->taxes)){
-                                    if(isset($service->taxes->total_tax)){
-                                        $service->taxes->total_tax = number_format($service->taxes->total_tax, 2);
+                                //$service_code
+                                foreach ($services as $key5 => $service) {
+                                    if (isset($service->rate->error)) {
+                                        return (object)array("status" => "error", "message" => $service->rate->error);
                                     }
-                                    if(isset($service->taxes->tax_percentage)){
-                                        $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
+
+                                    //set tax number format
+                                    if (isset($service->taxes)) {
+                                        if (isset($service->taxes->total_tax)) {
+                                            $service->taxes->total_tax = number_format($service->taxes->total_tax, 2);
+                                        }
+                                        if (isset($service->taxes->tax_percentage)) {
+                                            $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
+                                        }
                                     }
-                                }
 
-                                //calculate surcharge ccf
-                                $surchargeWithCcfPrice = 0;
-                                $surchargePrice = 0;
-                                $service->collected_by = $this->carrierList[$carrier_code]["collected_by"];
-
-                                foreach($service->collected_by as $collected_key => $collected_item){
+                                    //calculate surcharge ccf
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice = 0;
-                                    foreach($service->surcharges as $surcharge_code => $surcharge_price){
-                                        if($collected_item["carrier_code"]!=$carrier_code and $surcharge_code=="collection_surcharge"){
-                                            $surchargeCcf["original_price"] = $collected_item["pickup_surcharge"];
-                                            $surchargeCcf["surcharge_value"] = $collected_item["pickup_surcharge"];
-                                            $surchargeCcf["operator"] = "FLAT";
-                                            $surchargeCcf["price"] = $collected_item["pickup_surcharge"];
-                                            $surchargeCcf["level"] = "level 1";
-                                            $surchargeCcf["surcharge_id"] = "0";
-                                            $surchargeCcf["price_with_ccf"] = $collected_item["pickup_surcharge"];
+                                    $service->collected_by = $this->carrierList[$carrier_code]["collected_by"];
 
-                                            $surchargeCcf["company_surcharge_code"] = "collection_surcharge";
-                                            $surchargeCcf["company_surcharge_name"] = "Collection Surcharge";
-                                            $surchargeCcf["courier_surcharge_code"] = "collection_surcharge";
-                                            $surchargeCcf["courier_surcharge_name"] = "Collection Surcharge";
-                                            $surchargeCcf["carrier_id"] = $collected_item["carrier_id"];
-                                        }else{
-                                            $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$carrier_code]["carrier_id"], $surcharge_price);
+                                    foreach ($service->collected_by as $collected_key => $collected_item) {
+                                        $surchargeWithCcfPrice = 0;
+                                        $surchargePrice = 0;
+                                        foreach ($service->surcharges as $surcharge_code => $surcharge_price) {
+                                            if ($collected_item["carrier_code"] != $carrier_code and $surcharge_code == "collection_surcharge") {
+                                                $surchargeCcf["original_price"] = $collected_item["pickup_surcharge"];
+                                                $surchargeCcf["surcharge_value"] = $collected_item["pickup_surcharge"];
+                                                $surchargeCcf["operator"] = "FLAT";
+                                                $surchargeCcf["price"] = $collected_item["pickup_surcharge"];
+                                                $surchargeCcf["level"] = "level 1";
+                                                $surchargeCcf["surcharge_id"] = "0";
+                                                $surchargeCcf["price_with_ccf"] = $collected_item["pickup_surcharge"];
+
+                                                $surchargeCcf["company_surcharge_code"] = "collection_surcharge";
+                                                $surchargeCcf["company_surcharge_name"] = "Collection Surcharge";
+                                                $surchargeCcf["courier_surcharge_code"] = "collection_surcharge";
+                                                $surchargeCcf["courier_surcharge_name"] = "Collection Surcharge";
+                                                $surchargeCcf["carrier_id"] = $collected_item["carrier_id"];
+                                            } else {
+                                                $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$carrier_code]["carrier_id"], $surcharge_price);
+                                            }
+
+                                            $collected_item["surcharges"][$surcharge_code] = $surchargeCcf;
+
+                                            $surchargeWithCcfPrice += $surchargeCcf["price_with_ccf"];
+
+                                            if ($surchargeCcf["operator"] != "FLAT") {
+                                                $surchargePrice += $surchargeCcf["original_price"];
+                                            }
+
                                         }
-                                        //print_r($surchargeCcf);
-                                        $collected_item["surcharges"][$surcharge_code] = $surchargeCcf;
 
-                                        $surchargeWithCcfPrice += $surchargeCcf["price_with_ccf"];
+                                        $collected_item["carrier_price_info"]["price"] = $serviceCcf["original_price"];
+                                        $collected_item["customer_price_info"]["price"] = $serviceCcf["price_with_ccf"];
 
-                                        if($surchargeCcf["operator"]!="FLAT"){
-                                            $surchargePrice += $surchargeCcf["original_price"];
-                                        }
+                                        $collected_item["carrier_price_info"]["surcharges"] = number_format($surchargePrice, 2);
+                                        $collected_item["customer_price_info"]["surcharges"] = number_format($surchargeWithCcfPrice, 2);
 
+                                        $collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                        $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
+
+                                        $collected_item["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + $service->taxes->total_tax, 2);
+                                        $collected_item["customer_price_info"]["grand_total"] = number_format($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice + $collected_item["customer_price_info"]["taxes"], 2);
+
+
+                                        $service->collected_by[$collected_key] = $collected_item;
                                     }
 
-                                    $collected_item["carrier_price_info"]["price"] = $serviceCcf["original_price"];
-                                    $collected_item["customer_price_info"]["price"] = $serviceCcf["price_with_ccf"];
-
-                                    $collected_item["carrier_price_info"]["surcharges"] = number_format($surchargePrice, 2);
-                                    $collected_item["customer_price_info"]["surcharges"] = number_format($surchargeWithCcfPrice, 2);
-
-                                    $collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
-                                    $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
-
-                                    $collected_item["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + $service->taxes->total_tax, 2);
-                                    $collected_item["customer_price_info"]["grand_total"] = number_format($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice + $collected_item["customer_price_info"]["taxes"], 2);
-
-
-                                    $service->collected_by[$collected_key] = $collected_item;
+                                    $service->carrier_info = array(
+                                        "carrier_id" => $this->carrierList[$carrier_code]["carrier_id"],
+                                        "name" => $this->carrierList[$carrier_code]["name"],
+                                        "icon" => $this->carrierList[$carrier_code]["icon"],
+                                        "code" => $this->carrierList[$carrier_code]["carrier_code"],
+                                        "description" => $this->carrierList[$carrier_code]["description"],
+                                        "account_number" => $this->carrierList[$carrier_code]["account_number"]
+                                    );
+                                    $service->service_info = array(
+                                        "code" => $this->carrierList[$carrier_code]["services"][$service_code]["service_code"],
+                                        "name" => $this->carrierList[$carrier_code]["services"][$service_code]["service_name"]
+                                    );
                                 }
-
-
-                                /*foreach($service->surcharges as $surcharge_code => $surcharge_price){
-                                    $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$carrier_code]["carrier_id"], $surcharge_price);
-
-                                    //print_r($surchargeCcf);die;
-                                    if(!isset($services[0]->rate->ccf_surcharges))
-                                        $services[0]->rate->ccf_surcharges = new stdClass();
-
-                                    $services[0]->rate->ccf_surcharges->$surcharge_code = $surchargeCcf;
-
-                                    $surchargeWithCcfPrice += $surchargeCcf["price_with_ccf"];
-                                    $surchargePrice += $surchargeCcf["original_price"];
-                                }*/
-
-                                /*$services[0]->rate->info["carrier_price_info"]["surcharges"] = number_format($surchargePrice, 2);
-                                $services[0]->rate->info["customer_price_info"]["surcharges"] = number_format($surchargeWithCcfPrice, 2);
-
-                                $services[0]->rate->info["carrier_price_info"]["taxes"] = $service->taxes->total_tax;
-                                $services[0]->rate->info["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
-
-                                $services[0]->rate->info["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + $service->taxes->total_tax, 2);
-                                $services[0]->rate->info["customer_price_info"]["grand_total"] = number_format($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice + $services[0]->rate->info["customer_price_info"]["taxes"], 2);*/
-
-                                $service->carrier_info = array(
-                                    "carrier_id" => $this->carrierList[$carrier_code]["carrier_id"],
-                                    "name" => $this->carrierList[$carrier_code]["name"],
-                                    "icon" => $this->carrierList[$carrier_code]["icon"],
-                                    "code" => $this->carrierList[$carrier_code]["carrier_code"],
-                                    "description" => $this->carrierList[$carrier_code]["description"]
-                                );
-                                $service->service_info = array(
-                                    "code" => $this->carrierList[$carrier_code]["services"][$service_code]["service_code"],
-                                    "name" => $this->carrierList[$carrier_code]["services"][$service_code]["service_name"]
-                                );
+                            }else{
+                                unset($item->$service_code);
                             }
                         }
                     }
@@ -199,18 +190,18 @@ final class Nextday extends Booking
 
     private
 
-    function _fromAddress($key){
+    function _getAddress($item){
         return array(
             "name" => "",
             "company" => "",
             "phone" => "",
-            "street1" => $this->_param->collection->$key->address_line1,
-            "street2" => $this->_param->collection->$key->address_line2,
-            "city" => $this->_param->collection->$key->city,
-            "state" => $this->_param->collection->$key->state,
-            "zip" => $this->_param->collection->$key->postcode,
-            "country" => "GBR",
-            "country_name" => "United Kingdom"
+            "street1" => (isset($item->address_line1)) ? $item->address_line1 : "",//$this->_param->collection->$key->address_line1,
+            "street2" => (isset($item->address_line2)) ? $item->address_line2 : "",//$this->_param->collection->$key->address_line2,
+            "city" => (isset($item->city)) ? $item->city : "",//$this->_param->collection->$key->city,
+            "state" => (isset($item->state)) ? $item->state : "",//$this->_param->collection->$key->state,
+            "zip" => $item->postcode,//$this->_param->collection->$key->postcode,
+            "country" => $item->country->alpha3_code,//$this->_param->collection->$key->country->currency_code,
+            "country_name" => $item->country->short_name,//$this->_param->collection->$key->country->short_name
         );
     }
 
@@ -219,44 +210,35 @@ final class Nextday extends Booking
     function _setPostRequest(){
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
-
-        if(count($carrierLists)>0){
+        if($carrierLists["status"]=="success"){
             $key = 0;
             $this->data = array(
-                "carriers" => $carrierLists,
-                "from" => $this->_fromAddress($key),
-                "to" => array(
-                    "name" => "",
-                    "company" => "",
-                    "phone" => "",
-                    "street1" => (isset($this->_param->delivery->$key->address_line1)) ? $this->_param->delivery->$key->address_line1 : "",
-                    "street2" => (isset($this->_param->delivery->$key->address_line2)) ? $this->_param->delivery->$key->address_line2 : "",
-                    "city" => (isset($this->_param->delivery->$key->city)) ? $this->_param->delivery->$key->city : "",
-                    "state" => (isset($this->_param->delivery->$key->city)) ? $this->_param->delivery->$key->state : "",
-                    "zip" => $this->_param->delivery->$key->postcode,
-                    "country" => $this->_param->delivery_country->alpha3_code,
-                    "country_name" => $this->_param->delivery_country->short_name
-                ),
+                "carriers" => $carrierLists["data"],
+                "from" => $this->_getAddress($this->_param->collection->$key),
+                "to" => $this->_getAddress($this->_param->delivery->$key),
                 "ship_date" => date("Y-m-d", strtotime($this->_param->collection_date)),
                 "extra" => array(
 
                 ),
-                "currency" => $this->_param->currency,
+                "currency" => $this->_param->collection->$key->country->currency_code,
 
             );
 
             $this->data["package"] = array();
 
             foreach($this->_param->parcel as $item){
-                array_push($this->data["package"], array(
-                    "packaging_type" => $item->package->name,
-                    "width" => $item->width,
-                    "length" => $item->length,
-                    "height" => $item->height,
-                    "dimension_unit" => "CM",
-                    "weight" => $item->weight,
-                    "weight_unit" => "KG"
-                ));
+
+                for($i=0; $i<$item->quantity; $i++){
+                    array_push($this->data["package"], array(
+                        "packaging_type" => $item->package_code,
+                        "width" => $item->width,
+                        "length" => $item->length,
+                        "height" => $item->height,
+                        "dimension_unit" => "CM",
+                        "weight" => $item->weight,
+                        "weight_unit" => "KG"
+                    ));
+                }
             }
 
             $this->data["transit"][] = array(
@@ -269,8 +251,10 @@ final class Nextday extends Booking
 
            $this->data["insurance"] = array(
                 "value" => 0.00,
-                "currency" => $this->_param->currency
+                "currency" => $this->_param->collection->$key->country->currency_code
             );
+        }else{
+            $this->data = $carrierLists;
         }
     }
 
@@ -338,11 +322,15 @@ final class Nextday extends Booking
         //save collection address and collection job
         $execution_order = 0;
         $collection_date_time = $this->_param->service_opted->collected_by[0]->collection_date_time;
-
         $collection_end_at = $this->_param->service_opted->collected_by[0]->collection_end_at;
+        $carrier_account_number = $this->_param->service_opted->collected_by[0]->account_number;
+        $is_internal = $this->_param->service_opted->collected_by[0]->is_internal;
+
 
         foreach($this->_param->collection as $key=> $item){
+            ///print_r($item);die;
 
+            //isCarrierInternal($item["carrier_code"]);
             $execution_order++;
             $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
 
@@ -350,7 +338,7 @@ final class Nextday extends Booking
                 $this->rollBackTransaction();
                 return $addressInfo;
             }
-            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next","COLL","NEXT","P",$execution_order);
+            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next","COLL","NEXT","P",$execution_order, $carrier_account_number,$is_internal);
             if($shipmentStatus["status"]=="error"){
                 $this->rollBackTransaction();
                 return $shipmentStatus;
@@ -359,12 +347,19 @@ final class Nextday extends Booking
                 $loadIdentity = $shipmentStatus["shipment_ticket"];
 
             foreach($this->_param->parcel as $item){
-                $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
-                if($parcelStatus["status"]=="error"){
-                    $this->rollBackTransaction();
-                    return $parcelStatus;
+                for($i=0; $i< $item->quantity; $i++){
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    if($parcelStatus["status"]=="error"){
+                        $this->rollBackTransaction();
+                        return $parcelStatus;
+                    }
                 }
             }
+
+            //get shipment volume and heighest dimension
+            $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
+
+            $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
 
             $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->carrier->surcharges, $loadIdentity, $this->_param->customer_id);
 
@@ -392,6 +387,9 @@ final class Nextday extends Booking
 
         $collection_date_time = "1970-01-01 00:00:00";
         $collection_end_at = "00:00:00";
+        $carrier_account_number = $this->_param->service_opted->carrier->account_number;
+        $is_internal = $this->_param->service_opted->carrier->is_internal;
+
         //save delivery address and delivery job
         foreach($this->_param->delivery as $key=> $item){
             $execution_order++;
@@ -403,19 +401,26 @@ final class Nextday extends Booking
             }
 
             $this->_param->delivery->$key->load_identity = $loadIdentity;
-            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->delivery->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next","DELV","NEXT","D",$execution_order);
+            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->delivery->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next","DELV","NEXT","D",$execution_order,$carrier_account_number,$is_internal);
             if($shipmentStatus["status"]=="error"){
                 $this->rollBackTransaction();
                 return $shipmentStatus;
             }
 
             foreach($this->_param->parcel as $item){
-                $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
-                if($parcelStatus["status"]=="error"){
-                    $this->rollBackTransaction();
-                    return $parcelStatus;
+                for($i=0; $i< $item->quantity; $i++){
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    if($parcelStatus["status"]=="error"){
+                        $this->rollBackTransaction();
+                        return $parcelStatus;
+                    }
                 }
             }
+
+            //get shipment volume and heighest dimension
+            $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
+
+            $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");

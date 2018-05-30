@@ -121,8 +121,7 @@ class loadShipment extends Library
 
     private function _get_next_day_data()
     {
-    //echo "SELECT * FROM " . DB_PREFIX . "shipment AS s WHERE s.current_status = 'C' AND s.instaDispatch_loadGroupTypeCode != 'SAME' AND s.company_id = " . $this->company_id." AND s.warehouse_id = " . $this->warehouse_id;die;
-        $records = $this->db->getAllRecords("SELECT * FROM " . DB_PREFIX . "shipment AS s WHERE s.current_status = 'C' AND s.instaDispatch_loadGroupTypeCode != 'SAME' AND s.company_id = " . $this->company_id." AND s.warehouse_id = " . $this->warehouse_id);
+        $records = $this->db->getAllRecords("SELECT * FROM " . DB_PREFIX . "shipment AS s WHERE s.current_status = 'C' AND s.instaDispatch_loadGroupTypeCode != 'SAME' AND s.company_id = ' $this->company_id ' AND s.warehouse_id = ' $this->warehouse_id' AND is_internal=1");
         //$records = $this->db->getAllRecords("SELECT s.*, ABT.address_line1 AS shipment_address1, ABT.address_line2 AS shipment_address2, ABT.postcode AS shipment_postcode, ABT.city AS shipment_customer_city, ABT.country AS shipment_customer_country, ABT.iso_code AS shipment_country_code FROM " . DB_PREFIX . "shipment AS s INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=s.address_id WHERE s.current_status = 'C' AND s.instaDispatch_loadGroupTypeCode != 'SAME' AND s.company_id = " . $this->company_id." AND s.warehouse_id = " . $this->warehouse_id);
         
 		$counter = 0;
