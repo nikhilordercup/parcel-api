@@ -500,6 +500,7 @@ class shipment extends Library{
 		$shipmentData['waitAndReturn'] = $data['waitAndReturn'];
 		$shipmentData['company_id'] = $this->company_id;
         $shipmentData['customer_id'] = $this->customer_id;
+        $shipmentData['is_internal'] = 1;
 
         $shipmentData['warehousereceived_date'] = $warehouseReceivedDate;
 
