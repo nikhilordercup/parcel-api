@@ -315,7 +315,7 @@ public function checkCustomerEmailExist($company_email){
 
     /****get address list by customer id*****/         
 	public function getCustomerAddressDataByCustomerId($customerId){
-     $sql = "SELECT UAT.default_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=179 where ABT.customer_id = ".$customerId." AND ABT.status=1";
+     $sql = "SELECT UAT.default_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id where ABT.customer_id = ".$customerId." AND ABT.status=1";
 	 $records = $this->db->getAllRecords($sql);
 	 return $records;   
     }
@@ -473,5 +473,16 @@ public function checkCustomerEmailExist($company_email){
         $record = $this->db->getOneRecord($sql);
         return $record['exist'];
     }
+	
+	public function getAddressBySearchStr($param){
+		$records = array();
+		$param->search_str = str_replace(' ','',$param->search_str);
+		$sql = "SELECT UAT.default_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id where ABT.customer_id = ".$param->customer_id." AND ABT.status=1 AND search_string LIKE '%".$param->search_str."%'";
+		$records = $this->db->getAllRecords($sql);
+        if(count($records)>0)
+			return array("status"=>"success","data"=>$records);
+		else
+			return array("status"=>"error","data"=>"no record found");
+	}
 }
 ?>

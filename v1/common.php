@@ -91,7 +91,8 @@
 		
 		public function getAddressBookSearchString($arr)
         {
-           return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country;
+			return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country.$arr->name.$arr->email.$arr->comapany;
+           //return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country;
         }
 
         public function countryList(){

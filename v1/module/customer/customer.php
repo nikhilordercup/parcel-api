@@ -1138,5 +1138,11 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         }
         return array("status"=>"success","message"=>"Warehouse updated successfully");
     }
+	
+	public function getAddressBySearchString($param){
+		$data =  $this->modelObj->getAddressBySearchStr($param);
+		return $data;
+		
+	}
  }
 ?>

@@ -1684,11 +1684,9 @@ $app->post('/getPriceDetails', function() use ($app){
     }
 });
 
-
-
 /*end of report module comment by kavita 20march2018*/
 
-$app->post('/loadCountry', function() use ($app) {
+/* $app->post('/loadCountry', function() use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Common();
     $response = $obj->countryList(array("controller_id"=>$r->company_id));
@@ -1742,7 +1740,7 @@ $app->post('/getPriceDetails', function() use ($app){
     }else{
         echoResponse(200, $response);
     }
-});
+}); */
 
 /*start of save quote feature comment by kavita 2april2018*/
 $app->post('/sendQuoteEmail', function() use($app){
@@ -1879,6 +1877,14 @@ $app->post('/addCustomPod', function() use ($app) {
     verifyRequiredParams(array('access_token','company_id','email'),$r);
     $obj = new allShipments($r);
     $response = $obj->addCustomPod($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/getAddressBySearchString', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','search_str','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->getAddressBySearchString($r);
     echoResponse(200, $response);
 });
 ?>
