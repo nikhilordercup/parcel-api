@@ -12,7 +12,9 @@ final class Ukmail extends Carrier implements CarrierInterface{
 	//carrier
 	//service code
 	public function getLabel($shipmentInfo,$loadIdentity){
-		//check validation
+		//address data
+		
+		//collectiondate
 		
 		
 	}

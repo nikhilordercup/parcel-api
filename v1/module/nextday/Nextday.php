@@ -304,7 +304,11 @@ final class Nextday extends Booking
     public
 
     function saveBooking(){
-        $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
+		
+		//get label
+		$this->getLabelFromLoadIdentity('ICARGOS182959');die;
+		
+        /*$accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
             return $accountStatus;
         }
@@ -423,7 +427,19 @@ final class Nextday extends Booking
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
+		
+		
+        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");*/
     }
-}
+
+	public function getLabelFromLoadIdentity($loadIdentity){
+		
+		// call label generation method
+		/* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation 
+		$carrier = $this->modelObj->getCarrierByLoadIdentity($loadIdentity);
+		print_r($carrier);die;*/
+		$carrier = $this->modelObj->getCarrierByLoadIdentity($loadIdentity);
+		print_r($carrier);die;
+	}
+	}
 ?>
