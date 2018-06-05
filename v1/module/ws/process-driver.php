@@ -81,6 +81,11 @@ class Process_Route
         {
             $this->post_id = $param->postId;
         }
+
+        if(isset($param->driverCode))
+        {
+            $this->driver_id = $param->driverCode;
+        }
         
         $this->model_rest = new Ws_Model_Rest();
         
@@ -306,6 +311,7 @@ class Process_Route
     private function _reject_route()
     {   
         $shipment_ticket = array();
+
         $company_warehouse = $this->_get_driver_company_warehouse();
         
         $this->company_id = $company_warehouse['company_id'];

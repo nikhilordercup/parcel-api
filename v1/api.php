@@ -56,7 +56,7 @@ $app->post('/loadWarehouseShipments', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('company_id','warehouse_id','shipment_type'),$r);
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id, "start_date"=>$r->start_date, "end_date"=>$r->end_date));
 	$records = $obj->shipments();
 	echoResponse(200, $records);
 });
