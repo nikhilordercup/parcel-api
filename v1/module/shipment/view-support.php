@@ -190,7 +190,7 @@ class View_Support extends Icargo{
 
         //if($route_data['is_active']=='Y'){
             $records = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $this->shipment_route_id, $this->driver_Id);
-           
+
             foreach($records as $key => $record){
                 $shipment_service_type = ($record["shipment_service_type"]=="P") ? "Collection" : "Delivery";
                 $temp['info']['row_id'] = $key;
