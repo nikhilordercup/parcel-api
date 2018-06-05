@@ -405,16 +405,16 @@ final class Nextday extends Booking
         }
         $this->commitTransaction();
         // call label generation method
-        print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
+        //print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
         
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
 	
     public function saveBooking(){
 		//get label
-		$this->getLabelFromLoadIdentity('ICARGOS182959');die;
+		$labelInfo = $this->getLabelFromLoadIdentity('ICARGOS182959');
 		
-        /*$accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
+        $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         //print_r($this->_param->service_opted->collection_carrier);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
 
@@ -534,21 +534,19 @@ final class Nextday extends Booking
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
-
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");*/
 		
-        // call label generation method
+		/*************call label generation method************/
+
+        //print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
+		
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
 
 	public function getLabelFromLoadIdentity($loadIdentity){
-		
-		// call label generation method
-		/* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation 
-		$carrier = $this->modelObj->getCarrierByLoadIdentity($loadIdentity);
-		print_r($carrier);die;*/
-		$carrier = $this->modelObj->getCarrierByLoadIdentity($loadIdentity);
-		print_r($carrier);die;
+		/* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation*/
+		$carrierObj = new Carrier();
+		$bookingInfo = $carrierObj->getShipmentInfo($loadIdentity);
+		print_r($bookingInfo);die;
 	}
 	}
 ?>

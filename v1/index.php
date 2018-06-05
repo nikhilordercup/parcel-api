@@ -110,7 +110,7 @@ require_once 'module/booking/Shipment.php';
 require_once 'module/booking/Booking.php';
 
 require_once 'module/carrier/Carrier.php';
-//require_once 'module/carrier/Ukmail.php';
+require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
 require_once 'module/nextday/Nextday.php';
 require_once 'module/allshipment/allshipments.php';
 require_once 'module/allshipment/model/allshipments.php';
@@ -197,8 +197,8 @@ EOD;
     // setting response content type to json
     $app->contentType('application/json');
 
-    //echo $jwtString;
-    echo json_encode($response);
+    echo $jwtString;
+    //echo json_encode($response);
 }
 
 function rootPath(){
