@@ -1515,7 +1515,7 @@ $app->post('/loadCustomerAndUserByCustomerId', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','email'),$r);
     $obj = new Controller($r);
-    $response = $obj->loadCustomerAndUserByCustomerId(array("controller_id"=>$r->company_id));
+    $response = $obj->loadCustomerAndUserByCustomerId(array("controller_id"=>$r->company_id, "warehouse_id"=>$r->warehouse_id));
     echoResponse(200, $response);
 });
 

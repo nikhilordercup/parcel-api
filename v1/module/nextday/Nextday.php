@@ -31,6 +31,7 @@ final class Nextday extends Booking
 
         //$carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
+
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
 
@@ -289,7 +290,7 @@ final class Nextday extends Booking
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
-
+print_r($this->data);die;
             if(count($this->data)>0){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
