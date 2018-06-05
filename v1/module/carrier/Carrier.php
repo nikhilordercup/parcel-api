@@ -25,6 +25,7 @@ class Carrier{
 			}
 		}
 		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($response['carrier']));
+
 		$carrierObj = new $coreprimeCarrierClass();
 		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
 		$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
@@ -64,15 +65,15 @@ class Carrier{
 		return $serviceInfo;
 	}
 	
-	public function getCredentialInfo($loadIdentity){
+	/*public function getCredentialInfo($loadIdentity){
 		$credentialData = array();
-		$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($loadIdentity);
+		$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity('',$loadIdentity);
 		$credentialInfo["master_carrier_account_number"] = "";
 		$credentialInfo["latest_time"] = "";
 		$credentialInfo["earliest_time"] = "";
 		$credentialInfo["carrier_account_type"] = array();
 		return $credentialInfo;
-	}
+	}*/
 
 
     private function _getEnvironment(){

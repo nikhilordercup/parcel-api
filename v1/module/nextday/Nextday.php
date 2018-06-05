@@ -413,7 +413,7 @@ print_r($this->data);die;
 	
     public function saveBooking(){
 		//get label
-		$labelInfo = $this->getLabelFromLoadIdentity('ICARGOS182959');
+		$labelInfo = $this->getLabelFromLoadIdentity('ICARGOS180080');
 		
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         //print_r($this->_param->service_opted->collection_carrier);die;
@@ -538,7 +538,7 @@ print_r($this->data);die;
 		
 		/*************call label generation method************/
 
-        //print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
+
 		
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
