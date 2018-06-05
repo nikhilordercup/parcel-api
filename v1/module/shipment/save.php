@@ -496,6 +496,7 @@ class shipment extends Library{
 		$shipmentData['instaDispatch_loadGroupTypeIcon'] = $data['loadGroupTypeIcon'];
 		$shipmentData['instaDispatch_loadGroupTypeCode'] = 'Vendor';
 		$shipmentData['instaDispatch_loadGroupTypeName'] = 'Vendor';
+        $shipmentData['is_internal'] = '1';
 		$shipmentData['instaDispatch_customerReference'] = $data['customerReference'];
 		$shipmentData['waitAndReturn'] = $data['waitAndReturn'];
 		$shipmentData['company_id'] = $this->company_id;

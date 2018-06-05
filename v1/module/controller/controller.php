@@ -80,13 +80,10 @@ class Controller extends Icargo{
 	
 	private
 
-    function _getCustomerByCompanyId($company_id){
+    function _getCustomerByCompanyId($company_id, $warehouse_id){
         //$sql = "SELECT UT.id as id, UT.name as name, email as email FROM " . DB_PREFIX . "users AS UT WHERE UT.user_level=5 AND UT.parent_id='$company_id' ORDER BY name";
         //echo $sql;die;
-        $sql = "SELECT UT.id as id, UT.name as name, email as email FROM " . DB_PREFIX . "users AS UT
-			 INNER JOIN " . DB_PREFIX . "company_users AS CUT  ON CUT.user_id=UT.id
-             WHERE CUT.company_id  = '".$company_id."'
-             AND UT.user_level  = '5' AND UT.status=1";
+        $sql = "SELECT UT.id as id, UT.name as name, email as email FROM " . DB_PREFIX . "users AS UT INNER JOIN " . DB_PREFIX . "company_users AS CUT  ON CUT.user_id=UT.id WHERE CUT.company_id  = '$company_id' AND CUT.warehouse_id='$warehouse_id' AND UT.user_level  = '5' AND UT.status=1";
         return $this->_parentObj->db->getAllRecords($sql);
     }
 
@@ -240,7 +237,7 @@ class Controller extends Icargo{
     }
 	
 	public function loadCustomerAndUserByCustomerId($param){
-        $customerLists = $this->_getCustomerByCompanyId($param["controller_id"]);
+        $customerLists = $this->_getCustomerByCompanyId($param["controller_id"], $param["warehouse_id"]);
 
         foreach($customerLists as $key=>$item){
             $userLists = $this->_getUserByCustomerId($item["id"]);

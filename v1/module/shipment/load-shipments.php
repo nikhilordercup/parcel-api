@@ -374,7 +374,6 @@ class loadShipment extends Library
         FROM " . DB_PREFIX . "shipment AS s
         WHERE s.current_status = 'C' AND 
         s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND s.shipment_create_date BETWEEN '$this->startDate' AND '$this->endDate' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";
-
         $records = $this->db->getAllRecords($sql);
         $data = $this->_prepare_sameday_data($records);
 
