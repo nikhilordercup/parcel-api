@@ -37,7 +37,7 @@ class Module_Coreprime_Api extends Icargo
         return $server_output;
     }
     private
-    function _filterApiResponse($input,$customer_id,$company_id)
+    function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse)
     {
         if (is_array($input)) {
             $temparray = array();
@@ -87,6 +87,7 @@ class Module_Coreprime_Api extends Icargo
                                         $temparray["rate"][$carriercode][$key]["pricewithouttax"] = $price_without_tax;
                                         $temparray["rate"][$carriercode][$key]["chargable_tax"] = $customer_tax_amt;
                                         $temparray["rate"][$carriercode][$key]["service_name"] = $res['service_name'];
+                                        $temparray["rate"][$carriercode][$key]["charge_from_base"] =  ($charge_from_warehouse)?'1':'0';
                                         $temparray["rate"][$carriercode][$key]["rate_type"] = $res['rate_type'];
                                         $temparray["rate"][$carriercode][$key]["message"] = $res['message'];
                                         $temparray["rate"][$carriercode][$key]["currency"] = $res['currency'];
@@ -124,11 +125,12 @@ class Module_Coreprime_Api extends Icargo
         $param->customer_id = $param->customer_id;
         $transit_distance = $param->transit_distance;
         $transit_time = $param->transit_time;
+        $chargefromBase = $this->modelObj->getCustomerChargeFromBase($param->customer_id);
         $waypointCount = 0;
         if (isset($param->waypoint_lists)) {
             $waypointCount = count($param->waypoint_lists);
         }
-        $charge_from_warehouse = true;
+        $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
         if (!isset($param->from_postcode)) {
             $error["from_postcode"] = "Collection postcode is mandatory";
         }
@@ -191,7 +193,7 @@ class Module_Coreprime_Api extends Icargo
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
-        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id);
+        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse);
         return array("status" => "success","rate"=>$data);
     }
 

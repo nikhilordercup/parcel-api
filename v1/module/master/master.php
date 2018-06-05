@@ -89,12 +89,12 @@ class Master extends Icargo{
       return  $data;  
 	}
     */
-     public function getAllCourierServices($param){
+     public function getAllCourierServices($param){  
          $data  = $this->_parentObj->db->getAllRecords("
          SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status
          FROM ".DB_PREFIX."courier_vs_services_vs_company as L 
          INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
-         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." 
+         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
          INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->cid." ");
        foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editServiceAccount';
@@ -108,7 +108,7 @@ class Master extends Icargo{
          SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator
          FROM ".DB_PREFIX."courier_vs_surcharge_vs_company as L 
          INNER JOIN ".DB_PREFIX."courier_vs_surcharge AS A ON L.surcharge_id = A.id 
-         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id."
+         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
          INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->cid." ");
        foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editSurchargeAccount';
@@ -384,6 +384,8 @@ class Master extends Icargo{
     public function saveCarrier($param){
         try{
             $this->_parentObj->db->startTransaction();
+            $exist = $this->checkAccountExist($param->company_id,$param->carrier_id,$param->account_number);
+            if($exist['exist'] < 1){ 
             $data = array(
                 "courier_id" => $param->carrier_id,
                 "company_id" => $param->company_id,
@@ -428,15 +430,23 @@ class Master extends Icargo{
                 }
                 $this->_parentObj->db->commitTransaction();
                 return array("status"=>"success", "message"=>"Carrier added successfully");
-            }else{
+            }
+            else{
                 $this->_parentObj->db->rollBackTransaction();
                 return array("status"=>"error", "message"=>"Carrier not added");
+             }
+            }else{
+              $this->_parentObj->db->rollBackTransaction();
+              return array("status"=>"error", "message"=>"Duplicate account not added");  
             }
-
-        }catch(Exception $e){
+        }catch(Exception $e){ print_r($e);
             $this->_parentObj->db->rollBackTransaction();
             return array("status"=>"error", "message"=>"Carrier not added");
         }
     }
+    public function checkAccountExist($company_id,$courier_id,$account_number){ 
+		return $this->_parentObj->db->getRowRecord("SELECT count(1) as exist FROM ".DB_PREFIX."courier_vs_company AS t1  WHERE t1.courier_id = '$courier_id' AND t1.company_id = '$company_id' AND  t1.account_number = '$account_number'");
+	} 
+
 }
 ?>

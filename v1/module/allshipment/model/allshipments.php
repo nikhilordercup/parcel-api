@@ -107,15 +107,15 @@ SELECT  S.warehouse_id as warehouse_id,
                     S.current_status,
                     S.shipment_required_service_date,
                     S.shipment_required_service_starttime,
-                    ADDR.postcode AS shipment_postcode,
-                    ADDR.address_line1 AS address_line1,
-                    ADDR.address_line2 AS address_line2,
-                    ADDR.country AS shipment_customer_country,
+                    S.shipment_postcode AS shipment_postcode,
+                    S.shipment_address1 AS address_line1,
+                    S.shipment_address2 AS address_line2,
+                    S.shipment_customer_country AS shipment_customer_country,
                     CI.accountnumber as shipment_customer_account,
                     UTT.name as shipment_customer_name,
                     (SST.base_price + SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,
                     SST.service_name as shipment_service_name,
-                    SST.carrier as carrier,
+                    COUR.name as carrier,
                     UT.name as booked_by,
                     SST.isInvoiced as isInvoiced';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
@@ -123,7 +123,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UT ON UT.id = S.booked_by
                     LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity = S.instaDispatch_loadIdentity
-                    LEFT JOIN " . DB_PREFIX . "address_book AS ADDR ON ADDR.id = S.address_id
+                    LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = SST.carrier
                     WHERE 1 = 1  
                     ".$filter."
                     ORDER BY  FIELD(\"S.shipment_service_type\",\"P\",\"D\"),S.shipment_id DESC";
@@ -137,7 +137,6 @@ SELECT  S.warehouse_id as warehouse_id,
       $record = array();
       $sqldata = 'DISTINCT(S.instaDispatch_loadIdentity)';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
-              LEFT JOIN " . DB_PREFIX . "address_book AS ADDR ON ADDR.id = S.address_id
               WHERE (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')
 		AND (S.instaDispatch_loadGroupTypeCode  = 'SAME' OR S.instaDispatch_loadGroupTypeCode  = 'NEXT') 
               ".$filter."
@@ -161,6 +160,7 @@ SELECT  S.warehouse_id as warehouse_id,
          S.shipment_ticket,
          UTT.name as customer,
          SST.carrier as carrierid,
+         COUR.name as carriername,
          SST.service_name as service,
          SST.rate_type as chargeableunit,
          SST.transit_distance_text as chargeablevalue,
@@ -175,12 +175,12 @@ SELECT  S.warehouse_id as warehouse_id,
          S.shipment_customer_phone as customerphone,
          S.shipment_customer_name as customername,
          S.shipment_customer_email as customeremail,
-         ADDR.postcode as postcode,
-         ADDR.address_line1 AS address_line1,
-         ADDR.address_line2 AS address_line2,
-         ADDR.country AS country,
-         ADDR.city AS city,
-         ADDR.state AS state,
+         S.shipment_postcode AS postcode,
+         S.shipment_address1 AS address_line1,
+         S.shipment_address2 AS address_line2,
+         S.shipment_customer_country AS country,
+         S.shipment_customer_city AS city,
+         S.shipment_county AS state,
          (SST.base_price +  SST.courier_commission_value)as customerbaseprice,
          SST.surcharges as customersurcharge,
          (SST.base_price +  SST.courier_commission_value + SST.surcharges)as customersubtotal,
@@ -188,7 +188,6 @@ SELECT  S.warehouse_id as warehouse_id,
          SST.total_price as customertotalprice,
          (SST.base_price +  SST.courier_commission_value + SST.surcharges + SST.taxes)as customertotalprice,
          SST.base_price as carrierbaseprice,
-        
          SST.surcharges as carriersurcharge,
          (SST.base_price + SST.surcharges) as carriersubtotal,
          SST.taxes as carriertax,
@@ -199,7 +198,6 @@ SELECT  S.warehouse_id as warehouse_id,
          SST.load_identity as customerreference
         ';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
-                    LEFT JOIN " . DB_PREFIX . "address_book AS ADDR ON ADDR.id = S.address_id
                     LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON (SST.load_identity = S.instaDispatch_loadIdentity AND S.shipment_service_type = 'P')
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UT ON UT.id = S.booked_by
@@ -207,6 +205,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTS ON UTS.id = S.user_id
                     LEFT JOIN " . DB_PREFIX . "users AS DRIV ON DRIV.id = S.assigned_driver AND DRIV.user_level = 4
+                    LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = SST.carrier
                     WHERE(S.instaDispatch_loadGroupTypeCode  = 'SAME' OR S.instaDispatch_loadGroupTypeCode  = 'NEXT')
                     AND S.instaDispatch_loadIdentity = '" . $identity . "' 
                     ORDER BY  FIELD(\"S.shipment_service_type\",\"P\",\"D\")";
@@ -464,6 +463,15 @@ SELECT  S.warehouse_id as warehouse_id,
          $record = array();
          $sqldata ='t1.*';
          $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "shipments_master AS t1 WHERE is_used_for_tracking = 'YES'";
+         $record = $this->db->getAllRecords($sql);
+         return  $record;  
+	 }
+    public function getAllowedAllServices($companyid){
+         $record = array();
+         $sqldata ='COUSER.service_name';
+         $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "courier_vs_services_vs_company AS t1 
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services AS COUSER ON COUSER.id = t1.service_id
+                WHERE t1.company_id = '".$companyid."'";
          $record = $this->db->getAllRecords($sql);
          return  $record;  
 	 }

@@ -94,7 +94,7 @@ class Invoice extends Icargo{
                 
                 $invoicedocket = $this->modelObj->addContent('invoice_vs_docket',$docketdata);
                 if($invoicedocket){
-                  $updatestatus = $this->modelObj->editContent('shipment_service',array('isInvoiced'=>'YES','invoice_reference'=>$invoicedata['invoice_reference'])," shipment_id = '".$innerval['reference_id']."'");   
+                  $updatestatus = $this->modelObj->editContent('shipment_service',array('isInvoiced'=>'YES','invoice_reference'=>$invoicedata['invoice_reference'])," load_identity = '".$docketdata['reference']."'");   
                 }
                  $invoicePriceData['base_amount'] += $docketdata['base_amount'];
                  $invoicePriceData['surcharge_total'] += $docketdata['surcharge_total'];
@@ -167,7 +167,6 @@ class Invoice extends Icargo{
                 $deliveryPostcode = array();
                 foreach($innerval['NEXT']['D'] as $deliverykey=>$deliveryData){
                  $deliveryPostcode[$deliveryData['icargo_execution_order']]  = $deliveryData['shipment_postcode'].' '.$deliveryData['shipment_customer_country'];
-                  $shipmentstatus[] =  $deliveryData['current_status'];
                 }
                 krsort($deliveryPostcode);
                 $data['delivery']  = end($deliveryPostcode); 
