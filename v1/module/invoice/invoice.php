@@ -8,8 +8,11 @@ class Invoice extends Icargo{
     }
     
    public function getallinvoice($param){
-         $invoiceData = $this->modelObj->getAllInvice($param->warehouse_id,$param->company_id);
-         return $invoiceData;
+	if(isset($param->customer_id))
+		$invoiceData = $this->modelObj->getAllInvoiceByCustomerId($param->warehouse_id,$param->company_id,$param->customer_id);
+	else
+		$invoiceData = $this->modelObj->getAllInvice($param->warehouse_id,$param->company_id);
+	return $invoiceData;
    }
   public function createInvoice($param){
       $_start_date          = $param->start_date;
@@ -22,7 +25,7 @@ class Invoice extends Icargo{
       $_company_id          = $param->company_id;
       $customerfilter = isset($param->customer)?"AND A.customer_id = '".$param->customer."'":" ";
       $invoicedDocketData = $this->modelObj->getAllInvoicedDocket($_company_id,$_start_date,$_end_date,$customerfilter);
-      $tempdata = array();
+      $tempdatap = array();
       foreach($invoicedDocketData as $key=>$val){
        $tempdatap[$val['customer_id']]['shipments'][] = $val;
           $tempdatap[$val['customer_id']]['total']['totalshipment'][] = 1;
@@ -91,7 +94,7 @@ class Invoice extends Icargo{
                 
                 $invoicedocket = $this->modelObj->addContent('invoice_vs_docket',$docketdata);
                 if($invoicedocket){
-                  $updatestatus = $this->modelObj->editContent('shipment_service',array('isInvoiced'=>'YES','invoice_reference'=>$invoicedata['invoice_reference'])," shipment_id = '".$innerval['reference_id']."'");   
+                  $updatestatus = $this->modelObj->editContent('shipment_service',array('isInvoiced'=>'YES','invoice_reference'=>$invoicedata['invoice_reference'])," load_identity = '".$docketdata['reference']."'");   
                 }
                  $invoicePriceData['base_amount'] += $docketdata['base_amount'];
                  $invoicePriceData['surcharge_total'] += $docketdata['surcharge_total'];
@@ -164,7 +167,6 @@ class Invoice extends Icargo{
                 $deliveryPostcode = array();
                 foreach($innerval['NEXT']['D'] as $deliverykey=>$deliveryData){
                  $deliveryPostcode[$deliveryData['icargo_execution_order']]  = $deliveryData['shipment_postcode'].' '.$deliveryData['shipment_customer_country'];
-                  $shipmentstatus[] =  $deliveryData['current_status'];
                 }
                 krsort($deliveryPostcode);
                 $data['delivery']  = end($deliveryPostcode); 

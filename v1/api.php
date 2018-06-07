@@ -56,7 +56,7 @@ $app->post('/loadWarehouseShipments', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('company_id','warehouse_id','shipment_type'),$r);
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id, "start_date"=>$r->start_date, "end_date"=>$r->end_date));
 	$records = $obj->shipments();
 	echoResponse(200, $records);
 });
@@ -108,7 +108,7 @@ $app->post('/loadAssignedRouteByShipmentRouteId', function() use ($app) {
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id','shipment_route_id','assigned_driver_id'),$r);
 	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,'uid'=>$r->uid));
-	$records = $obj->loadAssignedView();   
+	$records = $obj->loadAssignedView();
 	echoResponse(200, $records);
 });
 /*
@@ -143,7 +143,25 @@ $app->post('/getShipmentStatus', function() use ($app){
 	    echoResponse(200, $records);
 	}
 });
-
+$app->post('/getSameDayShipmentStatus', function() use ($app){
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('warehouse_id','shipment_ticket','company_id'),$r);
+	$r->shipment_ticket = str_replace(',',"','",$r->shipment_ticket);  
+	$obj = new LoadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_ticket'=>$r->shipment_ticket,'access_token'=>$r->access_token)); //testLoadShipment
+	
+	$records = $obj->testCompanyConfiguration();
+	
+	if($records['status']){
+		$result = $obj->shipmentStatusSameDay();
+		//if($result['status']){
+			$obj->requestRoutesSamedayData();
+		//}
+		echoResponse(200, $records);
+	} else {
+	    echoResponse(200, $records);
+	}
+});
 $app->post('/getCompanyList', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
@@ -277,7 +295,7 @@ $app->post('/movetodispute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','disputeid','company_id','warehouse_id','shipment_ticket'),$r);
-	$params = array('shipment_ticket'=>$r->shipment_ticket,'disputeid'=>$r->disputeid,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
+	$params = array('shipment_ticket'=>$r->shipment_ticket,'disputeid'=>$r->disputeid,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type);
 	$obj = new loadShipment($params);
 	$response["actions"] = $obj->moveToDispute();
 	echoResponse(200, $response);
@@ -418,8 +436,12 @@ $app->post('/getMoveToOtherRouteAcions', function() use ($app) {
 $app->post('/assignToCurrentRoute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
+
+    $r->shipment_ticket = implode(',', $r->shipment_ticket);
 	verifyRequiredParams(array('access_token','email','shipment_route_id','company_id','warehouse_id','shipment_ticket'),$r);
-    $params = array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_ticket'=>$r->shipment_ticket,'shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
+
+	$shipmentTickets = explode(',', $r->shipment_ticket);
+    $params = array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_ticket'=>$shipmentTickets,'shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id);
 	$obj = new View_Support($params);
 	$response = $obj->assignToCurrentRoute();
 	echoResponse(200, $response);
@@ -628,7 +650,7 @@ $app->post('/PauseAssignedRouteByShipmentRouteId', function() use ($app) {
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id','shipment_route_id','assigned_driver_id'),$r);
 	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,"uid"=>$r->uid));
-	$response = $obj->pauseAssignedView();   
+	$response = $obj->pauseAssignedView();
 	echoResponse(200, $response); 
 });
 
@@ -648,7 +670,7 @@ $app->post('/recoverRoute', function() use ($app){
 
 $app->post('/addRouteBox', function() use ($app){
 	$r = json_decode($app->request->getBody());
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'routetype'=>$r->routetype));
 	$response = $obj->addRouteBox();
 	echoResponse(200, $response);
 });
@@ -893,7 +915,7 @@ $app->post('/imports/profile/add', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','profile_name','access_token'),$r);
     $obj = new Profile();
-    $obj->save($r->company_id,'Next Day',$r->profile_name,json_encode($r->profile_data));
+    $obj->save($r->company_id,$r->profile_type,$r->profile_name,json_encode($r->profile_data));
     $response = [];
     echoResponse(200, $response);
 });
@@ -901,14 +923,14 @@ $app->post('/imports/profile/list', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','access_token'),$r);
     $obj = new Profile();
-    $response = $obj->fetchAll($r->company_id,'Next Day');
+    $response = $obj->fetchAll($r->company_id,$r->profile_type);
     echoResponse(200, $response);
 });
 $app->post('/imports/profile/update', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','profile_name','access_token','profile_id'),$r);
     $obj = new Profile();
-    $obj->update($r->profile_id,$r->company_id,'Next Day',$r->profile_name,json_encode($r->profile_data));
+    $obj->update($r->profile_id,$r->company_id,$r->profile_type,$r->profile_name,json_encode($r->profile_data));
     $response = [];
     echoResponse(200, $response);
 });
@@ -1519,7 +1541,7 @@ $app->post('/loadCustomerAndUserByCustomerId', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','email'),$r);
     $obj = new Controller($r);
-    $response = $obj->loadCustomerAndUserByCustomerId(array("controller_id"=>$r->company_id));
+    $response = $obj->loadCustomerAndUserByCustomerId(array("controller_id"=>$r->company_id, "warehouse_id"=>$r->warehouse_id));
     echoResponse(200, $response);
 });
 
@@ -1646,8 +1668,7 @@ $app->post('/generateReport', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id'),$r);
     $obj = new Report($r);
-    $response = $obj->generateReport();
-	print_r($response);die;
+    $response = $obj->generateReport($r);
     echoResponse(200, $response);
 });
 
@@ -1658,20 +1679,16 @@ $app->post('/loadCountry', function() use ($app) {
     echoResponse(200, $response);
 });
 
-$app->post('/getParcelPackage', function() use ($app){
+/*$app->post('/getParcelPackage', function() use ($app){
     $r = json_decode($app->request->getBody());
     $dummyData = array("0"=>array("name"=>"Parcels","id"=>"1"));
     echoResponse(200, $dummyData);
-});
+});*/
 
 $app->post('/getNextdayAvailableCarrier', function() use ($app){
-
-    echo '[{"ukmail":{"services":{"1":[{"rate":{"price":"4.5","rate_type":"Weight","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"\/icons\/original\/missing.png","max_delivery_time":null,"service_name":"Next working day","service_code":"1","service_icon":null,"service_description":"Next working day description"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0,"fuel_surcharge":0.16},"taxes":{"total_tax":0.466}}]},"carrier_info":{"carrier_code":"ukmail","carrier_name":"UkMail","carrier_icon":"assets\/images\/carrier\/dhl.png","carrier_description":"courier information goes here","carrier_id":"2"}}}]';die;
-
-    $r = json_decode($app->request->getBody());
+	$r = json_decode($app->request->getBody());
     $obj = new Nextday($r);
-    $response = $obj->searchNextdayAvailableCarrier();
-
+    $response = $obj->searchNextdayCarrierAndPrice();
 
     if($response["status"]=="error"){
         echoResponse(500, $response);
@@ -1682,8 +1699,46 @@ $app->post('/getNextdayAvailableCarrier', function() use ($app){
 
 $app->post('/bookNextDayJob', function() use ($app){
     $r = json_decode($app->request->getBody());
-    $obj = new Booking($r);
-    $obj->saveNextDayBooking($r);
+    $obj = new Nextday($r);
+    $response = $obj->saveBooking($r);
+    echoResponse(200, $response);
+});
+
+/*$app->post('/savePackage', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Module_Package_Index($r);
+    $response = $obj->savePackage($r);
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});*/
+$app->post('/getPriceDetails', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new allShipments($r);
+    $response = $obj->getPriceDetails($r);
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});
+
+/*end of report module comment by kavita 20march2018*/
+
+/*$app->post('/loadCountry', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    $obj = new Common();
+    $response = $obj->countryList(array("controller_id"=>$r->company_id));
+    echoResponse(200, $response);
+});*/
+
+$app->post('/getParcelPackage', function() use ($app){
+	$r = json_decode($app->request->getBody());
+    $obj = new Module_Package_Index($r);
+    $response = $obj->getPackages($r);
+    echoResponse(200, $response);
 });
 
 $app->post('/savePackage', function() use ($app){
@@ -1696,7 +1751,8 @@ $app->post('/savePackage', function() use ($app){
         echoResponse(200, $response);
     }
 });
-$app->post('/getPriceDetails', function() use ($app){
+
+/*$app->post('/getPriceDetails', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new allShipments($r);
     $response = $obj->getPriceDetails($r);
@@ -1705,21 +1761,182 @@ $app->post('/getPriceDetails', function() use ($app){
     }else{
         echoResponse(200, $response);
     }
+});*/
+
+/*start of save quote feature comment by kavita 2april2018*/
+$app->post('/sendQuoteEmail', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id'),$r);
+    $obj = new Quotation();
+    $response = $obj->sendQuoteEmail($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllSavedQuotes', function() use ($app) {
+    $response = array();
+    $r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('access_token','email','company_id'),$r);
+	$obj = new Quotation();
+	if($r->user_code=="super_admin")
+		$response = $obj->getAllSavedQuotes($r);
+	else
+		$response = $obj->getAllSavedQuotesByCompanyId(array("company_id"=>$r->company_id));
+		
+	echoResponse(200, $response);
+});
+$app->post('/getQuoteData', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id','quote_number'),$r);
+    $obj = new Quotation();
+    $response = $obj->getQuoteDataByQuoteNumber($r);
+    echoResponse(200, $response);
+});
+/*end of save quote feature comment by kavita 2april2018*/ 
+$app->post('/updateCarrierPrice', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody()); 
+	verifyRequiredParams(array('email','access_token','job_identity','job_type'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->updateCarrierPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user,'job_type'=>$r->job_type));
+	echoResponse(200, $records);
+});
+$app->post('/updateCustomerPrice', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody()); 
+	verifyRequiredParams(array('email','access_token','job_identity','job_type'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->updateCustomerPrice(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'data'=>$r->data,'applypriceoncustomer'=>$r->applypriceoncustomer,'company_id'=>$r->company_id,'user'=>$r->user,'job_type'=>$r->job_type));
+	echoResponse(200, $records);
 });
 
+    
+$app->post('/getbookedCarrierSurcharge', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody()); 
+	verifyRequiredParams(array('email','access_token','job_identity','company_id'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getbookedCarrierSurcharge(array('email'=>$r->email,'access_token'=>$r->access_token,'job_identity'=>$r->job_identity,'company_id'=>$r->company_id));
+	echoResponse(200, $records);
+});
 
+/*start report type*/
+$app->post('/getAllActiveReportsByServiceType', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id','service_type'),$r);
+    $obj = new Report($r);
+    $response = $obj->getAllActiveReportsByServiceType($r);
+    echoResponse(200, $response);
+});
+/*end report type*/
 
-/*end of report module comment by kavita 20march2018*/
+/*start download report csv*/
+$app->post('/downloadReportCsv', function() use($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Report($r);
+    $response = $obj->downloadReportCsv($r);
+    echoResponse(200, $response);
+});
 
-//this action is only for testing and development
-/*$app->post('/temp', function() use ($app) {
-	$db = new DbHandler();
-	$sql = "SELECT shipment_latlong, shipment_id from icargo_shipment;";
-	$records = $db->getAllRecords($sql);
-	foreach($records as $record){
-		$temp = explode(',',$record['shipment_latlong']);
-		$sql = "UPDATE icargo_shipment SET shipment_latitude = '" . $temp[0] . "', shipment_longitude = '" . $temp[1] . "' WHERE shipment_id = '". $record['shipment_id'] ."';";
-		echo $sql.'<br>';
-	}
-});*/
+$app->post('/setCustomerDefaultWarehouse', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','address_id','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->setCustomerDefaultWarehouse($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/setInternalCarrier', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','company_id','carrier_id','status'),$r);
+    $obj = new Master($r);
+    $response = $obj->setCompanyInternalCarrier($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/updateShipmentTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Settings($r);
+    $response = $obj->updateShipmentTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/updateInternalTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Settings($r);
+    $response = $obj->updateInternalTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/allowedTrackingstatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->allowedTrackingstatus($r);
+    echoResponse(200, $response);
+});
+$app->post('/addCustomTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->addCustomTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/deleteCustomTracking', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->deleteCustomTracking($r);
+    echoResponse(200, $response);
+});
+$app->post('/addCustomPod', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->addCustomPod($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/saveCarrier', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Master($r);
+    $response = $obj->saveCarrier($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/getAllWarehouseAddressByCompanyAndUser', function() use ($app) {
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new Controller($r);
+    $response = $obj->getAllWarehouseAddressByCompanyAndUser(array("company_id" => $r->company_id, "user_id" => $r->user_id));
+    echoResponse(200, $response);
+});
+
+$app->post('/imports/profile/samedaylist', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','access_token'),$r);
+    $obj = new Profile();
+    $response = $obj->fetchAll($r->company_id,'Same Day');
+    echoResponse(200, $response);
+});
+$app->post('/getAllCarrier', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new Settings($r);
+    $response = $obj->getAllCarrier($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllowedAllShipmentsStatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getAllowedAllShipmentsStatus($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllowedAllServices', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getAllowedAllServices($r);
+    echoResponse(200, $response);
+});
 ?>

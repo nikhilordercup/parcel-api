@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde
+class ComposerStaticInitc263abab0d259b689ddd808a8902541a
 {
     public static $files = array (
         '8dd32984d4cd58147cb41bf3844153c3' => __DIR__ . '/..' . '/chargebee/chargebee-php/lib/ChargeBee.php',
@@ -15,6 +15,10 @@ class ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde
         array (
             'PHPMailer\\PHPMailer\\' => 20,
         ),
+        'F' => 
+        array (
+            'Firebase\\JWT\\' => 13,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -22,13 +26,17 @@ class ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
+        'Firebase\\JWT\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit3d99ac99519b366731fb1c6998ca8fde::$prefixDirsPsr4;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitc263abab0d259b689ddd808a8902541a::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitc263abab0d259b689ddd808a8902541a::$prefixDirsPsr4;
 
         }, null, ClassLoader::class);
     }

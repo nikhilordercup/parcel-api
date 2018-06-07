@@ -74,7 +74,7 @@ class Driver extends Icargo{
 	}
 	
 	public function getAllDriverData($param){
-        return $this->_parentObj->db->getAllRecords("SELECT t1.id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 WHERE user_level = 4");
+        return $this->_parentObj->db->getAllRecords("SELECT t1.id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 WHERE user_level = 4 AND status = 1");
 	}
     
 	public function getDriverDataByCompanyId($param){
@@ -82,7 +82,7 @@ class Driver extends Icargo{
 	}
 	
 	public function getDriverDataByCompanyAndWarehouseId($param){
-        return $this->_parentObj->db->getAllRecords("SELECT t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token FROM ".DB_PREFIX."users AS t1 INNER JOIN ".DB_PREFIX."company_users AS t2 ON t2.user_id=t1.id WHERE t2.company_id = ".$param->company_id." AND t2.warehouse_id = ".$param->warehouse_id." AND user_level = 4");
+        return $this->_parentObj->db->getAllRecords("SELECT t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token FROM ".DB_PREFIX."users AS t1 INNER JOIN ".DB_PREFIX."company_users AS t2 ON t2.user_id=t1.id WHERE t2.company_id = ".$param->company_id." AND t2.warehouse_id = ".$param->warehouse_id." AND user_level = 4 AND t1.status = 1");
 	}
 	
 	public function getDriverAllDataByCompanyId($param){

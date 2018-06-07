@@ -41,15 +41,12 @@
         {
             $tickets = str_replace('"','',$tickets);
             $all_parcel_details = $this->getShipmentParcelStatusDetail($tickets);
+            $loadIdentity = $this->getShipmentStatusDetail($tickets);
             if (count($all_parcel_details) > 0) {
                 foreach ($all_parcel_details as $shipdetails) {
-
                     $parcel_ticket = isset($shipdetails['parcel_ticket']) ? $shipdetails['parcel_ticket'] : '';
-
                     $piece_identity = isset($shipdetails['instaDispatch_pieceIdentity']) ? $shipdetails['instaDispatch_pieceIdentity'] : '';
-
                     $loadIdentity_parcel = isset($shipdetails['instaDispatch_loadIdentity_parcel']) ? $shipdetails['instaDispatch_loadIdentity_parcel'] : $shipdetails['instaDispatch_loadIdentity'];
-
                     $shipmentHistoryData = array();
                     $shipmentHistoryData['shipment_ticket'] = $tickets;
                     $shipmentHistoryData['parcel_ticket'] = $parcel_ticket;
@@ -64,12 +61,12 @@
                     $shipmentHistoryData['action_taken_by'] = $action_taken_by;
                     $shipmentHistoryData['warehouse_id'] = $warehouse_id;
                     $shipmentHistoryData['company_id'] = $company_id;
-                    $shipmentHistoryData['lattitude'] = 0.000000000;
-                    $shipmentHistoryData['longitude'] = 0.000000000;
+                    $shipmentHistoryData['lattitude'] = $loadIdentity["shipment_latitude"];
+                    $shipmentHistoryData['longitude'] = $loadIdentity["shipment_longitude"];
                     $this->db->save('shipment_life_history', $shipmentHistoryData);
                 }
             }else {
-                    $loadIdentity = $this->getShipmentStatusDetail($tickets);
+                    
                     $shipmentHistoryData = array();
                     $shipmentHistoryData['shipment_ticket'] = $tickets;
                     $shipmentHistoryData['parcel_ticket'] = "";

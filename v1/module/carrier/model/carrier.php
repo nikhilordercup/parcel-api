@@ -138,12 +138,13 @@ class Carrier_Model_Carrier
                 COMCOUR.company_surcharge_value AS company_carrier_ccf,
                 COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator,
                 COURSER.surcharge_name AS courier_surcharge_name,
-                COURSER.surcharge_code AS courier_surcharge_code
+                COURSER.surcharge_code AS courier_surcharge_code,
+                COMCOUR.pickup,COMCOUR.pickup_surcharge
                 FROM " . DB_PREFIX . "company_vs_customer_vs_surcharge CCST
                 INNER JOIN " . DB_PREFIX . "courier_vs_company_vs_customer as CCC on CCC.customer_id = CCST.company_customer_id AND CCC.courier_id = CCST.courier_id
                 INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCST.company_customer_id
-                INNER JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.surcharge_id AND COMSER.courier_id = CCST.courier_id   AND COMSER.company_id =  '10')
-                INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id AND  COMCOUR.company_id =  '10')
+                INNER JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.surcharge_id AND COMSER.courier_id = CCST.courier_id   AND COMSER.company_id =  '$company_id')
+                INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCST.courier_id AND  COMCOUR.company_id =  '$company_id')
                 INNER JOIN " . DB_PREFIX . "courier_vs_surcharge as COURSER on (COURSER.id = CCST.surcharge_id)
                 WHERE CCST.status = 1  
                 AND CCC.status = 1 
@@ -166,7 +167,8 @@ class Carrier_Model_Carrier
         CINFO.surcharge AS customer_surcharge,
         CINFO.ccf_operator_surcharge AS customer_operator,
         COMCOUR.company_surcharge_value AS company_carrier_ccf,
-        COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator
+        COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator,
+        COMCOUR.pickup,COMCOUR.pickup_surcharge
         FROM " . DB_PREFIX . "courier_vs_company_vs_customer as CCC 
         INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCC.customer_id
         INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.courier_id = CCC.courier_id AND  COMCOUR.company_id =  CCC.company_id )

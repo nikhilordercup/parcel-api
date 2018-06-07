@@ -1,4 +1,5 @@
 <?php
+//useless file. dont do any work in this file.
 class Booking_Shipment{
     private $_data = array();
 
@@ -174,7 +175,6 @@ class Booking_Shipment{
 
             $this->_data["notification_status"] = (isset($consignee->notification)) ? $consignee->notification : "0";
 
-echo "<pre>";print_r($this->_data);die;
 
             //save address first then save shipment detail with address id
             //$shipmentId = $this->db->save("shipment", $data);

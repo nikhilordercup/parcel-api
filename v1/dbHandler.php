@@ -13,19 +13,19 @@ class DbHandler {
     /**
      * Start transaction
      */
-    public function startTransaction() {return;
+    public function startTransaction() {
         $this->conn->begin_transaction();
     }
     /**
      * Start transaction
      */
-    public function commitTransaction() {return;
+    public function commitTransaction() {
         $this->conn->commit();
     }
     /**
      * Start transaction
      */
-    public function rollBackTransaction() {return;
+    public function rollBackTransaction() {
         $this->conn->rollBack();
     }
     /**
@@ -41,6 +41,7 @@ class DbHandler {
     public function getAllRecords($query) {
 		$result = array();
 		$stmt = $this->conn->query($query) or die($this->conn->error.__LINE__);
+		//print_r($query);die;
 		while ($row = $stmt->fetch_assoc()) {
 			array_push($result, $row);
 		}
@@ -110,7 +111,6 @@ class DbHandler {
 		if($condition)
 			$query .= " WHERE $condition";
 		$query .= ";";
-
         $r = $this->conn->query($query);
         if($r)
         	return $r;
@@ -130,18 +130,9 @@ class DbHandler {
             $new_row_id = $this->conn->insert_id;
             return $new_row_id;
         } else {
-        	print_r($query);
-            throw new Exception($this->conn->error.__LINE__);
+        	throw new Exception($this->conn->error.__LINE__." query : $query");
         }
 
-		/*$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-
-        if ($r) {
-			$new_row_id = $this->conn->insert_id;
-			return $new_row_id;
-		} else {
-			return NULL;
-        }*/
 	}
 	
 	public function getSession(){

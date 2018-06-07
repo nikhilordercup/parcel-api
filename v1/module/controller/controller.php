@@ -80,13 +80,10 @@ class Controller extends Icargo{
 	
 	private
 
-    function _getCustomerByCompanyId($company_id){
+    function _getCustomerByCompanyId($company_id, $warehouse_id){
         //$sql = "SELECT UT.id as id, UT.name as name, email as email FROM " . DB_PREFIX . "users AS UT WHERE UT.user_level=5 AND UT.parent_id='$company_id' ORDER BY name";
         //echo $sql;die;
-        $sql = "SELECT UT.id as id, UT.name as name, email as email FROM " . DB_PREFIX . "users AS UT
-			 INNER JOIN " . DB_PREFIX . "company_users AS CUT  ON CUT.user_id=UT.id
-             WHERE CUT.company_id  = '".$company_id."'
-             AND UT.user_level  = '5' AND UT.status=1";
+        $sql = "SELECT UT.id as id, UT.name as name, email as email FROM " . DB_PREFIX . "users AS UT INNER JOIN " . DB_PREFIX . "company_users AS CUT  ON CUT.user_id=UT.id WHERE CUT.company_id  = '$company_id' AND CUT.warehouse_id='$warehouse_id' AND UT.user_level  = '5' AND UT.status=1";
         return $this->_parentObj->db->getAllRecords($sql);
     }
 
@@ -102,7 +99,7 @@ class Controller extends Icargo{
     function _getUserCollectionAddressByUserId($user_id){
         //$sql = "SELECT address_line1 as address_line1, address_line2 as address_line2, postcode as postcode, city as city, country as country, latitude as latitude, longitude as longitude, state as state, company_name as company_name FROM " . DB_PREFIX . "address_book AS AT WHERE AT.customer_id='$customer_id'";
 		//$sql = "SELECT UAT.user_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email FROM " . DB_PREFIX . "address_book AS AT INNER JOIN ".DB_PREFIX."user_address as UAT ON AT.id=UAT.address_id WHERE UAT.user_id='$user_id'";
-		$sql = "SELECT AT.id AS address_id, UAT.user_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email FROM " . DB_PREFIX . "address_book AS AT INNER JOIN ".DB_PREFIX."user_address as UAT ON AT.id=UAT.address_id WHERE UAT.user_id='$user_id' AND UAT.default_address='Y'";
+		$sql = "SELECT AT.id AS address_id, UAT.user_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email, AT.iso_code AS alpha3_code FROM " . DB_PREFIX . "address_book AS AT INNER JOIN ".DB_PREFIX."user_address as UAT ON AT.id=UAT.address_id WHERE UAT.user_id='$user_id' AND UAT.default_address='Y'";
 
         return $this->_parentObj->db->getRowRecord($sql);
     }
@@ -113,10 +110,8 @@ class Controller extends Icargo{
     }
 	
 	private function _getCustomerCollectionAddressByCustomerId($customer_id){
-		$sql = "SELECT AT.id AS address_id, AT.customer_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email FROM " . DB_PREFIX . "address_book AS AT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON UAT.address_id=AT.id WHERE UAT.user_id='$customer_id' AND UAT.default_address='Y'";
-
-		//$sql = "SELECT AT.customer_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email FROM " . DB_PREFIX . "address_book AS AT WHERE AT.customer_id='$customer_id'";
-        return $this->_parentObj->db->getRowRecord($sql);
+		$sql = "SELECT AT.id AS address_id, AT.customer_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email, AT.iso_code AS alpha3_code FROM " . DB_PREFIX . "address_book AS AT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON UAT.address_id=AT.id WHERE UAT.user_id='$customer_id' AND UAT.default_address='Y'";
+		return $this->_parentObj->db->getRowRecord($sql);
     }
 	
 	/*public function addController($param){
@@ -242,7 +237,7 @@ class Controller extends Icargo{
     }
 	
 	public function loadCustomerAndUserByCustomerId($param){
-        $customerLists = $this->_getCustomerByCompanyId($param["controller_id"]);
+        $customerLists = $this->_getCustomerByCompanyId($param["controller_id"], $param["warehouse_id"]);
 
         foreach($customerLists as $key=>$item){
             $userLists = $this->_getUserByCustomerId($item["id"]);
@@ -251,6 +246,7 @@ class Controller extends Icargo{
             if($userLists){
                 $customerLists[$key]["default_user_id"] = $item["id"];
                 $customerLists[$key]["users"][] = array("id"=>$item["id"],"name"=>$item["name"],"email"=>$item["email"],"is_default"=>0,"collection_address"=>$this->_getCustomerCollectionAddressByCustomerId($item["id"]));
+
                 foreach($userLists as $user_key=>$userItem){
 
                     $customerLists[$key]["users"][] = array("id"=>$userItem["id"],"name"=>$userItem["name"],"email"=>$userItem["email"],"is_default"=>$userItem["is_default"],"collection_address"=>$this->_getUserCollectionAddressByUserId($userItem["id"]));
@@ -270,6 +266,12 @@ class Controller extends Icargo{
             }
         }
         return $customerLists;
+    }
+
+    public function getAllWarehouseAddressByCompanyAndUser($param){
+        $sql = "SELECT `ABT`.`id`,`ABT`.`address_line1`, `ABT`.`address_line2`, `ABT`.`postcode`, `ABT`.`city`, `ABT`.`state`, `ABT`.`country` FROM `". DB_PREFIX  ."address_book` AS `ABT` INNER JOIN `". DB_PREFIX ."user_address` AS `UAT` ON `ABT`.`id` = `UAT`.`address_id` WHERE `UAT`.`default_address`='Y' AND `ABT`.`customer_id`=".$param['user_id']." AND `ABT`.`status`=1";
+        $records = $this->_parentObj->db->getAllRecords($sql);
+        return $records;
     }
 }
 ?>
