@@ -166,7 +166,11 @@ $app->post('/getAllWarehouseData', function() use ($app) {
 	else{
         $response = $obj->getWarehouseByCompanyId(array("company_id"=>$r->company_id,"user_code"=>$r->user_code,"user_id"=>$r->user_id));
 	}
-	echoResponse(200, $response);
+	//echoResponse(200, $response);
+        $obj = new Common();
+        $countryData = $obj->countryList();
+        echoResponse(200, array("response"=>$response,"countryData"=>$countryData));
+        
 });
 
 $app->post('/getWarehouseCompanyData', function() use ($app) {
@@ -191,6 +195,10 @@ $app->post('/getWarehouseData', function() use ($app) {
     $r = json_decode($app->request->getBody());
 	$obj = new Company($r);
 	$response["warehouse_data"] = $obj->getWarehouseDataByWarehouseId($r);
+        
+        $obj = new Common();
+        $countryData = $obj->countryList();
+        $response["countryData"] = $countryData;
 	echoResponse(200, $response);
 });
 
@@ -506,6 +514,9 @@ $app->post('/getUserDataById', function() use ($app) {
 	}else{
 		$response["user_data"] = $obj->getUserDataById();
 	}
+        $obj = new Common();
+        $countryData = $obj->countryList();
+        $response["countryData"] = $countryData;
 	//$response["user_data"] = $obj->getDriverDataById();
 	//$response["user_data"] = $obj->getUserDataById();
 	echoResponse(200, $response);
@@ -1106,11 +1117,16 @@ $app->post('/getAllCustomerData', function() use ($app) {
     $r = json_decode($app->request->getBody());
 	$obj = new Customer($r);
 	if(isset($r->user_code) && $r->user_code == 'super_admin'){
-		$response = $obj->getAllCustomerData($r);
+		$response["customer_data"] = $obj->getAllCustomerData($r);
 	}
 	else{
-		$response = $obj->getCustomerDataByCompanyId($r);
+		$response["customer_data"] = $obj->getCustomerDataByCompanyId($r);
 	}
+        
+        $obj = new Common();
+        $countryData = $obj->countryList();
+        $response["countryData"] = $countryData;	
+        
 	echoResponse(200, $response);
 });
 $app->post('/getAllMasterRowData', function() use ($app) {
@@ -1269,9 +1285,15 @@ $app->post('/customerdetail', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','customer_id','user_id'),$r);
     $obj = new Customer($r);
-    $response = $obj->customerdetail($r);
+    $response['customer_data'] = $obj->customerdetail($r);
+    
+    $obj = new Common();
+    $countryData = $obj->countryList();
+    $response["countryData"] = $countryData;
+    
     echoResponse(200, $response);
 });
+
 $app->post('/editCustomerPersonalDetails', function() use ($app){
 	$r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','customer_id'),$r);
@@ -1404,11 +1426,15 @@ $app->post('/addAddress', function() use ($app) {
 });
 
 $app->post('/getAddressDataById', function() use ($app) {
-	$response = array();
+    $response = array();
     $r = json_decode($app->request->getBody());
-	$obj = new Customer($r);
+    $obj = new Customer($r);
     $response["address_data"] = $obj->getAddressDataById($r);
-	echoResponse(200, $response);
+    
+    $obj = new Common();
+    $countryData = $obj->countryList();
+    $response["countryData"] = $countryData;
+    echoResponse(200, $response);
 });
 
 $app->post('/deleteUserById', function() use ($app) {
