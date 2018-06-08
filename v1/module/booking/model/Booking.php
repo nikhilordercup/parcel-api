@@ -275,5 +275,29 @@ class Booking_Model_Booking
         $sql = "SELECT CCCT.company_courier_account_id AS account_id, CCCT.courier_id AS carrier_id, CCCT.account_number FROM  `icargo_courier_vs_company_vs_customer` AS CCCT WHERE CCCT.customer_id='$customer_id' AND CCCT.company_id = '$company_id' AND CCCT.status = 1 AND CCCT.company_courier_account_id IN($carrier_acccount)";
         return $this->_db->getAllRecords($sql);
     }
+	
+	public function getShipmentDataByLoadIdentity($loadIdentity){
+		$sql = "SELECT * FROM  ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT'";
+        return $this->_db->getAllRecords($sql);
+	}
+	
+	public function getPackageDataByLoadIdentity($loadIdentity){
+		$sql = "SELECT * FROM  ".DB_PREFIX."shipments_parcel AS PT WHERE PT.instaDispatch_loadIdentity='$loadIdentity' AND parcel_type='D'";
+        return $this->_db->getAllRecords($sql);
+	}
+	
+	public function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity){
+		//$sql = "SELECT carrier_account_number FROM ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND shipment_service_type='D'";
+        //$accountNumber = $this->_db->getOneRecord($sql);
+		$sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM ".DB_PREFIX."courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
+		$credentailData = $this->_db->getRowRecord($sql);
+		//$credentailData['account_number'] = $accountNumber['carrier_account_number'];
+		return $credentailData;
+	}
+	
+	public function getServiceDataByLoadIdentity($loadIdentity){
+		$sql = "SELECT SST.service_name,SST.currency,CST.service_code FROM ".DB_PREFIX."shipment_service AS SST INNER JOIN ".DB_PREFIX."courier_vs_services AS CST ON SST.service_name = CST.service_name WHERE SST.load_identity='$loadIdentity'";
+		return $this->_db->getRowRecord($sql);
+	}
 }
 ?>
