@@ -25,9 +25,14 @@ $app->Post('/getDriverCompanyData', function() use ($app) {
 $app->post('/getDriverDataById', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
-	$obj = new Company($r);
-	$response["user_data"] = $obj->getDriverDataById();
-	echoResponse(200, $response);
+    $obj = new Company($r);
+    $response["user_data"] = $obj->getDriverDataById();
+    
+    $obj = new Common();
+    $countryData = $obj->countryList();
+    $response["countryData"] = $countryData;
+    
+    echoResponse(200, $response);
  
 });
 
@@ -102,10 +107,10 @@ $app->post('/getAllDriverData', function() use ($app) {
 	
 	//$response = $obj->getAllDriverDataByWarehouseId($r);
 	if(isset($r->user_code) && $r->user_code == 'super_admin'){
-		$response = $obj->getAllDriverData($r);
+		$response['driver_data'] = $obj->getAllDriverData($r);
 	}
 	else{
-		$response = $obj->getDriverDataByCompanyAndWarehouseId($r);
+		$response['driver_data'] = $obj->getDriverDataByCompanyAndWarehouseId($r);
 		//$response = $obj->getDriverDataByCompanyId($r);
 	}
 	
@@ -114,6 +119,11 @@ $app->post('/getAllDriverData', function() use ($app) {
 		
 		//$response = $obj->getDriverDataByControllerId($r);
 	}*/
+        
+	$obj = new Common();
+        $countryData = $obj->countryList();
+        $response["countryData"] = $countryData;
+        
 	echoResponse(200, $response);
 });
 
