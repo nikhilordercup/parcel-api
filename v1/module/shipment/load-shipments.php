@@ -55,8 +55,14 @@ class loadShipment extends Library
         if (isset($param['routetype'])) {
             $this->routetype = strtoupper($param['routetype']);
         }
-         
-        
+
+        if (isset($param['start_date'])) {
+            $this->startDate = date("Y-m-d H:i:s", strtotime($param['start_date']));
+        }
+
+        if (isset($param['end_date'])) {
+            $this->endDate = date("Y-m-d H:i:s", strtotime($param['end_date']));
+        }
 
         $this->drop_type = array(
             "vendor_d" => "N/D",
@@ -352,23 +358,23 @@ class loadShipment extends Library
 
     private function _get_same_day_data()
     { //LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.shipment_id=s.shipment_id  , t.transit_distance_text, t.transit_time_text
-        $records = $this->db->getAllRecords("SELECT b.postcode, s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+        /*$records = $this->db->getAllRecords("SELECT b.postcode, s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time,
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
         instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
         shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
         distancemiles AS distance_miles, estimatedtime AS estimated_time, b.address_line1, b.address_line2, b.latitude, b.longitude, s.icargo_execution_order
         FROM " . DB_PREFIX . "shipment AS s
         INNER JOIN " . DB_PREFIX . "address_book AS b on s.address_id=b.id WHERE s.current_status = 'C' AND 
-        s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")");
-
-        /*$records = $this->db->getAllRecords("SELECT s.shipment_postcode as postcode, s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+        s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")");*/
+        $sql = "SELECT s.shipment_postcode as postcode, s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
         instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
         shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
         distancemiles AS distance_miles, estimatedtime AS estimated_time, s.shipment_address1 as address_line1, s.shipment_address1 as address_line2, s.shipment_latitude as latitude, s.shipment_longitude as longitude, s.icargo_execution_order
         FROM " . DB_PREFIX . "shipment AS s
         WHERE s.current_status = 'C' AND 
-        s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")");*/
+        s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND s.shipment_create_date BETWEEN '$this->startDate' AND '$this->endDate' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";
+        $records = $this->db->getAllRecords($sql);
         $data = $this->_prepare_sameday_data($records);
 
         return $data;
@@ -376,7 +382,7 @@ class loadShipment extends Library
 
     private function _get_customer_same_day_data()
     {//LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.shipment_id=s.shipment_id , t.transit_distance, t.transit_time 
-        $sql = "SELECT b.postcode,b.address_line1,b.address_line2,b.city,b.state,b.country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+        $sqlOld = "SELECT b.postcode,b.address_line1,b.address_line2,b.city,b.state,b.country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
         instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
         shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
@@ -392,7 +398,7 @@ class loadShipment extends Library
         FROM " . DB_PREFIX . "shipment AS s LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.load_identity=s.instaDispatch_loadIdentity WHERE s.current_status = 'C' AND 
         s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND t.customer_id='$this->user_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";*/
 
-        $sqlBKP = "SELECT s.shipment_postcode as postcode,s.shipment_address1 as address_line1,s.shipment_address2 as address_line2,s.shipment_customer_city as city,s.shipment_county as state,s.shipment_customer_country as country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+        $sql = "SELECT s.shipment_postcode as postcode,s.shipment_address1 as address_line1,s.shipment_address2 as address_line2,s.shipment_customer_city as city,s.shipment_county as state,s.shipment_customer_country as country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
         instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
         shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
