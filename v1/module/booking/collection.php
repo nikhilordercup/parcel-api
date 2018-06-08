@@ -7,6 +7,17 @@
  */
 final Class Collection{
 
+    public static $_collectionObj = null;
+
+    public
+
+    static function _getInstance(){
+        if(self::$_collectionObj==null){
+            self::$_collectionObj = new Collection();
+        }
+        return self::$_collectionObj;
+    }
+
     public
 
     function __construct(){
@@ -58,10 +69,39 @@ final Class Collection{
         return array("carrier_list"=>$this->collectionList, "regular_pickup"=>$this->isRegularPickup);
     }
 
+    public
+
+    function getCarrierAccountList($carriers, $address, $customer_id, $company_id, $collection_date){
+        $this->carriers          = $carriers;
+        $this->collectionAddress = $address;
+        $this->customerId        = $customer_id;
+        $this->companyId         = $company_id;
+        $this->today             = date("Y-m-d", strtotime("now"));
+
+        $this->collectionDateTimestamp = strtotime($collection_date);
+
+        $this->collectionDate    = date("Y-m-d H:i", $this->collectionDateTimestamp);
+
+        $this->_getCollectionAddressString();
+
+        $this->_findCourier($this->carriers);
+
+        $result = array();
+        if(count($this->carrierList)>0){
+            foreach($this->carrierList as $item){
+                array_push($result, $item);
+            }
+
+            $this->_findInternalCourier();
+            array_push($result, $this->internalCarrier);
+        }
+        return $result;
+    }
+
     private
 
     function _findList(){
-        //$this->_findInternalCourier();
+        $this->_findInternalCourier();
         $this->_findCourier($this->carriers);
     }
 
@@ -157,7 +197,7 @@ final Class Collection{
                 $collectionList["collected_by"][] = array(
                     "carrier_code"         => $collectionList["carrier_code"],
                     "account_number"       => $collectionList["account_number"],
-                    "is_internal"             => $collectionList["internal"],
+                    "is_internal"          => $collectionList["internal"],
                     "name"                 => $collectionList["name"],
                     "icon"                 => $collectionList["icon"],
                     "pickup_surcharge"     => $collectionList["pickup_surcharge"],
@@ -170,8 +210,11 @@ final Class Collection{
                 );
             }
                 //else{
-                /*$collectionList["collected_by"][] = array(
+            if(isset($this->internalCarrier)){
+                $collectionList["collected_by"][] = array(
                     "carrier_code"         => $this->internalCarrier["carrier_code"],
+                    "account_number"       => $this->internalCarrier["account_number"],
+                    "is_internal"          => $this->internalCarrier["internal"],
                     "name"                 => $this->internalCarrier["name"],
                     "icon"                 => $this->internalCarrier["icon"],
                     "pickup_surcharge"     => $this->internalCarrier["pickup_surcharge"],
@@ -181,16 +224,17 @@ final Class Collection{
                     "is_regular_pickup"    => $this->isRegularPickup,
                     "carrier_id"           => $this->internalCarrier["carrier_id"],
                     "pickup"               => $this->internalCarrier["pickup"]
-                );*/
+                );
+            }
             //}
 
             $this->collectionList[] = $collectionList;
             //}
-            $this->carrierList[$item["carrier_id"]] = $item;
+            $this->carrierList[$item["account_number"]] = $item;
         }
     }
 
-    /*private
+    private
 
     function _findInternalCourier(){
         $internalCarrier = $this->_getInternalCarrier();
@@ -219,12 +263,17 @@ final Class Collection{
                 $this->internalCarrier = $this->_prepareCollectionList($internalCarrier);
             }
         }
-    }*/
+    }
 
     private
 
     function _getAddressString($address){
-        $address = strtolower(preg_replace('/[\s]+/mu', '', $address["street1"].$address["city"].$address["zip"].$address["country_name"]));
+        $street1 = (isset($address["street1"])) ? $address["street1"] : "";
+        $city = (isset($address["city"])) ? $address["city"] : "";
+        $zip = (isset($address["zip"])) ? $address["zip"] : "";
+        $country_name = (isset($address["country_name"])) ? $address["country_name"] : "";
+
+        $address = strtolower(preg_replace('/[\s]+/mu', '', $street1.$city.$zip.$country_name));
         return $address;
     }
 
@@ -254,13 +303,15 @@ final Class Collection{
     private
 
     function _findInOperationalArea(){
-        $operationalArea = $this->modelObj->getCourierOperationalArea($this->companyId);
+        if(isset($this->collectionAddress["zip"])){
+            $operationalArea = $this->modelObj->getCourierOperationalArea($this->companyId);
 
-        $needle = $this->collectionAddress["zip"];
+            $needle = $this->collectionAddress["zip"];
 
-        $data = $this->findInOperationalArea($operationalArea, $needle);
+            $data = $this->findInOperationalArea($operationalArea, $needle);
 
-        return $operationalArea[$data];
+            return $operationalArea[$data];
+        }
     }
 
     private
