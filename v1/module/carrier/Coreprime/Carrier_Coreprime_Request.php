@@ -35,10 +35,10 @@ Class Carrier_Coreprime_Request{
 
     private function _send($url, $data_string){
         $url = "$this->access_url/$url";
+//print_r($url);die;
+        //echo $data_string;die;
 
-        echo $data_string;die;
-
-        $ch = curl_init($this->access_url);
+        $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -49,7 +49,7 @@ Class Carrier_Coreprime_Request{
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec ($ch);
-print_r($server_output);die;
+		//print_r($server_output);die;
         curl_close ($ch);
         return $server_output;
     }

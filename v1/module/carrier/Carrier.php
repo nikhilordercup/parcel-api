@@ -24,12 +24,14 @@ class Carrier{
 				//$response['ship_date'] = $data['shipment_required_service_date'];
 			}
 		}
+
 		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($response['carrier']));
 
 		$carrierObj = new $coreprimeCarrierClass();
 		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
-		$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
-		print_r($finalRequestArr);die;
+		return array("status"=>"success","file_path"=>$shipmentInfo['file_path']);
+		//$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
+		
 		/* $response['package'] = $this->getPackageInfo($loadIdentity);
 		$serviceInfo = $this->getServiceInfo($loadIdentity);
 		$response['currency'] = $serviceInfo['currency'];

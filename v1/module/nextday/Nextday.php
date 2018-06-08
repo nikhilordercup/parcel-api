@@ -290,7 +290,6 @@ final class Nextday extends Booking
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
-print_r($this->data);die;
             if(count($this->data)>0){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
@@ -412,8 +411,7 @@ print_r($this->data);die;
     }
 	
     public function saveBooking(){
-		//get label
-		$labelInfo = $this->getLabelFromLoadIdentity('ICARGOS180080');
+		
 		
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         //print_r($this->_param->service_opted->collection_carrier);die;
@@ -538,16 +536,17 @@ print_r($this->data);die;
 		
 		/*************call label generation method************/
 
-
+		$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity);
 		
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
+        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
     }
 
 	public function getLabelFromLoadIdentity($loadIdentity){
 		/* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation*/
 		$carrierObj = new Carrier();
 		$bookingInfo = $carrierObj->getShipmentInfo($loadIdentity);
-		print_r($bookingInfo);die;
+		return array("status"=>"success","file_path"=>$bookingInfo['file_path']);
+		//print_r($bookingInfo);die;
 	}
 	}
 ?>

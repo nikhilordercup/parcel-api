@@ -17,17 +17,50 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 	//get currency
 	//carrier
 	//service code
-	public function getLabel($shipmentInfo,$loadIdentity){
+	/* public function getLabel($shipmentInfo,$loadIdentity){
 		//address data
 		
 		//collectiondate
 		
 		
-	}
+	} */
 
-	private function _getLabel($json_data){
+	private function _getLabel($loadIdentity,$json_data){
         $obj = new Carrier_Coreprime_Request();
-        $obj->_postRequest("label",$json_data);
+        $label = $obj->_postRequest("label",$json_data);
+		//print_r($label);die;
+		$labelArr = json_decode($label);
+		$pdf_base64 = $labelArr->label->base_encode;
+		$labels = explode(",",$labelArr->label->file_url);
+		//print_r($label);die;
+		//Get File content from txt file
+		//$pdf_base64_handler = fopen($pdf_base64,'r');
+		//$pdf_content = fread ($pdf_base64_handler,filesize($pdf_base64));
+		//fclose ($pdf_base64_handler);
+		$label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))).'/label/';
+		$file_url = mkdir($label_path.$loadIdentity.'/ukmail/', 0777, true);
+		foreach($labels as $dataFile){
+			$dataFile = explode(".",$dataFile);
+			$dataFile = $dataFile[0].'.png';
+			//print_r($label_path);die;
+			$file_name = $label_path.$loadIdentity.'/ukmail/'.$dataFile;
+			$data = base64_decode($pdf_base64);
+			file_put_contents($file_name,$data);
+			header('Content-Type: application/image');
+		}
+		$flabel = explode(".",$labels[0]);
+		//echo $file_name;
+		return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://localhost/projects/api/label/".$loadIdentity.'/ukmail/'.$flabel[0].'.png');
+		
+		/* //Decode pdf content
+		$pdf_decoded = base64_decode ($pdf_base64);
+		//Write data back to pdf file
+		$pdf = fopen ($file_url.'/ukmail-1-41141060000087.png','w');
+		fwrite ($pdf,$pdf_decoded);
+		//close output file
+		fclose ($pdf);
+		echo 'Done'; */
+		/* print_r($labelArr->label->base_encode); */die;
     }
 	
 	public function getShipmentDataFromCarrier($loadIdentity){
@@ -65,7 +98,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 		$response['method_type'] = "post";
 		/**********end of static data from requet json ***************/
         //print_r($response);die;
-		return $this->_getLabel(json_encode($response));
+		return $this->_getLabel($loadIdentity,json_encode($response));
 		//return $response;
 		
 	}
@@ -86,13 +119,24 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 	
 	public function getCredentialInfo($carrierAccountNumber, $loadIdentity){
 		$credentialData = array();
-		$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
+		//$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
+		
+		$credentialInfo["username"] = "mark.parrett@fieldfaretrailers.co.uk";
+		$credentialInfo["password"] = "Trailers1";
+		$credentialInfo["authentication_token"] = "";
+		$credentialInfo["authentication_token_created_at"] = "";
+		$credentialInfo["token"] ="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0";
+		$credentialInfo["account_number"] ="D919022";
+		$credentialInfo["master_carrier_account_number"] = "";
+        $credentialInfo["latest_time"] = "17:00:00";
+		$credentialInfo["earliest_time"]="14:00:00";
+		$credentialInfo["carrier_account_type"] = array("1");
 
-        $credentialInfo["account_number"] = $carrierAccountNumber;
+        /* $credentialInfo["account_number"] = $carrierAccountNumber;
 		$credentialInfo["master_carrier_account_number"] = "";
 		$credentialInfo["latest_time"] = "";
 		$credentialInfo["earliest_time"] = "";
-		$credentialInfo["carrier_account_type"] = array("1");
+		$credentialInfo["carrier_account_type"] = array("1"); */
 		return $credentialInfo;
 	}
 	
