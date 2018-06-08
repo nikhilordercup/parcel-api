@@ -60,24 +60,31 @@ $app->post('/getWarehouseListByControllerId', function() use ($app) {
 $app->post('/getControllerData', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
-	$r->user_level = '2,3';
-	$obj = new Controller($r);
-	$response["user_data"] = $obj->getUserDataByUserId($r);
-	echoResponse(200, $response);
+    $r->user_level = '2,3';
+    $obj = new Controller($r);
+    $response["user_data"] = $obj->getUserDataByUserId($r);
+
+    $obj = new Common();
+    $response['countryData'] = $obj->countryList();
+
+    echoResponse(200, $response);
 });
 $app->post('/getAllControllerData', function() use ($app) {
     //$response = array();
     $r = json_decode($app->request->getBody());
-	$obj = new Controller($r);
-	if($r->user_code == 'super_admin'){
-		$response = $obj->getAllControllerData($r);
-	}
-	else
-		$response = $obj->getControllerDataByCompanyAndWarehouseId($r);
-		//$response = $obj->getControllerDataByCompanyId($r);
-	
-	echoResponse(200, $response);
+    $obj = new Controller($r);
+    if($r->user_code == 'super_admin'){
+            $response = $obj->getAllControllerData($r);
+    } else {
+            $response = $obj->getControllerDataByCompanyAndWarehouseId($r);
+    }
+            //$response = $obj->getControllerDataByCompanyId($r);
+    $obj = new Common();
+    $countryData = $obj->countryList();
+    echoResponse(200, array("controller_data"=>$response,"countryData"=>$countryData));
+        
 });
+
 $app->post('/addcontroller', function() use ($app) {
 	require_once 'passwordHash.php';
 	$r = json_decode($app->request->getBody());
