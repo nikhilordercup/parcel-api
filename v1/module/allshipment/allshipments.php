@@ -120,7 +120,8 @@ class allShipments extends Icargo{
         }   
            
         $html3 .= " AND S.instaDispatch_loadIdentity  IN(" .'"'.implode('","',$identityarray) .'"'. ") "; 
-        $shipmentsData = $this->modelObj->getAllShipments($html3.$html2); 
+        //$shipmentsData = $this->modelObj->getAllShipments($html3.$html2);
+        $shipmentsData = $this->modelObj->getAllShipments($html3); 
        }
        if($html2=='' && $html==''){  // Both Serch's Data not coming
            $limitstr = "LIMIT ".$param->datalimitpre.", ".$param->datalimitpost.""; 
@@ -1103,7 +1104,9 @@ class allShipments extends Icargo{
         }
     } 
     
-    
+    public function cancelJob($param){
+        print_r($param);die;
+    }
     
   
 
@@ -1244,7 +1247,10 @@ class allShipments extends Icargo{
      return $returnTax;
      }
     
-    
+     public function getAllCarrier($param){
+         $data =  $this->modelObj->getAllCarrier($param->company_id);
+          return $data; 
+	}
     
     
     

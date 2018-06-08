@@ -496,6 +496,7 @@ class shipment extends Library{
 		$shipmentData['instaDispatch_loadGroupTypeIcon'] = $data['loadGroupTypeIcon'];
 		$shipmentData['instaDispatch_loadGroupTypeCode'] = 'Vendor';
 		$shipmentData['instaDispatch_loadGroupTypeName'] = 'Vendor';
+        $shipmentData['is_internal'] = '1';
 		$shipmentData['instaDispatch_customerReference'] = $data['customerReference'];
 		$shipmentData['waitAndReturn'] = $data['waitAndReturn'];
 		$shipmentData['company_id'] = $this->company_id;
@@ -1074,6 +1075,7 @@ class shipment extends Library{
             $data['shipment_instruction'] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
             $data['carrier_code'] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
+            $data['carrier_account_number'] = (isset($param["carrier_account_number"])) ? $param["carrier_account_number"] : "";
 
 
             //save address first then save shipment detail with address id
@@ -1462,6 +1464,7 @@ class shipment extends Library{
         $_data["shipment_instruction"] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
         $_data["carrier_code"] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
+        $_data["carrier_account_number"] = (isset($param["account_number"])) ? $param["account_number"] : "";
         
         
 
