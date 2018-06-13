@@ -122,7 +122,7 @@ public function getAllCourierServicesForCustomer($company_id,$courier_id){
               INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id  AND B.company_id = ".$company_id." 
               INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id 
               WHERE L.company_id = ".$company_id." AND  L.courier_id = ".$courier_id."
-              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 ";
+              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 AND  B.id = ".$courier_id." ";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;
     }
@@ -142,7 +142,6 @@ public function checkServiceExistFromCustomerAccount($service_id,$company_servic
    } 
                 
 
-
 public function getAllCourierSurchargeForCustomer($company_id,$courier_id){
      $record = array();
 	 $sqldata ='L.id,L.surcharge_id,L.courier_id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,
@@ -152,7 +151,7 @@ public function getAllCourierSurchargeForCustomer($company_id,$courier_id){
               INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$company_id." 
               INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id
               WHERE L.company_id = ".$company_id." AND  L.courier_id = ".$courier_id."
-              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1";
+              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 AND  B.id = ".$courier_id." ";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;    
     }

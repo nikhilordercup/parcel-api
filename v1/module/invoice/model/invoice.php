@@ -61,7 +61,8 @@ class AllInvoice_Model
                     CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = I.customer_id
-                    WHERE I.company_id  = '" . $componyId . "'";
+                    WHERE I.company_id  = '" . $componyId . "'
+                    ORDER BY I.id DESC";
         $record = $this->db->getAllRecords($sql);
         return $record;
      }
@@ -92,7 +93,8 @@ class AllInvoice_Model
                 AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')
                 ".$customerfilter."
                 AND DATE_FORMAT(S.shipment_create_date,'%Y-%m-%d') between '" . $from . "' AND '" . $to . "'
-                AND S.company_id = '" .$companyId ."' 
+                AND S.company_id = '" .$companyId ."'
+                AND S.shipment_service_type = 'P'
                 ORDER BY A.customer_id"; 
         $record = $this->db->getAllRecords($sql);
         return $record; 
