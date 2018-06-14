@@ -201,6 +201,8 @@ class Route_Assign
     private
     function _save_and_assign_to_driver()
         {
+        $obj = new Firebase_Route_Assign(array());
+        $obj->getCurrentAssignedRouteData();die;
         $samedayshipmentticket = '';
         $timeStamp = strtotime($this->start_time);
         $getRouteDetails = $this->modelObj->getRouteDetails($this->tickets_str, $this->access_token);//$this->_get_route_details();

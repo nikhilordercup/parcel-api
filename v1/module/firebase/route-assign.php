@@ -5,14 +5,19 @@ class Firebase_Route_Assign extends Firebase
 	private $_shipment_route_id;
 	private $_load_scan_flag= true;
     private $_route_type= "delivery";
-	
+
     public function __construct($param)
     {
+        //testing fcm
+
+        //$notification = new Push_Notification_Index(array("device_token_id"=>array("ef49HtPuxRg:APA91bGZHtBghcXBQ28qDvRI8pbLO-bj88pkXew_RCydGD6jiXGdVZaEIyMLtDBw_FHR1UjsADuFwJzDtoMSB7hOY1zdAN16TpEgQ3nZOUNO_zZWZP8e_ZlgI4_Zimpb9MJ5Bm9QswxE")));
+
+        //$notification->sendRouteAssignNotification();die;
+
         $this->fbObj = parent::__construct(array(
             "shipment_route_id" => $param['route_id'],
             "driver_id" => $param['driver_id']
         ));
-        
         if(isset($param['warehouse_id'])){
             $this->_setWarehouseId($param['warehouse_id']);
         }
