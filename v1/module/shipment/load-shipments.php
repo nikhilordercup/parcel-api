@@ -1296,13 +1296,20 @@ class loadShipment extends Library
 		$sameDayCount = 0;
 		$nextDayCount = 0;
 		$countArr = array();
+        $temp = array('NEXT'=>array(),'SAME'=>array());
 		foreach($records as $record){
-			if(strtolower($record['instaDispatch_loadGroupTypeCode'])=='same')
+			if(strtolower($record['instaDispatch_loadGroupTypeCode'])=='same'){
+                array_push($temp['SAME'],$record['instaDispatch_loadIdentity']);
 				$sameDayCount++;
-			else
-				$nextDayCount++;
-		}
-		$countArr = array('nextdaycount'=>$nextDayCount,'samedaycount'=>$sameDayCount);
+			}else{
+				 if($record['is_internal']=='1'){
+				    $nextDayCount++;
+                 }
+                // array_push($temp['NEXT'],$record['instaDispatch_loadIdentity']);
+		  }
+        }
+		//$countArr = array('nextdaycount'=>$nextDayCount,'samedaycount'=>$sameDayCount);
+        $countArr = array('nextdaycount'=>$nextDayCount,'samedaycount'=>count(array_unique($temp['SAME'])));
 		return $countArr;
 	}
 

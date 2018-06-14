@@ -290,7 +290,6 @@ final class Nextday extends Booking
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
-print_r($this->data);die;
             if(count($this->data)>0){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
@@ -356,7 +355,7 @@ print_r($this->data);die;
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P",$loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
@@ -418,7 +417,7 @@ print_r($this->data);die;
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D", $loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
@@ -434,7 +433,7 @@ print_r($this->data);die;
         $this->commitTransaction();
         // call label generation method
 
-        print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
+       // print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
 
         
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");

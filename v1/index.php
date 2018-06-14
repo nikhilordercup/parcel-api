@@ -192,7 +192,7 @@ EOD;
     //echo "Decode:\n" . print_r($decoded_array, true) . "\n";
 
     // Http response code
-    $app->status($status_code);
+    //$app->status($status_code);
 
     // setting response content type to json
     $app->contentType('application/json');

@@ -261,16 +261,16 @@ class Booking extends Icargo
 
     protected
 
-    function _saveParcel($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type){
+    function _saveParcel($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type,$loadidentity){
         $parcel = (object)$parcel;
         $parcelTicketNumber = $this->modelObj->generateParcelTicketNumber($company_id);
         $parcelData = array();
         $parcelData['shipment_id'] = $shipment_id;
 
-        $parcelData['instaDispatch_Identity'] = $shipment_ticket ;
-        $parcelData['instaDispatch_pieceIdentity'] = $shipment_ticket;
-        $parcelData['instaDispatch_jobIdentity'] = $shipment_ticket;
-        $parcelData['instaDispatch_loadIdentity'] = $shipment_ticket;
+        $parcelData['instaDispatch_Identity'] = $loadidentity ;
+        $parcelData['instaDispatch_pieceIdentity'] = $loadidentity;
+        $parcelData['instaDispatch_jobIdentity'] = $loadidentity;
+        $parcelData['instaDispatch_loadIdentity'] = $loadidentity;
         $parcelData['shipment_ticket'] = $shipment_ticket;
 
         $parcelData['package']       = $parcel->package_code;
