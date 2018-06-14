@@ -12,19 +12,26 @@ use sngrl\PhpFirebaseCloudMessaging\Message;
 use sngrl\PhpFirebaseCloudMessaging\Recipient\Device;
 use sngrl\PhpFirebaseCloudMessaging\Notification;
 
+require_once 'model/Push_Notification_Model_Index.php';
+
 class Push_Notification_Index
 {
 
-    public function __construct($param){
-        if(!isset($param["device_token_id"])){
-            return "Device token missing";
+    public function __construct($param)
+    {
+        if(!isset($param["user_id"])){
+            return "User id not found";
         }
 
-        else if(count($param["device_token_id"])==0){
-            return "Device token missing";
-        }
+        $this->user_id = $param["user_id"];
 
-        $this->device_tokens = $param["device_token_id"];
+        $this->modelObj = new Push_Notification_Model_Index();
+
+    }
+
+    private function _getDeviceTokens()
+    {
+        return $this->modelObj->getDeviceTokenByUserId(implode(",", $this->user_id));
     }
 
     public function sendRouteAssignNotification()
@@ -44,8 +51,10 @@ class Push_Notification_Index
         $message = new Message();
         $message->setPriority('high');
 
-        foreach($this->device_tokens as $device_token){
-            $message->addRecipient(new Device($device_token));
+        $deviceTokens = $this->_getDeviceTokens();
+
+        foreach($deviceTokens as $device_token){
+            $message->addRecipient(new Device($device_token["device_token_id"]));
         }
 
         $message

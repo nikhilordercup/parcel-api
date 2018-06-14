@@ -4,6 +4,7 @@ require_once 'process-driver.php';
 require_once 'process-form.php';
 require_once 'optimize-route.php';
 require_once 'logout.php';
+require_once 'Ws_Credential_Info.php';
 
 class Idriver{
     
@@ -13,7 +14,7 @@ class Idriver{
     }
     
     public function services($params)
-    { 
+    {
         if(isset($params->service))
         {
             switch($params->service)
@@ -58,7 +59,8 @@ class Idriver{
 				case 'logout' :
 					return $this->_logout($params);
 				break;  
-                    
+                case 'save/user-credential-info' :
+                    return $this->_saveCredentialInfo($params);
                     
             }   
         }
@@ -145,5 +147,11 @@ class Idriver{
 		$obj = new Driver_Logout($params);
 		$obj->clearAccessToken();
 	}
+
+	private function _saveCredentialInfo($params)
+    {
+        $obj = new Ws_Credential_Info();
+        $obj->saveCredentialInfo(array("device_token_id"=>$params->device_token_id, "user_code"=>$params->user_code, "company_id"=>$params->company_id));
+    }
 }
 ?>

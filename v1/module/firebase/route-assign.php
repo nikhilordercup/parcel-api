@@ -8,12 +8,6 @@ class Firebase_Route_Assign extends Firebase
 
     public function __construct($param)
     {
-        //testing fcm
-
-        //$notification = new Push_Notification_Index(array("device_token_id"=>array("ef49HtPuxRg:APA91bGZHtBghcXBQ28qDvRI8pbLO-bj88pkXew_RCydGD6jiXGdVZaEIyMLtDBw_FHR1UjsADuFwJzDtoMSB7hOY1zdAN16TpEgQ3nZOUNO_zZWZP8e_ZlgI4_Zimpb9MJ5Bm9QswxE")));
-
-        //$notification->sendRouteAssignNotification();die;
-
         $this->fbObj = parent::__construct(array(
             "shipment_route_id" => $param['route_id'],
             "driver_id" => $param['driver_id']
@@ -146,8 +140,14 @@ class Firebase_Route_Assign extends Firebase
         
         //driver data
         $driver_data = $this->_getUserById($this->_getDriverId());
-        
-		return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
+
+        $notification = new Push_Notification_Index(array("user_id"=>array($this->_getDriverId())));
+
+        $notification->sendRouteAssignNotification();
+
+
+
+        return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
     }
 	
 	private function _shipmentDrops($shipmentDrops)
