@@ -164,7 +164,7 @@ class Ws_Model_Rest
 
     public function get_available_shipment_for_service_by_shipment_route_id($shipment_routed_id)
     {
-        $sql = "SELECT shipment_ticket AS shipment_ticket FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id = '$shipment_routed_id' AND is_driver_accept = 'YES' AND (current_status != 'D' OR current_status != 'Ca')";
+        $sql = "SELECT shipment_ticket AS shipment_ticket,warehouse_id FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id = '$shipment_routed_id' AND is_driver_accept = 'YES' AND (current_status != 'D' OR current_status != 'Ca')";
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
