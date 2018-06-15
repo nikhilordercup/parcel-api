@@ -152,6 +152,7 @@ class Idriver{
     {
         $obj = new Ws_Credential_Info();
         $obj->saveCredentialInfo(array("device_token_id"=>$params->device_token_id, "user_code"=>$params->user_code, "company_id"=>$params->company_id));
+        return array("status"=>"success", "message"=>"device token captured");
     }
 }
 ?>
