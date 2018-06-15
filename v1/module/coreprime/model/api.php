@@ -62,18 +62,16 @@ class Coreprime_Model_Api
         return $this->_db->getAllRecords($sql);
     }
      public
-
-    function getCarrierIdByCode($code)
-    {
-        $sql = "SELECT id FROM " . DB_PREFIX . "courier WHERE code = '$code'";
+    function getCarrierIdByCode($companyId,$customerid,$account)
+    {  
+        //$sql = "SELECT id FROM " . DB_PREFIX . "courier WHERE code = '$code'";
+        $sql = "SELECT company_courier_account_id as id FROM " . DB_PREFIX . "courier_vs_company_vs_customer WHERE account_number = '$account' AND customer_id = '$customerid' AND company_id = '$companyId' ";
         return $this->_db->getRowRecord($sql);
     }
-public function getCustomerChargeFromBase($customerId)
+ public function getCustomerChargeFromBase($customerId)
     {
         $sql = "SELECT charge_from_base FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customerId'";
         return $this->_db->getRowRecord($sql);
    
     }
-    
-    
 }

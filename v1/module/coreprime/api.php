@@ -62,6 +62,7 @@ class Module_Coreprime_Api extends Icargo
                                         $res = $this->_calculateSamedayServiceccf($servicecode,$item['rate'],$carrier['id'],$customer_id,$company_id);
                                         $res['service_options'] = $item['service_options'];
                                         $res['taxes'] = $item['taxes'];
+                                        $res['info']['accountkey'] = $accountkey;
                                         $res['ccf_surcharges'] = new StdClass();
                                         $res['ccf_surcharges']->alldata = array();
                                         foreach ($item['surcharges'] as $surcharge_code => $price) {

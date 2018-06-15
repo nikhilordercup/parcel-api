@@ -1,5 +1,6 @@
 <?php
 require_once 'constant.php';
+require_once '../Credentials.php';
 require_once 'dbHandler.php';
 require_once 'passwordHash.php';
 require_once 'array_column.php';
@@ -57,6 +58,8 @@ require_once 'module/shipment/load-route-details.php';
 require_once 'module/company/company.php';
 require_once 'module/company/setup.php';
 require_once 'module/ws/idriver.php';
+
+require_once 'module/push_notification/Push_Notification_Index.php';
 
 require_once 'module/firebase/model/rest.php';
 require_once 'module/firebase/firebase.php';
@@ -152,7 +155,7 @@ function verifyRequiredParams($required_fields,$request_params) {
     }
 }
 
-function echoResponse($status_code, $response) {//print_r($response);die;
+function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
 
     $privateKey = <<<EOD
@@ -195,7 +198,7 @@ EOD;
     $app->status($status_code);
 
     // setting response content type to json
-    $app->contentType('application/json');
+    //$app->contentType('application/json');
 
     echo $jwtString;
     //echo json_encode($response);
