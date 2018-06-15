@@ -139,7 +139,7 @@ class Idriver{
         $params->loadActionCode = 'SAVE-GPS-LOCATION';
         $obj = new Process_Route($params);
         $data = $obj->route_action();
-        return $data;
+        return array("status"=>"success", "message"=>$data);
     }
 	
 	private function _logout($params)
