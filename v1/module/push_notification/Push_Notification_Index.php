@@ -38,6 +38,8 @@ class Push_Notification_Index
     {
         $credentials = new Credentials();
 
+        $error = true;
+
         $server_key = $credentials->getFcmServerKey();
         $client = new Client();
 
@@ -54,15 +56,20 @@ class Push_Notification_Index
         $deviceTokens = $this->_getDeviceTokens();
 
         foreach($deviceTokens as $device_token){
-            $message->addRecipient(new Device($device_token["device_token_id"]));
+            if($device_token["device_token_id"]!=""){
+                $error = false;
+                $message->addRecipient(new Device($device_token["device_token_id"]));
+            }
         }
 
         $message
             ->setNotification($notification)
-            ->setData(['key' => 'value'])
-        ;
+            ->setData(['key' => 'value']);
 
-        $response = $client->send($message);
+        if(!$error){
+            $response = $client->send($message);
+        }
+
         //var_dump($response->getStatusCode());
         //var_dump($response->getBody()->getContents());
     }
