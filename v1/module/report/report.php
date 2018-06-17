@@ -153,11 +153,16 @@ class Report extends Icargo{
 		foreach($reportData as $driverId=>$item){
 			$shipment_route_id = implode(',',array_unique($item['shipment_route_id']));
 			$driverName = $this->_parentObj->db->getRowRecord("SELECT name FROM " . DB_PREFIX . "users WHERE id = $driverId");
-			$shipmentId = $this->_parentObj->db->getAllRecords("SELECT shipment_id FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id IN($shipment_route_id)");
-	        foreach($shipmentId as $id){
-				$totalMiles = $this->_parentObj->db->getRowRecord("SELECT SUM(transit_distance) as total_transit_distance FROM " . DB_PREFIX . "shipment_service WHERE shipment_id = ".$id['shipment_id']."");
-				$reportData[$driverId]['total_distance_meter'] = $reportData[$driverId]['total_distance_meter'] + $totalMiles['total_transit_distance'];
-			}
+			//$shipmentId = $this->_parentObj->db->getAllRecords("SELECT shipment_id FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id IN($shipment_route_id)");
+            $loadIdentity = $this->_parentObj->db->getRowRecord("SELECT instaDispatch_loadIdentity as load_identity FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id IN($shipment_route_id)");
+
+            //foreach($shipmentId as $id){
+
+	            //$totalMiles = $this->_parentObj->db->getRowRecord("SELECT SUM(transit_distance) as total_transit_distance FROM " . DB_PREFIX . "shipment_service WHERE shipment_id = ".$id['shipment_id']."");
+            $totalMiles = $this->_parentObj->db->getRowRecord("SELECT SUM(transit_distance) as total_transit_distance FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '".$loadIdentity['load_identity']."'");
+            
+			$reportData[$driverId]['total_distance_meter'] = $reportData[$driverId]['total_distance_meter'] + $totalMiles['total_transit_distance'];
+			//}
 			
 			//$reportData[$driverId]['total_distance_miles'] = $reportData[$driverId]['total_distance_meter'] / 1609.344;
 			
