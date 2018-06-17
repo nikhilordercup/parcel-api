@@ -981,10 +981,18 @@ class loadShipment extends Library
 	
 	private function _add_temp_routes($roughtkey, $drops,$routeType)
     {  
-        foreach ($drops as $key => $row) {
-            $mid[$key] = $row['instaDispatch_docketNumber'];
+        $mid = array();
+        if($routeType == 'SAMEDAY'){
+           foreach ($drops as $key => $row) {
+             $mid[$key] = $row['shipment_service_type'];
+           }
+           array_multisort($mid, SORT_DESC, $drops); 
+        }else{
+           foreach ($drops as $key => $row) {
+             $mid[$key] = $row['instaDispatch_docketNumber'];
+           }
+           array_multisort($mid, SORT_DESC, $drops);
         }
-        array_multisort($mid, SORT_DESC, $drops);
         $count = 0;
         if (count($drops) > 0) {
             $temprouteId = ($count == 0) ? '' : $this->_create_temp_route($roughtkey,$routeType);
