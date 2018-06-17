@@ -260,6 +260,8 @@ final class Nextday extends Booking
                 "value" => 0.00,
                 "currency" => $this->_param->collection->$key->country->currency_code
             );
+
+            $this->data["status"] = "success";
         }else{
             $this->data = $carrierLists;
         }
