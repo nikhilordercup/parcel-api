@@ -290,8 +290,8 @@ final class Nextday extends Booking
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
-print_r($this->data);die;
-            if(count($this->data)>0){
+
+            if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
 
@@ -304,7 +304,7 @@ print_r($this->data);die;
                 }
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
-                return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
+                return array("status"=>"error", "message"=>$this->data["message"]);
             }
         //}else{
         //    return array("status"=>"error", "message"=>"Distance matrix api error");
