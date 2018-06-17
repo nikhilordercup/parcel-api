@@ -31,9 +31,8 @@ class Module_Coreprime_Api extends Icargo
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
-
-        //$server_output =  '{"rate":{"PNP":[{"21232123":[{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":14.12,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"standard_same_day","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"surcharges":{"same_day_drop_surcharge":1.0,"collection_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"asap":[{"rate":{"flow_type":"Domestic","price":16.62,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"surcharges":{"same_day_drop_surcharge":1.0,"collection_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"one_hour":[{"rate":{"flow_type":"Domestic","price":15.12,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"surcharges":{"same_day_drop_surcharge":1.0,"collection_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]}]}]}}';
-        // echo $server_output;die;
+        //print_r($server_output);die;
+        //$server_output =  '{"rate":{"PNP":[{"21232123":[{"asap":[{"rate":{"flow_type":"Domestic","price":15.46,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":3.092,"tax_percentage":20.0}}]},{"one_hour":[{"rate":{"flow_type":"Domestic","price":13.96,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":2.792,"tax_percentage":20.0}}]},{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":3.38,"rate_type":"Drop Rate","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"drop_service","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"service_times":{"last_booking_time":"16:05:00:PM","last_pickup_time":"17:00:00:PM"},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.676,"tax_percentage":20.0}}]}]},{"21232123":[{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":3.38,"rate_type":"Drop Rate","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"drop_service","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"service_times":{"last_booking_time":"16:05:00:PM","last_pickup_time":"17:00:00:PM"},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.676,"tax_percentage":20.0}}]},{"asap":[{"rate":{"flow_type":"Domestic","price":15.46,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":3.092,"tax_percentage":20.0}}]},{"one_hour":[{"rate":{"flow_type":"Domestic","price":13.96,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":2.792,"tax_percentage":20.0}}]}]}]}}';
         return $server_output;
     }
     private
@@ -41,6 +40,7 @@ class Module_Coreprime_Api extends Icargo
     {
         if (is_array($input)) {
             $temparray = array();
+            $returnarray = array();
             foreach ($input["rate"] as $carriercode => $service_list) {
                 foreach ($service_list as $service_key => $list) {
                     foreach ($list as $accountkey => $accountdata) {
@@ -58,7 +58,7 @@ class Module_Coreprime_Api extends Icargo
                                         $base_price = 0;
                                         $total_price = 0;
                                         $total_tax = 0;
-                                        $carrier = $this->modelObj->getCarrierIdByCode($carriercode);
+                                        $carrier = $this->modelObj->getCarrierIdByCode($company_id,$customer_id,$accountkey);
                                         $res = $this->_calculateSamedayServiceccf($servicecode,$item['rate'],$carrier['id'],$customer_id,$company_id);
                                         $res['service_options'] = $item['service_options'];
                                         $res['taxes'] = $item['taxes'];
@@ -76,7 +76,7 @@ class Module_Coreprime_Api extends Icargo
                                                 $total_surcharge += $surcharge_val['price'];
                                             }
                                         }
-                                        //print_r($res);die;
+
                                         $price_without_tax = number_format($total_surcharge + $base_price,2,'.','');
                                         $customer_tax_amt = 0;
                                         if(isset($res['taxes'])){
@@ -106,6 +106,7 @@ class Module_Coreprime_Api extends Icargo
                                             $temparray["rate"][$carriercode][$key]["surcharges"] = $res['surcharges'];
                                             $temparray["rate"][$carriercode][$key]["surchargesinfo"] = $res['ccf_surcharges']->alldata;
                                         }
+                                        $returnarray["rate"][$carriercode][] = $temparray["rate"][$carriercode][$key];
                                     }
                                 }
                             }
@@ -113,12 +114,11 @@ class Module_Coreprime_Api extends Icargo
                     }
                 }
             }
-            return json_decode(json_encode($temparray));
+            return json_decode(json_encode($returnarray));
         } else {
             return array();
         }
     }
-
     public
     function getAllServices($param)
     {
@@ -144,6 +144,8 @@ class Module_Coreprime_Api extends Icargo
         }
         //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
         $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id, $param->company_id);
+
+
         $carriers =  array();
         if(count($carrier)>0){
             foreach($carrier as $carrierData){
@@ -154,7 +156,7 @@ class Module_Coreprime_Api extends Icargo
                     foreach($service as $key=>$valData){
                         $tempservice[] = $valData['service_code'];
                     }
-                    $carriers[] = array('name'=>$carrierData['code'],'account'=>array(array('credentials'=>array('username'=>'','password'=>'','account_number'=>$carrierData['account_number']),'services'=>implode(',',$tempservice))));
+                    $carriers[$carrierData['code']][] =  array('credentials'=>array('username'=>'','password'=>'','account_number'=>$carrierData['account_number']),'services'=>implode(',',$tempservice));
                 }else{
                     return array("status" => "error", "message" => "Service Not configured or disabled for this customer");
                 }
@@ -162,12 +164,15 @@ class Module_Coreprime_Api extends Icargo
         }else{
             return array("status" => "error", "message" => "Carrier Not configured or disabled for this customer");
         }
+
         $post_data = [];
         /*$post_data["credentials"] = array(
             "account_number" => $carrier['account_number'],
             "token" => $carrier['token']
         );*/
-        $post_data["carriers"] = $carriers;
+        foreach($carriers as $key=>$val){
+            $post_data["carriers"][] = array('name'=>$key,'account'=>$val);
+        }
         $post_data["from"] = array(
             "zip" => $param->origin->collection_postcode,
             "country" => "GBR"
@@ -228,7 +233,7 @@ class Module_Coreprime_Api extends Icargo
             isset($service_ccf_price["company_service_code"]) ?
                 $service_ccf_price["company_service_code"] : $service_ccf_price["courier_service_code"];
         $service['info'] = $service_ccf_price;
-        $service['price_with_ccf'] = $service_ccf_price["price"] + $service['price'];
+        $service['price_with_ccf'] = $service['price'];
         return $service;
     }
 
