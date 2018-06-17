@@ -187,7 +187,7 @@ class View_Support extends Icargo{
         $shipmentTickets = array();
         $completedShipment = 0;
         $route_status = "notCompleted";
-
+        $customer = array();
         //if($route_data['is_active']=='Y'){
             $records = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $this->shipment_route_id, $this->driver_Id);
 			foreach($records as $key => $record){
@@ -205,6 +205,7 @@ class View_Support extends Icargo{
                 $temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'consignee_name'=>$record['consignee_name'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
                 array_push($postcodes, $record['shipment_postcode']);
                 array_push($shipmentTickets, $record['shipment_ticket']);
+                array_push($customer, $record['customer_id']);
             }
            
             if(count($temp)>0)
@@ -256,6 +257,18 @@ class View_Support extends Icargo{
                 //$cities = $temp['info']['cities']; 
                 //$temp['info']['parcels'] = $this->modelObj->getShipmentParcels($tickets);
                 $parcels = $this->modelObj->getShipmentParcels($tickets);
+
+                $customers = $this->modelObj->getCustomerById(implode("','", array_unique($customer)));
+                $initials = array();
+                foreach($customers as $key=>$customer){
+                    // show only initials
+                    $charSet = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $customer["name"]);
+                    $charSet = rtrim($charSet);
+                    $charSetArray = explode(" ", $charSet);
+                    array_push($initials, $charSetArray[0]);
+                }
+
+                $temp['info']['customers'] = $initials;
                 
                 
                 $temp['info']['parcel_count'] = count($parcels);

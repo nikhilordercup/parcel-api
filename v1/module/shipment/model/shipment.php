@@ -722,5 +722,13 @@ class Shipment_Model
     public function saveUserCredentialInfo($param, $user_id){
         return $this->db->update("users", array("device_token_id"=>$param["device_token_id"]), "id='$user_id'");
     }
+
+    public
+
+    function getCustomerById($user_id){
+        $sql = "SELECT `UT`.name as `name` FROM `" . DB_PREFIX . "users` AS `UT` WHERE `UT`.`id` IN('$user_id')";
+        $records = $this->db->getAllRecords($sql);
+        return $records;
+    }
 }
 ?>
