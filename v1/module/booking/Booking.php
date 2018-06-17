@@ -406,27 +406,31 @@ class Booking extends Icargo
                     $totalSurchargeValue += $item->price_with_ccf;
                 }
             }
-
-            //save taxes
-            if(isset($data->taxes)){
-                $price_breakdown = array();
-                $counter = 0;
-                foreach($data->taxes as $tax_type=>$tax_value){
-                    if($counter==0){
-                        $price_breakdown["load_identity"] = $load_identity;
-                        $price_breakdown["shipment_type"] = $data->rate->shipment_type;
-                        $price_breakdown["version"]       = $price_version;
-                        $price_breakdown["price_code"]    = $tax_type;
-                        $price_breakdown["price"]         = $tax_value;
-                        //
-                        $price_breakdown["baseprice"]     = $data->rate->info->original_price;
-                        $price_breakdown["api_key"]       = "taxes";
-                        $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
-                    }else{
-                        $price_breakdown["ccf_operator"]  = ($tax_type=="tax_percentage") ? "PERCENTAGE" : "NONE";
-                        $price_breakdown["ccf_value"]     = $tax_value;
-                    }
-                    $counter++;
+          
+     //save taxes
+        if(isset($data->taxes)){
+            $price_breakdown = array();
+            $price_without_tax = $data->rate->info->original_price;
+               foreach($data->taxes as $key => $item){
+                 if($key=='total_tax'){
+                    $price_breakdown["price_code"] = $key;
+                    $price_breakdown["load_identity"] = $load_identity;
+                    $price_breakdown["shipment_type"] = $data->rate->shipment_type;
+                    $price_breakdown["version"] = $price_version;
+                    $price_breakdown["api_key"] = "taxes"; 
+                    $price_breakdown["inputjson"] = json_encode(array('originnal_tax_amt'=>$item));
+                    $price_breakdown["carrier_id"] = $data->carrier_info->carrier_id;
+                 }elseif($key=='tax_percentage'){
+                     $price = number_format((($price_without_tax *$item)/100),2,'.','');
+                     $price_breakdown["ccf_operator"] = "PERCENTAGE"; 
+                     $price_breakdown["ccf_value"] = $item; 
+                     $price_breakdown["ccf_level"] = 0;
+                     $price_breakdown["baseprice"] = $price_without_tax;  
+                     $price_breakdown["ccf_price"] = $price;
+                     $price_breakdown["price"] = $price_breakdown["ccf_price"];
+                 }else{
+                    //
+                  }    
                 }
                 $status = $this->modelObj->saveShipmentPrice($price_breakdown);
                 if(!$status){
@@ -436,8 +440,6 @@ class Booking extends Icargo
             }
             return array("status"=>"success","total_surcharge_value"=>number_format($totalSurchargeValue, 2), "total_tax_value"=>number_format($totalTaxValue, 2));
         }
-
-
         return array("status"=>"error", "message"=>"shipment price breakdown not saved");
     }
 

@@ -1177,11 +1177,12 @@ class shipment extends Library{
                 $price_breakdown["inputjson"] = json_encode(array('originnal_tax_amt'=>$item));
                 $price_breakdown["carrier_id"] = $servicePriceinfoInfo['courier_id'];
                }elseif($key=='tax_percentage'){
+                 $price = number_format((($price_without_tax *$item)/100),2,'.','');
                  $price_breakdown["ccf_operator"] = "PERCENTAGE"; 
                  $price_breakdown["ccf_value"] = $item; 
                  $price_breakdown["ccf_level"] = 0;
                  $price_breakdown["baseprice"] = $price_without_tax;  
-                 $price_breakdown["ccf_price"] = number_format((($price_without_tax *$item)/100),2,'.','');
+                 $price_breakdown["ccf_price"] = $price;
                  $price_breakdown["price"] = $price_breakdown["ccf_price"];
              }else{
                  //
@@ -1215,11 +1216,11 @@ class shipment extends Library{
         $data_string = json_encode($param);
        
         $_data["carrier"]                   = $param->otherinfo['courier_id']; 
-        $_data["courier_commission_type"]   = $param->otherinfo['operator']; 
-        $_data["courier_commission_value"]  = $param->otherinfo['ccf_value'];
-        $_data["courier_commission"]        = $param->otherinfo['ccf_value']; 
+        $_data["courier_commission_type"]   = $param->otherinfo['operator'];
+        $_data["courier_commission"]        = $param->otherinfo['ccf_value'];
+        $_data["courier_commission_value"]  = $param->otherinfo['price'];
         $_data["base_price"]                = $param->otherinfo['original_price'];
-        $_data["total_price"]               = $_data["base_price"]  + $_data["courier_commission"];
+        $_data["total_price"]               = $_data["base_price"]  + $_data["courier_commission_value"];
         unset($param->surchargesinfo);
         unset($param->otherinfo);
         unset($param->base_price);
