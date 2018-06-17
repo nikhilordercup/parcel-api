@@ -76,7 +76,7 @@ class Module_Coreprime_Api extends Icargo
                                                 $total_surcharge += $surcharge_val['price'];
                                             }
                                         }
-                                       
+
                                         $price_without_tax = number_format($total_surcharge + $base_price,2,'.','');
                                         $customer_tax_amt = 0;
                                         if(isset($res['taxes'])){
@@ -144,8 +144,13 @@ class Module_Coreprime_Api extends Icargo
         }
         //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
         $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id, $param->company_id);
+<<<<<<< HEAD
        
         
+=======
+
+
+>>>>>>> 27d9469885d6e456f03bf84a52e82d986528aa56
         $carriers =  array();
         if(count($carrier)>0){
             foreach($carrier as $carrierData){ 
@@ -164,14 +169,22 @@ class Module_Coreprime_Api extends Icargo
         }else{
             return array("status" => "error", "message" => "Carrier Not configured or disabled for this customer");
         }
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 27d9469885d6e456f03bf84a52e82d986528aa56
         $post_data = [];
         /*$post_data["credentials"] = array(
             "account_number" => $carrier['account_number'],
             "token" => $carrier['token']
         );*/
         foreach($carriers as $key=>$val){
+<<<<<<< HEAD
            $post_data["carriers"][] = array('name'=>$key,'account'=>$val); 
+=======
+            $post_data["carriers"][] = array('name'=>$key,'account'=>$val);
+>>>>>>> 27d9469885d6e456f03bf84a52e82d986528aa56
         }
         $post_data["from"] = array(
             "zip" => $param->origin->collection_postcode,

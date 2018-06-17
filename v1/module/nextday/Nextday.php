@@ -260,6 +260,8 @@ final class Nextday extends Booking
                 "value" => 0.00,
                 "currency" => $this->_param->collection->$key->country->currency_code
             );
+
+            $this->data["status"] = "success";
         }else{
             $this->data = $carrierLists;
         }
@@ -290,7 +292,7 @@ final class Nextday extends Booking
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
-            if(count($this->data)>0){
+        if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
 
@@ -303,7 +305,7 @@ final class Nextday extends Booking
                 }
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
-                return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
+                return array("status"=>"error", "message"=>$this->data["message"]);
             }
         //}else{
         //    return array("status"=>"error", "message"=>"Distance matrix api error");
@@ -432,10 +434,6 @@ final class Nextday extends Booking
         }
         $this->commitTransaction();
         // call label generation method
-
-       // print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
-
-        
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
 }

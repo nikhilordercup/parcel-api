@@ -31,47 +31,51 @@ class Route_Complete extends Icargo{
 	
 	public function saveCompletedRoute(){
 		//get assigned driver id by shipment route id
-        $driverId = $this->modelObj->getDriverIdByShipmentRouteId($this->shipment_route_id);
-        $status = $this->modelObj->save(array("shipment_route_id"=>$this->shipment_route_id));
+        try{
+            $driverId = $this->modelObj->getDriverIdByShipmentRouteId($this->shipment_route_id);
+            $status = $this->modelObj->save(array("shipment_route_id"=>$this->shipment_route_id));
 
-        $this->driver_id = $driverId["assigned_driver"];
-        $this->warehouse_id = $driverId["warehouse_id"];
+            $this->driver_id = $driverId["assigned_driver"];
+            $this->warehouse_id = $driverId["warehouse_id"];
 
-        $driverData = $this->modelObj->getDriverByDriverId($this->driver_id);
+            $driverData = $this->modelObj->getDriverByDriverId($this->driver_id);
 
-        $this->profile_name = $driverData["profile_name"];
+            $this->profile_name = $driverData["profile_name"];
 
-        $this->action    = "route_completed";
-        $this->latitude  = "0.000";
-        $this->longitude = "0.000";
+            $this->action    = "route_completed";
+            $this->latitude  = "0.000";
+            $this->longitude = "0.000";
 
-		if($status['status']==true){
-			//save driver time tracking
-			$apiTrackingData = $this->getDriverTimeTracking(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$this->driver_id));
-			$itemCount = count($apiTrackingData);
-			$itemCount--;
-			$j = 0;
-			$result = array();
-			for($I=0; $I<$itemCount;$I++){
-				$j++;
-				$temp1 = $apiTrackingData[$I];
-				$temp2 = $apiTrackingData[$j];
-				$timestamp1 = strtotime($temp1["create_date"]);
-				$timestamp2 = strtotime($temp2["create_date"]);
-				$timestampDiff = $timestamp2 - $timestamp1;
-				if(!isset($result[$temp1['for']])){
-					$result[$temp1['for']] = array();	
-				}
-				$result[$temp1['for']][] = $timestampDiff;
-			}
-			foreach($result as $type=>$time_taken){
-				$saveDriverTimeData = $this->modelObj->saveDriverTimeData(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$driverId["assigned_driver"],"status"=>$type,"time_taken"=>array_sum($time_taken),"create_date"=>date('Y-m-d')));
-			}
+            if($status['status']==true){
+                //save driver time tracking
+                $apiTrackingData = $this->getDriverTimeTracking(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$this->driver_id));
+                $itemCount = count($apiTrackingData);
+                $itemCount--;
+                $j = 0;
+                $result = array();
+                for($I=0; $I<$itemCount;$I++){
+                    $j++;
+                    $temp1 = $apiTrackingData[$I];
+                    $temp2 = $apiTrackingData[$j];
+                    $timestamp1 = strtotime($temp1["create_date"]);
+                    $timestamp2 = strtotime($temp2["create_date"]);
+                    $timestampDiff = $timestamp2 - $timestamp1;
+                    if(!isset($result[$temp1['for']])){
+                        $result[$temp1['for']] = array();
+                    }
+                    $result[$temp1['for']][] = $timestampDiff;
+                }
+                foreach($result as $type=>$time_taken){
+                    $saveDriverTimeData = $this->modelObj->saveDriverTimeData(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$driverId["assigned_driver"],"status"=>$type,"time_taken"=>array_sum($time_taken),"create_date"=>date('Y-m-d')));
+                }
 
-            $this->_add_driver_tacking();
-			
-			return $status;
-		}
+                $this->_add_driver_tacking();
+
+                return $status;
+            }
+        } catch(Exception $e){
+            return array("status"=>"error", "message"=>"Route completed event not saved");
+        }
 	}
 }
 ?>

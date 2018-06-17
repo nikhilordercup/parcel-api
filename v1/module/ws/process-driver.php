@@ -354,7 +354,8 @@ class Process_Route
             $common_obj = new Common();
             $shipmentsData = $this->model_rest->get_available_shipment_for_service_by_shipment_route_id($this->shipment_route_id);
             foreach($shipmentsData as $item){
-                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route started', $this->driver_id, $this->shipment_route_id, $this->company_id, $item["warehouse_id"], "ROUTESTART", 'driver');
+                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route started', $this->driver_id, $this->shipment_route_id, $this->company_id,$item["warehouse_id"], "ROUTESTART", 'driver');
+                
             }
 
             Consignee_Notification::_getInstance()->sendRouteStartNotification(array("shipment_route_id"=>$this->shipment_route_id,"company_id"=>$this->company_id,"driver_id"=>$this->driver_id,"trigger_code"=>"agentStarted"));
@@ -390,7 +391,7 @@ class Process_Route
             $common_obj = new Common();
             $shipmentsData = $this->model_rest->get_available_shipment_for_service_by_shipment_route_id($this->shipment_route_id);
             foreach($shipmentsData as $item){
-                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route paused', $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, "ROUTEPAUSED", 'driver');
+                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route paused', $this->driver_id, $this->shipment_route_id, $this->company_id, $item["warehouse_id"], "ROUTEPAUSED", 'driver');
             }
 
             return array(

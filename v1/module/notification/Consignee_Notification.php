@@ -269,7 +269,7 @@ class Consignee_Notification
             $libraryObj = new Library();
 
             $collectionShipment = $this->_getModelInstance()->getCollectionShipmentDetailByLoadIdentity($param["load_identity"]);
-
+           
             $deliveryShipment = $this->_getModelInstance()->getShipmentDetailByLoadIdentity($param["load_identity"]);
 
             //tracking url
@@ -280,7 +280,7 @@ class Consignee_Notification
 
             //get customer detail
             $customer_info = $this->_getModelInstance()->getUserInfo($param["customer_id"]);
-            $customer_info["email"] = "meenakshi@perceptive-solutions.com";
+            $customer_info["email"] = $collectionShipment["shipment_customer_email"];
 
 
 
@@ -306,7 +306,7 @@ class Consignee_Notification
             $delivery_detail = implode("<br>", array_filter($delivery_detail));
 
             $company_address = implode(",<br>",array_filter($company_info));
-            $subject_msg = $this->headerMsg;;//"This is system generated message";
+            $subject_msg = $this->headerMsg;//"This is system generated message";
 
             foreach($notificationData as $item){
                 if($item["trigger_type"]=="email"){

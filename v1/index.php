@@ -155,7 +155,7 @@ function verifyRequiredParams($required_fields,$request_params) {
     }
 }
 
-function echoResponse($status_code, $response) {//print_r($response);die;
+function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
 
     $privateKey = <<<EOD
@@ -198,10 +198,10 @@ EOD;
     //$app->status($status_code);
 
     // setting response content type to json
-    $app->contentType('application/json');
+    //$app->contentType('application/json');
 
+    echo json_encode($response);
    // echo $jwtString;
-   echo json_encode($response);
 }
 
 function rootPath(){

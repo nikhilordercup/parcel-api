@@ -201,11 +201,10 @@ class Route_Assign
     private
     function _save_and_assign_to_driver()
         {
-        $obj = new Firebase_Route_Assign(array());
-        $obj->getCurrentAssignedRouteData();die;
         $samedayshipmentticket = '';
         $timeStamp = strtotime($this->start_time);
         $getRouteDetails = $this->modelObj->getRouteDetails($this->tickets_str, $this->access_token);//$this->_get_route_details();
+        print_r($getRouteDetails);die;
         // create routes
         $createdRoute['route_id'] = $getRouteDetails[0]['route_id'];
         $createdRoute['custom_route'] = ($getRouteDetails[0]['route_id'] == 0) ? 'Y' : 'N';
@@ -223,8 +222,8 @@ class Route_Assign
           if(count($getRouteDetails)==1){
              return array(
                 'status' => true,
-                'message' => 'Requested Route can not Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                'message' => 'Requested Route can not assigned to driver.',
+                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
             ); 
           }
           else{
@@ -237,8 +236,8 @@ class Route_Assign
            }else{
               return array(
                 'status' => true,
-                'message' => 'Requested Route can not Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                'message' => 'Requested Route can not assigned to driver.',
+                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
             );   
            } 
           }     
