@@ -435,10 +435,6 @@ final class Nextday extends Booking
         }
         $this->commitTransaction();
         // call label generation method
-
-        print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
-
-        
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
 }
