@@ -204,7 +204,6 @@ class Route_Assign
         $samedayshipmentticket = '';
         $timeStamp = strtotime($this->start_time);
         $getRouteDetails = $this->modelObj->getRouteDetails($this->tickets_str, $this->access_token);//$this->_get_route_details();
-        print_r($getRouteDetails);die;
         // create routes
         $createdRoute['route_id'] = $getRouteDetails[0]['route_id'];
         $createdRoute['custom_route'] = ($getRouteDetails[0]['route_id'] == 0) ? 'Y' : 'N';
@@ -221,7 +220,7 @@ class Route_Assign
         if($createdRoute['route_type']=='SAMEDAY'){
           if(count($getRouteDetails)==1){
              return array(
-                'status' => true,
+                'status' => "error",
                 'message' => 'Requested Route can not assigned to driver.',
                 'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
             ); 
@@ -235,7 +234,7 @@ class Route_Assign
             }
            }else{
               return array(
-                'status' => true,
+                'status' => "error",
                 'message' => 'Requested Route can not assigned to driver.',
                 'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
             );   
@@ -312,7 +311,7 @@ class Route_Assign
                 "company_id" => $this->company_id
             ));
             return array(
-                'status' => true,
+                'status' => "success",
                 'message' => 'Requested Route has been Assigned to driver.',
                 'post_data' => $firebaseObj->getCurrentAssignedRouteData()
             );
@@ -365,7 +364,7 @@ class Route_Assign
                 {
                 $data = array(
                     'message' => 'All shipment of this selected route is (NOT) physically found',
-                    'status' => false
+                    'status' => "error"
                 );
                 }
              }
@@ -374,7 +373,7 @@ class Route_Assign
             {
             $data = array(
                 'message' => 'Driver have no vehicle',
-                'status' => false
+                'status' => "error"
             );
             }
 

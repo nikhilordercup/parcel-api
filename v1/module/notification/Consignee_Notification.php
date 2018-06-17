@@ -269,7 +269,7 @@ class Consignee_Notification
             $libraryObj = new Library();
 
             $collectionShipment = $this->_getModelInstance()->getCollectionShipmentDetailByLoadIdentity($param["load_identity"]);
-           
+
             $deliveryShipment = $this->_getModelInstance()->getShipmentDetailByLoadIdentity($param["load_identity"]);
 
             //tracking url
