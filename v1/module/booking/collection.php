@@ -36,7 +36,6 @@ final Class Collection{
         $cols = array_column($operational_area, 'postcode');
 
         $key = array_search($needle, $cols);
-        
         if (!$key) {
             $temp = array();
             foreach ($cols as $key => $col) {

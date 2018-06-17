@@ -1214,8 +1214,7 @@ class shipment extends Library{
             }
         }
         $data_string = json_encode($param);
-       
-        $_data["carrier"]                   = $param->otherinfo['courier_id']; 
+        $_data["carrier"]                   = $param->otherinfo['courier_id'];
         $_data["courier_commission_type"]   = $param->otherinfo['operator'];
         $_data["courier_commission"]        = $param->otherinfo['ccf_value'];
         $_data["courier_commission_value"]  = $param->otherinfo['price'];

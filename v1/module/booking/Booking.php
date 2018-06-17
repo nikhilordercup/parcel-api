@@ -430,7 +430,7 @@ class Booking extends Icargo
                      $price_breakdown["price"] = $price_breakdown["ccf_price"];
                  }else{
                     //
-                  }    
+                  }
                 }
                 $status = $this->modelObj->saveShipmentPrice($price_breakdown);
                 if(!$status){
