@@ -190,9 +190,8 @@ class View_Support extends Icargo{
 
         //if($route_data['is_active']=='Y'){
             $records = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $this->shipment_route_id, $this->driver_Id);
-
-            foreach($records as $key => $record){
-                $shipment_service_type = ($record["shipment_service_type"]=="P") ? "Collection" : "Delivery";
+			foreach($records as $key => $record){
+				$shipment_service_type = ($record["shipment_service_type"]=="P") ? "Collection" : "Delivery";
                 $temp['info']['row_id'] = $key;
                 $temp['info']['shipment_routed_id'] = $record['shipment_routed_id'];
                 $temp['info']['driver_name'] = $record['driver_name'];
@@ -203,7 +202,7 @@ class View_Support extends Icargo{
                 //$temp['info']['cities'][] = $record['shipment_customer_city'];
                 //$temp['info']['estimated_time'][] = strtotime($record['estimated_time']);
                 $temp['info']['shipment_count'] = (isset($temp['info']['shipment_count'])) ? ++$temp['info']['shipment_count'] : 1 ;
-                $temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
+                $temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'consignee_name'=>$record['consignee_name'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
                 array_push($postcodes, $record['shipment_postcode']);
                 array_push($shipmentTickets, $record['shipment_ticket']);
             }
@@ -359,7 +358,7 @@ class View_Support extends Icargo{
 	}
 	
 	public function loadAssignedView(){
-        return array('assigned_load'=>$this->_assigned_load(),'active_driver_list'=>$this->_get_active_drivers());
+		return array('assigned_load'=>$this->_assigned_load());//,'active_driver_list'=>$this->_get_active_drivers()
     }
 
     public function pauseAssignedView(){
