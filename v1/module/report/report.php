@@ -160,7 +160,7 @@ class Report extends Icargo{
 
 	            //$totalMiles = $this->_parentObj->db->getRowRecord("SELECT SUM(transit_distance) as total_transit_distance FROM " . DB_PREFIX . "shipment_service WHERE shipment_id = ".$id['shipment_id']."");
             $totalMiles = $this->_parentObj->db->getRowRecord("SELECT SUM(transit_distance) as total_transit_distance FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '".$loadIdentity['load_identity']."'");
-            
+
 			$reportData[$driverId]['total_distance_meter'] = $reportData[$driverId]['total_distance_meter'] + $totalMiles['total_transit_distance'];
 			//}
 			
