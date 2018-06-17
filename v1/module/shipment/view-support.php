@@ -289,8 +289,10 @@ class View_Support extends Icargo{
         $common_obj = new Common();
 		$records = $this->modelObj->getUnAssignShipmentDetails($this->company_id);
 		$temp = array();
+        $customer = array();
 		foreach($records as $key => $record){
-			$route_data = $this->modelObj->getShipmentRouteByShipmentRouteId($record['shipment_routed_id']);
+		    $route_data = $this->modelObj->getShipmentRouteByShipmentRouteId($record['shipment_routed_id']);
+			array_push($customer, $record["customer_id"]);
 			$temp[$route_data['shipment_route_id']]['info']['row_id'] = $key;
 			$temp[$route_data['shipment_route_id']]['info']['route_id'] = $route_data['route_id'];
 			$temp[$route_data['shipment_route_id']]['info']['shipment_routed_id'] = $record['shipment_routed_id'];
@@ -307,7 +309,20 @@ class View_Support extends Icargo{
 			$temp[$route_data['shipment_route_id']]['info']['shipment_count'] = (isset($temp[$route_data['shipment_route_id']]['info']['shipment_count'])) ? ++$temp[$route_data['shipment_route_id']]['info']['shipment_count'] : 1 ;
             $temp[$route_data['shipment_route_id']]['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
             
-		} 
+		}
+
+        $customers = $this->modelObj->getCustomerById(implode("','", array_unique($customer)));
+        $initials = array();
+        foreach($customers as $key=>$customer){
+            // show only initials
+            $charSet = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $customer["name"]);
+            $charSet = rtrim($charSet);
+            $charSetArray = explode(" ", $charSet);
+            array_push($initials, $charSetArray[0]);
+        }
+
+        $temp[$route_data['shipment_route_id']]['info']['customers'] = $initials;
+
 		foreach($temp as $key => $data){
 			$postcodes = $data['info']['shipment_postcodes'];
 			$cities = $data['info']['cities'];

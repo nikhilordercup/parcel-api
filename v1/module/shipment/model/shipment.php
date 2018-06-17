@@ -192,7 +192,7 @@ class Shipment_Model
     function getUnAssignShipmentDetails($company_id)
         {
         $record = array();
-        $sqldata = "t1.shipment_address1 AS `shipment_address1`,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country AS `shipment_customer_country`,t1.shipment_customer_city AS `shipment_customer_city`,t1.`shipment_address3`, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode AS `shipment_postcode`,
+        $sqldata = "t1.customer_id,t1.shipment_address1 AS `shipment_address1`,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country AS `shipment_customer_country`,t1.shipment_customer_city AS `shipment_customer_city`,t1.`shipment_address3`, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode AS `shipment_postcode`,
         t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',t1.shipment_latitude AS `shipment_latitude`,t1.shipment_longitude AS `shipment_longitude`,t1.`icargo_execution_order`,t1.`shipment_total_item`";
 		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
                 WHERE current_status = 'S' AND is_driver_assigned = '0' AND shipment_routed_id!=0 AND company_id = '" . $company_id . "' ORDER BY `shipment_routed_id`,`shipment_executionOrder`";;
