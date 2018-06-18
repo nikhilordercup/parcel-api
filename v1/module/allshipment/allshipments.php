@@ -607,7 +607,7 @@ class allShipments extends Icargo{
                );
                $carrierSurcharge[] = $vel['baseprice'];
                }elseif($vel['api_key']=='taxes'){
-               $return['taxes']['courier']['baseprice'] = $vel['baseprice'];
+               $return['taxes']['courier']['baseprice'] = $vel['price'];
                $return['taxes']['courier']['naration'] = 'Total Tax';   
                $return['taxes']['courier']['id']  = $vel['id'];
               }   

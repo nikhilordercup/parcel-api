@@ -290,10 +290,11 @@ class View_Support extends Icargo{
 		$records = $this->modelObj->getUnAssignShipmentDetails($this->company_id);
 		$temp = array();
         $customer = array();
-		foreach($records as $key => $record){
+        foreach($records as $key => $record){
 		    $route_data = $this->modelObj->getShipmentRouteByShipmentRouteId($record['shipment_routed_id']);
-			array_push($customer, $record["customer_id"]);
-			$temp[$route_data['shipment_route_id']]['info']['row_id'] = $key;
+			$temp[$route_data['shipment_route_id']]['info']['customer'][] = $record["customer_id"];
+            $temp[$route_data['shipment_route_id']]['info']['row_id'] = $key;
+
 			$temp[$route_data['shipment_route_id']]['info']['route_id'] = $route_data['route_id'];
 			$temp[$route_data['shipment_route_id']]['info']['shipment_routed_id'] = $record['shipment_routed_id'];
 			$temp[$route_data['shipment_route_id']]['info']['load_group_type'] = $this->_get_route_type(substr($record['instaDispatch_loadGroupTypeCode'],0,1));
@@ -311,19 +312,19 @@ class View_Support extends Icargo{
             
 		}
 
-        $customers = $this->modelObj->getCustomerById(implode("','", array_unique($customer)));
-        $initials = array();
-        foreach($customers as $key=>$customer){
-            // show only initials
-            $charSet = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $customer["name"]);
-            $charSet = rtrim($charSet);
-            $charSetArray = explode(" ", $charSet);
-            array_push($initials, $charSetArray[0]);
-        }
-
-        $temp[$route_data['shipment_route_id']]['info']['customers'] = $initials;
-
 		foreach($temp as $key => $data){
+            $customers = $this->modelObj->getCustomerById(implode("','", array_unique($data["info"]["customer"])));
+            $initials = array();
+            foreach($customers as $key_1=>$customer){
+                // show only initials
+                $charSet = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $customer["name"]);
+                $charSet = rtrim($charSet);
+                $charSetArray = explode(" ", $charSet);
+                array_push($initials, $charSetArray[0]);
+            }
+
+            $temp[$key]['info']['customers'] = $initials;
+
 			$postcodes = $data['info']['shipment_postcodes'];
 			$cities = $data['info']['cities'];
 			$temp[$key]['info']['parcels'] = $this->modelObj->getShipmentParcels("'".implode("','", $data['info']['shipment_ticket'])."'");
@@ -335,6 +336,8 @@ class View_Support extends Icargo{
 			$temp[$key]['info']['city'] = array_shift($cities);
 			
 			$temp[$key]['info']['route_duration'] = date("h:i A",strtotime(array_sum($data['info']['estimated_time'])));
+
+			unset($data["info"]["customer"]);
 		}
 		return array_values($temp);
 	}
