@@ -290,7 +290,6 @@ final class Nextday extends Booking
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
-print_r($this->data);die;
             if(count($this->data)>0){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
@@ -310,12 +309,114 @@ print_r($this->data);die;
         //    return array("status"=>"error", "message"=>"Distance matrix api error");
         //}
     }
-
-    public
-
-    function saveBooking(){
+	
+	public function saveBookingBKP(){
         //print_r($this->_param->service_opted->collection_carrier);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
+        if($accountStatus["status"]=="error"){
+            return $accountStatus;
+        }
+        $company_code = $this->_getCompanyCode($this->_param->company_id);
+        $customerWarehouseId = $this->getCustomerWarehouseIdByCustomerId($this->_param->company_id, $this->_param->customer_id);
+        $this->_param->service_opted->rate->shipment_type = "Next";
+        $this->serviceRequestString  = $this->_param->service_request_string;
+        $this->serviceResponseString = $this->_param->service_response_string;
+        $this->startTransaction();
+        //save collection address and collection job
+        $execution_order = 0;
+        $collection_date_time = $this->_param->service_opted->collection_carrier->collection_date_time;//$this->_param->service_opted->collected_by[0]->collection_date_time;
+        $collection_end_at = $this->_param->service_opted->collection_carrier->collection_end_at;//$this->_param->service_opted->collected_by[0]->collection_end_at;
+        $carrier_account_number = $this->_param->service_opted->collection_carrier->account_number;//$this->_param->service_opted->collected_by[0]->account_number;
+        $is_internal = $this->_param->service_opted->collection_carrier->is_internal;//$this->_param->service_opted->collected_by[0]->is_internal;
+        foreach($this->_param->collection as $key=> $item){
+            $execution_order++;
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            if($addressInfo["status"]=="error"){
+                $this->rollBackTransaction();
+                return $addressInfo;
+            }
+            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next","COLL","NEXT","P",$execution_order, $carrier_account_number,$is_internal);
+            if($shipmentStatus["status"]=="error"){
+                $this->rollBackTransaction();
+                return $shipmentStatus;
+            }
+            if($key==0)
+                $loadIdentity = $shipmentStatus["shipment_ticket"];
+            foreach($this->_param->parcel as $item){
+                for($i=0; $i< $item->quantity; $i++){
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    if($parcelStatus["status"]=="error"){
+                        $this->rollBackTransaction();
+                        return $parcelStatus;
+                    }
+                }
+            }
+            //get shipment volume and heighest dimension
+            $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
+            $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
+            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending");
+            if($serviceStatus["status"]=="error"){
+                $this->rollBackTransaction();
+                return $serviceStatus;
+            }
+            $collectedBy = $this->_param->service_opted->collection_carrier;
+            $collectedBy->service_id = $serviceStatus["service_id"];
+            $collectedByStatus = $this->_saveShipmentCollection($collectedBy);
+            if($collectedByStatus["status"]=="error"){
+                $this->rollBackTransaction();
+                return $collectedByStatus;
+            }
+            $attributeStatus = $this->_saveShipmentAttribute($this->_param->service_opted->service_options, $loadIdentity);
+            if($attributeStatus["status"]=="error"){
+                $this->rollBackTransaction();
+                return $attributeStatus;
+            }
+        }
+        $collection_date_time = "1970-01-01 00:00:00";
+        $collection_end_at = "00:00:00";
+        $carrier_account_number = $this->_param->service_opted->carrier_info->account_number;
+        $is_internal = $this->_param->service_opted->carrier_info->is_internal;
+        //save delivery address and delivery job
+        foreach($this->_param->delivery as $key=> $item){
+            $execution_order++;
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            if($addressInfo["status"]=="error"){
+                $this->rollBackTransaction();
+                return $addressInfo;
+            }
+            $this->_param->delivery->$key->load_identity = $loadIdentity;
+            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->delivery->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next","DELV","NEXT","D",$execution_order,$carrier_account_number,$is_internal);
+            if($shipmentStatus["status"]=="error"){
+                $this->rollBackTransaction();
+                return $shipmentStatus;
+            }
+            foreach($this->_param->parcel as $item){
+                for($i=0; $i< $item->quantity; $i++){
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    if($parcelStatus["status"]=="error"){
+                        $this->rollBackTransaction();
+                        return $parcelStatus;
+                    }
+                }
+            }
+            //get shipment volume and heighest dimension
+            $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
+            $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
+        }
+        $this->commitTransaction();
+        // call label generation method
+        //print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
+        
+        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
+    }
+	
+    public function saveBooking(){
+		
+		
+        $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
+        //print_r($this->_param->service_opted->collection_carrier);die;
+        $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
+
         if($accountStatus["status"]=="error"){
             return $accountStatus;
         }
@@ -432,12 +533,20 @@ print_r($this->data);die;
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
-        // call label generation method
+		
+		/*************call label generation method************/
 
-        print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
-
-        
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
+		$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity);
+		
+        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
     }
-}
+
+	public function getLabelFromLoadIdentity($loadIdentity){
+		/* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation*/
+		$carrierObj = new Carrier();
+		$bookingInfo = $carrierObj->getShipmentInfo($loadIdentity);
+		return array("status"=>"success","file_path"=>$bookingInfo['file_path']);
+		//print_r($bookingInfo);die;
+	}
+	}
 ?>

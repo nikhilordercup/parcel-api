@@ -41,6 +41,9 @@ require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
 require_once 'dev.test.php';
+require_once('../vendor/setasign/fpdf/fpdf.php');
+require_once('../vendor/setasign/fpdi/src/autoload.php');
+require_once 'module/fpdf/ConcatPdf.php';
 
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
@@ -110,7 +113,7 @@ require_once 'module/booking/Shipment.php';
 require_once 'module/booking/Booking.php';
 
 require_once 'module/carrier/Carrier.php';
-require_once 'module/carrier/Ukmail.php';
+require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
 require_once 'module/nextday/Nextday.php';
 require_once 'module/allshipment/allshipments.php';
 require_once 'module/allshipment/model/allshipments.php';
@@ -122,6 +125,7 @@ require_once 'pod_signature.php';//no need to keep separate file to save image. 
 require_once 'module/package/Module_Package_Index.php';
 
 require_once 'module/booking/collection.php';
+
 
 
 /**
@@ -197,8 +201,8 @@ EOD;
     // setting response content type to json
     $app->contentType('application/json');
 
-    //echo $jwtString;
-    echo json_encode($response);
+    echo $jwtString;
+    //echo json_encode($response);
 }
 
 function rootPath(){

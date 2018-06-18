@@ -1252,8 +1252,28 @@ class allShipments extends Icargo{
           return $data; 
 	}
     
-    
-    
-    
+	public function printLabelByLoadIdentity($param){
+        $carrierObj = new Carrier();
+		if(is_array($param->load_identity)){
+			$load_identity = implode("','",$param->load_identity);
+			$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
+		}else{
+			$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
+		}
+		
+		if(count($labelInfo)==1){
+			if($labelInfo[0]['label_file_pdf']!=='')		
+				return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
+			else
+				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+		}elseif(count($labelInfo)>1){
+			$label_pdf = $carrierObj->mergePdf($labelInfo);
+			return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
+		}else{
+			return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+		}
+			
+	}
+
 }
 ?>
