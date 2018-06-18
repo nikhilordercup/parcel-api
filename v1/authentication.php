@@ -14,7 +14,6 @@ $app->post('/signUp', function() use ($app) {
 	
     $response = array();
     $r = json_decode($app->request->getBody());
-
     verifyRequiredParams(array('email','name', 'password','city', 'state'),$r->company);//,'country'
 	$phone = $r->company->phone;
 	$email = $r->company->email;
@@ -42,7 +41,7 @@ $app->post('/signUp', function() use ($app) {
             'uid'=>$r->company->uid,
             'register_in_firebase'=>$r->company->register_in_firebase,
             'state'=>$r->company->state,
-            'country'=>$r->company->country->short_name,
+            'country'=>$r->company->country,
             'parent_id'=>0
         );
         $user = $db->save("users",$data);
@@ -81,7 +80,7 @@ $app->post('/signUp', function() use ($app) {
             
 			//register user plan
 			//chargebee customer data
-			$chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->country->alpha2_code,"billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,"billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,"billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,"customer_email"=>$r->company->email);
+			$chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,"billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,"billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,"billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,"customer_email"=>$r->company->email);
 
 			//chargebee customer registration
 			$obj = new Module_Chargebee($chargebee_customer_data);
@@ -89,7 +88,7 @@ $app->post('/signUp', function() use ($app) {
 
 			//chargebee associate to trial plan
 			$chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
-			$basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan where plan_id='".$r->company->plan->plan_id."'");
+			$basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan where plan_id='".$r->company->plan_id."'");
 			
 			
 			$chargebee_customer_data = (object) array(
@@ -110,7 +109,7 @@ $app->post('/signUp', function() use ($app) {
 				$trial_period = $basic_plan["trial_period"];
 				$chargebee_customer_data->trial_end = date('Y-m-d', strtotime("+$trial_period days"));
 			}
-            echo json_encode($chargebee_customer_data);
+            json_encode($chargebee_customer_data);
 			$obj->createSubscription($chargebee_customer_data);
 			// save user id to chargebee_customer_table
 			$db->update("chargebee_customer", array("user_id"=>$user),"chargebee_customer_id='$chargebee_customer_data->customer_id'");
