@@ -11,6 +11,10 @@ class ComposerStaticInitc263abab0d259b689ddd808a8902541a
     );
 
     public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'setasign\\Fpdi\\' => 14,
+        ),
         'P' => 
         array (
             'PHPMailer\\PHPMailer\\' => 20,
@@ -22,6 +26,10 @@ class ComposerStaticInitc263abab0d259b689ddd808a8902541a
     );
 
     public static $prefixDirsPsr4 = array (
+        'setasign\\Fpdi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
@@ -32,11 +40,16 @@ class ComposerStaticInitc263abab0d259b689ddd808a8902541a
         ),
     );
 
+    public static $classMap = array (
+        'FPDF' => __DIR__ . '/..' . '/setasign/fpdf/fpdf.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInitc263abab0d259b689ddd808a8902541a::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitc263abab0d259b689ddd808a8902541a::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitc263abab0d259b689ddd808a8902541a::$classMap;
 
         }, null, ClassLoader::class);
     }
