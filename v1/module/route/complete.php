@@ -33,6 +33,7 @@ class Route_Complete extends Icargo{
 		//get assigned driver id by shipment route id
         try{
             $driverId = $this->modelObj->getDriverIdByShipmentRouteId($this->shipment_route_id);
+
             $status = $this->modelObj->save(array("shipment_route_id"=>$this->shipment_route_id));
 
             $this->driver_id = $driverId["assigned_driver"];
@@ -49,6 +50,7 @@ class Route_Complete extends Icargo{
             if($status['status']==true){
                 //save driver time tracking
                 $apiTrackingData = $this->getDriverTimeTracking(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$this->driver_id));
+
                 $itemCount = count($apiTrackingData);
                 $itemCount--;
                 $j = 0;
