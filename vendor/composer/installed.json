@@ -68,42 +68,6 @@
         "description": "PHPMailer is a full-featured email creation and transfer class for PHP"
     },
     {
-        "name": "chargebee/chargebee-php",
-        "version": "v2.5.0",
-        "version_normalized": "2.5.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/chargebee/chargebee-php.git",
-            "reference": "235846096d9d0db94ed9d91845aab913bf1ddae2"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/235846096d9d0db94ed9d91845aab913bf1ddae2",
-            "reference": "235846096d9d0db94ed9d91845aab913bf1ddae2",
-            "shasum": ""
-        },
-        "time": "2018-05-14T13:03:06+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "files": [
-                "lib/ChargeBee.php"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "ChargeBee API client implementation for PHP",
-        "homepage": "https://github.com/chargebee/chargebee-php",
-        "keywords": [
-            "chargebee",
-            "payments",
-            "recurring billing",
-            "subscription billing"
-        ]
-    },
-    {
         "name": "firebase/php-jwt",
         "version": "v5.0.0",
         "version_normalized": "5.0.0.0",
@@ -150,5 +114,41 @@
         ],
         "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
         "homepage": "https://github.com/firebase/php-jwt"
+    },
+    {
+        "name": "chargebee/chargebee-php",
+        "version": "v2.5.1",
+        "version_normalized": "2.5.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/chargebee/chargebee-php.git",
+            "reference": "6504bc70177f4bfc27242c18c085f7783873457e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/6504bc70177f4bfc27242c18c085f7783873457e",
+            "reference": "6504bc70177f4bfc27242c18c085f7783873457e",
+            "shasum": ""
+        },
+        "time": "2018-05-23T15:13:31+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "lib/ChargeBee.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "ChargeBee API client implementation for PHP",
+        "homepage": "https://github.com/chargebee/chargebee-php",
+        "keywords": [
+            "chargebee",
+            "payments",
+            "recurring billing",
+            "subscription billing"
+        ]
     }
 ]
