@@ -339,7 +339,7 @@ class Process_Route
     private function _start_route()
     {   
         //set all active route to pause of driver
-       // $this->model_rest->update('shipment_route', array('is_current'=>'N','is_pause'=>'1'),"driver_id ='$this->driver_id' AND is_current='Y'");
+        $this->model_rest->update('shipment_route', array('is_current'=>'N','is_pause'=>'1'),"driver_id ='$this->driver_id' AND is_current='Y'");
         /* comment above line for show all route in completed bucket,it written for make one route active at one time in out of all assign route for same driver*/
         //set the requested route to active
         $status = $this->model_rest->update('shipment_route', array('is_route_started'=>'1','is_current'=>'Y','is_pause'=>'0'),"driver_id ='$this->driver_id' AND shipment_route_id='$this->shipment_route_id'");
