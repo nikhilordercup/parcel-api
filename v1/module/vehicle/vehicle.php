@@ -73,7 +73,7 @@ class Vehicle extends Icargo{
 		return $this->_parentObj->db->getAllRecords("SELECT t1.id,t1.category_name FROM ".DB_PREFIX."vehicle_category as t1 LEFT JOIN ".DB_PREFIX."vehicle as t2 ON t1.id = t2.category_id WHERE t2.id=$id group by t1.id");
 	}
 	
-	public function getFreeVehicles($catId,$vehicleId,$company_id=''){
+	public function getFreeVehiclesOLD($catId,$vehicleId,$company_id=''){
 		if($company_id!=''){
 			if($vehicleId!=''){
 				return $this->_parentObj->db->getAllRecords("SELECT *,t1.id as vehicle_id,t2.category_name FROM icargo_vehicle AS t1 LEFT JOIN ".DB_PREFIX."vehicle_category as t2 ON t1.category_id = t2.id WHERE t1.status=1 AND t1.category_id IN($catId) AND t2.company_id = $company_id AND t1.id NOT IN($vehicleId)");
@@ -86,8 +86,22 @@ class Vehicle extends Icargo{
 			else
 				return $this->_parentObj->db->getAllRecords("SELECT *,t1.id as vehicle_id,t2.category_name FROM ".DB_PREFIX."vehicle AS t1 LEFT JOIN ".DB_PREFIX."vehicle_category as t2 ON t1.category_id = t2.id WHERE t1.status=1 AND t1.category_id IN($catId)");	
 		}
-		
 	}
+
+    public function getFreeVehicles($catId,$vehicleId,$company_id=''){
+        if($company_id!=''){
+            if($vehicleId!='' AND $catId!=''){
+                return $this->_parentObj->db->getAllRecords("SELECT *,t1.id as vehicle_id,t2.category_name FROM icargo_vehicle AS t1 LEFT JOIN ".DB_PREFIX."vehicle_category as t2 ON t1.category_id = t2.id WHERE t1.status=1 AND t1.category_id IN($catId) AND t2.company_id = $company_id AND t1.id NOT IN($vehicleId)");
+            }else{
+                return $this->_parentObj->db->getAllRecords("SELECT *,t1.id as vehicle_id,t2.category_name FROM ".DB_PREFIX."vehicle AS t1 LEFT JOIN ".DB_PREFIX."vehicle_category as t2 ON t1.category_id = t2.id WHERE t1.status=1  AND t2.company_id = $company_id");
+            }
+        }else{
+            if($vehicleId!='' AND $catId!='')
+                return $this->_parentObj->db->getAllRecords("SELECT *,t1.id as vehicle_id,t2.category_name FROM icargo_vehicle AS t1 LEFT JOIN ".DB_PREFIX."vehicle_category as t2 ON t1.category_id = t2.id WHERE t1.status=1 AND t1.category_id IN($catId) AND t1.id NOT IN($vehicleId)");
+            else
+                return $this->_parentObj->db->getAllRecords("SELECT *,t1.id as vehicle_id,t2.category_name FROM ".DB_PREFIX."vehicle AS t1 LEFT JOIN ".DB_PREFIX."vehicle_category as t2 ON t1.category_id = t2.id WHERE t1.status=1");
+        }
+    }
 
 	
 	
