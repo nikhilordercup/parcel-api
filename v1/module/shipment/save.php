@@ -1130,12 +1130,13 @@ class shipment extends Library{
         }  
         
         //save surcharges
+        $totalcarrierSurchage = 0;
         if(isset($param["service_opted"]->surchargesinfo)){
             foreach($param["service_opted"]->surchargesinfo as $key => $item){
                 $surchargeInfo = array();
                 $surchargeInfo = json_decode(json_encode($item->info),1);
-
                 $price_breakdown = array();
+                $totalcarrierSurchage += $surchargeInfo['original_price'];
                 $price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
                 //$price_breakdown["shipment_id"] = $shipmentId;
                 $price_breakdown["shipment_type"] = $shipmentType;
@@ -1157,16 +1158,13 @@ class shipment extends Library{
                 }catch(Exception $e){
                 print_r($e);
                 }
-                
             }
-        }
-       
-        //save surcharges
-       
+          }
+        //save tax
         if(isset($param["service_opted"]->taxes) and !empty($param["service_opted"]->taxes)){
-
+            $carriertotalpriceWithouttax = ($totalcarrierSurchage  + $param["service_opted"]->otherinfo->original_price);
             $price_breakdown = array(); 
-            $price_without_tax = $param["service_opted"]->pricewithouttax;
+            //$price_without_tax = $param["service_opted"]->pricewithouttax;
             foreach($param["service_opted"]->taxes as $key => $item){
              if($key=='total_tax'){
                 $price_breakdown["price_code"] = $key;
@@ -1177,17 +1175,19 @@ class shipment extends Library{
                 $price_breakdown["inputjson"] = json_encode(array('originnal_tax_amt'=>$item));
                 $price_breakdown["carrier_id"] = $servicePriceinfoInfo['courier_id'];
                }elseif($key=='tax_percentage'){
-                 $price = number_format((($price_without_tax *$item)/100),2,'.','');
+                 $basetaxprice = number_format((($carriertotalpriceWithouttax *$item)/100),2,'.','');
                  $price_breakdown["ccf_operator"] = "PERCENTAGE"; 
                  $price_breakdown["ccf_value"] = $item; 
                  $price_breakdown["ccf_level"] = 0;
-                 $price_breakdown["baseprice"] = $price_without_tax;  
-                 $price_breakdown["ccf_price"] = $price;
+                 $price_breakdown["baseprice"] = $basetaxprice;  
+                 $price_breakdown["ccf_price"] = $param["service_opted"]->chargable_tax;//$price;
                  $price_breakdown["price"] = $price_breakdown["ccf_price"];
              }else{
                  //
              }    
             }
+            
+            
 
             $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
             array_push($response,$price_breakdown_id);
@@ -1490,7 +1490,7 @@ class shipment extends Library{
         
     function bookSameDayShipment($data)
     {   
-
+       
         $carrier_id = $data->service_detail->otherinfo->courier_id;
 
         //check customer is enable or not  shipment_instruction
