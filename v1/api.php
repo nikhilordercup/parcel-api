@@ -107,7 +107,7 @@ $app->post('/loadAssignedRouteByShipmentRouteId', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id','shipment_route_id','assigned_driver_id'),$r);
-	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,'uid'=>$r->uid));
+	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,'uid'=>""));
 	$records = $obj->loadAssignedView();
 	echoResponse(200, $records);
 });
