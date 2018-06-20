@@ -1092,10 +1092,111 @@ class shipment extends Library{
     }
 
     private
-    
+
     function _saveShipmentPriceBreakdown($param)
-    {   //print_r($param);die;
-        //$shipmentId = $param["shipment_id"];
+    {   
+        $priceVersionNo = $param["version"];
+        $shipmentType = $param["shipment_type"];
+        $response = array();
+        //save service
+        if(isset($param["service_opted"]->otherinfo)){
+            $servicePriceinfoInfo = array();
+            $servicePriceinfoInfo =  json_decode(json_encode($param["service_opted"]->otherinfo),1);
+            $service_price_breakdown = array();
+            $service_price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
+            //$service_price_breakdown["shipment_id"] = $shipmentId;
+            $service_price_breakdown["shipment_type"] = $shipmentType;
+            $service_price_breakdown["version"] = $priceVersionNo;
+            $service_price_breakdown["api_key"] = "service";
+            $service_price_breakdown["price_code"] = $servicePriceinfoInfo['courier_service_code'];
+            $service_price_breakdown["ccf_operator"] = $servicePriceinfoInfo['operator'];
+            $service_price_breakdown["ccf_value"] = $servicePriceinfoInfo['ccf_value'];
+            $service_price_breakdown["ccf_level"] = $servicePriceinfoInfo['level'];
+            $service_price_breakdown["baseprice"] = $servicePriceinfoInfo['original_price'];
+            $service_price_breakdown["ccf_price"] = $servicePriceinfoInfo['price'];
+            $service_price_breakdown["price"] = ($service_price_breakdown["baseprice"] + $service_price_breakdown["ccf_price"]);
+            $service_price_breakdown["service_id"] = $servicePriceinfoInfo['service_id'];
+            $service_price_breakdown["carrier_id"] = $servicePriceinfoInfo['courier_id'];
+
+            try{
+                $price_breakdown_id = $this->db->save("shipment_price", $service_price_breakdown);
+                array_push($response,$price_breakdown_id);
+            }catch(Exception $e){
+                print_r($e);
+            }
+        }
+
+        //save surcharges
+        $totalcarrierSurchage = 0;
+        if(isset($param["service_opted"]->surchargesinfo)){
+            foreach($param["service_opted"]->surchargesinfo as $key => $item){
+                $surchargeInfo = array();
+                $surchargeInfo = json_decode(json_encode($item->info),1);
+                $price_breakdown = array();
+                $totalcarrierSurchage += $surchargeInfo['original_price'];
+                $price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
+                //$price_breakdown["shipment_id"] = $shipmentId;
+                $price_breakdown["shipment_type"] = $shipmentType;
+                $price_breakdown["version"] = $priceVersionNo;
+                $price_breakdown["api_key"] = "surcharges";
+                $price_breakdown["price_code"] = $key;
+                $price_breakdown["ccf_operator"] = $surchargeInfo['operator'];
+                $price_breakdown["ccf_value"] = $surchargeInfo['surcharge_value'];
+                $price_breakdown["ccf_level"] = $surchargeInfo['level'];
+                $price_breakdown["baseprice"] = $surchargeInfo['original_price'];
+                $price_breakdown["ccf_price"] = $surchargeInfo['price'];
+                $price_breakdown["price"] = ($price_breakdown["baseprice"] + $price_breakdown["ccf_price"]);
+                $price_breakdown["surcharge_id"] = $surchargeInfo['surcharge_id'];
+                $price_breakdown["carrier_id"] = $surchargeInfo['carrier_id'];
+
+                try{
+                    $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
+                    array_push($response,$price_breakdown_id);
+                }catch(Exception $e){
+                    print_r($e);
+                }
+            }
+        }
+        //save tax
+        if(isset($param["service_opted"]->taxes) and !empty($param["service_opted"]->taxes)){
+            $carriertotalpriceWithouttax = ($totalcarrierSurchage  + $param["service_opted"]->otherinfo->original_price);
+            $price_breakdown = array();
+            $price_without_tax = $param["service_opted"]->pricewithouttax;
+            foreach($param["service_opted"]->taxes as $key => $item){
+                if($key=='total_tax'){
+                    $price_breakdown["price_code"] = $key;
+                    $price_breakdown["load_identity"] = $param["service_opted"]->load_identity;
+                    $price_breakdown["shipment_type"] = $shipmentType;
+                    $price_breakdown["version"] = $priceVersionNo;
+                    $price_breakdown["api_key"] = "taxes";
+                    $price_breakdown["inputjson"] = json_encode(array('originnal_tax_amt'=>$item));
+                    $price_breakdown["carrier_id"] = $servicePriceinfoInfo['courier_id'];
+                }elseif($key=='tax_percentage'){
+                    $basetaxprice = number_format((($carriertotalpriceWithouttax *$item)/100),2,'.','');
+                    $price_breakdown["ccf_operator"] = "PERCENTAGE";
+                    $price_breakdown["ccf_value"] = $item;
+                    $price_breakdown["ccf_level"] = 0;
+                    $price_breakdown["baseprice"] = $basetaxprice;
+                    $price_breakdown["ccf_price"] = $param["service_opted"]->chargable_tax;//$price;
+                    $price_breakdown["price"] = $price_breakdown["ccf_price"];
+                }else{
+                    //
+                }
+            }
+
+
+
+            $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
+            array_push($response,$price_breakdown_id);
+
+        }
+        return $response;
+    }
+
+    private
+    
+    function _saveShipmentPriceBreakdownOLD($param)
+    {
         $priceVersionNo = $param["version"];
         $shipmentType = $param["shipment_type"];
         $response = array();
@@ -1120,13 +1221,11 @@ class shipment extends Library{
             $service_price_breakdown["carrier_id"] = $servicePriceinfoInfo['courier_id'];
 
             try{
-            $price_breakdown_id = $this->db->save("shipment_price", $service_price_breakdown);
-            array_push($response,$price_breakdown_id);
+                $price_breakdown_id = $this->db->save("shipment_price", $service_price_breakdown);
+                array_push($response,$price_breakdown_id);
             }catch(Exception $e){
                 print_r($e);
             }
-            
-            
         }  
         
         //save surcharges
@@ -1155,9 +1254,8 @@ class shipment extends Library{
                     $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
                     array_push($response,$price_breakdown_id);
                 }catch(Exception $e){
-                print_r($e);
+                    print_r($e);
                 }
-                
             }
         }
        
