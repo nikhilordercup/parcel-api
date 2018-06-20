@@ -159,7 +159,8 @@ final class Nextday extends Booking
                                         $collected_item["carrier_price_info"]["surcharges"] = number_format($surchargePrice, 2);
                                         $collected_item["customer_price_info"]["surcharges"] = number_format($surchargeWithCcfPrice, 2);
 
-                                        $collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                        //$collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                        $collected_item["carrier_price_info"]["taxes"] = number_format((($serviceCcf["original_price"] + $surchargePrice) * $service->taxes->tax_percentage / 100), 2);
                                         $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
 
                                         $collected_item["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + $service->taxes->total_tax, 2);
@@ -358,7 +359,8 @@ final class Nextday extends Booking
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    //$parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P",$loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
@@ -420,7 +422,8 @@ final class Nextday extends Booking
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    //$parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D",$loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;

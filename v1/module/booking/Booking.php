@@ -344,7 +344,7 @@ class Booking extends Icargo
             return array("status"=>"error", "message"=>"Parcel not saved");
         }
     }
-    
+
     protected
 
     function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status){
