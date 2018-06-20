@@ -1,7 +1,7 @@
 <?php
 class Route_Complete extends Icargo{   
 	public function __construct($param){
-		parent::__construct(array("email"=>$param['email'],"access_token"=>$param['access_token']));
+		//parent::__construct(array("email"=>$param['email'],"access_token"=>$param['access_token']));
 		
 		$this->shipment_route_id = $param['shipment_route_id'];
 		$this->company_id = $param['company_id'];
@@ -46,7 +46,6 @@ class Route_Complete extends Icargo{
             $this->action    = "route_completed";
             $this->latitude  = "0.000";
             $this->longitude = "0.000";
-
             if($status['status']==true){
                 //save driver time tracking
                 $apiTrackingData = $this->getDriverTimeTracking(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$this->driver_id));

@@ -549,6 +549,16 @@ class Route_Assign
             );
             }
         }
-    }
 
+    public
+
+    function saveRoutePostId($param){
+        $obj = new Shipment_Model();
+        $status = $obj->saveRoutePostId($param["post_id"], $param["shipment_route_id"]);
+        if($status){
+            return array("status"=>"success", "message"=>"post id saved");
+        }
+        return array("status"=>"error", "message"=>"post id not saved");
+    }
+}
 ?>

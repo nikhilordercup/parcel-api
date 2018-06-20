@@ -206,7 +206,7 @@ class Shipment_Model
     function _get_assigned_route_detail($shipment_route_id)
         {
         $record = array();
-        $sqldata = 'R4.instaDispatch_loadGroupTypeCode,R1.*,R2.name';
+        $sqldata = 'R4.instaDispatch_loadGroupTypeCode,R1.*,R2.name,R2.uid';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_route  as R1
         INNER JOIN " . DB_PREFIX . "users AS R2  ON R1.driver_id = R2.id
         INNER JOIN " . DB_PREFIX . "driver_vehicle AS R3  ON R3.driver_id = R1.driver_id
@@ -729,6 +729,12 @@ class Shipment_Model
         $sql = "SELECT `UT`.name as `name` FROM `" . DB_PREFIX . "users` AS `UT` WHERE `UT`.`id` IN('$user_id')";
         $records = $this->db->getAllRecords($sql);
         return $records;
+    }
+
+    public
+
+    function saveRoutePostId($post_id, $shipment_route_id){
+        return $this->db->update("shipment_route", array("firebase_id"=>$post_id), "shipment_route_id='$shipment_route_id'");
     }
 }
 ?>

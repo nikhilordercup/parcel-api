@@ -1971,4 +1971,14 @@ $app->post('/getAllMasterCouriers', function() use ($app) {
     $response = $obj->getAllMasterCouriers($r);
     echoResponse(200, $response);
 });
+
+$app->post('/saveRoutePostId', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    $data = array("shipment_route_id"=>$r->shipment_route_id, "post_id"=>$r->post_id, "company_id"=>$r->company_id, "email"=>$r->email, "access_token"=>$r->access_token);
+    $obj = new Route_Assign($data);
+    $response = $obj->saveRoutePostId($data);
+    echoResponse(200, $response);
+});
+
+
 ?>

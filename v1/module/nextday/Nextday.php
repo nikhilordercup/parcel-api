@@ -161,7 +161,7 @@ final class Nextday extends Booking
 
                                         //$collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
                                         $collected_item["carrier_price_info"]["taxes"] = number_format((($serviceCcf["original_price"] + $surchargePrice) * $service->taxes->tax_percentage / 100), 2);
-                                        
+
                                         $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
 
                                         $collected_item["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + $service->taxes->total_tax, 2);
