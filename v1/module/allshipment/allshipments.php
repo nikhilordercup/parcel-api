@@ -780,6 +780,7 @@ class allShipments extends Icargo{
              }
           }
         }
+       
         if($param['applypriceoncustomer'] == 'YES'){
             $temp = array();
             $temp['price_update_applyto_customer'] = 'YES';
@@ -838,9 +839,29 @@ class allShipments extends Icargo{
              } 
          } 
         elseif($param['applypriceoncustomer'] == 'NO'){
+            $temp['surcharges']     = 0;
+            $temp['total_price']  = 0;
+            $temp['taxes'] =  0;
+            $taxPrice = $this->getTaxPrice($records);
              foreach($records as $data){
-               $adddata =   $this->modelObj->addContent('shipment_price',$data);
-             }
+               if($data['api_key']=='service'){
+                  $temp['base_price'] =  $data['baseprice'];
+                  $temp['courier_commission_value'] =  $data['ccf_price'];
+                  $temp['courier_commission_type']  =  $data['ccf_operator'];
+                  $temp['courier_commission']       =  $data['ccf_value'];   
+                  $temp['total_price'] =  $data['price'];
+                }
+                elseif($data['api_key']=='taxes'){
+                  $data['price'] = $taxPrice['tax_amt'];
+                  $data['baseprice'] = $taxPrice['base_price'];
+                  $data['ccf_price'] = $taxPrice['tax_amt'];
+                  $temp['taxes'] =  $data['price'];  
+                }
+                else{
+                  $temp['surcharges'] +=  $data['price'];    
+                }
+                 $adddata =   $this->modelObj->addContent('shipment_price',$data);
+             } 
              if($adddata){
                  $temp = array();
                  $temp['price_update_applyto_customer'] = 'NO';
@@ -862,7 +883,7 @@ class allShipments extends Icargo{
         $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsWithVersionOfCustomer($param['job_identity'],$priceVersion);
         $isInvoiced = $getLastPriceVersion['isInvoiced'];
         $customerId  = $getLastPriceVersion['customer_id']; 
-        $carrierId   = $getLastPriceVersion['carrier'];
+        $carrierId   = isset($getLastPriceVersion['carrier'])?$getLastPriceVersion['carrier']:0;
         //$shipId    = $getLastPriceVersion['shipment_id'];
         $oldGrandTotal  = $getLastPriceVersion['grand_total'];
         $records = array();
@@ -908,7 +929,7 @@ class allShipments extends Icargo{
               $tempdata['ccf_price'] = $price;
               $tempdata['surcharge_id'] = $surchargeId;
               $tempdata['service_id'] = '0';   
-              $tempdata['apply_to_customer'] = 'NO';
+              $tempdata['apply_to_customer'] = 'YES';
               $tempdata['version_reason'] =  'CUSTOMER_PRICE_UPDATE'; 
               $tempdata['inputjson']      =  json_encode($param);
               $tempdata['show_for'] = 'C';
@@ -921,6 +942,7 @@ class allShipments extends Icargo{
             $temp['total_price']  = 0;
             $temp['taxes'] =  0;
             $taxPrice = $this->getTaxPrice($records);
+       
             foreach($records as $data){
                 if($data['api_key']=='service'){
                   $temp['base_price'] =  $data['baseprice'];
@@ -938,6 +960,7 @@ class allShipments extends Icargo{
                 else{
                   $temp['surcharges'] +=  $data['price'];    
                 }
+                //print_r($data);die;
                 $adddata =   $this->modelObj->addContent('shipment_price',$data);
              }
             if($adddata){
@@ -1205,45 +1228,54 @@ class allShipments extends Icargo{
     
     public function getTaxPrice($records){
          $temp['total_price'] = 0;
+         $temp['carrier_total_price'] = 0;
          $temp['surcharges'] = 0; 
+         $temp['carrier_surcharges'] = 0; 
          $temp['taxes'] = 0;
+         $temp['carrier_taxes'] = 0; 
          $isTax = false;
          $returnTax = array();
         if(count($records)>0){ 
+          
          foreach($records as $data){
                 if($data['api_key']=='service'){
                   $temp['total_price'] =  $data['price'];
+                  $temp['carrier_total_price'] =  $data['baseprice'];
                 }
                 elseif($data['api_key']=='taxes'){
                   $isTax = true;
                   $temp['taxes'] =  $data['price']; 
+                  $temp['carrier_taxes'] =  $data['baseprice']; 
                   $temp['taxes_operator'] =  $data['ccf_operator'];
                   $temp['taxes_value'] =  $data['ccf_value']; 
                 }
                 else{
-                    if($data['apply_to_customer']!='NO'){
-                        $temp['surcharges'] +=  $data['price']; 
+                    //if($data['apply_to_customer']!='NO'){
+                       if($data['show_for']!='CA'){
+                        $temp['surcharges'] +=  $data['price'];
                     }
-                       
+                    $temp['carrier_surcharges'] +=  $data['baseprice']; 
                 }   
              }
           if($isTax){
              $basePrice = $temp['total_price'] + $temp['surcharges'];
-             if($temp['taxes_operator']=='PERCENTAGE'){
+             $carrier_basePrice = $temp['carrier_total_price'] + $temp['carrier_surcharges'];
+              if($temp['taxes_operator']=='PERCENTAGE'){
               $taxamt =   number_format((($basePrice*$temp['taxes_value'])/100),2);
-              $returnTax['base_price'] = $basePrice;
+              $carrier_taxamt =   number_format((($carrier_basePrice*$temp['taxes_value'])/100),2);
+              $returnTax['base_price'] = $carrier_taxamt;//$basePrice;
               $returnTax['tax_amt'] = $taxamt;
              }elseif($temp['taxes_operator']=='FLAT'){
-              $taxamt =   $temp['taxes_value'];
-               $returnTax['base_price'] = $basePrice;
+               $taxamt =   $temp['taxes_value'];
+               $returnTax['base_price'] = $carrier_basePrice;//$basePrice;
                $returnTax['tax_amt'] = $taxamt;
              }else{
                 $taxamt = 0; 
-                  $returnTax['base_price'] = $basePrice;
+                  $returnTax['base_price'] = $carrier_basePrice;//$basePrice;
                   $returnTax['tax_amt'] = $taxamt;
              }
          }
-        }
+        } 
      return $returnTax;
      }
     
