@@ -386,7 +386,7 @@ SELECT  S.warehouse_id as warehouse_id,
                 AND CCST.company_id = '$company_id'
                 AND CCST.courier_id = '$courier_id'
                 AND COURSER.surcharge_code = '$surchrage_code'";
-        return $this->_getDbInstance()->getRowRecord($sql);
+        return $this->db->getRowRecord($sql);
     }
 
     public function getSurchargeOfCarrier($customer_id, $company_id, $courier_id)
@@ -407,7 +407,7 @@ SELECT  S.warehouse_id as warehouse_id,
         AND CCC.customer_id = '$customer_id'
         AND CCC.company_id = '$company_id'
         AND CCC.courier_id = '$courier_id'";
-        return $this->_getDbInstance()->getRowRecord($sql);
+        return $this->db->getRowRecord($sql);
     }
     
     
