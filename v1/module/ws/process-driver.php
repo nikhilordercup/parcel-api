@@ -81,6 +81,11 @@ class Process_Route
         {
             $this->post_id = $param->postId;
         }
+
+        if(isset($param->driverCode))
+        {
+            $this->driver_id = $param->driverCode;
+        }
         
         $this->model_rest = new Ws_Model_Rest();
         
@@ -118,6 +123,7 @@ class Process_Route
         $data['status']       = '1';
         $data['company_id']   = $this->company_id;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['event_time']   = date("Y-m-d H:i", strtotime("now"));
         $trackid              = $this->model_rest->save("api_driver_tracking", $data);
         return $trackid;
     }
@@ -133,9 +139,7 @@ class Process_Route
             {
                 $shipmentDetails    = $shipmentDetails[0];
                 $condition          = "shipment_ticket IN('$ticket')";
-                //$this->model_rest->update('shipment', array('is_driver_accept' => 'YES'), $condition);
-                
-                
+
                 $shpDataArr = array();
                 $shpDataArr['is_driver_accept'] = 'YES';
                 $shpDataArr['is_receivedinwarehouse'] = 'YES';
@@ -144,10 +148,8 @@ class Process_Route
                 $shpDataArr['driver_pickuptime'] = date('Y-m-d H:m:s');
 
                 $this->model_rest->update('shipment', $shpDataArr, $condition);
-                
-                
-                
-                $condition         = "shipment_route_id = '" . $shipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $shipmentDetails['assigned_driver'] . "'  AND shipment_ticket IN('$ticket')";
+
+                $condition         = "shipment_accepted='Pending' AND shipment_route_id = '" . $shipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $shipmentDetails['assigned_driver'] . "'  AND shipment_ticket IN('$ticket')";
                 $status = $this->model_rest->update('driver_shipment', array(
                         'shipment_accepted' => 'YES',
                         'taken_action_by' => 'Driver'
@@ -309,6 +311,7 @@ class Process_Route
     private function _reject_route()
     {   
         $shipment_ticket = array();
+
         $company_warehouse = $this->_get_driver_company_warehouse();
         
         $this->company_id = $company_warehouse['company_id'];
@@ -336,7 +339,7 @@ class Process_Route
     private function _start_route()
     {   
         //set all active route to pause of driver
-       // $this->model_rest->update('shipment_route', array('is_current'=>'N','is_pause'=>'1'),"driver_id ='$this->driver_id' AND is_current='Y'");
+        $this->model_rest->update('shipment_route', array('is_current'=>'N','is_pause'=>'1'),"driver_id ='$this->driver_id' AND is_current='Y'");
         /* comment above line for show all route in completed bucket,it written for make one route active at one time in out of all assign route for same driver*/
         //set the requested route to active
         $status = $this->model_rest->update('shipment_route', array('is_route_started'=>'1','is_current'=>'Y','is_pause'=>'0'),"driver_id ='$this->driver_id' AND shipment_route_id='$this->shipment_route_id'");
@@ -351,7 +354,7 @@ class Process_Route
             $common_obj = new Common();
             $shipmentsData = $this->model_rest->get_available_shipment_for_service_by_shipment_route_id($this->shipment_route_id);
             foreach($shipmentsData as $item){
-                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route started', $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, "ROUTESTART", 'driver');
+                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route started', $this->driver_id, $this->shipment_route_id, $this->company_id,$item["warehouse_id"], "ROUTESTART", 'driver');
             }
 
             Consignee_Notification::_getInstance()->sendRouteStartNotification(array("shipment_route_id"=>$this->shipment_route_id,"company_id"=>$this->company_id,"driver_id"=>$this->driver_id,"trigger_code"=>"agentStarted"));
@@ -387,7 +390,7 @@ class Process_Route
             $common_obj = new Common();
             $shipmentsData = $this->model_rest->get_available_shipment_for_service_by_shipment_route_id($this->shipment_route_id);
             foreach($shipmentsData as $item){
-                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route paused', $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, "ROUTEPAUSED", 'driver');
+                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route paused', $this->driver_id, $this->shipment_route_id, $this->company_id, $item["warehouse_id"], "ROUTEPAUSED", 'driver');
             }
 
             return array(

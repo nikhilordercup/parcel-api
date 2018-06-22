@@ -8,12 +8,20 @@ class Ws_Model_Rest
     
     public function save($table, $data)
     {
-        return $this->db->save($table, $data);
+        try{
+            return $this->db->save($table, $data);
+        }catch(Exception $e){
+
+        }
     }
     
     public function update($table, $data, $condition)
     {
-        return $this->db->update($table, $data, $condition);
+        try{
+            return $this->db->update($table, $data, $condition);
+        }catch(Exception $e){
+
+        }
     }
     
     public function get_shipment_ticket_by_shipment_route_id($shipment_route_id)
@@ -91,8 +99,10 @@ class Ws_Model_Rest
     
     public function more_shipment_exist_in_this_route_for_driver_from_operation_count($driver_id,$route_id)
     {
-        $sql = "SELECT COUNT(1) AS count FROM " . DB_PREFIX . "driver_shipment as s1 left join " . DB_PREFIX . "shipment as s2 on s1.shipment_ticket = s2.shipment_ticket 
-        WHERE s1.driver_id = '$driver_id' AND s1.shipment_route_id = '$route_id' AND s1.is_driveraction_complete = 'N' AND s2.is_receivedinwarehouse = 'YES'";
+        //$sql = "SELECT COUNT(1) AS count FROM " . DB_PREFIX . "driver_shipment as s1 left join " . DB_PREFIX . "shipment as s2 on s1.shipment_ticket = s2.shipment_ticket WHERE s1.driver_id = '$driver_id' AND s1.shipment_route_id = '$route_id' AND s1.is_driveraction_complete = 'N' AND s2.is_receivedinwarehouse = 'YES'";
+
+        $sql = "SELECT COUNT(1) AS count FROM " . DB_PREFIX . "shipment AS ST WHERE ST.assigned_driver = '$driver_id' AND ST.shipment_routed_id = '$route_id' AND ST.current_status = 'O' AND ST.is_receivedinwarehouse = 'YES'";
+
 	    $record = $this->db->getOneRecord($sql);
         return $record['count'];
     }
@@ -156,7 +166,7 @@ class Ws_Model_Rest
 
     public function get_available_shipment_for_service_by_shipment_route_id($shipment_routed_id)
     {
-        $sql = "SELECT shipment_ticket AS shipment_ticket FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id = '$shipment_routed_id' AND is_driver_accept = 'YES' AND (current_status != 'D' OR current_status != 'Ca')";
+        $sql = "SELECT shipment_ticket AS shipment_ticket,warehouse_id FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id = '$shipment_routed_id' AND is_driver_accept = 'YES' AND (current_status != 'D' OR current_status != 'Ca')";
         $record = $this->db->getAllRecords($sql);
         return $record;
     }

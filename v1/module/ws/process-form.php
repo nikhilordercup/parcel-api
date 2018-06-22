@@ -66,7 +66,7 @@ class Process_Form{
         }
         if(isset($params->primary_email))
         {
-            $this->access_token = $params->access_token;
+            $this->primary_email = $params->primary_email; //driver email
         }
         if(isset($params->service_msg))
         {
@@ -123,8 +123,6 @@ class Process_Form{
         $data                 = array();
         $data['drivercode']   = $this->driver_name;
         $data['driver_id']    = $this->driver_id;
-        //$data['date']         = date("Y-m-d");
-        //$data['time']         = date("H:m:s");
         $data['route_id']     = $this->shipment_route_id;
         $data['latitude']     = $this->latitude;
         $data['longitude']    = $this->longitude;
@@ -132,6 +130,7 @@ class Process_Form{
         $data['company_id']   = $this->company_id;
         $data['warehouse_id'] = $this->warehouse_id;
         $data['status']       = '1';
+        $data['event_time']   = date("Y-m-d H:i", strtotime("now"));
         $trackid              = $this->model_rest->save("api_driver_tracking", $data);
         return $trackid;
     }
@@ -252,9 +251,12 @@ class Process_Form{
 
                         if ($checkMoreShipmentofthisRouteDriver == 0) 
                         {
-                            $condition  = "shipment_route_id = '" . $route_id . "' AND driver_id = '" . $driver_id . "'";
-                            $statusship = $this->model_rest->update("shipment_route", array(
-                                'is_active' => 'N','is_current'=> 'N'), $condition);
+                            $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
+                            $test = $completeRouteObj->saveCompletedRoute();
+
+                            //$condition  = "shipment_route_id = '" . $route_id . "' AND driver_id = '" . $driver_id . "'";
+                            //$statusship = $this->model_rest->update("shipment_route", array(
+                            //    'is_active' => 'N','is_current'=> 'N','completed_date'=>'NOW()', 'is_pause'=>'0'), $condition);
                             $firebasedata = $this->releaseRoute($driver_id, $route_id);
                         }
 

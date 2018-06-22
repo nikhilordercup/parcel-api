@@ -29,6 +29,24 @@ class Shipment_Model
 
     public
 
+    function startTransaction(){
+        $this->db->startTransaction();
+    }
+
+    public
+
+    function commitTransaction(){
+        $this->db->commitTransaction();
+    }
+
+    public
+
+    function rollBackTransaction(){
+        $this->db->rollBackTransaction();
+    }
+
+    public
+
     function addContent($table_name, $data)
         {
         return $this->db->save($table_name, $data);
@@ -68,13 +86,11 @@ class Shipment_Model
                 CA.shipment_customer_name as consignee_name';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "driver_shipment AS R1
              INNER JOIN " . DB_PREFIX . "shipment AS CA  ON R1.shipment_ticket = CA.shipment_ticket
-
              WHERE R1.shipment_route_id  = '" . $routeId . "' 
              AND CA.warehouse_id  = '" . $whareHouseId . "' 
              AND CA.company_id  = '" . $componyId . "' 
              AND (R1.shipment_accepted  = 'Pending' OR R1.shipment_accepted  = 'YES')  
              AND (CA.current_status  = 'O' OR CA.current_status  = 'D' OR CA.current_status  = 'Ca'  )";
-        
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -106,11 +122,7 @@ class Shipment_Model
     function getUnAssignedShipmentData($componyId, $whareHouseId, $routeId)
         {
         $record = array();
-        /*$sqldata = 'CA.instaDispatch_docketNumber as docket_no,CA.shipment_assigned_service_date as service_date,
-                CA.instaDispatch_loadGroupTypeCode as shipment_type,CA.current_status,CA.instaDispatch_loadIdentity as reference_no,CA.shipment_total_attempt as attempt,ABT.address_line1 AS address1,CA.icargo_execution_order as execution_order,
-                CA.shipment_assigned_service_time as service_time,CA.shipment_total_weight as weight,CA.shipment_ticket as shipment_ticket,
-                CA.shipment_service_type as service_type,CA.is_receivedinwarehouse as in_warehouse,ABT.postcode as postcode,CA.shipment_customer_name as consignee_name';*/
-		$sqldata = 'CA.instaDispatch_docketNumber as docket_no,CA.shipment_assigned_service_date as service_date,
+        $sqldata = 'CA.instaDispatch_docketNumber as docket_no,CA.shipment_assigned_service_date as service_date,
                 CA.instaDispatch_loadGroupTypeCode as shipment_type,CA.current_status,CA.instaDispatch_loadIdentity as reference_no,CA.shipment_total_attempt as attempt,CA.shipment_address1 AS address1,CA.icargo_execution_order as execution_order,
                 CA.shipment_assigned_service_time as service_time,CA.shipment_total_weight as weight,CA.shipment_ticket as shipment_ticket,
                 CA.shipment_service_type as service_type,CA.is_receivedinwarehouse as in_warehouse,CA.shipment_postcode as postcode,CA.shipment_customer_name as consignee_name';
@@ -142,14 +154,8 @@ class Shipment_Model
 
     function getAssignRouteShipmentDetails($company_id)
         {
-       //$sqldata = "t1.`shipment_id`,ABT.address_line1 AS `shipment_address1`,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,ABT.country AS `shipment_customer_country`,ABT.city AS `shipment_customer_city`,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,ABT.postcode AS `shipment_postcode`,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`, 'Assigned'";
         $sqldata = "t1.`shipment_id`,t1.shipment_address1,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country,t1.shipment_customer_city,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`, 'Assigned'";
-		/*$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
-               INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=t1.address_id
-               INNER JOIN " . DB_PREFIX . "users AS t2  ON t2.id = t1.assigned_driver
-               
-               WHERE t1.is_driver_assigned = 1 AND t1.`current_status`='O' AND t1.company_id = '" . $company_id . "' ORDER BY t1.shipment_executionOrder";*/
-	   $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
+		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
                INNER JOIN " . DB_PREFIX . "users AS t2  ON t2.id = t1.assigned_driver
                WHERE t1.is_driver_assigned = 1 AND t1.`current_status`='O' AND t1.company_id = '" . $company_id . "' ORDER BY t1.shipment_executionOrder";
         $record = $this->db->getAllRecords($sql);
@@ -160,13 +166,8 @@ class Shipment_Model
 
     function getAssignRouteShipmentDetailsByShipmentRouteId($company_id, $shipment_route_id, $driver_id)
         {
-        //$sqldata = "t1.`shipment_id`,ABT.address_line1 AS `shipment_address1`,ABT.address_line2 AS `shipment_address2`,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,ABT.country AS `shipment_customer_country`,ABT.city AS `shipment_customer_city`,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,ABT.postcode AS `shipment_postcode`,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',ABT.latitude AS `shipment_latitude`,ABT.longitude AS `shipment_longitude`,t1.`icargo_execution_order`,t1.`shipment_total_item`,t1.`shipment_customer_name` AS consignee_name";
-        $sqldata = "t1.`shipment_id`,t1.shipment_address1,t1.shipment_address2,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country,t1.shipment_customer_city,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',t1.shipment_latitude,t1.shipment_longitude,t1.`icargo_execution_order`,t1.`shipment_total_item`,t1.`shipment_customer_name` AS consignee_name";
-		/*$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
-               INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=t1.address_id
-               INNER JOIN " . DB_PREFIX . "users AS t2  ON t2.id = t1.assigned_driver
-               WHERE t1.is_driver_assigned = 1 AND (t1.`current_status`='O' OR t1.`current_status`='D' OR t1.`current_status`='Ca') AND t1.company_id = '" . $company_id . "' AND t1.shipment_routed_id = '$shipment_route_id' AND assigned_driver = '$driver_id' ORDER BY t1.shipment_executionOrder";*/
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
+        $sqldata = "t1.customer_id,t1.`shipment_id`,t1.shipment_address1,t1.shipment_address2,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country,t1.shipment_customer_city,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',t1.shipment_latitude,t1.shipment_longitude,t1.`icargo_execution_order`,t1.`shipment_total_item`,t1.`shipment_customer_name` AS consignee_name";
+		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
                INNER JOIN " . DB_PREFIX . "users AS t2  ON t2.id = t1.assigned_driver
                WHERE t1.is_driver_assigned = 1 AND (t1.`current_status`='O' OR t1.`current_status`='D' OR t1.`current_status`='Ca') AND t1.company_id = '" . $company_id . "' AND t1.shipment_routed_id = '$shipment_route_id' AND assigned_driver = '$driver_id' ORDER BY t1.shipment_executionOrder";
 		$record = $this->db->getAllRecords($sql);
@@ -191,12 +192,11 @@ class Shipment_Model
     function getUnAssignShipmentDetails($company_id)
         {
         $record = array();
-        /*$sqldata = "ABT.address_line1 AS `shipment_address1`,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,ABT.country AS `shipment_customer_country`,ABT.city AS `shipment_customer_city`,t1.`shipment_address3`, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,ABT.postcode AS `shipment_postcode`,
-        t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',ABT.latitude AS `shipment_latitude`,ABT.longitude AS `shipment_longitude`,t1.`icargo_execution_order`,t1.`shipment_total_item`";*/
-        $sqldata = "t1.shipment_address1 AS `shipment_address1`,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country AS `shipment_customer_country`,t1.shipment_customer_city AS `shipment_customer_city`,t1.`shipment_address3`, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode AS `shipment_postcode`,
+        $sqldata = "t1.customer_id,t1.shipment_address1 AS `shipment_address1`,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country AS `shipment_customer_country`,t1.shipment_customer_city AS `shipment_customer_city`,t1.`shipment_address3`, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode AS `shipment_postcode`,
         t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',t1.shipment_latitude AS `shipment_latitude`,t1.shipment_longitude AS `shipment_longitude`,t1.`icargo_execution_order`,t1.`shipment_total_item`";
 		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
                 WHERE current_status = 'S' AND is_driver_assigned = '0' AND shipment_routed_id!=0 AND company_id = '" . $company_id . "' ORDER BY `shipment_routed_id`,`shipment_executionOrder`";;
+
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -206,13 +206,12 @@ class Shipment_Model
     function _get_assigned_route_detail($shipment_route_id)
         {
         $record = array();
-        $sqldata = 'R4.instaDispatch_loadGroupTypeCode,R1.*,R2.name';
+        $sqldata = 'R4.instaDispatch_loadGroupTypeCode,R1.*,R2.name,R2.uid';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_route  as R1
         INNER JOIN " . DB_PREFIX . "users AS R2  ON R1.driver_id = R2.id
         INNER JOIN " . DB_PREFIX . "driver_vehicle AS R3  ON R3.driver_id = R1.driver_id
         INNER JOIN " . DB_PREFIX . "shipment as R4 on R4.shipment_routed_id=R1.shipment_route_id
         WHERE shipment_route_id = $shipment_route_id GROUP BY R4.instaDispatch_loadGroupTypeCode";
-
         $record = $this->db->getRowRecord($sql);
 
         if(count($record)>0){
@@ -227,18 +226,12 @@ class Shipment_Model
     function getShipmentStatusDetails($ticket)
         {
         $record = array();
-        //$sqldata = 'R1.*,ABT.address_line1 AS shipment_address1 ,ABT.address_line2 AS shipment_address2,ABT.postcode AS shipment_postcode,ABT.city AS shipment_customer_city,ABT.state AS shipment_customer_state, ABT.iso_code AS shipment_country_code, ABT.latitude AS shipment_latitude, ABT.longitude AS shipment_longitude,R2.name,R3.route_name';
         $sqldata = 'R1.*,R2.name,R3.route_name';
 		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1
                 LEFT JOIN " . DB_PREFIX . "users AS R2  ON R1.assigned_driver = R2.id
                 LEFT JOIN " . DB_PREFIX . "shipment_route AS R3  ON R1.shipment_routed_id = R3.shipment_route_id
                 WHERE R1.shipment_ticket IN(" . $ticket . ")";
-		/*$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1
-                INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=R1.address_id
-                LEFT JOIN " . DB_PREFIX . "users AS R2  ON R1.assigned_driver = R2.id
-                LEFT JOIN " . DB_PREFIX . "shipment_route AS R3  ON R1.shipment_routed_id = R3.shipment_route_id
-                WHERE R1.shipment_ticket IN(" . $ticket . ")";*/
-        $record = $this->db->getRowRecord($sql);
+		$record = $this->db->getRowRecord($sql);
         return $record;
         }
 
@@ -338,7 +331,7 @@ class Shipment_Model
 
     function moreShipExistinThisRouteforDriverFromOperation($driver, $routeId)
         {
-        $sql = "SELECT count(1) as num FROM " . DB_PREFIX . "driver_shipment AS R1
+        $sql = "SELECT COUNT(1) as num FROM " . DB_PREFIX . "driver_shipment AS R1
                 LEFT JOIN " . DB_PREFIX . "shipment AS R2  ON R1.shipment_ticket = R2.shipment_ticket
                 WHERE R1.shipment_route_id = " . $routeId . " 
                 AND R1.driver_id = " . $driver . " 
@@ -393,7 +386,7 @@ class Shipment_Model
         {
         $record = array();
         $sqldata = 't1.id AS driver_id, t1.name AS driver_name';
-        $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "users AS t1 INNER JOIN " . DB_PREFIX . "company_users AS t2 ON t1.id = t2.user_id WHERE t1.user_level = 4 AND t2.company_id = " . $company_id . " ORDER BY driver_name";
+        $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "users AS t1 INNER JOIN " . DB_PREFIX . "company_users AS t2 ON t1.id = t2.user_id WHERE t1.user_level = 4 AND t1.status = 1 AND t2.company_id = " . $company_id . " ORDER BY driver_name";
         $records = $this->db->getAllRecords($sql);
         return $records;
         }
@@ -596,10 +589,7 @@ class Shipment_Model
 
     function getShipmentsByShipmentRouteId($shipment_route_id)
         {
-        /*$sql = "SELECT AT.postcode AS postcode, AT.address_line1 AS address_line1, AT.latitude, AT.longitude, ST.shipment_id, ST.instaDispatch_loadGroupTypeCode, ST.shipment_ticket, ST.`icargo_execution_order`, ST.`shipment_service_type` FROM " . DB_PREFIX . "shipment AS ST
-               INNER JOIN " . DB_PREFIX . "address_book AS AT  ON AT.id = ST.address_id
-               WHERE ST.shipment_routed_id = '$shipment_route_id' ORDER BY shipment_executionOrder";*/
-		$sql = "SELECT ST.shipment_postcode AS postcode, ST.shipment_address1 AS address_line1, ST.shipment_latitude AS latitude, ST.shipment_longitude AS longitude, ST.shipment_id, ST.instaDispatch_loadGroupTypeCode, ST.shipment_ticket, ST.`icargo_execution_order`, ST.`shipment_service_type` FROM " . DB_PREFIX . "shipment AS ST
+        $sql = "SELECT ST.shipment_postcode AS postcode, ST.shipment_address1 AS address_line1, ST.shipment_latitude AS latitude, ST.shipment_longitude AS longitude, ST.shipment_id, ST.instaDispatch_loadGroupTypeCode, ST.shipment_ticket, ST.`icargo_execution_order`, ST.`shipment_service_type` FROM " . DB_PREFIX . "shipment AS ST
                WHERE ST.shipment_routed_id = '$shipment_route_id' ORDER BY shipment_executionOrder";	   
         $records = $this->db->getAllRecords($sql);
         return $records;
@@ -691,5 +681,60 @@ class Shipment_Model
         return $record;
     }
 
+    public
+
+    function releaseShipment($shipment_ticket){
+        return $this->db->update("shipment", array(
+            "is_driver_assigned"=>"0",
+            "is_driver_accept"=>"Pending",
+            "assigned_driver"=>"0",
+            "assigned_vehicle"=>"0",
+            "current_status"=>"S",
+            "distancemiles"=>"0.00",
+            "estimatedtime"=>"0.00"
+        ), "shipment_ticket IN ('$shipment_ticket')");
     }
+
+    public
+
+    function releaseShipmentFromDriver($shipment_ticket){
+        return $this->db->update("driver_shipment", array(
+            "shipment_accepted"=>"Release",
+            "is_driveraction_complete"=>"Y"
+        ), "shipment_ticket IN ('$shipment_ticket')");
+    }
+
+    public
+
+    function releaseShipmentFromRoute($shipment_route_id){
+        return $this->db->update("shipment_route", array(
+            "assign_start_time"=>"00:00:00",
+            "actual_start_time"=>"00:00:00",
+            "is_current"=>"N",
+            "driver_accepted"=>"0",
+            "is_route_started"=>"0",
+            "driver_id"=>"0",
+            "is_active"=>"Y",
+            "status"=>"1"
+        ), "shipment_route_id = '$shipment_route_id'");
+    }
+
+    public function saveUserCredentialInfo($param, $user_id){
+        return $this->db->update("users", array("device_token_id"=>$param["device_token_id"]), "id='$user_id'");
+    }
+
+    public
+
+    function getCustomerById($user_id){
+        $sql = "SELECT `UT`.name as `name` FROM `" . DB_PREFIX . "users` AS `UT` WHERE `UT`.`id` IN('$user_id')";
+        $records = $this->db->getAllRecords($sql);
+        return $records;
+    }
+
+    public
+
+    function saveRoutePostId($post_id, $shipment_route_id){
+        return $this->db->update("shipment_route", array("firebase_id"=>$post_id), "shipment_route_id='$shipment_route_id'");
+    }
+}
 ?>

@@ -61,7 +61,8 @@ class AllInvoice_Model
                     CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = I.customer_id
-                    WHERE I.company_id  = '" . $componyId . "'";
+                    WHERE I.company_id  = '" . $componyId . "'
+                    ORDER BY I.id DESC";
         $record = $this->db->getAllRecords($sql);
         return $record;
      }
@@ -75,7 +76,7 @@ class AllInvoice_Model
     }
     public function  getAllInvoicedDocket($companyId,$from,$to,$customerfilter){   
         $record = array();
-        $sqldata = 'A.shipment_id as reference_id,A.load_identity as reference,
+        $sqldata = 'S.shipment_id as reference_id,A.load_identity as reference,
                     DATE_FORMAT(S.shipment_create_date,"%Y-%m-%d") AS booking_date,
                     S.shipment_total_item AS items,S.shipment_total_weight AS weight,
                     S.shipment_total_volume AS volume,S.shipment_customer_name AS consignee,
@@ -86,13 +87,14 @@ class AllInvoice_Model
                     A.transit_distance_text as chargable_value,A.total_price as total,A.customer_id,
                     SP.price as fual_surcharge';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service as A
-                LEFT JOIN " . DB_PREFIX . "shipment as S on S.shipment_id = A.shipment_id
-                LEFT JOIN " . DB_PREFIX . "shipment_price as SP on (SP.shipment_id = A.shipment_id AND SP.api_key = 'surcharges' AND SP.price_code = 'fual_surcharge')
+                LEFT JOIN " . DB_PREFIX . "shipment as S on S.instaDispatch_loadIdentity = A.load_identity
+                LEFT JOIN " . DB_PREFIX . "shipment_price as SP on (SP.load_identity = A.load_identity AND SP.api_key = 'surcharges' AND SP.price_code = 'fual_surcharge')
                 WHERE A.isInvoiced = 'NO'
                 AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')
                 ".$customerfilter."
                 AND DATE_FORMAT(S.shipment_create_date,'%Y-%m-%d') between '" . $from . "' AND '" . $to . "'
-                AND S.company_id = '" .$companyId ."' 
+                AND S.company_id = '" .$companyId ."'
+                AND S.shipment_service_type = 'P'
                 ORDER BY A.customer_id"; 
         $record = $this->db->getAllRecords($sql);
         return $record; 
@@ -124,8 +126,8 @@ class AllInvoice_Model
                     S1.instaDispatch_loadGroupTypeCode,
                     S1.shipment_service_type,
                     S1.icargo_execution_order,
-                    ADDR.postcode as shipment_postcode,
-                    ADDR.country AS shipment_customer_country';
+                    S1.shipment_postcode as shipment_postcode,
+                    S1.shipment_customer_country AS shipment_customer_country';
          $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "shipment AS S1
                  LEFT JOIN " . DB_PREFIX . "address_book AS ADDR ON ADDR.id = S1.address_id
           WHERE S1.instaDispatch_loadIdentity  = '" . $shipmentRef . "'";
@@ -151,6 +153,7 @@ class AllInvoice_Model
                     CUS.billing_city AS customercity,CUS.billing_country AS customercountry,
                     CUS.billing_phone AS customerphone,CUS.accountnumber AS customeraccount,
                     CUS.vatnumber AS customervat,S1.invoice_reference AS customerinvoiceref,
+                    CUS.billing_state AS customerstate,
                     DATE_FORMAT(S1.raised_on,"%Y-%m-%d")  AS customerinvoicedate,S1.invoice_reference AS customerinvoiceref,
                     DATE_FORMAT(S1.deu_date,"%Y-%m-%d")  AS customerinvoiceduedate,
                     S1.base_amount AS baseprice,S1.surcharge_total AS surcharge,
@@ -162,7 +165,20 @@ class AllInvoice_Model
                 WHERE S1.invoice_reference  = '" . $ref . "'";
          $record = $this->db->getRowRecord($sql);
          return  $record;     
-    } 
+    }
+
+	public function getAllInvoiceByCustomerId($whareHouseId,$companyId,$customerId){
+        $record = array();
+        $sqldata = 'I.invoice_reference,I.total_ammount as total_amount,I.raised_on,
+                    I.deu_date as due_on,I.from,I.to,I.voucer as voucher,
+                    I.tot_shipmets as shipments,I.tot_item as item,I.invoice_status as status,
+                    CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
+                    LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = I.customer_id
+                    WHERE I.company_id  = '".$companyId ."' AND I.customer_id  = ".$customerId."";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+     }	
     
    }
 ?>

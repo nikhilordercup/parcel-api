@@ -117,8 +117,33 @@ class Route_Assign
         $createdRoute['last_optimized_time'] = $getRouteDetails[0]['last_optimized_time'];
         $createdRoute['company_id'] = $this->company_id;
         $createdRoute['warehouse_id'] = $this->warehouse_id;
+        $createdRoute['route_type'] = $getRouteDetails[0]['route_type'];
         $shipment_route_id = $this->db->save("shipment_route", $createdRoute);
-
+        
+        if($createdRoute['route_type']=='SAMEDAY'){
+          if(count($getRouteDetails)==1){
+             return array(
+                'status' => true,
+                'message' => 'Requested Route can not Assigned to driver.',
+                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+            ); 
+          }
+          else{
+           if(array_search('P', array_column($getRouteDetails, 'shipment_type')) !== False) {
+            $loadIdentity  = $getRouteDetails[0]['load_identity'];
+            $collectionjob = $this->modelObj->getNotAssignCollectionjob($loadIdentity); 
+            if($collectionjob){
+             $samedayshipmentticket =  $collectionjob['shipment_ticket'];  
+            }
+           }else{
+              return array(
+                'status' => true,
+                'message' => 'Requested Route can not Assigned to driver.',
+                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+            );   
+           } 
+          }     
+        }
         // Assign Route to Driver
 
         foreach($getRouteDetails as $shipdata)
@@ -126,6 +151,9 @@ class Route_Assign
             // Update Cargo shipment
 
             $cargoshipment = array();
+            if(($shipdata['route_type']=='SAMEDAY') && ($shipdata['shipment_type']=='P')){
+             $shipdata['temp_shipment_ticket'] =   $samedayshipmentticket; 
+            }
             $cargoshipment['is_shipment_routed'] = '1';
             $cargoshipment['shipment_routed_id'] = $shipment_route_id;
             $cargoshipment['is_driver_assigned'] = '0';
@@ -137,7 +165,30 @@ class Route_Assign
             $this->db->update('shipment', $cargoshipment, $condition);
             $this->_add_shipment_life_history($shipdata['temp_shipment_ticket'], 'Assign to Driver', 'ASSIGNTODRIVER', 'Controller', $this->company_id, $this->warehouse_id, '0', $shipment_route_id);
             }
-
+        
+        // check any delivery job exist;
+        
+        if($createdRoute['route_type']=='SAMEDAY'){
+            $loadIdentity  = $getRouteDetails[0]['load_identity'];
+            $deliveryjob = $this->modelObj->checkNotPendingDeliveryjob($loadIdentity); 
+            if($deliveryjob){
+               // add a collection job;   
+                $collectionJob = $this->modelObj->getCollectionjobDetails($loadIdentity); 
+                $collectionJob['shipment_ticket'] = $collectionJob['shipment_ticket'].'V'.rand(45,230);
+                $collectionJob['shipment_routed_id'] = 0;
+                $collectionJob['assigned_driver'] = 0;
+                $collectionJob['assigned_vehicle'] = 0;
+                $collectionJob['shipment_assigned_service_date'] = '1970-01-01';
+                $collectionJob['shipment_assigned_service_time'] = '00:00:00';
+                $collectionJob['is_shipment_routed'] = '0';
+                $collectionJob['is_driver_assigned'] = '0';
+                $collectionJob['current_status'] = 'C';
+                $collectionJob['icargo_execution_order'] = '1';
+                unset($collectionJob['shipment_id']);
+                $shipment_route_id = $this->db->save("shipment", $collectionJob);
+            }
+        }
+        
         if ($this->modelObj->deleteTempRoutes($this->route_id))
             {
             return array(
@@ -150,27 +201,53 @@ class Route_Assign
     private
     function _save_and_assign_to_driver()
         {
+        $samedayshipmentticket = '';
         $timeStamp = strtotime($this->start_time);
         $getRouteDetails = $this->modelObj->getRouteDetails($this->tickets_str, $this->access_token);//$this->_get_route_details();
-
         // create routes
         $createdRoute['route_id'] = $getRouteDetails[0]['route_id'];
         $createdRoute['custom_route'] = ($getRouteDetails[0]['route_id'] == 0) ? 'Y' : 'N';
         $createdRoute['route_name'] = $this->route_name;
         $createdRoute['driver_id'] = $this->driver_id;
         $createdRoute['assign_start_time'] = date('H:i:s', $timeStamp);
-        $createdRoute['service_date'] = date('Y-m-d', $timeStamp);
+        $createdRoute['service_date'] = date('Y-m-d H:i:s', $timeStamp);
         $createdRoute['is_active'] = 'Y';
         $createdRoute['status'] = '1';
         $createdRoute['company_id'] = $this->company_id;
         $createdRoute['warehouse_id'] = $this->warehouse_id;
-
+        $createdRoute['route_type'] = $getRouteDetails[0]['route_type'];
         $shipment_routed_id = $this->db->save("shipment_route", $createdRoute);
-
+        if($createdRoute['route_type']=='SAMEDAY'){
+          if(count($getRouteDetails)==1){
+             return array(
+                'status' => "error",
+                'message' => 'Requested Route can not assigned to driver.',
+                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
+            ); 
+          }
+          else{
+           if(array_search('P', array_column($getRouteDetails, 'shipment_type')) !== False) {
+            $loadIdentity  = $getRouteDetails[0]['load_identity'];
+            $collectionjob = $this->modelObj->getNotAssignCollectionjob($loadIdentity); 
+            if($collectionjob){
+             $samedayshipmentticket =  $collectionjob['shipment_ticket'];  
+            }
+           }else{
+              return array(
+                'status' => "error",
+                'message' => 'Requested Route can not assigned to driver.',
+                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
+            );   
+           } 
+          }     
+        }
         // Assign Route to Driver
         foreach($getRouteDetails as $shipdata)
             {
             $drivershipmet = array();
+            if(($shipdata['route_type']=='SAMEDAY') && ($shipdata['shipment_type']=='P')){
+             $shipdata['temp_shipment_ticket'] =   $samedayshipmentticket; 
+            }
             $drivershipmet['shipment_ticket'] = $shipdata['temp_shipment_ticket'];
             $drivershipmet['driver_id'] = $this->driver_id;
             $drivershipmet['vehicle_id'] = $this->vehicle_id;
@@ -200,7 +277,30 @@ class Route_Assign
             $this->db->update('shipment', $cargoshipment, $condition);
             $this->_add_shipment_life_history($shipdata['temp_shipment_ticket'], 'Assign to Driver', 'ASSIGNTODRIVER', 'Controller', $this->company_id, $this->warehouse_id, $this->driver_id, $shipment_routed_id);
             }
-
+        
+        // check any delivery job exist;
+        
+        if($createdRoute['route_type']=='SAMEDAY'){
+            $loadIdentity  = $getRouteDetails[0]['load_identity'];
+            $deliveryjob = $this->modelObj->checkNotPendingDeliveryjob($loadIdentity); 
+            if($deliveryjob){
+               // add a collection job;   
+                $collectionJob = $this->modelObj->getCollectionjobDetails($loadIdentity); 
+                $collectionJob['shipment_ticket'] = $collectionJob['shipment_ticket'].'V'.rand(45,230);
+                $collectionJob['shipment_routed_id'] = 0;
+                $collectionJob['assigned_driver'] = 0;
+                $collectionJob['assigned_vehicle'] = 0;
+                $collectionJob['shipment_assigned_service_date'] = '1970-01-01';
+                $collectionJob['shipment_assigned_service_time'] = '00:00:00';
+                $collectionJob['is_shipment_routed'] = '0';
+                $collectionJob['is_driver_assigned'] = '0';
+                $collectionJob['current_status'] = 'C';
+                $collectionJob['icargo_execution_order'] = '1';
+                unset($collectionJob['shipment_id']);
+                $shipment_route_id = $this->db->save("shipment", $collectionJob);
+            }
+        }
+        
         if ($this->modelObj->deleteTempRoutes($this->route_id))
             {
             $firebaseObj = new Firebase_Route_Assign(array(
@@ -211,7 +311,7 @@ class Route_Assign
                 "company_id" => $this->company_id
             ));
             return array(
-                'status' => true,
+                'status' => "success",
                 'message' => 'Requested Route has been Assigned to driver.',
                 'post_data' => $firebaseObj->getCurrentAssignedRouteData()
             );
@@ -243,6 +343,7 @@ class Route_Assign
             {
             $this->vehicle_id = $driver_vehicle['vehicle_id'];
             $shipment_tickets = $this->modelObj->getAllTicketsByRoute($this->route_id);//$this->_get_all_tickets_by_route();
+            $route_type = $this->modelObj->getTempRouteDetail($this->route_id);
             foreach($shipment_tickets as $ticket)
                 {
                 array_push($tickets, $ticket['shipment_ticket']);
@@ -250,7 +351,9 @@ class Route_Assign
 
             $this->tickets = $tickets;
             $this->tickets_str = implode("','", $tickets);
-
+            if($route_type == 'SAME'){
+              $data = $this->_save_and_assign_to_driver();  
+            }else{
             // check warehouse status is YES
             $in_warehouse = $this->modelObj->checkAllShipmentInWarehouse($this->tickets_str);//$this->_check_all_shipment_in_warehouse();
             if ($in_warehouse['exist'] == 0)
@@ -261,15 +364,16 @@ class Route_Assign
                 {
                 $data = array(
                     'message' => 'All shipment of this selected route is (NOT) physically found',
-                    'status' => false
+                    'status' => "error"
                 );
                 }
+             }
             }
           else
             {
             $data = array(
                 'message' => 'Driver have no vehicle',
-                'status' => false
+                'status' => "error"
             );
             }
 
@@ -445,6 +549,16 @@ class Route_Assign
             );
             }
         }
-    }
 
+    public
+
+    function saveRoutePostId($param){
+        $obj = new Shipment_Model();
+        $status = $obj->saveRoutePostId($param["post_id"], $param["shipment_route_id"]);
+        if($status){
+            return array("status"=>"success", "message"=>"post id saved");
+        }
+        return array("status"=>"error", "message"=>"post id not saved");
+    }
+}
 ?>

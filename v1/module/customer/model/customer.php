@@ -11,8 +11,18 @@ class Customer_Model {
 	public function editContent($table_name, $data, $condition){return$this->db->update($table_name, $data, $condition);}
 	public function deleteContent($sql){return $this->db->query($sql);}
 	public function getAffectedRows(){return $this->db->getAffectedRows();}
-	
-	
+
+    public function startTransaction(){
+        $this->db->startTransaction();
+    }
+
+    public function commitTransaction(){
+        $this->db->commitTransaction();
+    }
+    public function rollBackTransaction(){
+        $this->db->rollBackTransaction();
+    }
+
    public function getAllCustomerData(){
      $record = array();
 	 $sqldata ='t1.id,name,email,phone,address_1,address_2,city,postcode,CI.ccf,t1.status';
@@ -57,8 +67,7 @@ class Customer_Model {
 public function getAllCouriersofCustomer($componyId,$customerId){
      $record = array();
 	 $sqldata ='t1.id AS id,t1.courier_id AS courier_id,t1.status, t1.account_number,t1.company_ccf_value as ccf,
-                t1.company_surcharge_value as surcharge,t2.name,
-                t2.code,t2.icon';
+                t1.company_surcharge_value as surcharge,t2.name,t2.code,t2.icon, t1.is_internal AS internal';
       $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "courier_vs_company AS t1
 			 INNER JOIN " . DB_PREFIX . "courier AS t2 ON t1.courier_id = t2.id
              WHERE t1.company_id  = '".$componyId."' AND t1.status = '1'";
@@ -113,7 +122,7 @@ public function getAllCourierServicesForCustomer($company_id,$courier_id){
               INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id  AND B.company_id = ".$company_id." 
               INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id 
               WHERE L.company_id = ".$company_id." AND  L.courier_id = ".$courier_id."
-              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 ";
+              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 AND  B.id = ".$courier_id." ";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;
     }
@@ -133,7 +142,6 @@ public function checkServiceExistFromCustomerAccount($service_id,$company_servic
    } 
                 
 
-
 public function getAllCourierSurchargeForCustomer($company_id,$courier_id){
      $record = array();
 	 $sqldata ='L.id,L.surcharge_id,L.courier_id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,
@@ -143,7 +151,7 @@ public function getAllCourierSurchargeForCustomer($company_id,$courier_id){
               INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$company_id." 
               INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id
               WHERE L.company_id = ".$company_id." AND  L.courier_id = ".$courier_id."
-              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1";
+              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 AND  B.id = ".$courier_id." ";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;    
     }
@@ -166,7 +174,7 @@ public function getCustomerPersonalDetails($company_id,$company_customer_id){
      $record = array();
 	 $sqldata ='t1.id,t1.name,t1.email,t1.password,t1.phone,t1.address_1,t1.address_2,t1.city,t1.postcode,t1.state,
                 t1.country,t1.status,CI.ccf_operator_service,CI.ccf_operator_surcharge,CI.ccf,CI.surcharge,CI.customer_type,
-                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.invoicecycle,tm.name as company_name,CI.ccf_history';
+                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS t1
 			 INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
@@ -177,7 +185,6 @@ public function getCustomerPersonalDetails($company_id,$company_customer_id){
 	 $record = $this->db->getRowRecord($sql);
 	 return $record;   
     }  
-
 public function getCustomerPickupAddress($company_customer_id){
      $record = array();
 	 $sqldata ='t1.*';
@@ -315,9 +322,9 @@ public function checkCustomerEmailExist($company_email){
 
     /****get address list by customer id*****/         
 	public function getCustomerAddressDataByCustomerId($customerId){
-     $sql = "SELECT ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT where ABT.customer_id = ".$customerId." AND ABT.status=1";
-	 $records = $this->db->getAllRecords($sql);
-	 return $records;   
+        $sql = "SELECT UAT.warehouse_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=179 where ABT.customer_id = ".$customerId." AND ABT.status=1";
+        $records = $this->db->getAllRecords($sql);
+	    return $records;
     }
 
 	
@@ -427,11 +434,11 @@ public function checkCustomerEmailExist($company_email){
     }
 	
 	public function editAddress($param){
-        return $this->db->updateData("UPDATE ".DB_PREFIX."address_book SET name='".$param->name."',email='".$param->user_email."',address_type='".$param->address_type."',phone='".$param->phone."',address_line1='".$param->address_1."',address_line2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country."' WHERE id = ".$param->id."");
+        return $this->db->updateData("UPDATE ".DB_PREFIX."address_book SET search_string = '$param->search_string', name='".$param->name."',email='".$param->user_email."',address_type='".$param->address_type."',phone='".$param->phone."',address_line1='".$param->address_1."',address_line2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country."' WHERE id = ".$param->id."");
     }
 	
 	public function setDefaultAddress($param){	
-	    $this->db->delete("DELETE FROM ".DB_PREFIX."user_address WHERE user_id='".$param->userid."'");
+	    $this->db->delete("DELETE FROM ".DB_PREFIX."user_address WHERE user_id='".$param->userid."' AND default_address='Y'");
 		$data = array("user_id"=>$param->userid,"address_id"=>$param->id,"default_address"=>"Y");
 		return $this->db->save('user_address', $data);
        
@@ -442,17 +449,47 @@ public function checkCustomerEmailExist($company_email){
 	}
 	
 	public function checkDefaultUserExist(/*$company_id,*/$customer_id){
-		return $this->db->getRowRecord("SELECT COUNT(*) as exist, UT.id FROM  ".DB_PREFIX."users as UT WHERE UT.is_default=1 AND (UT.parent_id=".$customer_id." OR UT.id=".$customer_id.")");
+	    return $this->db->getRowRecord("SELECT UT.id FROM  ".DB_PREFIX."users as UT WHERE UT.is_default=1 AND (UT.parent_id=".$customer_id." OR UT.id=".$customer_id.")");
 		//return $this->db->getRowRecord("SELECT COUNT(*) as exist, UT.id FROM  ".DB_PREFIX."users as UT LEFT JOIN ".DB_PREFIX."company_users as CUT ON UT.parent_id = CUT.user_id WHERE UT.is_default=1 AND CUT.company_id=".$company_id." AND (UT.parent_id=".$customer_id." OR UT.id=".$customer_id.")");
 	}
-     public function existAddress($condition){ 
-     $record = array();
-	 $sqldata ='count(1) as exist';
-     $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "address_book AS t1
-             WHERE ".$condition."";
-	 $record = $this->db->getOneRecord($sql);
-     return $record['exist'];      
-   }         
-  }
 
+	public function existAddress($condition){
+		$record = array();
+		$sqldata ='count(1) as exist';
+		$sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "address_book AS t1 WHERE ".$condition."";
+		$record = $this->db->getOneRecord($sql);
+		return $record['exist'];
+   	}
+
+    public function disableCustomerWarehouseAddress($param){
+	    return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='N' WHERE user_id = ".$param->customer_id);
+    }
+
+    public function enableCustomerWarehouseAddress($param){
+		return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='Y' WHERE user_id = '".$param->customer_id."' AND address_id = " . $param->address_id);
+    }
+
+    public function saveCustomerWarehouseAddress($param){
+        $data = array("user_id"=>$param->customer_id,"address_id"=>$param->address_id,"warehouse_address"=>"Y");
+        return $this->db->save('user_address', $data);
+    }
+
+    public function searchCustomerAddressByAddressId($param){
+        $record = array();
+        $sql = "SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "user_address AS UAT WHERE user_id = $param->customer_id AND address_id = $param->address_id";
+        $record = $this->db->getOneRecord($sql);
+        return $record['exist'];
+    }
+
+    public function disableCompanyInternalCarrier($status, $company_id){
+
+        return $this->db->updateData($sql);
+    }
+
+    public function updateCompanyInternalCarrier($status, $company_id, $carrier_id){
+        $record = array();
+
+        return $this->db->updateData($sql);
+    }
+}
 ?>

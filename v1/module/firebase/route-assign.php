@@ -5,14 +5,13 @@ class Firebase_Route_Assign extends Firebase
 	private $_shipment_route_id;
 	private $_load_scan_flag= true;
     private $_route_type= "delivery";
-	
+
     public function __construct($param)
     {
         $this->fbObj = parent::__construct(array(
             "shipment_route_id" => $param['route_id'],
             "driver_id" => $param['driver_id']
         ));
-        
         if(isset($param['warehouse_id'])){
             $this->_setWarehouseId($param['warehouse_id']);
         }
@@ -125,10 +124,6 @@ class Firebase_Route_Assign extends Firebase
 
         $this->_route_type  = $this->_get_route_type($route_data);
         
-        //if($shipment['shipment_service_type']=="P")
-        //    $this->_route_type             = "collection";
-        //$tempData = $this->_shipmentDrops($this->_getDropOfCurrentRoute());
-        
         $tempData = $this->_shipmentDrops($route_data);
 
         $routeInfo['total_parcel']  = $tempData['total_parcel'];
@@ -145,12 +140,18 @@ class Firebase_Route_Assign extends Firebase
         
         //driver data
         $driver_data = $this->_getUserById($this->_getDriverId());
-        
-		return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
+
+        $notification = new Push_Notification_Index(array("user_id"=>array($this->_getDriverId())));
+
+        $notification->sendRouteAssignNotification();
+
+
+
+        return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
     }
 	
 	private function _shipmentDrops($shipmentDrops)
-	{ 	
+	{
 		$total_parcel = 0;
 		$route_all_shipments_tickets = array();
 		$drop_count = count($shipmentDrops);
@@ -200,7 +201,6 @@ class Firebase_Route_Assign extends Firebase
 				$shipmentDrops[$key]["status"] = 'pending';  
 				$shipmentDrops[$key]["time_remaining"] = $minutes;
 				$shipmentDrops[$key]["shipments"] = $shipData;
-				//$shipmentDrops[$key]["shipment_parcels"] = $parcels;
 				$shipmentDrops[$key][".priority"] = $drop_count--;
 				$job_count += count($shipData);
 				array_push($time_remaining,$minutes);

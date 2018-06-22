@@ -1,3 +1,34 @@
+### v2.5.1 (2018-05-23)
+* * *
+
+* New Resource [Export](https://apidocs.chargebee.com/docs/api/exports) has been added
+* New payment gateway bluesnap has been added
+
+
+### v2.5.0 (2018-05-14)
+* * * 
+
+New endpoint 'List contacts for a customer' has been added to Customer resource.
+See : https://apidocs.chargebee.com/docs/api/customers#list_of_contacts_for_a_customer
+
+### v2.4.9 (2018-05-03)
+* * * 
+
+New endpoint 'Update a coupon' has been added.
+See : https://apidocs.chargebee.com/docs/api/coupons#update_a_coupon
+
+### v2.4.8 (2018-04-27)
+* * * 
+
+New resource 'Virtual Bank Account' has been added.
+See : https://apidocs.chargebee.com/docs/api/virtual_bank_accounts
+
+New event types virtual_bank_account_added, virtual_bank_account_updated and virtual_bank_account_deleted has been added.
+See : https://apidocs.chargebee.com/docs/api/events#event_types
+
+The payment method ach_credit has been added.
+See : https://apidocs.chargebee.com/docs/api/transactions#transaction_attributes
+
 ### v2.4.7 (2018-03-29)
 * * * 
 

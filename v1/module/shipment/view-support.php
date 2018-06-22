@@ -15,10 +15,18 @@ class View_Support extends Icargo{
 		
         $this->_common_model_obj  = new Common();  // Added By Roopesh
 		
-        if(isset($param['company_id'])){
-			$this->company_id = $param['company_id'];
+        if(isset($param['email'])){
+			$this->primary_email = $param['email'];
 		}
-		
+
+        if(isset($param['access_token'])){
+            $this->access_token = $param['access_token'];
+        }
+
+        if(isset($param['company_id'])){
+            $this->company_id = $param['company_id'];
+        }
+
 		if(isset($param['shipment_ticket'])){
 			$this->shipment_ticket = $param['shipment_ticket'];
 		}
@@ -116,7 +124,7 @@ class View_Support extends Icargo{
     
 	private function _assigned_loads(){
 		$records = $this->modelObj->getAssignRouteShipmentDetails($this->company_id);
-		
+
 		$temp = array();
 		foreach($records as $key => $record){  
 			
@@ -127,17 +135,15 @@ class View_Support extends Icargo{
 			$temp[$record['shipment_routed_id']]['info']['load_group_type'] = $this->_get_route_type(substr($record['instaDispatch_loadGroupTypeCode'],0,1));
 			$temp[$record['shipment_routed_id']]['info']['shipment_postcodes'][] = $record['shipment_postcode'];
 			$temp[$record['shipment_routed_id']]['info']['shipment_ticket'][] = $record['shipment_ticket'];
-			$temp[$record['shipment_routed_id']]['info']['distance_miles'][] = $record['distance_miles'];
-			$temp[$record['shipment_routed_id']]['info']['cities'][] = $record['shipment_customer_city'];
-			$temp[$record['shipment_routed_id']]['info']['estimated_time'][] = strtotime($record['estimated_time']);
+			//$temp[$record['shipment_routed_id']]['info']['distance_miles'][] = $record['distance_miles'];
+			//$temp[$record['shipment_routed_id']]['info']['cities'][] = $record['shipment_customer_city'];
+			//$temp[$record['shipment_routed_id']]['info']['estimated_time'][] = strtotime($record['estimated_time']);
 			$temp[$record['shipment_routed_id']]['info']['shipment_count'] = (isset($temp[$record['shipment_routed_id']]['info']['shipment_count'])) ? ++$temp[$record['shipment_routed_id']]['info']['shipment_count'] : 1 ;
-			
-			
 		}
+
 		foreach($temp as $key => $data){
 			$route_data = $this->modelObj->_get_assigned_route_detail($data['info']['shipment_routed_id']);
-			
-			
+
 			$routeLabel  = 'NA';
 			if($route_data['driver_id'] > 0){
 			  if($route_data['driver_accepted'] < 1){
@@ -148,129 +154,55 @@ class View_Support extends Icargo{
                 $routeLabel = 'On Route';
 			  }			
 			}
+
 			$temp[$key]['info']['route_id'] = $route_data['route_id'];
 			$temp[$key]['info']['assign_driver'] = $route_data['driver_id'];
 			$temp[$key]['info']['route_name'] = $route_data['route_name'];
 			$temp[$key]['info']['route_status'] = $route_data['status'];
 			$temp[$key]['info']['start_time'] = date("h:i A",strtotime($route_data['assign_start_time']));
 			$temp[$key]['info']['route_label'] = $routeLabel;
+
+            $temp[$key]['info']['is_pause'] = (isset($route_data['is_pause']) and $route_data['is_pause'] == 1) ? "paused" : "";
 			
 			
 			$postcodes = $data['info']['shipment_postcodes'];
 			$tickets = "'".implode("','", $data['info']['shipment_ticket'])."'";
-			$cities = $data['info']['cities']; 
+			//$cities = $data['info']['cities'];
 			$temp[$key]['info']['parcels'] = $this->modelObj->getShipmentParcels($tickets);
 			
 			
 			$temp[$key]['info']['parcel_count'] = count($temp[$key]['info']['parcels']);
 			$temp[$key]['info']['end_postcode'] = array_pop($postcodes);
 			$temp[$key]['info']['start_postcode'] = array_shift($postcodes);
-			$temp[$key]['info']['city'] = array_shift($cities);
+
+            $temp[$key]['info']['uid'] = $route_data['uid'];
+			//$temp[$key]['info']['city'] = array_shift($cities);
 			
-			$temp[$key]['info']['route_duration'] = date("h:i A",strtotime(array_sum($data['info']['estimated_time'])));
+			//$temp[$key]['info']['route_duration'] = date("h:i A",strtotime(array_sum($data['info']['estimated_time'])));
 			
 			//print_r($temp);die;
 		}
-		return $temp;
-	}
-    
-	private function _assigned_load_17_feb_2018(){
-		$common_obj = new Common();
-		$route_data = $this->modelObj->_get_assigned_route_detail($this->shipment_route_id);
-		
-		if(isset($this->save_post_id)){
-			$condition    = "shipment_route_id = '$this->shipment_route_id'";
-			$status       = $this->modelObj->editContent("shipment_route", array('firebase_id' => $this->post_id), $condition);
-		}
-		
-		$temp = array();
-		//if($route_data['is_active']=='Y'){
-			$records = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $this->shipment_route_id, $this->driver_Id);
-			foreach($records as $key => $record){
-                $shipment_service_type = ($record["shipment_service_type"]=="P") ? "Collection" : "Delivery";
-				$temp['info']['row_id'] = $key;
-				$temp['info']['shipment_routed_id'] = $record['shipment_routed_id'];
-				$temp['info']['driver_name'] = $record['driver_name'];
-				$temp['info']['load_group_type'] = $this->_get_route_type(substr($record['instaDispatch_loadGroupTypeCode'],0,1));
-				$temp['info']['shipment_postcodes'][] = $record['shipment_postcode'];
-				$temp['info']['shipment_ticket'][] = $record['shipment_ticket'];
-				$temp['info']['distance_miles'][] = $record['distance_miles'];
-				$temp['info']['cities'][] = $record['shipment_customer_city'];
-				$temp['info']['estimated_time'][] = strtotime($record['estimated_time']);
-				$temp['info']['shipment_count'] = (isset($temp['info']['shipment_count'])) ? ++$temp['info']['shipment_count'] : 1 ;
-				$temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
-
-            }
-           
-			if(count($temp)>0)
-			{
-				$route_data = $this->modelObj->_get_assigned_route_detail($temp['info']['shipment_routed_id']);
-				
-				$routeLabel  = 'NA';
-				if($route_data['driver_id'] > 0)
-				{
-					if($route_data['driver_accepted'] < 1)
-					{
-					$routeLabel = 'Pending';  
-					}
-					elseif(($route_data['driver_accepted'] > 0) && $route_data['is_route_started'] < 1)
-					{
-					$routeLabel = 'Accepted';  
-					}
-					elseif(($route_data['driver_accepted'] > 0) && $route_data['is_route_started'] > 0)
-					{
-					$routeLabel = 'On Route';
-					}			
-				}
-				$temp['info']['route_id'] = $route_data['route_id'];
-				//$temp['info']['post_id']  = $this->post_id;
-				
-				$temp['info']['is_pause'] = ($route_data['is_pause']==1)?'paused':'';
-				$temp['info']['assign_driver'] = $route_data['driver_id'];
-				$temp['info']['route_name'] = $route_data['route_name'];
-				$temp['info']['route_status'] = $route_data['status'];
-				$temp['info']['start_time'] = date("h:i A",strtotime($route_data['assign_start_time']));
-				$temp['info']['route_label'] = $routeLabel;
-				
-				
-				$postcodes = $temp['info']['shipment_postcodes'];
-                
-				$tickets = "'".implode("','", $temp['info']['shipment_ticket'])."'";
-				$cities = $temp['info']['cities']; 
-				$temp['info']['parcels'] = $this->modelObj->getShipmentParcels($tickets);
-				
-				
-				$temp['info']['parcel_count'] = count($temp['info']['parcels']);
-				$temp['info']['end_postcode'] = array_pop($postcodes);
-				$temp['info']['start_postcode'] = array_shift($postcodes);
-				$temp['info']['city'] = array_shift($cities);
-				
-				$temp['info']['route_duration'] = date("h:i A",strtotime(array_sum($temp['info']['estimated_time'])));
-			}
-		//}
-       // print_r($temp);die;
 		return $temp;
 	}
 
     private function _assigned_load(){
         $common_obj = new Common();
         //$route_data = $this->modelObj->_get_assigned_route_detail($this->shipment_route_id);
-        if(isset($this->save_post_id)){
-            $condition    = "shipment_route_id = '$this->shipment_route_id'";
-            $status       = $this->modelObj->editContent("shipment_route", array('firebase_id' => $this->post_id), $condition);
-        }
+        //if(isset($this->save_post_id)){
+        //    $condition    = "shipment_route_id = '$this->shipment_route_id'";
+        //    $status       = $this->modelObj->editContent("shipment_route", array('firebase_id' => $this->post_id), $condition);
+        //}
         
         $temp = array();
         $postcodes = array();
         $shipmentTickets = array();
         $completedShipment = 0;
         $route_status = "notCompleted";
-
+        $customer = array();
         //if($route_data['is_active']=='Y'){
             $records = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $this->shipment_route_id, $this->driver_Id);
-           
-            foreach($records as $key => $record){
-                $shipment_service_type = ($record["shipment_service_type"]=="P") ? "Collection" : "Delivery";
+			foreach($records as $key => $record){
+				$shipment_service_type = ($record["shipment_service_type"]=="P") ? "Collection" : "Delivery";
                 $temp['info']['row_id'] = $key;
                 $temp['info']['shipment_routed_id'] = $record['shipment_routed_id'];
                 $temp['info']['driver_name'] = $record['driver_name'];
@@ -281,9 +213,10 @@ class View_Support extends Icargo{
                 //$temp['info']['cities'][] = $record['shipment_customer_city'];
                 //$temp['info']['estimated_time'][] = strtotime($record['estimated_time']);
                 $temp['info']['shipment_count'] = (isset($temp['info']['shipment_count'])) ? ++$temp['info']['shipment_count'] : 1 ;
-                $temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
+                $temp['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('shipment_service_type'=>$shipment_service_type,'latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'consignee_name'=>$record['consignee_name'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
                 array_push($postcodes, $record['shipment_postcode']);
                 array_push($shipmentTickets, $record['shipment_ticket']);
+                array_push($customer, $record['customer_id']);
             }
            
             if(count($temp)>0)
@@ -335,6 +268,18 @@ class View_Support extends Icargo{
                 //$cities = $temp['info']['cities']; 
                 //$temp['info']['parcels'] = $this->modelObj->getShipmentParcels($tickets);
                 $parcels = $this->modelObj->getShipmentParcels($tickets);
+
+                $customers = $this->modelObj->getCustomerById(implode("','", array_unique($customer)));
+                $initials = array();
+                foreach($customers as $key=>$customer){
+                    // show only initials
+                    $charSet = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $customer["name"]);
+                    $charSet = rtrim($charSet);
+                    $charSetArray = explode(" ", $charSet);
+                    array_push($initials, $charSetArray[0]);
+                }
+
+                $temp['info']['customers'] = $initials;
                 
                 
                 $temp['info']['parcel_count'] = count($parcels);
@@ -355,9 +300,12 @@ class View_Support extends Icargo{
         $common_obj = new Common();
 		$records = $this->modelObj->getUnAssignShipmentDetails($this->company_id);
 		$temp = array();
-		foreach($records as $key => $record){
-			$route_data = $this->modelObj->getShipmentRouteByShipmentRouteId($record['shipment_routed_id']);
-			$temp[$route_data['shipment_route_id']]['info']['row_id'] = $key;
+        $customer = array();
+        foreach($records as $key => $record){
+		    $route_data = $this->modelObj->getShipmentRouteByShipmentRouteId($record['shipment_routed_id']);
+			$temp[$route_data['shipment_route_id']]['info']['customer'][] = $record["customer_id"];
+            $temp[$route_data['shipment_route_id']]['info']['row_id'] = $key;
+
 			$temp[$route_data['shipment_route_id']]['info']['route_id'] = $route_data['route_id'];
 			$temp[$route_data['shipment_route_id']]['info']['shipment_routed_id'] = $record['shipment_routed_id'];
 			$temp[$route_data['shipment_route_id']]['info']['load_group_type'] = $this->_get_route_type(substr($record['instaDispatch_loadGroupTypeCode'],0,1));
@@ -373,8 +321,21 @@ class View_Support extends Icargo{
 			$temp[$route_data['shipment_route_id']]['info']['shipment_count'] = (isset($temp[$route_data['shipment_route_id']]['info']['shipment_count'])) ? ++$temp[$route_data['shipment_route_id']]['info']['shipment_count'] : 1 ;
             $temp[$route_data['shipment_route_id']]['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode'],'current_status'=>$record['current_status'],'icargo_execution_order'=>$record['icargo_execution_order'],'parcel_count'=>$record['shipment_total_item'],'drop_name'=>$common_obj->getDropName(array('postcode'=>$record['shipment_postcode'],'address_1'=>$record['shipment_address1']),false));
             
-		} 
+		}
+
 		foreach($temp as $key => $data){
+            $customers = $this->modelObj->getCustomerById(implode("','", array_unique($data["info"]["customer"])));
+            $initials = array();
+            foreach($customers as $key_1=>$customer){
+                // show only initials
+                $charSet = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $customer["name"]);
+                $charSet = rtrim($charSet);
+                $charSetArray = explode(" ", $charSet);
+                array_push($initials, $charSetArray[0]);
+            }
+
+            $temp[$key]['info']['customers'] = $initials;
+
 			$postcodes = $data['info']['shipment_postcodes'];
 			$cities = $data['info']['cities'];
 			$temp[$key]['info']['parcels'] = $this->modelObj->getShipmentParcels("'".implode("','", $data['info']['shipment_ticket'])."'");
@@ -386,6 +347,8 @@ class View_Support extends Icargo{
 			$temp[$key]['info']['city'] = array_shift($cities);
 			
 			$temp[$key]['info']['route_duration'] = date("h:i A",strtotime(array_sum($data['info']['estimated_time'])));
+
+			unset($data["info"]["customer"]);
 		}
 		return array_values($temp);
 	}
@@ -416,7 +379,7 @@ class View_Support extends Icargo{
                     array_push($shipment_id, $item["shipment_id"]);
 
                     //array_push($records[$key]["shipment_geo_locations"], array("latitude"=>$item["latitude"], "longitude"=>$item["longitude"]));
-                    array_push($records[$key]["shipments"], array("service_type"=>$item["shipment_service_type"],"icargo_execution_order"=>$item["icargo_execution_order"],"drop_name"=>$this->_common_model_obj->getDropName(array("postcode"=>$item["postcode"],"address_1"=>$item["address_line1"])),"postcode"=>$item["postcode"],"shipment_id"=>$item["shipment_id"],"shipment_ticket"=>$item["shipment_ticket"],"shipment_geo_locations"=>array("latitude"=>$item["latitude"],"longitude"=>$item["longitude"])));
+                    array_push($records[$key]["shipments"], array("service_type"=>$item["shipment_service_type"],"icargo_execution_order"=>$item["icargo_execution_order"],"drop_name"=>$this->_common_model_obj->getDropName(array("postcode"=>$item["postcode"],"address_1"=>$item["address_line1"])),"postcode"=>$item["postcode"],"address_1"=>$item["address_line1"],"shipment_id"=>$item["shipment_id"],"shipment_ticket"=>$item["shipment_ticket"],"shipment_geo_locations"=>array("latitude"=>$item["latitude"],"longitude"=>$item["longitude"])));
                    
                     $records[$key]["load_group_type"] = $this->_get_route_type(substr($item['instaDispatch_loadGroupTypeCode'],0,1));
                 }
@@ -429,58 +392,15 @@ class View_Support extends Icargo{
         }
         return $records;
     }
-	private function _completed_load_BKP($param){
-        $records = $this->modelObj->getCompletedRouteShipmentDetailsByShipmentRouteId($this->company_id, $param["search_date"]);
-        $temp = array();
-        foreach($records as $key => $record){
-            $route_data = $this->modelObj->_get_assigned_route_detail($record['shipment_routed_id']);
-        
-		  if($route_data['is_active']=='N'){
-            $temp[$route_data['shipment_route_id']]['info']['row_id'] = $key;
-			$temp[$route_data['shipment_route_id']]['info']['route_id'] = $route_data['route_id'];
-			$temp[$route_data['shipment_route_id']]['info']['shipment_routed_id'] = $record['shipment_routed_id'];
-			$temp[$route_data['shipment_route_id']]['info']['load_group_type'] = $this->_get_route_type(substr($record['instaDispatch_loadGroupTypeCode'],0,1));
-			$temp[$route_data['shipment_route_id']]['info']['route_name'] = $route_data['route_name'];
-            $temp[$route_data['shipment_route_id']]['info']['driver_name'] = $route_data['name']; 
-			$temp[$route_data['shipment_route_id']]['info']['is_route_rejected'] = ($route_data['is_route_rejected']=='YES')?'Rejected':'';
-			$temp[$route_data['shipment_route_id']]['info']['route_status'] = $route_data['status'];
-			$temp[$route_data['shipment_route_id']]['info']['start_time'] = date("h:i A",strtotime($route_data['assign_start_time']));
-			$temp[$route_data['shipment_route_id']]['info']['shipment_postcodes'][] = $record['shipment_postcode'];
-			$temp[$route_data['shipment_route_id']]['info']['shipment_ticket'][] = $record['shipment_ticket'];
-			$temp[$route_data['shipment_route_id']]['info']['distance_miles'][] = $record['distance_miles'];
-			$temp[$route_data['shipment_route_id']]['info']['cities'][] = $record['shipment_customer_city'];
-			$temp[$route_data['shipment_route_id']]['info']['estimated_time'][] = strtotime($record['estimated_time']);
-			$temp[$route_data['shipment_route_id']]['info']['shipment_count'] = (isset($temp[$route_data['shipment_route_id']]['info']['shipment_count'])) ? ++$temp[$route_data['shipment_route_id']]['info']['shipment_count'] : 1 ;
-              
-            $temp[$route_data['shipment_route_id']]['info']['shipment_geo_locations'][$record['shipment_ticket']] = array('latitude'=>$record['shipment_latitude'],'longitude'=>$record['shipment_longitude'],'postcode'=>$record['shipment_postcode']);
-              
-			$temp[$route_data['shipment_route_id']]['info']['servicedate'] = date("Y-m-d", strtotime($route_data['completed_date']));
-          }
-        } 
-		foreach($temp as $key => $data){
-			$postcodes = $data['info']['shipment_postcodes'];
-			$cities = $data['info']['cities'];
-			$temp[$key]['info']['parcels'] = $this->modelObj->getShipmentParcels("'".implode("','", $data['info']['shipment_ticket'])."'");
-			
-			$temp[$key]['info']['parcel_count'] = count($temp[$key]['info']['parcels']);
-			
-			$temp[$key]['info']['end_postcode'] = array_pop($postcodes);
-			$temp[$key]['info']['start_postcode'] = array_shift($postcodes);
-			$temp[$key]['info']['city'] = array_shift($cities);
-			
-			$temp[$key]['info']['route_duration'] = date("h:i A",strtotime(array_sum($data['info']['estimated_time'])));
-		}
-		return array_values($temp);
-	}
 	
     public function loadView($param){
 
 		//return array(/*'assigned_load'=>$this->_assigned_loads(),*/'completed_load'=>$this->_completed_load(array("search_date"=>$param["search_date"],"warehouse_id"=>$param["warehouse_id"])),'unassigned_load'=>$this->_unassigned_load(),/*'active_driver_list'=>$this->_get_active_drivers(),'failed_action'=>$this->_get_failed_action()*/);
-        return array('completed_load'=>$this->_completed_load(array("search_date"=>$param["search_date"],"warehouse_id"=>$param["warehouse_id"])),'unassigned_load'=>$this->_unassigned_load(),'active_driver_list'=>$this->_get_active_drivers(),'failed_action'=>$this->_get_failed_action());
+        return array('assigned_load'=>$this->_assigned_loads(),'completed_load'=>$this->_completed_load(array("search_date"=>$param["search_date"],"warehouse_id"=>$param["warehouse_id"])),'unassigned_load'=>$this->_unassigned_load(),'active_driver_list'=>$this->_get_active_drivers(),'failed_action'=>$this->_get_failed_action());
 	}
 	
 	public function loadAssignedView(){
-        return array('assigned_load'=>$this->_assigned_load(),'active_driver_list'=>$this->_get_active_drivers());
+		return array('assigned_load'=>$this->_assigned_load());//,'active_driver_list'=>$this->_get_active_drivers()
     }
 
     public function pauseAssignedView(){
@@ -592,28 +512,30 @@ class View_Support extends Icargo{
         
         $fbObj = new Firebase_Route_Accept(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$this->driver_Id));
         
-        $this->addDriverTacking($driverUsername, $driverid,'ACCEPT',$shipRoute_id);
+        if($this->addDriverTacking($driverUsername, $driverid,'ACCEPT',$shipRoute_id)){
+            $alltickets = explode(",", $allShipTickets);
+            $countdata = 0;
+            foreach ($alltickets as $valticket) {
+                $ticket    	   = str_replace('"', '', $valticket);
+                $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
+                $status        = $this->modelObj->editContent("shipment", array('is_driver_accept' => 'YES','is_receivedinwarehouse'=>'YES'), $condition);
+                $condition2    = "shipment_accepted='Pending' AND shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
+                $status2       = $this->modelObj->editContent("driver_shipment", array('shipment_accepted' => 'YES','taken_action_by' => 'Controller'
+                ), $condition2);
 
-        $alltickets = explode(",", $allShipTickets);
-        $countdata = 0;
-        foreach ($alltickets as $valticket) {
-            $ticket    	   = str_replace('"', '', $valticket);
-            $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
-            $status        = $this->modelObj->editContent("shipment", array('is_driver_accept' => 'YES'), $condition);
-            $condition2    = "shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
-            $status2       = $this->modelObj->editContent("driver_shipment", array('shipment_accepted' => 'YES','taken_action_by' => 'Controller'
-            ), $condition2);
+                $numaffected = $this->modelObj->getAffectedRows();
+                $countdata+=$numaffected;
+                $actions     = "Shipment ACCEPT by " . $driverUsername;
+                $actionsCode = 'ACCEPTBYDRIVER';
+                $this->_add_shipment_life_history($ticket, $actions, $driverid, $shipRoute_id, $actionsCode,$company_id );
+            }
+            $conditionofRoute    = "shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'";
+            $status3        = $this->modelObj->editContent("shipment_route", array('driver_accepted' => '1'), $conditionofRoute);
 
-            $numaffected = $this->modelObj->getAffectedRows();
-            $countdata+=$numaffected;
-            $actions     = "Shipment ACCEPT by " . $driverUsername;
-            $actionsCode = 'ACCEPTBYDRIVER';
-            $this->_add_shipment_life_history($ticket, $actions, $driverid, $shipRoute_id, $actionsCode,$company_id );
+            return array('message'=>'Route has been accepted with Total '.$countdata.' '.$actions,'status'=>true,"firebase_data"=>$fbObj->acceptRoute(),"records"=>$this->loadAssignedView());
+        }else{
+            return array("status"=>"error", "message"=>"Route not accepted. Please try after few minutes.");
         }
-        $conditionofRoute    = "shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'";
-        $status3        = $this->modelObj->editContent("shipment_route", array('driver_accepted' => '1'), $conditionofRoute);    
-
-        return array('message'=>'Route has been accepted with Total '.$countdata.' '.$actions,'status'=>true,"firebase_data"=>$fbObj->acceptRoute(),"records"=>$this->loadAssignedView());   
     }
 
     public function acceptRejectShipments(){
@@ -643,7 +565,7 @@ class View_Support extends Icargo{
    return array('message'=>'Total '.$countdata.' '.$actions,'status'=>true);   
 }
     
-    public function pickup_by_driver(){ echo 54555;die;
+    public function pickup_by_driver(){
 	$shipRoute_id 	= $this->shipment_route_id;
 	$route_data     = $this->modelObj->_get_assigned_route_detail($shipRoute_id);
 	$driverid 	    = $route_data['driver_id'];
@@ -668,6 +590,7 @@ class View_Support extends Icargo{
 }    
 
     public function addDriverTacking($driveruserName, $driverid, $for, $shipment_route_id){
+	    try{
             $trackid = '';
             $data                 = array();
             $data['drivercode']   = $driveruserName;
@@ -679,6 +602,9 @@ class View_Support extends Icargo{
             $data['status']       = '1';
             $trackid              = $this->modelObj->addContent("api_driver_tracking", $data);
             return $trackid;
+        }catch(Exception $e){
+            return false;
+        }
     }	  
 	  
     public function withdrawroute(){ 
@@ -801,69 +727,40 @@ class View_Support extends Icargo{
 		return array('status' => $returnstatus,'message' =>$msg,'left'=>$checkMoreShipmentofthisRoute);
     }
     
-    public function withdrawrouteandsave(){ 
+    public function withdrawrouteandsave(){
+		$this->modelObj->startTransaction();
+
+		if(!is_array($this->shipment_ticket)){
+           $this->shipment_ticket = explode(",", str_replace("\",\"",",",$this->shipment_ticket));
+		}
         $checkMoreShipmentofthisRouteDriver = 0;
 		$shipment_route_id 	= $this->shipment_route_id;
-		$route_data         = $this->modelObj->_get_assigned_route_detail($shipment_route_id);
-
-        $driverid 	        = $route_data['driver_id'];
+		$route_data         = $this->modelObj->_get_assigned_route_detail($this->shipment_route_id);
+		$driverid 	        = $route_data['driver_id'];
 		$driverUsername     = $route_data['name'];
 		$company_id 	    = $this->company_id;
-		$ticketids          = '"' .$this->shipment_ticket. '"';
-        //"shipmet_tickets"=>$this->shipment_ticket, 
-        $firebaseObj = new Firebase_Shipment_Withdraw_From_Route(array("driver_id"=>$driverid, "shipment_route_id"=>$shipment_route_id));
+		$firebaseObj = new Firebase_Shipment_Withdraw_From_Route(array("driver_id"=>$driverid, "shipment_route_id"=>$this->shipment_route_id));
         
         $firebase_data = $firebaseObj->withdrawShipmentFromRoute();
-        
-        $releseShipment     = array();
-        $releseShipment['is_driver_assigned']       = '0';
-        $releseShipment['is_driver_accept']         = 'Pending';
-        $releseShipment['assigned_driver']          = '0';
-        $releseShipment['assigned_vehicle']         = '0';
-        $releseShipment['current_status']           = 'S';
-        $releseShipment['distancemiles']            = '0.00';
-        $releseShipment['estimatedtime']            = '0.00';
-        //$releseShipment['icargo_execution_order']   = '0';
 
-        if($route_data["instaDispatch_loadGroupTypeCode"]=="SAME"){
-            unset($releseShipment['icargo_execution_order']);
-        }
-       
-        $condition                                  = "shipment_ticket IN(" . $ticketids . ")"; 
-        $status                                     = $this->modelObj->editContent("shipment", $releseShipment, $condition);
-		$numaffected = $this->modelObj->getAffectedRows();
-		
+
+        $status = $this->modelObj->releaseShipment(implode("','",$this->shipment_ticket));
+
+        $numaffected = $this->modelObj->getAffectedRows();
+
 		if($driverid>0  and $numaffected>0){
-			$driverShipment                             = array();
-			$driverShipment['shipment_accepted']        = 'Release';
-			$driverShipment['is_driveraction_complete'] = 'Y';
-			$status                                     = $this->modelObj->editContent("driver_shipment", $driverShipment, $condition);
-			
-			// check more shipment exist in this Route and Driver
-			   $alltickets                                 = explode(",", $ticketids);
-			   foreach ($alltickets as $valticket) {
-					$tickets = str_replace('"', '', $valticket);
-					$actions     = "Relese from Driver";
-					$actionsCode = 'RELEASEFROMDRIVER';
-					$this->_add_shipment_life_history($valticket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
-				}
-             $checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $shipment_route_id);
+            $status = $this->modelObj->releaseShipmentFromDriver(implode("','",$this->shipment_ticket));
+            foreach ($this->shipment_ticket as $shipment_ticket)
+                $this->_add_shipment_life_history($shipment_ticket, "Relese from Driver", $driverid, $this->shipment_route_id, "RELEASEFROMDRIVER",$company_id);
+
+			$checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $this->shipment_route_id);
             
-			 if ($checkMoreShipmentofthisRouteDriver == '0') { 
-                 $condition = "shipment_route_id = '" . $shipment_route_id . "'"; 
-				 $datatobeupdate = array();
-				 $datatobeupdate['assign_start_time'] = '00:00:00'; 
-				 $datatobeupdate['actual_start_time'] = '00:00:00'; 
-				 $datatobeupdate['is_current'] = 'N'; 
-				 $datatobeupdate['driver_accepted'] = '0'; 
-				 $datatobeupdate['is_route_started'] = '0'; 
-				 $datatobeupdate['driver_id'] = '0'; 
-				 $datatobeupdate['is_active'] = 'Y'; 
-				 $datatobeupdate['status'] = '1';   
-                 $status    = $this->modelObj->editContent("shipment_route",$datatobeupdate, $condition);
-             }
-           }
+			if ($checkMoreShipmentofthisRouteDriver == '0')
+                $status = $this->modelObj->releaseShipmentFromRoute($this->shipment_route_id);
+		}
 		$returnstatus = ($numaffected>0) ? true : false;
+
+        $this->modelObj->commitTransaction();
         
 		return array('status' => $returnstatus,'message' => 'Total '.$numaffected.' Shipment has been released from route, left shipment(s) '.$checkMoreShipmentofthisRouteDriver, 'firebase_data'=>$firebase_data);
     }  
@@ -888,9 +785,7 @@ class View_Support extends Icargo{
 		  $driver_username = $route_data['name'];
 		}
 		$data = array('routeLabel'=>$routeLabel,'driver_id'=>$route_data['driver_id'],'driver_username'=>$route_data['name'],'route_type'=>$route_type);
-	    
-		
-		
+
 		return $data;
   }
 	 
@@ -974,7 +869,7 @@ class View_Support extends Icargo{
             $firebaseData["driver_id"] = $routeDetail["driver_id"];
 
         }
-        return array('status'=>$returnStatus,'message'=>'Total '.count($successBucket).' Shipment has been release and '.count($failBucket).' request has been failed',"firebaseData"=>$firebaseData);
+        return array('status'=>$returnStatus,'message'=>count($successBucket).' Job(s) has been assigned to route ' . $routeDetail["route_name"],"firebaseData"=>$firebaseData);
        }	
  
     public function assignShipment($shipmentDetails,$shipment_route_id,$companyid,$warehouseid) { 
@@ -1390,8 +1285,10 @@ class View_Support extends Icargo{
 				unset($temp_firebase_data['firebase_profile']);
 				$firebase_data = $temp_firebase_data;
                 $firebase_data = array('firebase_data'=>$firebase_data,'firebase_profile'=>$firebase_profile,'firebase_post_id'=>$firebase_post_id);
-				
-				
+
+                $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$shipment_route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
+                $test = $completeRouteObj->saveCompletedRoute();
+
 				return	array('message' => ' All shipment are Delivered for Driver(' . $driverUsername . ')','status' => true,'firebase_data'=>$firebase_data,"driver_id"=>$driverid);
 			} else {
 				return	array('message' => 'No All shipment are Delivered for Driver(' . $driverUsername . ')','status' => false,'firebase_data'=>array());
