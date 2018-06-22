@@ -35,6 +35,9 @@ require_once 'vehicle.php';
 //validate and beautify postcode
 require_once 'postcode.php';
 
+
+require_once 'module/configuration/GridConfiguration.php';
+require_once 'module/configuration/CustomFilterConfiguration.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
@@ -115,7 +118,6 @@ require_once 'module/shipment/shipment_tracking.php';
 require_once 'pod_signature.php';
 
 require_once 'module/package/Module_Package_Index.php';
-
 
 /**
  * Verifying required params posted or not

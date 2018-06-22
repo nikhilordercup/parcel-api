@@ -1696,4 +1696,5 @@ $app->post('/getPriceDetails', function() use ($app){
 		echo $sql.'<br>';
 	}
 });*/
-?>
+GridConfiguration::initRoutes($app);
+CustomFilterConfiguration::initRoutes($app);
