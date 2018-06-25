@@ -255,7 +255,7 @@ class Process_Form{
                         {
                             $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
                             $test = $completeRouteObj->saveCompletedRoute();
-                            echo 257;print_r($test);
+                           
                             //$condition  = "shipment_route_id = '" . $route_id . "' AND driver_id = '" . $driver_id . "'";
                             //$statusship = $this->model_rest->update("shipment_route", array(
                             //    'is_active' => 'N','is_current'=> 'N','completed_date'=>'NOW()', 'is_pause'=>'0'), $condition);
@@ -343,9 +343,6 @@ class Process_Form{
                     'grid_data' =>$gridData,
                     'ticket' =>$ticket,
                     'left'=>1
-                    
-                    
-
                 );
             }
         }
