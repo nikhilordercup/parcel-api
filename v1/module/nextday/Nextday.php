@@ -88,7 +88,7 @@ final class Nextday extends Booking
 
     private
 
-    function _getCarrierInfo($data){
+    function _getCarrierInfo($data){        
         foreach($data as $carrier_code => $lists){
             foreach($lists as $key1 => $list){
                 foreach($list as $accountNumber => $items){
@@ -203,10 +203,10 @@ final class Nextday extends Booking
             "phone" => "",
             "street1" => (isset($item->address_line1)) ? $item->address_line1 : "",//$this->_param->collection->$key->address_line1,
             "street2" => (isset($item->address_line2)) ? $item->address_line2 : "",//$this->_param->collection->$key->address_line2,
-            "city" => (isset($item->city)) ? $item->city : "",//$this->_param->collection->$key->city,
+            "city" => (isset($item->city) && !empty($item->city)) ? $item->city : "oxford",//$this->_param->collection->$key->city,
             "state" => (isset($item->state)) ? $item->state : "",//$this->_param->collection->$key->state,
             "zip" => $item->postcode,//$this->_param->collection->$key->postcode,
-            "country" => $item->country->alpha3_code,//$this->_param->collection->$key->country->currency_code,
+            "country" => $item->country->alpha2_code,//$this->_param->collection->$key->country->currency_code,
             "country_name" => $item->country->short_name,//$this->_param->collection->$key->country->short_name
         );
     }
@@ -224,9 +224,7 @@ final class Nextday extends Booking
                 "from" => $this->_getAddress($this->_param->collection->$key),
                 "to" => $this->_getAddress($this->_param->delivery->$key),
                 "ship_date" => date("Y-m-d", strtotime($this->_param->collection_date)),
-                "extra" => array(
-
-                ),
+                "extra" => array('neutral_delivery'=>''),
                 "currency" => $this->_param->collection->$key->country->currency_code,
 
             );

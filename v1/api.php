@@ -1686,7 +1686,7 @@ $app->post('/loadCountry', function() use ($app) {
 });*/
 
 $app->post('/getNextdayAvailableCarrier', function() use ($app){
-	$r = json_decode($app->request->getBody());
+	$r = json_decode($app->request->getBody());        
     $obj = new Nextday($r);
     $response = $obj->searchNextdayCarrierAndPrice();
 
@@ -1969,6 +1969,13 @@ $app->post('/getAllMasterCouriers', function() use ($app) {
     verifyRequiredParams(array('access_token','company_id','user_id'),$r);
     $obj = new Master($r);
     $response = $obj->getAllMasterCouriers($r);
+    echoResponse(200, $response);
+});
+$app->post('/printLabelByLoadIdentity', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array(/* 'load_identity', */'company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->printLabelByLoadIdentity($r);
     echoResponse(200, $response);
 });
 ?>

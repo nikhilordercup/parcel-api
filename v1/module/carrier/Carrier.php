@@ -11,8 +11,9 @@ class Carrier{
 	public function getShipmentInfo($loadIdentity){
 		$carrierObj = null;
 		$response = array();
-		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
-		foreach($shipmentInfo as $key=>$data){
+		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
+		$deliveryCarrier = $shipmentInfo['carrier_code'];
+		/* foreach($shipmentInfo as $key=>$data){
 			if($data['shipment_service_type']=='P'){
 				$response['from'] = array("name"=>$data["shipment_customer_name"],"company"=>$data["shipment_companyName"],"phone"=>$data["shipment_customer_phone"],"street1"=>$data["shipment_address1"],"street2"=>$data["shipment_address2"],"city"=>$data["shipment_customer_city"],"state"=>$data["shipment_county"],"zip"=>$data["shipment_postcode"],"country"=>$data["shipment_country_code"],"country_name"=>$data["shipment_customer_country"],"is_apo_fpo"=>"");
 				$response['ship_date'] = $data['shipment_required_service_date'];
@@ -23,9 +24,9 @@ class Carrier{
 				$response['carrier'] = $data['carrier_code'];
 				//$response['ship_date'] = $data['shipment_required_service_date'];
 			}
-		}
+		} */
 
-		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($response['carrier']));
+		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($deliveryCarrier));
 
 		$carrierObj = new $coreprimeCarrierClass();
 		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
@@ -76,6 +77,30 @@ class Carrier{
 		$credentialInfo["carrier_account_type"] = array();
 		return $credentialInfo;
 	}*/
+	
+	public function getLabelByLoadIdentity($loadIdentity){
+		$labelInfo = $this->modelObj->getLabelByLoadIdentity($loadIdentity);
+		return $labelInfo;
+	}
+	
+	public function mergePdf($labelPdfArr){
+		try{
+			$labelArr = array();
+			foreach($labelPdfArr as $file){
+				$file['label_file_pdf'] = explode('/',$file['label_file_pdf']);
+				$file = "C:/xampp/htdocs/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7].'/'.$file['label_file_pdf'][8];
+				array_push($labelArr,$file);
+			}
+			$fileName = uniqid().'.pdf';
+			$pdf = new ConcatPdf();
+			$pdf->setFiles($labelArr);
+			$pdf->concat();
+			$pdf->Output('C:/xampp/htdocs/projects/api/temp/'.$fileName,'F');
+		}catch(Exception $e){
+			print_r($e);die;
+		}
+		return array("status"=>"success","file_path"=>"http://localhost/projects/api/temp/".$fileName);
+	}
 
 
     private function _getEnvironment(){

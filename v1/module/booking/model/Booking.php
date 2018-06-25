@@ -281,6 +281,11 @@ class Booking_Model_Booking
         return $this->_db->getAllRecords($sql);
 	}
 	
+	public function getDeliveryShipmentData($loadIdentity){
+		$sql = "SELECT * FROM  ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT' AND shipment_service_type='D'";
+        return $this->_db->getRowRecord($sql);
+	}
+	
 	public function getPackageDataByLoadIdentity($loadIdentity){
 		$sql = "SELECT * FROM  ".DB_PREFIX."shipments_parcel AS PT WHERE PT.instaDispatch_loadIdentity='$loadIdentity' AND parcel_type='D'";
         return $this->_db->getAllRecords($sql);
@@ -298,6 +303,11 @@ class Booking_Model_Booking
 	public function getServiceDataByLoadIdentity($loadIdentity){
 		$sql = "SELECT SST.service_name,SST.currency,CST.service_code FROM ".DB_PREFIX."shipment_service AS SST INNER JOIN ".DB_PREFIX."courier_vs_services AS CST ON SST.service_name = CST.service_name WHERE SST.load_identity='$loadIdentity'";
 		return $this->_db->getRowRecord($sql);
+	}
+	
+	public function getLabelByLoadIdentity($loadIdentity){
+		$sql = "SELECT label_file_pdf FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity IN('$loadIdentity')";
+		return $this->_db->getAllRecords($sql);
 	}
 }
 ?>
