@@ -24,9 +24,9 @@ $app->post('/logout', function() use ($app) {
 $app->post('/getPreparedRoute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
+	verifyRequiredParams(array('access_token','company_id','warehouse_id','routetype'),$r);
 	  
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'routetype'=>$r->routetype));
 	$records = $obj->testCompanyConfiguration();
 	//if($records['status']){
 		$records = $obj->loadPreparedRoute();
