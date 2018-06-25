@@ -1981,8 +1981,6 @@ $app->post('/saveRoutePostId', function() use ($app) {
 });
 
 
-<<<<<<< HEAD
-//this action is only for testing and development
 /*$app->post('/temp', function() use ($app) {
 	$db = new DbHandler();
 	$sql = "SELECT shipment_latlong, shipment_id from icargo_shipment;";
@@ -1995,6 +1993,3 @@ $app->post('/saveRoutePostId', function() use ($app) {
 });*/
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
-=======
-?>
->>>>>>> 074a37bcfacda7b329047bef31cce82b730b05e1

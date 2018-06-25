@@ -127,12 +127,9 @@ require_once 'pod_signature.php';//no need to keep separate file to save image. 
 
 require_once 'module/package/Module_Package_Index.php';
 
-<<<<<<< HEAD
-=======
 require_once 'module/booking/collection.php';
 
 
->>>>>>> 074a37bcfacda7b329047bef31cce82b730b05e1
 /**
  * Verifying required params posted or not
  */
@@ -206,8 +203,8 @@ EOD;
     // setting response content type to json
     //$app->contentType('application/json');
 
-    //echo $jwtString;
-    echo json_encode($response);
+    echo $jwtString;
+//    echo json_encode($response);
 }
 
 function rootPath(){
@@ -215,4 +212,3 @@ function rootPath(){
 }
 
 $app->run();
-?>
