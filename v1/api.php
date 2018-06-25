@@ -1686,7 +1686,7 @@ $app->post('/loadCountry', function() use ($app) {
 });*/
 
 $app->post('/getNextdayAvailableCarrier', function() use ($app){
-	$r = json_decode($app->request->getBody());
+	$r = json_decode($app->request->getBody());        
     $obj = new Nextday($r);
     $response = $obj->searchNextdayCarrierAndPrice();
 
