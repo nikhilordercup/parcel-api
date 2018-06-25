@@ -391,9 +391,12 @@ public function checkCustomerEmailExist($company_email){
 				//$latLngArr = array('longitude'=>'1.0','latitude'=>'1.0');
 				if($latLngArr['latitude']!='' || $latLngArr['longitude']!=''){
 					$searchString = $commonObj->getAddressBookSearchString($param);
-					$insertData = array("phone"=>$param->phone,"name"=>$param->name,"email"=>$param->user_email,"postcode"=>$param->postcode,"address_line1"=>$param->address_1,"address_line2"=>$param->address_2,"city"=>$param->city,"state"=>$param->state,"country"=>$param->country,"latitude"=>$latLngArr['latitude'],"longitude"=>$latLngArr['longitude'],"customer_id"=>$param->customer_id,"address_type"=>$param->address_type,"search_string"=>$searchString);
-					$column_names = array('phone', 'name', 'email', 'postcode','address_line1','address_line2','city','state','country','latitude','longitude','customer_id','address_type','search_string');    
-					$address_id = $this->db->insertIntoTable($insertData, $column_names, DB_PREFIX."address_book");
+					//$insertData = array("phone"=>$param->phone,"name"=>$param->name,"email"=>$param->user_email,"postcode"=>$param->postcode,"address_line1"=>$param->address_1,"address_line2"=>$param->address_2,"city"=>$param->city,"state"=>$param->state,"country"=>$param->country,"latitude"=>$latLngArr['latitude'],"longitude"=>$latLngArr['longitude'],"customer_id"=>$param->customer_id,"address_type"=>$param->address_type,"search_string"=>$searchString);
+					//$column_names = array('phone', 'name', 'email', 'postcode','address_line1','address_line2','city','state','country','latitude','longitude','customer_id','address_type','search_string');
+
+                    $insertData = array("phone"=>$param->phone,"name"=>$param->name,"email"=>$param->user_email,"postcode"=>$param->postcode,"address_line1"=>$param->address_1,"address_line2"=>$param->address_2,"city"=>$param->city,"state"=>$param->state,"country"=>$param->country->short_name,"iso_code"=>$param->country->alpha3_code,"latitude"=>$latLngArr['latitude'],"longitude"=>$latLngArr['longitude'],"customer_id"=>$param->customer_id,"address_type"=>$param->address_type,"search_string"=>$searchString);
+                    $column_names = array('phone', 'name', 'email', 'postcode','address_line1','address_line2','city','state','country','iso_code','latitude','longitude','customer_id','address_type','search_string');
+                    $address_id = $this->db->insertIntoTable($insertData, $column_names, DB_PREFIX."address_book");
 					if ($address_id != NULL) {
 						$insertData['id'] = $address_id;
 						$insertData['action'] = $address_id;

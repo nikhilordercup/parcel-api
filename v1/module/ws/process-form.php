@@ -490,6 +490,7 @@ class Process_Form{
     public function process()
     {
         $data = array();
+        $firebasedata = array();
         $driver_data = $this->_get_driver_by_id();
         $this->driver_name = $driver_data['name'];
         
@@ -523,6 +524,15 @@ class Process_Form{
                 }elseif($shipmentData["shipment_service_type"]=="D"){
                     $actions = "Delivery successful";
                     $internalActionCode = "DELIVERYSUCCESS";
+                }
+
+                $checkMoreShipmentofthisRouteDriver = $this->model_rest->more_shipment_exist_in_this_route_for_driver_from_operation_count($this->driver_id, $this->shipment_route_id);
+
+                if ($checkMoreShipmentofthisRouteDriver == 0)
+                {
+                    $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$this->shipment_route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
+                    $completeRouteObj->saveCompletedRoute();
+                    $firebasedata = $this->releaseRoute($this->driver_id, $this->shipment_route_id);
                 }
 
                 $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');

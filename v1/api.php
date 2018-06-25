@@ -1441,7 +1441,7 @@ $app->post('/addUser', function() use ($app) {
 $app->post('/addAddress', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('access_token','customer_id','company_id','phone','address_1','city','postcode','state','country'),$r);
+	verifyRequiredParams(array('access_token','customer_id','company_id','phone','address_1','city','postcode','state'),$r);//,'country'
 	$obj = new Customer($r);
 	$status = $obj->addAddress($r);
 	echoResponse(200, $status);
