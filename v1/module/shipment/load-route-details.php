@@ -13,7 +13,7 @@ class loadRouteDetails extends Library
 	public $data = array();
     public $warehouse_id = 0;
     public $shipment_type = null;
-	
+    private $_common_model_obj = null;
 	
 
 	
@@ -41,6 +41,7 @@ class loadRouteDetails extends Library
             $this->email = $param['email'];
         }
         $this->modelObj  = Shipment_Model::getInstanse();
+        $this->_common_model_obj  = new Common();  // Added By Roopesh
     }
     
 	
@@ -120,6 +121,8 @@ class loadRouteDetails extends Library
             
                $tempdata[$key]['type'] = $type;      
                 $tempdata[$key]['service_type'] = $service_type;   
+                $tempdata[$key]['current_code'] = $value['current_status'];
+                $tempdata[$key]['drop_name'] = $this->_common_model_obj->getDropName(array("postcode"=>$value['postcode'],"address_1"=>$value['address1']));
                 
                 
                $ticketID  = "'".$value['shipment_ticket']."'";	
@@ -161,7 +164,7 @@ class loadRouteDetails extends Library
             
             $tempdata[$key]['type'] = $type;      
             $tempdata[$key]['service_type'] = $service_type;   
-            
+            $tempdata[$key]['current_code'] = $value['current_status'];
             $ticketID  = "'".$value['shipment_ticket']."'";	
 			$tempdata[$key]['parcels'] 	  = $this->modelObj->getShipmentParcels($ticketID);
             $tempdata[$key]['action'] = "Action";

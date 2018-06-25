@@ -83,7 +83,8 @@ class Ws_Model_Rest
     
     public function get_accepted_shipment_details_by_ticket($ticket)
     {
-        $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE shipment_ticket = '$ticket' AND is_driver_accept = 'YES' AND (current_status = 'O' OR current_status = 'Ca')";
+        //$sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE shipment_ticket = '$ticket' AND is_driver_accept = 'YES' AND (current_status = 'O' OR current_status = 'Ca')";
+        $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE shipment_ticket = '$ticket' AND is_driver_accept = 'YES'";
         $record = $this->db->getRowRecord($sql);
         return $record;
     }
