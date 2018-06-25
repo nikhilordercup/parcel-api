@@ -78,7 +78,7 @@ class Shipment_Model
     function getAssignedShipmentData($componyId, $whareHouseId, $routeId)
         {
         $record = array();
-        $sqldata = 'CA.instaDispatch_docketNumber as docket_no,CA.shipment_assigned_service_date as service_date,
+        $sqldata = 'CA.shipment_latitude, CA.shipment_longitude,CA.instaDispatch_docketNumber as docket_no,CA.shipment_assigned_service_date as service_date,
                 CA.instaDispatch_loadGroupTypeCode as shipment_type,CA.current_status,CA.instaDispatch_loadIdentity as reference_no,
                 CA.shipment_total_attempt as attempt,CA.shipment_address1 AS address1,CA.icargo_execution_order as execution_order,
                 CA.shipment_assigned_service_time as service_time,CA.shipment_total_weight as weight,CA.shipment_ticket as shipment_ticket,
@@ -154,7 +154,8 @@ class Shipment_Model
 
     function getAssignRouteShipmentDetails($company_id)
         {
-        $sqldata = "t1.`shipment_id`,t1.shipment_address1,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country,t1.shipment_customer_city,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`, 'Assigned'";
+        $sqldata = "t1.customer_id, t1.`shipment_longitude`,t1.`shipment_latitude`,t1.shipment_customer_name,t1.shipment_address1,t1.icargo_execution_order,t1.`current_status`,
+        t1.`shipment_id`,t1.shipment_address1,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country,t1.shipment_customer_city,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`, 'Assigned'";
 		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
                INNER JOIN " . DB_PREFIX . "users AS t2  ON t2.id = t1.assigned_driver
                WHERE t1.is_driver_assigned = 1 AND t1.`current_status`='O' AND t1.company_id = '" . $company_id . "' ORDER BY t1.shipment_executionOrder";
@@ -589,7 +590,7 @@ class Shipment_Model
 
     function getShipmentsByShipmentRouteId($shipment_route_id)
         {
-        $sql = "SELECT ST.shipment_postcode AS postcode, ST.shipment_address1 AS address_line1, ST.shipment_latitude AS latitude, ST.shipment_longitude AS longitude, ST.shipment_id, ST.instaDispatch_loadGroupTypeCode, ST.shipment_ticket, ST.`icargo_execution_order`, ST.`shipment_service_type` FROM " . DB_PREFIX . "shipment AS ST
+        $sql = "SELECT ST.customer_id,ST.shipment_postcode AS postcode, ST.shipment_address1 AS address_line1, ST.shipment_latitude AS latitude, ST.shipment_longitude AS longitude, ST.shipment_id, ST.instaDispatch_loadGroupTypeCode, ST.shipment_ticket, ST.`icargo_execution_order`, ST.`shipment_service_type` FROM " . DB_PREFIX . "shipment AS ST
                WHERE ST.shipment_routed_id = '$shipment_route_id' ORDER BY shipment_executionOrder";	   
         $records = $this->db->getAllRecords($sql);
         return $records;

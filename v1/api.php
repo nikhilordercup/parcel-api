@@ -56,7 +56,7 @@ $app->post('/loadWarehouseShipments', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('company_id','warehouse_id','shipment_type'),$r);
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id, "start_date"=>$r->start_date, "end_date"=>$r->end_date));
+	$obj = new loadShipment(array('access_token'=>$r->access_token,'email'=>$r->email,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id, "start_date"=>$r->start_date, "end_date"=>$r->end_date));
 	$records = $obj->shipments();
 	echoResponse(200, $records);
 });
@@ -99,7 +99,7 @@ $app->post('/loadLeftContent', function() use ($app) {
 	verifyRequiredParams(array('access_token','email','company_id','search_date','warehouse_id'),$r);
 	$obj = new View_Support(array('access_token'=>$r->access_token,'email'=>$r->email,'company_id'=>$r->company_id));
 	$records = $obj->loadView(array("search_date"=>$r->search_date,"warehouse_id"=>$r->warehouse_id));
-	
+    //print_r($records);die;
 	echoResponse(200, $records);
 });
 
@@ -107,7 +107,7 @@ $app->post('/loadAssignedRouteByShipmentRouteId', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id','shipment_route_id','assigned_driver_id'),$r);
-	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,'uid'=>""));
+	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,'uid'=>""));//$r->uid
 	$records = $obj->loadAssignedView();
 	echoResponse(200, $records);
 });
@@ -337,7 +337,7 @@ $app->post('/getRouteDetail', function() use ($app) {
 	verifyRequiredParams(array('route_type','route_id','email','access_token','company'),$r);
 	$obj = new loadRouteDetails(array('route_type'=>$r->route_type,'route_id'=>$r->route_id,'company_id'=>$r->company,'email'=>$r->email,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
 	$records = $obj->loadRouteShipmentsDetails();
-	echoResponse(200, $records);
+    echoResponse(200, $records);
 });
 
 $app->post('/inWarehouse', function() use ($app) {
@@ -654,13 +654,13 @@ $app->post('/PauseAssignedRouteByShipmentRouteId', function() use ($app) {
 	echoResponse(200, $response); 
 });
 
-$app->post('/routeCompleted', function() use($app){
+/*$app->post('/routeCompleted', function() use($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('shipment_route_id','company_id','email','access_token'),$r);
 	$obj = new Route_Complete(array('shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'email'=>$r->email,'access_token'=>$r->access_token));
 	$response = $obj->saveCompletedRoute();
 	echoResponse(200, $response);
-});
+});*/
 
 $app->post('/recoverRoute', function() use ($app){
 	$obj = new Route_Assign(array('route_id'=>16, 'driver_id'=>98));
@@ -1441,7 +1441,7 @@ $app->post('/addUser', function() use ($app) {
 $app->post('/addAddress', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('access_token','customer_id','company_id','phone','address_1','city','postcode','state'),$r);//,'country'
+	verifyRequiredParams(array('access_token','customer_id','company_id','phone','address_1','city','postcode','state','country'),$r);
 	$obj = new Customer($r);
 	$status = $obj->addAddress($r);
 	echoResponse(200, $status);

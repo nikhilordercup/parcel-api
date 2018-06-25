@@ -66,7 +66,7 @@ class AllShipment_Model
                 ".$filter."
                 ".$limitstr."
         "; */
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "xyz AS S
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_view AS S
                 WHERE 1 ".$subquery."
                 AND S.company_id  = '" . $componyId . "'
                 ".$filter."

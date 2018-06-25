@@ -35,7 +35,7 @@ class Route_Complete extends Icargo{
             $driverId = $this->modelObj->getDriverIdByShipmentRouteId($this->shipment_route_id);
 
             $status = $this->modelObj->save(array("shipment_route_id"=>$this->shipment_route_id));
-
+          
             $this->driver_id = $driverId["assigned_driver"];
             $this->warehouse_id = $driverId["warehouse_id"];
 
@@ -46,6 +46,7 @@ class Route_Complete extends Icargo{
             $this->action    = "route_completed";
             $this->latitude  = "0.000";
             $this->longitude = "0.000";
+            
             if($status['status']==true){
                 //save driver time tracking
                 $apiTrackingData = $this->getDriverTimeTracking(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$this->driver_id));
@@ -61,20 +62,22 @@ class Route_Complete extends Icargo{
                     $timestamp1 = strtotime($temp1["create_date"]);
                     $timestamp2 = strtotime($temp2["create_date"]);
                     $timestampDiff = $timestamp2 - $timestamp1;
+                    
                     if(!isset($result[$temp1['for']])){
                         $result[$temp1['for']] = array();
                     }
                     $result[$temp1['for']][] = $timestampDiff;
                 }
-                foreach($result as $type=>$time_taken){
+                
+                /*foreach($result as $type=>$time_taken){
                     $saveDriverTimeData = $this->modelObj->saveDriverTimeData(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$driverId["assigned_driver"],"status"=>$type,"time_taken"=>array_sum($time_taken),"create_date"=>date('Y-m-d')));
-                }
+                }*/
 
-                $this->_add_driver_tacking();
+                //$this->_add_driver_tacking();
 
                 return $status;
             }
-        } catch(Exception $e){
+        } catch(Exception $e){print_r($e);
             return array("status"=>"error", "message"=>"Route completed event not saved");
         }
 	}
