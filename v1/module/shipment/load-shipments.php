@@ -981,8 +981,19 @@ class loadShipment extends Library
 	
 	private function _add_temp_routes($roughtkey, $drops,$routeType)
     {  
-        foreach ($drops as $key => $row) {
+        /*foreach ($drops as $key => $row) {
             $mid[$key] = $row['instaDispatch_docketNumber'];
+        }
+        array_multisort($mid, SORT_DESC, $drops);*/
+        if($routeType == 'SAMEDAY'){
+            foreach ($drops as $key => $row) {
+                $mid[$key] = $row['shipment_service_type'];
+            }
+        }else{
+            foreach ($drops as $key => $row) {
+                $mid[$key] = $row['instaDispatch_docketNumber'];
+            }
+
         }
         array_multisort($mid, SORT_DESC, $drops);
         $count = 0;
@@ -1287,24 +1298,28 @@ class loadShipment extends Library
             );
         }
     }
-	
-	
-	public function getAllPendingJobCount(){
-		//$sql = 'SELECT count(*) as pending_job_count FROM `icargo_shipment` as t1 WHERE t1.company_id = "'.$this->company_id.'" AND t1.warehouse_id = "'.$this->warehouse_id.'" AND t1.current_status="C"';
-		$sql = 'SELECT t1.* FROM `icargo_shipment` as t1 WHERE t1.company_id = "'.$this->company_id.'" AND t1.warehouse_id = "'.$this->warehouse_id.'" AND t1.current_status="C"';
-		$records = $this->db->getAllRecords($sql);
-		$sameDayCount = 0;
-		$nextDayCount = 0;
-		$countArr = array();
-		foreach($records as $record){
-			if(strtolower($record['instaDispatch_loadGroupTypeCode'])=='same')
-				$sameDayCount++;
-			else
-				$nextDayCount++;
-		}
-		$countArr = array('nextdaycount'=>$nextDayCount,'samedaycount'=>$sameDayCount);
-		return $countArr;
-	}
+
+
+    public function getAllPendingJobCount(){
+        $sql = 'SELECT t1.* FROM `icargo_shipment` as t1 WHERE t1.company_id = "'.$this->company_id.'" AND t1.warehouse_id = "'.$this->warehouse_id.'" AND t1.current_status="C"';
+        $records = $this->db->getAllRecords($sql);
+        $sameDayCount = 0;
+        $nextDayCount = 0;
+        $countArr = array();
+        $temp = array('NEXT'=>array(),'SAME'=>array());
+        foreach($records as $record){
+            if(strtolower($record['instaDispatch_loadGroupTypeCode'])=='same'){
+                array_push($temp['SAME'],$record['instaDispatch_loadIdentity']);
+                $sameDayCount++;
+            }else{
+                if($record['is_internal']=='1'){
+                    $nextDayCount++;
+                }
+            }
+        }
+        $countArr = array('nextdaycount'=>$nextDayCount,'samedaycount'=>count(array_unique($temp['SAME'])));
+        return $countArr;
+    }
 
     public function getRouteNameByRouteId($route_id){
         $sql = "SELECT route_name FROM " . DB_PREFIX . "shipment_route WHERE shipment_route_id = $route_id";

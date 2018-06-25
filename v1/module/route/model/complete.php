@@ -9,9 +9,8 @@ class Route_Model_Complete{
 		return self::$_db;
 	}
 	
-	public function save($param){
-		//$status = $this->getInstance()->update('shipment_route', array("is_pause"=>0,"is_current"=>"N","completed_date"=>date('Y-m-d h:i:s')),"shipment_route_id=".$param['shipment_route_id']);
-		$status = $this->getInstance()->updateData("UPDATE `".DB_PREFIX."shipment_route` SET `is_pause`=0, `is_current`='N', `completed_date`=NOW() WHERE `shipment_route_id`=".$param['shipment_route_id']);
+	public function save($param){ 
+        $status = $this->getInstance()->updateData("UPDATE `".DB_PREFIX."shipment_route` SET `is_pause`=0, is_active = 'N',`is_current`='N', `completed_date`=NOW() WHERE `shipment_route_id`=".$param['shipment_route_id']);
 		if($status){
 			return array("status"=>true,"message"=>"Complete route status saved");
 		}
@@ -23,8 +22,8 @@ class Route_Model_Complete{
 	
 	// get all data by route id
 	public function getDriverApiTrackingData($param){
-	    //echo "SELECT * FROM " . DB_PREFIX . "api_driver_tracking WHERE route_id = '".$param['shipment_route_id']."' AND driver_id = '".$param['driver_id']."' group by create_date";die;
-		$apiData = $this->getInstance()->getAllRecords("SELECT * FROM " . DB_PREFIX . "api_driver_tracking WHERE route_id = '".$param['shipment_route_id']."' AND driver_id = '".$param['driver_id']."' group by create_date");
+	    //$apiData = $this->getInstance()->getAllRecords("SELECT * FROM " . DB_PREFIX . "api_driver_tracking WHERE route_id = '".$param['shipment_route_id']."' AND driver_id = '".$param['driver_id']."' group by create_date");
+        $apiData = $this->getInstance()->getAllRecords("SELECT * FROM " . DB_PREFIX . "api_driver_tracking WHERE route_id = '".$param['shipment_route_id']."' AND driver_id = '".$param['driver_id']."' ORDER BY track_id ASC");
 		return $apiData;
 	}
 	

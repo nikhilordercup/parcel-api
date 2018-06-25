@@ -41,7 +41,7 @@ class Customer extends Icargo{
                 "postcode"=>isset($param->customer->postcode)?$param->customer->postcode:'',
                 "city"=>isset($param->customer->city)?$param->customer->city:'',
                 "state"=>isset($param->customer->state)?$param->customer->state:'',
-                "country"=>isset($param->customer->country)?$param->customer->country:'',
+                "country"=>isset($param->customer->country->short_name)?$param->customer->country->short_name:'',
                 "status"=>"1",
                 "uid"=>$param->uid,
                 "register_in_firebase"=>"1",
@@ -157,7 +157,10 @@ class Customer extends Icargo{
       $addressBook['postcode']      = isset($param->postcode)?$param->postcode:'';
       $addressBook['city']          = isset($param->city)?$param->city:''; 
       $addressBook['state']         = isset($param->state)?$param->state:''; 
-      $addressBook['country']       = isset($param->country)?$param->country:''; 
+
+      $addressBook['country']       = isset($param->country->short_name)?$param->country->short_name:'';
+      $addressBook['iso_code']      = isset($param->country->alpha3_code)?$param->country->alpha3_code:'';
+
       $addressBook['phone']         = isset($param->phone)?$param->phone:''; 
       $addressBook['email']         = isset($param->email)?$param->email:''; 
       $addressBook['latitude']      = isset($shipment_geo_location["latitude"])?$shipment_geo_location["latitude"]:0.00;
@@ -189,8 +192,9 @@ class Customer extends Icargo{
       $addressBook['postcode']      = isset($param->postcode)?$param->postcode:'';
       $addressBook['city']          = isset($param->city)?$param->city:''; 
       $addressBook['state']         = isset($param->state)?$param->state:''; 
-      $addressBook['country']       = isset($param->country)?$param->country:''; 
-      $addressBook['phone']         = isset($param->phone)?$param->phone:''; 
+      $addressBook['country']       = isset($param->country->short_name)?$param->country->short_name:'';
+      $addressBook['iso_code']      = isset($param->country->alpha3_code)?$param->country->alpha3_code:'';
+      $addressBook['phone']         = isset($param->phone)?$param->phone:'';
       $addressBook['email']         = isset($param->email)?$param->email:''; 
       $addressBook['latitude']      = isset($shipment_geo_location["latitude"])?$shipment_geo_location["latitude"]:0.00;
       $addressBook['longitude']     = isset($shipment_geo_location["longitude"])?$shipment_geo_location["longitude"]:0.00;

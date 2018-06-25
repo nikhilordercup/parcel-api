@@ -111,7 +111,7 @@ class DbHandler {
 		if($condition)
 			$query .= " WHERE $condition";
 		$query .= ";";
-        $r = $this->conn->query($query);
+		$r = $this->conn->query($query);
         if($r)
         	return $r;
         else

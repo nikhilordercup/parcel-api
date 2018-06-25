@@ -159,7 +159,8 @@ final class Nextday extends Booking
                                         $collected_item["carrier_price_info"]["surcharges"] = number_format($surchargePrice, 2);
                                         $collected_item["customer_price_info"]["surcharges"] = number_format($surchargeWithCcfPrice, 2);
 
-                                        $collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                        //$collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                        $collected_item["carrier_price_info"]["taxes"] = number_format((($serviceCcf["original_price"] + $surchargePrice) * $service->taxes->tax_percentage / 100), 2);
                                         $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
 
                                         $collected_item["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + $service->taxes->total_tax, 2);
@@ -260,6 +261,8 @@ final class Nextday extends Booking
                 "value" => 0.00,
                 "currency" => $this->_param->collection->$key->country->currency_code
             );
+
+            $this->data["status"] = "success";
         }else{
             $this->data = $carrierLists;
         }
@@ -290,8 +293,8 @@ final class Nextday extends Booking
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
             $this->_setPostRequest();
-print_r($this->data);die;
-            if(count($this->data)>0){
+
+            if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
 
@@ -304,7 +307,7 @@ print_r($this->data);die;
                 }
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
-                return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
+                return array("status"=>"error", "message"=>$this->data["message"]);
             }
         //}else{
         //    return array("status"=>"error", "message"=>"Distance matrix api error");
@@ -356,7 +359,8 @@ print_r($this->data);die;
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    //$parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P",$loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
@@ -418,7 +422,8 @@ print_r($this->data);die;
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    //$parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D",$loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
@@ -433,10 +438,6 @@ print_r($this->data);die;
         }
         $this->commitTransaction();
         // call label generation method
-
-        print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
-
-        
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
 }

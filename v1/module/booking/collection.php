@@ -44,9 +44,9 @@ final Class Collection{
                     array_push($temp, $key);
             }
             if (count($temp) > 0)
-                $data = $this->_search_in_array($temp);
+                $key = $this->_search_in_array($temp);
         }
-        return $data;
+        return $key;
     }
 
     public

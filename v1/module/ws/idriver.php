@@ -58,7 +58,7 @@ class Idriver{
                 break;
 				case 'logout' :
 					return $this->_logout($params);
-				break;  
+				break;
                 case 'save/user-credential-info' :
                     return $this->_saveCredentialInfo($params);
                     
@@ -139,7 +139,7 @@ class Idriver{
         $params->loadActionCode = 'SAVE-GPS-LOCATION';
         $obj = new Process_Route($params);
         $data = $obj->route_action();
-        return $data;
+        return array("status"=>"success", "message"=>"gps location captured");
     }
 	
 	private function _logout($params)
@@ -152,6 +152,7 @@ class Idriver{
     {
         $obj = new Ws_Credential_Info();
         $obj->saveCredentialInfo(array("device_token_id"=>$params->device_token_id, "user_code"=>$params->user_code, "company_id"=>$params->company_id));
+        return array("status"=>"success", "message"=>"device token captured");
     }
 }
 ?>
