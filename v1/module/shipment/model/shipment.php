@@ -171,9 +171,15 @@ class Shipment_Model
 		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
                INNER JOIN " . DB_PREFIX . "users AS t2  ON t2.id = t1.assigned_driver
                WHERE t1.is_driver_assigned = 1 AND (t1.`current_status`='O' OR t1.`current_status`='D' OR t1.`current_status`='Ca') AND t1.company_id = '" . $company_id . "' AND t1.shipment_routed_id = '$shipment_route_id' AND assigned_driver = '$driver_id' ORDER BY t1.shipment_executionOrder";
-		$record = $this->db->getAllRecords($sql);
+        $record = $this->db->getAllRecords($sql);
         return $record;
         }
+
+    public function getActiveRoute($company_id){
+        $sql = "SELECT * FROM " . DB_PREFIX . "shipment_route WHERE company_id='$company_id' AND is_active='Y' AND driver_id > 0";
+        $records = $this->db->getAllRecords($sql);
+        return $records;
+    }
 
     public
 
@@ -727,7 +733,7 @@ class Shipment_Model
     public
 
     function getCustomerById($user_id){
-        $sql = "SELECT `UT`.name as `name` FROM `" . DB_PREFIX . "users` AS `UT` WHERE `UT`.`id` IN('$user_id')";
+        $sql = "SELECT `UT`.name as `name`, uid as uid FROM `" . DB_PREFIX . "users` AS `UT` WHERE `UT`.`id` IN('$user_id')";
         $records = $this->db->getAllRecords($sql);
         return $records;
     }
