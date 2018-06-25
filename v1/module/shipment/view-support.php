@@ -136,7 +136,8 @@ class View_Support extends Icargo{
 			$temp[$record['shipment_routed_id']]['info']['shipment_count'] = (isset($temp[$record['shipment_routed_id']]['info']['shipment_count'])) ? ++$temp[$record['shipment_routed_id']]['info']['shipment_count'] : 1 ;
 
 			$customer_name = $this->modelObj->getCustomerById($record["customer_id"]);
-            $temp[$record['shipment_routed_id']]['info']['customer_name'][$record["customer_id"]] = $customer_name[0];
+
+			$customers[] = $customer_name[0]["name"];
 
             $temp[$record['shipment_routed_id']]['info']['shipments'][] = array(
                 'service_type'=>$record['shipment_service_type'],
@@ -152,7 +153,8 @@ class View_Support extends Icargo{
                 'consignee_name'=>$record['shipment_customer_name']
             );
         }
-		foreach($temp as $key => $data){
+        foreach($temp as $key => $data){
+            $temp[$key]['info']['customer_name'] = array_unique($customers);
 			$route_data = $this->modelObj->_get_assigned_route_detail($data['info']['shipment_routed_id']);
 			$routeLabel  = 'NA';
 			if($route_data['driver_id'] > 0){
@@ -360,12 +362,13 @@ class View_Support extends Icargo{
                 $records[$key]["end_postcode"] = $endPostcode["postcode"];
                 $records[$key]["shipment_count"] = count($data);
                 $records[$key]["servicedate"] = date("Y-m-d",strtotime($record["service_date"]));
-                
+                $customers = array();
+
                 foreach($data as $item){
                     array_push($shipment_id, $item["shipment_id"]);
 
                     $customer_name = $this->modelObj->getCustomerById($item["customer_id"]);
-                    $records[$key]["customer_name"][$item["customer_id"]] = $customer_name[0];
+                    $customers[] = $customer_name[0]["name"];
 
                     array_push($records[$key]["shipments"], array("service_type"=>$item["shipment_service_type"],"icargo_execution_order"=>$item["icargo_execution_order"],"drop_name"=>$this->_common_model_obj->getDropName(array("postcode"=>$item["postcode"],"address_1"=>$item["address_line1"])),"postcode"=>$item["postcode"],"address_1"=>$item["address_line1"],"shipment_id"=>$item["shipment_id"],"shipment_ticket"=>$item["shipment_ticket"],"shipment_geo_locations"=>array("latitude"=>$item["latitude"],"longitude"=>$item["longitude"])));
                    
@@ -376,6 +379,7 @@ class View_Support extends Icargo{
 
                 $records[$key]["shipment_routed_id"] = $record["shipment_route_id"];
                 $records[$key]["parcel_count"] = $parcelCount["parcel_count"];
+                $records[$key]["customer_name"] = array_unique($customers);
             }
         }
         return $records;
