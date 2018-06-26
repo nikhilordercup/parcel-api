@@ -973,6 +973,11 @@ class View_Support extends Icargo{
 		 
 		 $dataTobeUpdate = array();
 		 $dataTobeUpdate['is_driver_assigned'] = ($driverid==0)?'0':'1';
+
+         if($routeDetails['driver_accepted']==1){
+            $dataTobeUpdate['is_driver_accept'] = 'YES';
+         }
+
 		 $dataTobeUpdate['company_id'] = $companyid;
 		 $dataTobeUpdate['warehouse_id'] = $warehouseid;
 		 $dataTobeUpdate['shipment_assigned_service_time'] = date("H:m:s");
