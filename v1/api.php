@@ -26,7 +26,7 @@ $app->post('/getPreparedRoute', function() use ($app) {
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
 	  
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'routetype'=>$r->routetype));
 	$records = $obj->testCompanyConfiguration();
 	//if($records['status']){
 		$records = $obj->loadPreparedRoute();

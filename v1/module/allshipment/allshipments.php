@@ -163,7 +163,8 @@ class allShipments extends Icargo
                             $data['show']               = 'y';
                             $data['collectionpostcode'] = $pickupData['shipment_postcode'];
                             $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
-                            $data['pickup_date']        = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
+                            //$data['pickup_date']        = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
+                            $data['pickup_date']        = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -204,7 +205,8 @@ class allShipments extends Icargo
                             $data['booked_by']   = $pickupData['booked_by'];
                             $data['isInvoiced']  = $pickupData['isInvoiced'];
                             $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
-                            $data['pickup_date'] = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
+                            //$data['pickup_date'] = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
+                            $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
@@ -803,9 +805,8 @@ class allShipments extends Icargo
                 }
             }
         }
-
-        if($param['applypriceoncustomer'] == 'YES'){
-            $temp = array();
+        if ($param['applypriceoncustomer'] == 'YES') {
+            $temp                                  = array();
             $temp['price_update_applyto_customer'] = 'YES';
             $temp['version_reason']                = 'CARRIER_PRICE_UPDATE';
             $temp['price_version']                 = $priceVersion + 1;
@@ -853,62 +854,47 @@ class allShipments extends Icargo
                         $voucherdata['is_Paid']            = 'UNPAID';
                         $adddata                           = $this->modelObj->addContent('vouchers', $voucherdata);
                     }
-
-                 }
-                 $temp['price_update_applyto_customer'] = 'YES';
-                 $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
-                 $temp['price_version']  = $priceVersion + 1;
-                 $condition    = "load_identity = '".$param['job_identity']."'";
-                 $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
-             } 
-         } 
-        elseif($param['applypriceoncustomer'] == 'NO'){
-            $temp['surcharges']     = 0;
-            $temp['total_price']  = 0;
-            $temp['taxes'] =  0;
-            $taxPrice = $this->getTaxPrice($records);
-             foreach($records as $data){
-               if($data['api_key']=='service'){
-                  $temp['base_price'] =  $data['baseprice'];
-                  $temp['courier_commission_value'] =  $data['ccf_price'];
-                  $temp['courier_commission_type']  =  $data['ccf_operator'];
-                  $temp['courier_commission']       =  $data['ccf_value'];   
-                  $temp['total_price'] =  $data['price'];
                 }
-                elseif($data['api_key']=='taxes'){
-                  $data['price'] = $taxPrice['tax_amt'];
-                  $data['baseprice'] = $taxPrice['base_price'];
-                  $data['ccf_price'] = $taxPrice['tax_amt'];
-                  $temp['taxes'] =  $data['price'];  
-                }
-                else{
-                  $temp['surcharges'] +=  $data['price'];    
-                }
-                 $adddata =   $this->modelObj->addContent('shipment_price',$data);
-             } 
-             if($adddata){
-                 $temp = array();
-                 $temp['price_update_applyto_customer'] = 'NO';
-                 $temp['version_reason'] = 'CARRIER_PRICE_UPDATE';
-                 $temp['price_version']  = $priceVersion + 1;
-                 $condition    = "load_identity = '".$param['job_identity']."'";
-                 $status = $this->modelObj->editContent("shipment_service", $temp, $condition);
-             }  
-         }
-        else{}
-        if($status){
-            return array('status'=>'success','message'=>'data updated successfully','data'=>array('identity'=>$param['job_identity'],'job_type'=>$param['job_type']));
-        } 
-    }   
-    public function updateCustomerPrice($param){ 
-        $param = json_decode(json_encode($param),1);
-        $getLastPriceVersion = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
-        $priceVersion = $getLastPriceVersion['price_version'];
-        $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsWithVersionOfCustomer($param['job_identity'],$priceVersion);
-        $isInvoiced = $getLastPriceVersion['isInvoiced'];
-        $customerId  = $getLastPriceVersion['customer_id']; 
-        $carrierId   = isset($getLastPriceVersion['carrier'])?$getLastPriceVersion['carrier']:0;
-
+                $temp['price_update_applyto_customer'] = 'YES';
+                $temp['version_reason']                = 'CARRIER_PRICE_UPDATE';
+                $temp['price_version']                 = $priceVersion + 1;
+                $condition                             = "load_identity = '" . $param['job_identity'] . "'";
+                $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
+            }
+        } elseif ($param['applypriceoncustomer'] == 'NO') {
+            foreach ($records as $data) {
+                $adddata = $this->modelObj->addContent('shipment_price', $data);
+            }
+            if ($adddata) {
+                $temp                                  = array();
+                $temp['price_update_applyto_customer'] = 'NO';
+                $temp['version_reason']                = 'CARRIER_PRICE_UPDATE';
+                $temp['price_version']                 = $priceVersion + 1;
+                $condition                             = "load_identity = '" . $param['job_identity'] . "'";
+                $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
+            }
+        } else {
+        }
+        if ($status) {
+            return array(
+                'status' => 'success',
+                'message' => 'data updated successfully',
+                'data' => array(
+                    'identity' => $param['job_identity'],
+                    'job_type' => $param['job_type']
+                )
+            );
+        }
+    }
+    public function updateCustomerPrice__old($param)
+    {
+        $param                 = json_decode(json_encode($param), 1);
+        $getLastPriceVersion   = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
+        $priceVersion          = $getLastPriceVersion['price_version'];
+        $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsWithVersionOfCustomer($param['job_identity'], $priceVersion);
+        $isInvoiced            = $getLastPriceVersion['isInvoiced'];
+        $customerId            = $getLastPriceVersion['customer_id'];
+        $carrierId             = $getLastPriceVersion['carrier'];
         //$shipId    = $getLastPriceVersion['shipment_id'];
         $oldGrandTotal         = $getLastPriceVersion['grand_total'];
         $records               = array();
@@ -1170,30 +1156,29 @@ class allShipments extends Icargo
                     }
 
                 }
-
-            $adddata =   $this->modelObj->addContent('shipment_price',$data);
-             }
-            if($adddata){
-                 $temp['grand_total'] =  $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
-                 if($isInvoiced == 'YES'){
-                    if($temp['grand_total']!= $oldGrandTotal){
-                       $voucherHistoryid = $this->modelObj->getVoucherHistory($param['job_identity']);    
-                       $voucherdata = array(); 
-                       $voucherdata['voucher_type']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?'DEBIT':'CREDIT';
-                       $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
-                       $voucherdata['amount']  = (($temp['grand_total'] - $oldGrandTotal) > 0)?($temp['grand_total'] - $oldGrandTotal):($oldGrandTotal - $temp['grand_total']);
-                       //$voucherdata['shipment_id']  = $shipId;
-                       $voucherdata['shipment_reference']  = $param['job_identity'];
-                       $voucherdata['create_date']  = date('Y-m-d');
-                       $voucherdata['created_by']  = $param['user'];
-                       $voucherdata['history_id']  = $voucherHistoryid;
-                       $voucherdata['is_invoiced']  = 'NO';
-                       $voucherdata['status']  = '1';
-                       $voucherdata['company_id']  = $param['company_id'];
-                       $voucherdata['customer_id']  = $customerId;
-                       $voucherdata['invoice_reference']  = '';
-                       $voucherdata['is_Paid']  = 'UNPAID';
-                       $adddata =   $this->modelObj->addContent('vouchers',$voucherdata);
+                $adddata = $this->modelObj->addContent('shipment_price', $data);
+            }
+            if ($adddata) {
+                $temp['grand_total'] = $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
+                if ($isInvoiced == 'YES') {
+                    if ($temp['grand_total'] != $oldGrandTotal) {
+                        $voucherHistoryid                  = $this->modelObj->getVoucherHistory($param['job_identity']);
+                        $voucherdata                       = array();
+                        $voucherdata['voucher_type']       = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
+                        $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
+                        $voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
+                        //$voucherdata['shipment_id']  = $shipId;
+                        $voucherdata['shipment_reference'] = $param['job_identity'];
+                        $voucherdata['create_date']        = date('Y-m-d');
+                        $voucherdata['created_by']         = $param['user'];
+                        $voucherdata['history_id']         = $voucherHistoryid;
+                        $voucherdata['is_invoiced']        = 'NO';
+                        $voucherdata['status']             = '1';
+                        $voucherdata['company_id']         = $param['company_id'];
+                        $voucherdata['customer_id']        = $customerId;
+                        $voucherdata['invoice_reference']  = '';
+                        $voucherdata['is_Paid']            = 'UNPAID';
+                        $adddata                           = $this->modelObj->addContent('vouchers', $voucherdata);
                     }
                 }
                 $temp['price_update_applyto_customer'] = 'YES';
@@ -1623,7 +1608,8 @@ class allShipments extends Icargo
         }
         return $datastatus;
     }
-  public function getAllowedAllShipmentsStatus($param)
+
+    public function getAllowedAllShipmentsStatus($param)
     {
         $data = $this->modelObj->getAllowedAllShipmentsStatus($param->company_id);
         return $data;
