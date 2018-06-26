@@ -139,7 +139,7 @@ class Ws_Model_Rest
     
     public function check_load_identity_assign_to_driver($ticket, $driver_id, $shipment_route_id)
     {
-        $sql = "SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "driver_shipment AS RT WHERE RT.driver_id = '$driver_id' AND RT.shipment_ticket = '$ticket' AND RT.shipment_route_id = '$shipment_route_id' ORDER BY RT.shipment_route_id";
+        $sql = "SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "driver_shipment AS RT WHERE RT.driver_id = '$driver_id' AND RT.shipment_ticket = '$ticket' AND RT.shipment_route_id = '$shipment_route_id' AND RT.shipment_accepted='YES' ORDER BY RT.shipment_route_id";
         $record = $this->db->getOneRecord($sql);
         return $record;
     }

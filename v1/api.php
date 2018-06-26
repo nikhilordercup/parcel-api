@@ -99,8 +99,7 @@ $app->post('/loadLeftContent', function() use ($app) {
 	verifyRequiredParams(array('access_token','email','company_id','search_date','warehouse_id'),$r);
 	$obj = new View_Support(array('access_token'=>$r->access_token,'email'=>$r->email,'company_id'=>$r->company_id));
 	$records = $obj->loadView(array("search_date"=>$r->search_date,"warehouse_id"=>$r->warehouse_id));
-    //print_r($records);die;
-	echoResponse(200, $records);
+    echoResponse(200, $records);
 });
 
 $app->post('/loadAssignedRouteByShipmentRouteId', function() use ($app) {
