@@ -43,7 +43,7 @@ class allShipments extends Icargo
 
         $html .= (isset($param->data->booked_by) && ($param->data->booked_by != '')) ? ' AND S.booked_by = "' . $param->data->booked_by . '" ' : '';
 
-        $html .= (isset($param->data->amount) && ($param->data->amount != '')) ? ' AND S.amount >=  ' . $param->data->amount . ' ' : '';
+        $html .= (isset($param->data->amount) && ($param->data->amount != '')) ? ' AND S.amount =  ' . $param->data->amount . ' ' : '';
 
         $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
 

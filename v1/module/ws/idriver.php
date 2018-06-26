@@ -58,7 +58,7 @@ class Idriver{
                 break;
 				case 'logout' :
 					return $this->_logout($params);
-				break;  
+				break;
                 case 'save/user-credential-info' :
                     return $this->_saveCredentialInfo($params);
                     
@@ -82,6 +82,7 @@ class Idriver{
     
      private function _route_paused($params)
     {  
+        $params->loadActionCode = 'PAUSED';
         $obj = new Process_Route($params);
         $data = $obj->route_action();
         return $data;

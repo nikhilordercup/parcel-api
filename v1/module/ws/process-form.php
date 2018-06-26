@@ -149,15 +149,17 @@ class Process_Form{
             //if ($shipmentExist == 1) {
 
                 $checkDriverAcceptinwarehouse = $this->model_rest->check_shipment_accepted_by_driver_by_ticket($ticket, $driver_id, $route_id);
-
+              
                 if ($checkDriverAcceptinwarehouse['exist'] == 1)
-                {
+                { 
                     $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
-
+                     
+                    $shipment_details['current_status'] = "O"; //only for testing. after testing remove the line;
+                   
                     if($shipment_details!=null and $shipment_details['current_status']!='D')
                     {
                         if(isset($pod_data["pod"]) and !empty($pod_data["pod"]))
-                        {
+                        { 
                             $podObj = new Pod_Signatre();
                             $podPath = $podObj->saveImage($ticket, $pod_data["pod"]);
 
@@ -172,9 +174,9 @@ class Process_Form{
                                 "comment" => $this->text
                             ));
                         }
-
+                       
                         if($shipment_details['instaDispatch_loadGroupTypeCode'] == 'SAME' && $shipment_details['shipment_service_type'] == 'P')
-                        {
+                        { 
                             $condition          = "shipment_ticket = '" . $ticket . "'";
 
                             $status             = $this->model_rest->update("shipment", array(
@@ -248,12 +250,12 @@ class Process_Form{
                         $gridData = $this->getGridDataByTicket($company_id,$warehouse_id,$route_id,$ticket);
                        
                         $checkMoreShipmentofthisRouteDriver = $this->model_rest->more_shipment_exist_in_this_route_for_driver_from_operation_count($driver_id, $route_id);
-
+                       
                         if ($checkMoreShipmentofthisRouteDriver == 0) 
                         {
                             $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
                             $test = $completeRouteObj->saveCompletedRoute();
-
+                           
                             //$condition  = "shipment_route_id = '" . $route_id . "' AND driver_id = '" . $driver_id . "'";
                             //$statusship = $this->model_rest->update("shipment_route", array(
                             //    'is_active' => 'N','is_current'=> 'N','completed_date'=>'NOW()', 'is_pause'=>'0'), $condition);
@@ -341,9 +343,6 @@ class Process_Form{
                     'grid_data' =>$gridData,
                     'ticket' =>$ticket,
                     'left'=>1
-                    
-                    
-
                 );
             }
         }
@@ -447,7 +446,10 @@ class Process_Form{
     }
 
     public function getGridDataByTicket($company_id,$warehouse_id,$route_id,$ticket){
+        
+      
         $data = $this->modelObj->getAssignedShipmentDataByTicket($company_id,$warehouse_id,$route_id,$ticket);
+      
 		if(is_array($data) and count($data)>0){
 			foreach($data as $key => $value){
                 $shipmentCurrentStaus = "";
@@ -486,7 +488,6 @@ class Process_Form{
    }
     
     
-    
     public function process()
     {
         $data = array();
@@ -510,10 +511,10 @@ class Process_Form{
 
             $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $pod_data, $this->latitude , $this->longitude, $this->service_message);
 
-
+           
             Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array("shipment_ticket"=>$this->shipment_ticket,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"trigger_code"=>"successful"));
 
-
+         
             if($data["status"]=="success"){
                 $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
                 $common_obj = new Common();
