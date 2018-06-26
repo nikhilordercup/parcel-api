@@ -878,7 +878,7 @@ class loadShipment extends Library
         $sql .= "`CA`.`shipment_postcode` AS `postcode`, `CA`.`shipment_latlong`, `CA`.`shipment_latitude`, `CA`.`shipment_longitude`, `CA`.`shipment_customer_country`, `CA`.`instaDispatch_loadGroupTypeCode`, `CA`.`shipment_service_type`, `CA`.`icargo_execution_order`, `R2`.`warehouse_id`, `CA`.error_flag, `CA`.shipment_required_service_date AS service_date, `CA`.is_receivedinwarehouse, `CA`.shipment_total_attempt ";
         $sql .= "FROM `" . DB_PREFIX . "temp_routes` AS `R2` LEFT JOIN `" . DB_PREFIX . "temp_routes_shipment` AS `SH` ON R2.temp_route_id = SH.temp_route_id ";
         $sql .= "LEFT JOIN `" . DB_PREFIX . "shipment` AS `CA` ON SH.shipment_id = CA.shipment_id ";
-        $sql .= "WHERE (R2.session_id = '" . $this->access_token . "')";
+        $sql .= "WHERE (R2.session_id = '" . $this->access_token . "') AND (R2.route_type = '" . strtoupper($this->routetype) . "')";
 		
        /*  $sql = "SELECT `R2`.`temp_route_id`, `SH`.`drag_temp_route_id`, `SH`.`drop_execution_order`, `SH`.`distancemiles`, `SH`.`estimatedtime`, `R2`.`custom_route`, `R2`.`route_id`, `R2`.`session_id`, ";
         $sql .= "`R2`.`route_name`, CONCAT(route_name,SH.temp_route_id) AS `route_name_display`, `R2`.`is_optimized`, `R2`.`optimized_type`, `R2`.`last_optimized_time`, `SH`.drop_name, ";

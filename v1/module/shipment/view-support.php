@@ -956,7 +956,9 @@ class View_Support extends Icargo{
         $shipment_ticket   = $shipmentDetails['shipment_ticket'];
         $driverid          = isset($routeDetails['driver_id'])?$routeDetails['driver_id']:0;
         $vehicalId         = isset($routeDetails['vehicle_id'])?$routeDetails['vehicle_id']:0;
-        
+
+
+
 		$insertData    = array(
 			'shipment_ticket' => $shipment_ticket,
 			'driver_id' => $driverid,
@@ -968,11 +970,18 @@ class View_Support extends Icargo{
 			'execution_order' => isset($shipmentDetails['execution_order'])?$shipmentDetails['execution_order']:0,
 			'distancemiles' => isset($shipmentDetails['distancemiles'])?$shipmentDetails['distancemiles']:00.00,
 			'estimatedtime' => isset($shipmentDetails['estimatedtime'])?$shipmentDetails['estimatedtime']:00.00);  
-    
+
+         $dataTobeUpdate = array();
+         if($routeDetails['driver_accepted']==1){
+            $dataTobeUpdate['is_driver_accept'] = 'YES';
+            $insertData["shipment_accepted"] = 'YES';
+         }   
+               
          $this->modelObj->addContent("driver_shipment",$insertData);
 		 
-		 $dataTobeUpdate = array();
+
 		 $dataTobeUpdate['is_driver_assigned'] = ($driverid==0)?'0':'1';
+
 		 $dataTobeUpdate['company_id'] = $companyid;
 		 $dataTobeUpdate['warehouse_id'] = $warehouseid;
 		 $dataTobeUpdate['shipment_assigned_service_time'] = date("H:m:s");

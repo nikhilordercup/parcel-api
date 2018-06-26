@@ -24,9 +24,9 @@ $app->post('/logout', function() use ($app) {
 $app->post('/getPreparedRoute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
+	verifyRequiredParams(array('access_token','company_id','warehouse_id','routetype'),$r);
 	  
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'routetype'=>$r->routetype));
 	$records = $obj->testCompanyConfiguration();
 	//if($records['status']){
 		$records = $obj->loadPreparedRoute();
@@ -99,8 +99,7 @@ $app->post('/loadLeftContent', function() use ($app) {
 	verifyRequiredParams(array('access_token','email','company_id','search_date','warehouse_id'),$r);
 	$obj = new View_Support(array('access_token'=>$r->access_token,'email'=>$r->email,'company_id'=>$r->company_id));
 	$records = $obj->loadView(array("search_date"=>$r->search_date,"warehouse_id"=>$r->warehouse_id));
-    //print_r($records);die;
-	echoResponse(200, $records);
+    echoResponse(200, $records);
 });
 
 $app->post('/loadAssignedRouteByShipmentRouteId', function() use ($app) {
@@ -557,10 +556,10 @@ $app->post('/setupForm', function() use ($app) {
 	}
 	elseif($r->source=='driver'){
 		//if($r->setup = 'dashboard'){
-        if((isset($r->setup)) AND ($r->setup == 'dashboard')){
+        /*if((isset($r->setup)) AND ($r->setup == 'dashboard')){
 			$r->company_id = $r->company->id;
 			$r->warehouse_id = $r->warehouse->warehouse_id;
-		}
+		}*/
 		verifyRequiredParams(array('access_token','company_id','warehouse_id','email','password','phone','address_1','city','postcode','state','country'),$r);
 	} 
 	elseif($r->source=='vehicle'){

@@ -82,6 +82,7 @@ class Idriver{
     
      private function _route_paused($params)
     {  
+        $params->loadActionCode = 'PAUSED';
         $obj = new Process_Route($params);
         $data = $obj->route_action();
         return $data;
