@@ -556,10 +556,10 @@ $app->post('/setupForm', function() use ($app) {
 	}
 	elseif($r->source=='driver'){
 		//if($r->setup = 'dashboard'){
-        if((isset($r->setup)) AND ($r->setup == 'dashboard')){
+        /*if((isset($r->setup)) AND ($r->setup == 'dashboard')){
 			$r->company_id = $r->company->id;
 			$r->warehouse_id = $r->warehouse->warehouse_id;
-		}
+		}*/
 		verifyRequiredParams(array('access_token','company_id','warehouse_id','email','password','phone','address_1','city','postcode','state','country'),$r);
 	} 
 	elseif($r->source=='vehicle'){
