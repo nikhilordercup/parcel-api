@@ -337,8 +337,8 @@ class loadShipment extends Library
 
             $data[$counter]['miles']           = $service_opted["transit_distance_text"];
             $data[$counter]['time']            = $service_opted["transit_time_text"];
-
-            $data[$counter]['service_date']    = $this->date_format($record["service_date"]);
+            //$data[$counter]['service_date']    = $this->date_format($record["service_date"]);
+            $data[$counter]['service_date']    = $record["service_date"];
             $end_shipment                      = end($record['shipments']);
             $data[$counter]['start_postcode']  = $record['shipments'][0]['shipment_postcode'];
             $data[$counter]['end_postcode']    = $end_shipment['shipment_postcode'];
@@ -855,7 +855,7 @@ class loadShipment extends Library
 		if($time)
 			return date("Y-M-d H:i:s", strtotime($date));
 		else
-			return date("Y-M-d", strtotime($date));
+			return date("dd/mm/yyyy", strtotime($date));
 	}
 	private function _load_prepared_route()
 	{
@@ -878,8 +878,7 @@ class loadShipment extends Library
         $sql .= "`CA`.`shipment_postcode` AS `postcode`, `CA`.`shipment_latlong`, `CA`.`shipment_latitude`, `CA`.`shipment_longitude`, `CA`.`shipment_customer_country`, `CA`.`instaDispatch_loadGroupTypeCode`, `CA`.`shipment_service_type`, `CA`.`icargo_execution_order`, `R2`.`warehouse_id`, `CA`.error_flag, `CA`.shipment_required_service_date AS service_date, `CA`.is_receivedinwarehouse, `CA`.shipment_total_attempt ";
         $sql .= "FROM `" . DB_PREFIX . "temp_routes` AS `R2` LEFT JOIN `" . DB_PREFIX . "temp_routes_shipment` AS `SH` ON R2.temp_route_id = SH.temp_route_id ";
         $sql .= "LEFT JOIN `" . DB_PREFIX . "shipment` AS `CA` ON SH.shipment_id = CA.shipment_id ";
-        $sql .= "WHERE (R2.session_id = '" . $this->access_token . "')";
-		
+        $sql .= "WHERE (R2.session_id = '" . $this->access_token . "') AND (R2.route_type = '" . strtoupper($this->routetype) . "')";
        /*  $sql = "SELECT `R2`.`temp_route_id`, `SH`.`drag_temp_route_id`, `SH`.`drop_execution_order`, `SH`.`distancemiles`, `SH`.`estimatedtime`, `R2`.`custom_route`, `R2`.`route_id`, `R2`.`session_id`, ";
         $sql .= "`R2`.`route_name`, CONCAT(route_name,SH.temp_route_id) AS `route_name_display`, `R2`.`is_optimized`, `R2`.`optimized_type`, `R2`.`last_optimized_time`, `SH`.drop_name, ";
         $sql .= "ABT.postcode AS shipment_postcode, ABT.address_line1 AS shipment_address1 , shipment_total_weight AS `shipment_weight`, shipment_total_volume AS `shipment_volume`, shipment_ticket AS `shipment_ticket`, `CA`.shipment_id AS `shipment_id`,";
@@ -981,8 +980,19 @@ class loadShipment extends Library
 	
 	private function _add_temp_routes($roughtkey, $drops,$routeType)
     {  
-        foreach ($drops as $key => $row) {
+        /*foreach ($drops as $key => $row) {
             $mid[$key] = $row['instaDispatch_docketNumber'];
+        }
+        array_multisort($mid, SORT_DESC, $drops);*/
+        if($routeType == 'SAMEDAY'){
+            foreach ($drops as $key => $row) {
+                $mid[$key] = $row['shipment_service_type'];
+            }
+        }else{
+            foreach ($drops as $key => $row) {
+                $mid[$key] = $row['instaDispatch_docketNumber'];
+            }
+
         }
         array_multisort($mid, SORT_DESC, $drops);
         $count = 0;
@@ -1287,24 +1297,28 @@ class loadShipment extends Library
             );
         }
     }
-	
-	
-	public function getAllPendingJobCount(){
-		//$sql = 'SELECT count(*) as pending_job_count FROM `icargo_shipment` as t1 WHERE t1.company_id = "'.$this->company_id.'" AND t1.warehouse_id = "'.$this->warehouse_id.'" AND t1.current_status="C"';
-		$sql = 'SELECT t1.* FROM `icargo_shipment` as t1 WHERE t1.company_id = "'.$this->company_id.'" AND t1.warehouse_id = "'.$this->warehouse_id.'" AND t1.current_status="C"';
-		$records = $this->db->getAllRecords($sql);
-		$sameDayCount = 0;
-		$nextDayCount = 0;
-		$countArr = array();
-		foreach($records as $record){
-			if(strtolower($record['instaDispatch_loadGroupTypeCode'])=='same')
-				$sameDayCount++;
-			else
-				$nextDayCount++;
-		}
-		$countArr = array('nextdaycount'=>$nextDayCount,'samedaycount'=>$sameDayCount);
-		return $countArr;
-	}
+
+
+    public function getAllPendingJobCount(){
+        $sql = 'SELECT t1.* FROM `icargo_shipment` as t1 WHERE t1.company_id = "'.$this->company_id.'" AND t1.warehouse_id = "'.$this->warehouse_id.'" AND t1.current_status="C"';
+        $records = $this->db->getAllRecords($sql);
+        $sameDayCount = 0;
+        $nextDayCount = 0;
+        $countArr = array();
+        $temp = array('NEXT'=>array(),'SAME'=>array());
+        foreach($records as $record){
+            if(strtolower($record['instaDispatch_loadGroupTypeCode'])=='same'){
+                array_push($temp['SAME'],$record['instaDispatch_loadIdentity']);
+                $sameDayCount++;
+            }else{
+                if($record['is_internal']=='1'){
+                    $nextDayCount++;
+                }
+            }
+        }
+        $countArr = array('nextdaycount'=>$nextDayCount,'samedaycount'=>count(array_unique($temp['SAME'])));
+        return $countArr;
+    }
 
     public function getRouteNameByRouteId($route_id){
         $sql = "SELECT route_name FROM " . DB_PREFIX . "shipment_route WHERE shipment_route_id = $route_id";

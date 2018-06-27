@@ -159,7 +159,9 @@ final class Nextday extends Booking
                                         $collected_item["carrier_price_info"]["surcharges"] = number_format($surchargePrice, 2);
                                         $collected_item["customer_price_info"]["surcharges"] = number_format($surchargeWithCcfPrice, 2);
 
-                                        $collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                        //$collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                        $collected_item["carrier_price_info"]["taxes"] = number_format((($serviceCcf["original_price"] + $surchargePrice) * $service->taxes->tax_percentage / 100), 2);
+
                                         $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
 
                                         $collected_item["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + $service->taxes->total_tax, 2);
@@ -206,7 +208,7 @@ final class Nextday extends Booking
             "city" => (isset($item->city)) ? $item->city : "",//$this->_param->collection->$key->city,
             "state" => (isset($item->state)) ? $item->state : "",//$this->_param->collection->$key->state,
             "zip" => $item->postcode,//$this->_param->collection->$key->postcode,
-            "country" => $item->country->alpha3_code,//$this->_param->collection->$key->country->currency_code,
+            "country" =>$item->country->alpha3_code,//$this->_param->collection->$key->country->currency_code,
             "country_name" => $item->country->short_name,//$this->_param->collection->$key->country->short_name
         );
     }
@@ -260,13 +262,14 @@ final class Nextday extends Booking
                 "value" => 0.00,
                 "currency" => $this->_param->collection->$key->country->currency_code
             );
+
+            $this->data["status"] = "success";
         }else{
             $this->data = $carrierLists;
         }
     }
 
     public
-
     function searchNextdayCarrierAndPrice(){
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
@@ -275,35 +278,26 @@ final class Nextday extends Booking
         //find distance matrix
         $key = 0;
         $destinations = array();
-
         $this->collection_postcode = $this->_param->collection->$key->postcode;
         //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
-
         //foreach($this->_param->delivery as $item)
         //    array_push($destinations, implode(",", (array) $item->geo_position));
-
         //$distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
-
         //if($distanceMatrix->status=="success"){
-
             //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
-
             $this->_setPostRequest();
-            if(count($this->data)>0){
+            if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
-
                 $response = json_decode($responseStr);
-
                 $response = $this->_getCarrierInfo($response->rate);
-
                 if(isset($response->status) and $response->status="error"){
                     return array("status"=>"error", "message"=>$response->message);
                 }
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
-                return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
+                return array("status"=>"error", "message"=>$this->data["message"]);
             }
         //}else{
         //    return array("status"=>"error", "message"=>"Distance matrix api error");
@@ -457,7 +451,7 @@ final class Nextday extends Booking
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P",$loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
@@ -519,7 +513,7 @@ final class Nextday extends Booking
 
             foreach($this->_param->parcel as $item){
                 for($i=0; $i< $item->quantity; $i++){
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$loadIdentity,$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D");
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D",$loadIdentity);
                     if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;

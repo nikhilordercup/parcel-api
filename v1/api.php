@@ -24,9 +24,9 @@ $app->post('/logout', function() use ($app) {
 $app->post('/getPreparedRoute', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
+	verifyRequiredParams(array('access_token','company_id','warehouse_id','routetype'),$r);
 	  
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	$obj = new loadShipment(array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'routetype'=>$r->routetype));
 	$records = $obj->testCompanyConfiguration();
 	//if($records['status']){
 		$records = $obj->loadPreparedRoute();
@@ -56,7 +56,7 @@ $app->post('/loadWarehouseShipments', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('company_id','warehouse_id','shipment_type'),$r);
-	$obj = new loadShipment(array('company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id, "start_date"=>$r->start_date, "end_date"=>$r->end_date));
+	$obj = new loadShipment(array('access_token'=>$r->access_token,'email'=>$r->email,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'shipment_type'=>$r->shipment_type,'user_id'=>$r->user_id, "start_date"=>$r->start_date, "end_date"=>$r->end_date));
 	$records = $obj->shipments();
 	echoResponse(200, $records);
 });
@@ -99,15 +99,14 @@ $app->post('/loadLeftContent', function() use ($app) {
 	verifyRequiredParams(array('access_token','email','company_id','search_date','warehouse_id'),$r);
 	$obj = new View_Support(array('access_token'=>$r->access_token,'email'=>$r->email,'company_id'=>$r->company_id));
 	$records = $obj->loadView(array("search_date"=>$r->search_date,"warehouse_id"=>$r->warehouse_id));
-	
-	echoResponse(200, $records);
+    echoResponse(200, $records);
 });
 
 $app->post('/loadAssignedRouteByShipmentRouteId', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id','shipment_route_id','assigned_driver_id'),$r);
-	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,'uid'=>$r->uid));
+	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email, 'company_id'=>$r->company_id,'shipment_route_id'=>$r->shipment_route_id,'driver_id'=>$r->assigned_driver_id,'post_id'=>$r->post_id,'save_post_id'=>$r->save_post_id,'uid'=>""));//$r->uid
 	$records = $obj->loadAssignedView();
 	echoResponse(200, $records);
 });
@@ -337,7 +336,7 @@ $app->post('/getRouteDetail', function() use ($app) {
 	verifyRequiredParams(array('route_type','route_id','email','access_token','company'),$r);
 	$obj = new loadRouteDetails(array('route_type'=>$r->route_type,'route_id'=>$r->route_id,'company_id'=>$r->company,'email'=>$r->email,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
 	$records = $obj->loadRouteShipmentsDetails();
-	echoResponse(200, $records);
+    echoResponse(200, $records);
 });
 
 $app->post('/inWarehouse', function() use ($app) {
@@ -429,7 +428,7 @@ $app->post('/getMoveToOtherRouteAcions', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
     //verifyRequiredParams(array('access_token','email'),$r);
-    $obj = new View_Support(array('email'=>$r->email,'access_token'=>$r->access_token));
+    $obj = new View_Support(array('email'=>$r->email,'access_token'=>$r->access_token,'company_id'=>$r->company_id));
 	$response["actions"] = $obj->getMoveToOtherRouteAcions();
 	echoResponse(200, $response);
 });
@@ -557,10 +556,10 @@ $app->post('/setupForm', function() use ($app) {
 	}
 	elseif($r->source=='driver'){
 		//if($r->setup = 'dashboard'){
-        if((isset($r->setup)) AND ($r->setup == 'dashboard')){
+        /*if((isset($r->setup)) AND ($r->setup == 'dashboard')){
 			$r->company_id = $r->company->id;
 			$r->warehouse_id = $r->warehouse->warehouse_id;
-		}
+		}*/
 		verifyRequiredParams(array('access_token','company_id','warehouse_id','email','password','phone','address_1','city','postcode','state','country'),$r);
 	} 
 	elseif($r->source=='vehicle'){
@@ -654,13 +653,13 @@ $app->post('/PauseAssignedRouteByShipmentRouteId', function() use ($app) {
 	echoResponse(200, $response); 
 });
 
-$app->post('/routeCompleted', function() use($app){
+/*$app->post('/routeCompleted', function() use($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('shipment_route_id','company_id','email','access_token'),$r);
 	$obj = new Route_Complete(array('shipment_route_id'=>$r->shipment_route_id,'company_id'=>$r->company_id,'email'=>$r->email,'access_token'=>$r->access_token));
 	$response = $obj->saveCompletedRoute();
 	echoResponse(200, $response);
-});
+});*/
 
 $app->post('/recoverRoute', function() use ($app){
 	$obj = new Route_Assign(array('route_id'=>16, 'driver_id'=>98));
@@ -1971,11 +1970,20 @@ $app->post('/getAllMasterCouriers', function() use ($app) {
     $response = $obj->getAllMasterCouriers($r);
     echoResponse(200, $response);
 });
+
 $app->post('/printLabelByLoadIdentity', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array(/* 'load_identity', */'company_id'),$r);
     $obj = new allShipments($r);
     $response = $obj->printLabelByLoadIdentity($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/saveRoutePostId', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    $data = array("shipment_route_id"=>$r->shipment_route_id, "post_id"=>$r->post_id, "company_id"=>$r->company_id, "email"=>$r->email, "access_token"=>$r->access_token);
+    $obj = new Route_Assign($data);
+    $response = $obj->saveRoutePostId($data);
     echoResponse(200, $response);
 });
 ?>
