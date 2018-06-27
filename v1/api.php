@@ -1671,6 +1671,8 @@ $app->post('/generateReport', function() use($app){
     echoResponse(200, $response);
 });
 
+/*end of report module comment by kavita 20march2018*/
+
 $app->post('/loadCountry', function() use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Common();
@@ -1714,9 +1716,7 @@ $app->post('/getPriceDetails', function() use ($app){
     }
 });
 
-/*end of report module comment by kavita 20march2018*/
-
-/*$app->post('/loadCountry', function() use ($app) {
+/* $app->post('/loadCountry', function() use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Common();
     $response = $obj->countryList(array("controller_id"=>$r->company_id));
@@ -1801,6 +1801,7 @@ $app->post('/getQuoteData', function() use($app){
     echoResponse(200, $response);
 });
 /*end of save quote feature comment by kavita 2april2018*/ 
+
 $app->post('/updateCarrierPrice', function() use ($app) { 
 	$response = array();
 	$r = json_decode($app->request->getBody()); 
@@ -1956,13 +1957,6 @@ $app->post('/getAllShipmentsCarrier', function() use ($app) {
     $response = $obj->getAllCarrier($r);
     echoResponse(200, $response);
 });
-$app->post('/getAllShipmentsCarrier', function() use ($app) {
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
-    $obj = new allShipments($r);
-    $response = $obj->getAllCarrier($r);
-    echoResponse(200, $response);
-});
 $app->post('/getAllMasterCouriers', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','user_id'),$r);
@@ -1984,6 +1978,14 @@ $app->post('/saveRoutePostId', function() use ($app) {
     $data = array("shipment_route_id"=>$r->shipment_route_id, "post_id"=>$r->post_id, "company_id"=>$r->company_id, "email"=>$r->email, "access_token"=>$r->access_token);
     $obj = new Route_Assign($data);
     $response = $obj->saveRoutePostId($data);
+	echoResponse(200, $response);
+});
+
+$app->post('/getAddressBySearchString', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','search_str','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->getAddressBySearchString($r);
     echoResponse(200, $response);
 });
 ?>
