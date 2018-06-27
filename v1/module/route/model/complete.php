@@ -45,7 +45,11 @@ class Route_Model_Complete{
 	}
 
     public function saveDriverApiTracking($param){
-        $this->getInstance()->save("api_driver_tracking",$param);
+        try{
+            $this->getInstance()->save("api_driver_tracking",$param);
+        }catch(Exception $e){
+
+        }
     }
 
     //driver id by shipment route id

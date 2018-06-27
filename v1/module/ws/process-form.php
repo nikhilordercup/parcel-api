@@ -137,11 +137,10 @@ class Process_Form{
     
     private function _delivered_shipment($ticket, $driver_id, $route_id, $driver_name, $pod_data, $latitude, $longitude, $service_msg)
     {   // script for grid update
+
         $firebasedata = array();
 
         $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
-        /**/
-
         if (($ticket != '') && ($driver_id != '') && ($route_id != ''))
         {
             
@@ -250,15 +249,11 @@ class Process_Form{
                         $gridData = $this->getGridDataByTicket($company_id,$warehouse_id,$route_id,$ticket);
                        
                         $checkMoreShipmentofthisRouteDriver = $this->model_rest->more_shipment_exist_in_this_route_for_driver_from_operation_count($driver_id, $route_id);
-                       
                         if ($checkMoreShipmentofthisRouteDriver == 0) 
                         {
                             $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
-                            $test = $completeRouteObj->saveCompletedRoute();
+                            $completeRouteObj->saveCompletedRoute();
                            
-                            //$condition  = "shipment_route_id = '" . $route_id . "' AND driver_id = '" . $driver_id . "'";
-                            //$statusship = $this->model_rest->update("shipment_route", array(
-                            //    'is_active' => 'N','is_current'=> 'N','completed_date'=>'NOW()', 'is_pause'=>'0'), $condition);
                             $firebasedata = $this->releaseRoute($driver_id, $route_id);
                         }
 
