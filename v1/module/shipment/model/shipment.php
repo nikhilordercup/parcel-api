@@ -363,13 +363,13 @@ class Shipment_Model
 
     public
 
-    function getMoveToOtherRouteAcions()
+    function getMoveToOtherRouteAcions($companyId)
         {
         $record = array();
         $sqldata = 'R1.shipment_route_id,R1.route_name,R2.name,R2.id as driverid';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_route AS R1
                 LEFT JOIN " . DB_PREFIX . "users AS R2  ON R1.driver_id = R2.id
-                WHERE R1.is_active  = 'Y'";
+                WHERE R1.is_active  = 'Y' AND R1.company_id = " . $companyId . " ";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }

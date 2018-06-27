@@ -428,7 +428,7 @@ $app->post('/getMoveToOtherRouteAcions', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
     //verifyRequiredParams(array('access_token','email'),$r);
-    $obj = new View_Support(array('email'=>$r->email,'access_token'=>$r->access_token));
+    $obj = new View_Support(array('email'=>$r->email,'access_token'=>$r->access_token,'company_id'=>$r->company_id));
 	$response["actions"] = $obj->getMoveToOtherRouteAcions();
 	echoResponse(200, $response);
 });
