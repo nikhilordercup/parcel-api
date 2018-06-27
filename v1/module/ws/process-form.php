@@ -478,10 +478,17 @@ class Process_Form{
                 else{
                     $shipmentCurrentStaus = 'No Status'; 
                 }
-               $ticketID  = "'".$value['shipment_ticket']."'";	
-			   $data[$key]['parcels'] 	  = $this->modelObj->getShipmentParcels($ticketID);
-               $data[$key]['current_status'] = $shipmentCurrentStaus;
-               $data[$key]['service_type'] = $shipmentCurrentStaus;
+
+                if($value["service_type"] == "D") {
+                    $service_type = "Delivery";
+                }
+                elseif ($value["service_type"] == "P") {
+                    $service_type = "Collection";
+                }
+                $ticketID  = "'".$value['shipment_ticket']."'";	
+			    $data[$key]['parcels'] 	  = $this->modelObj->getShipmentParcels($ticketID);
+                $data[$key]['current_status'] = $shipmentCurrentStaus;
+                $data[$key]['service_type'] = $service_type;//$shipmentCurrentStaus;
             }
 		}
 	return array("aaData"=>$data);
