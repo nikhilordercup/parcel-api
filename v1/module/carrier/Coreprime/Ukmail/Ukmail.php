@@ -25,7 +25,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 		
 	} */
 
-	private function _getLabel($loadIdentity,$json_data){
+	private function _getLabel($loadIdentity,$json_data){            
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label",$json_data);
 		//print_r($label);die;

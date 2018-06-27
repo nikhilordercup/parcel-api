@@ -276,10 +276,11 @@ class Booking_Model_Booking
         return $this->_db->getAllRecords($sql);
     }
 	
-	public function getShipmentDataByLoadIdentity($loadIdentity){
-		$sql = "SELECT * FROM  ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT'";
+    public function getShipmentDataByLoadIdentity($loadIdentity){
+        //$sql = "SELECT * FROM  ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT'";
+        $sql = "SELECT ST.*, IC.alpha2_code FROM ".DB_PREFIX."shipment AS ST LEFT JOIN ".DB_PREFIX."countries AS IC ON IC.alpha3_code = ST.shipment_country_code WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT'";        
         return $this->_db->getAllRecords($sql);
-	}
+    }
 	
 	public function getDeliveryShipmentData($loadIdentity){
 		$sql = "SELECT * FROM  ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT' AND shipment_service_type='D'";

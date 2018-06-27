@@ -114,6 +114,7 @@ require_once 'module/booking/Booking.php';
 
 require_once 'module/carrier/Carrier.php';
 require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
+require_once 'module/carrier/Coreprime/Dhl/Dhl.php';
 require_once 'module/nextday/Nextday.php';
 require_once 'module/allshipment/allshipments.php';
 require_once 'module/allshipment/model/allshipments.php';
