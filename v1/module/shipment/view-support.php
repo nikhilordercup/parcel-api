@@ -869,7 +869,7 @@ class View_Support extends Icargo{
   }
 	 
 	public function getMoveToOtherRouteAcions(){
-        return $this->modelObj->getMoveToOtherRouteAcions();
+        return $this->modelObj->getMoveToOtherRouteAcions($this->company_id);
     }
 	
 	public function assignToCurrentRoute(){
