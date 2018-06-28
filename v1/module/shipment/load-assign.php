@@ -220,9 +220,9 @@ class Route_Assign
         if($createdRoute['route_type']=='SAMEDAY'){
           if(count($getRouteDetails)==1){
              return array(
-                'status' => true,
-                'message' => 'Requested Route can not Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                'status' => "error",
+                'message' => 'Requested Route can not assigned to driver.',
+                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
             ); 
           }
           else{
@@ -234,9 +234,9 @@ class Route_Assign
             }
            }else{
               return array(
-                'status' => true,
-                'message' => 'Requested Route can not Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                'status' => "error",
+                'message' => 'Requested Route can not assigned to driver.',
+                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
             );   
            } 
           }     
@@ -311,7 +311,7 @@ class Route_Assign
                 "company_id" => $this->company_id
             ));
             return array(
-                'status' => true,
+                'status' => "success",
                 'message' => 'Requested Route has been Assigned to driver.',
                 'post_data' => $firebaseObj->getCurrentAssignedRouteData()
             );
@@ -364,7 +364,7 @@ class Route_Assign
                 {
                 $data = array(
                     'message' => 'All shipment of this selected route is (NOT) physically found',
-                    'status' => false
+                    'status' => "error"
                 );
                 }
              }
@@ -373,7 +373,7 @@ class Route_Assign
             {
             $data = array(
                 'message' => 'Driver have no vehicle',
-                'status' => false
+                'status' => "error"
             );
             }
 
@@ -549,6 +549,16 @@ class Route_Assign
             );
             }
         }
-    }
 
+    public
+
+    function saveRoutePostId($param){
+        $obj = new Shipment_Model();
+        $status = $obj->saveRoutePostId($param["post_id"], $param["shipment_route_id"]);
+        if($status){
+            return array("status"=>"success", "message"=>"post id saved");
+        }
+        return array("status"=>"error", "message"=>"post id not saved");
+    }
+}
 ?>

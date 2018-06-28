@@ -36,7 +36,6 @@ final Class Collection{
         $cols = array_column($operational_area, 'postcode');
 
         $key = array_search($needle, $cols);
-
         if (!$key) {
             $temp = array();
             foreach ($cols as $key => $col) {
@@ -44,9 +43,9 @@ final Class Collection{
                     array_push($temp, $key);
             }
             if (count($temp) > 0)
-                $data = $this->_search_in_array($temp);
+                $key = $this->_search_in_array($temp);
         }
-        return $data;
+        return $key;
     }
 
     public
@@ -309,7 +308,6 @@ final Class Collection{
             $needle = $this->collectionAddress["zip"];
 
             $data = $this->findInOperationalArea($operationalArea, $needle);
-
             return $operationalArea[$data];
         }
     }

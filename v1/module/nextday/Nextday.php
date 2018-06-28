@@ -255,7 +255,9 @@ final class Nextday extends Booking {
                                 $surchargePrice = 0;
                                 $service->collected_by = $this->carrierList[$accountNumber]["collected_by"];
 
-
+                                //$collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
+                                $collected_item["carrier_price_info"]["taxes"] = number_format((($serviceCcf["original_price"] + $surchargePrice) * $service->taxes->tax_percentage / 100), 2);
+                                $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
                                 foreach ($service->collected_by as $collected_key => $collected_item) {
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice = 0;
@@ -398,14 +400,14 @@ final class Nextday extends Booking {
                 "currency" => $this->_param->collection->$key->country->currency_code
             );
         } else {
+            $this->data["status"] = "success";        
             $this->data = $carrierLists;
         }
     }
 
-    public
-            function searchNextdayCarrierAndPrice() {
+    function searchNextdayCarrierAndPrice(){
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
-        if ($accountStatus["status"] == "error") {
+        if($accountStatus["status"]=="error"){
             return $accountStatus;
         }
         //find distance matrix
@@ -418,25 +420,25 @@ final class Nextday extends Booking {
         //    array_push($destinations, implode(",", (array) $item->geo_position));
         //$distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
         //if($distanceMatrix->status=="success"){
-        //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
-        //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
+            //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
+            //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
 
-        $this->_setPostRequest();
-        if (count($this->data) > 0) {
-            $requestStr = json_encode($this->data);
-            $responseStr = $this->_postRequest($requestStr);
+            $this->_setPostRequest();
+            if(count($this->data)>0){
+                $requestStr = json_encode($this->data);
+                $responseStr = $this->_postRequest($requestStr);
 
-            $response = json_decode($responseStr);
+                $response = json_decode($responseStr);
 
-            $response = $this->_getCarrierInfo($response->rate);
-
-            if (isset($response->status) and $response->status = "error") {
-                return array("status" => "error", "message" => $response->message);
+                $response = $this->_getCarrierInfo($response->rate);
+                
+                if(isset($response->status) and $response->status="error"){
+                    return array("status"=>"error", "message"=>$response->message);
+                }
+                return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
+            }else {
+                return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
             }
-            return array("status" => "success", "message" => "Rate found", "service_request_string" => base64_encode($requestStr), "service_response_string" => base64_encode($responseStr), "data" => $response, "service_time" => date("H:i", strtotime($this->_param->collection_date)), "service_date" => date("d/M/Y", strtotime($this->_param->collection_date)));
-        } else {
-            return array("status" => "error", "message" => "Coreprime api error. Insufficient data.");
-        }
         //}else{
         //    return array("status"=>"error", "message"=>"Distance matrix api error");
         //}
@@ -588,10 +590,10 @@ final class Nextday extends Booking {
             if ($key == 0)
                 $loadIdentity = $shipmentStatus["shipment_ticket"];
 
-            foreach ($this->_param->parcel as $item) {
-                for ($i = 0; $i < $item->quantity; $i++) {
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"], $loadIdentity, $customerWarehouseId, $this->_param->company_id, $company_code, $item, "P");
-                    if ($parcelStatus["status"] == "error") {
+            foreach($this->_param->parcel as $item){
+                for($i=0; $i< $item->quantity; $i++){
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"P",$loadIdentity);
+                    if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
                     }
@@ -653,10 +655,11 @@ final class Nextday extends Booking {
                 return $shipmentStatus;
             }
 
-            foreach ($this->_param->parcel as $item) {
-                for ($i = 0; $i < $item->quantity; $i++) {
-                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"], $loadIdentity, $customerWarehouseId, $this->_param->company_id, $company_code, $item, "D");
-                    if ($parcelStatus["status"] == "error") {
+
+            foreach($this->_param->parcel as $item){
+                for($i=0; $i< $item->quantity; $i++){
+                    $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"],$shipmentStatus["shipment_ticket"],$customerWarehouseId,$this->_param->company_id,$company_code,$item,"D",$loadIdentity);
+                    if($parcelStatus["status"]=="error"){
                         $this->rollBackTransaction();
                         return $parcelStatus;
                     }
@@ -682,8 +685,10 @@ final class Nextday extends Booking {
         /* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation */
         $carrierObj = new Carrier();
         $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail);
-        return array("status" => "success", "file_path" => $bookingInfo['file_path']);
+        //return array("status" => "success", "file_path" => $bookingInfo['file_path']);
         //print_r($bookingInfo);die;
+        // call label generation method
+        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
 
 }
