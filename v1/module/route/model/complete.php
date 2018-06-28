@@ -35,17 +35,19 @@ class Route_Model_Complete{
 	
 	//save driver time data
 	public function saveDriverTimeData($data){
-		$status = $this->getInstance()->save("driver_time_tracking",$data);
-		if($status){
-			return array("status"=>true,"message"=>"Driver data saved successfully");
-		}
-		else{
-			return array("status"=>false,"message"=>"Driver data not saved");
-		}
+		try{
+            $this->getInstance()->save("driver_time_tracking",$data);
+        }catch(Exception $e){
+
+        }
 	}
 
     public function saveDriverApiTracking($param){
-        $this->getInstance()->save("api_driver_tracking",$param);
+        try{
+            $this->getInstance()->save("api_driver_tracking",$param);
+        }catch(Exception $e){
+
+        }
     }
 
     //driver id by shipment route id
