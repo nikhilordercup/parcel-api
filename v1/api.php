@@ -1673,9 +1673,22 @@ $app->post('/generateReport', function() use($app){
 
 $app->post('/loadCountry', function() use ($app) {
     $r = json_decode($app->request->getBody());
+    $countryId = isset($r->id) ? $r->id : 0;
     $obj = new Common();
-    $response = $obj->countryList(array("controller_id"=>$r->company_id));
+    $response = $obj->countryList(array("controller_id"=>$r->company_id, 'id' => $countryId));
     echoResponse(200, $response);
+});
+
+$app->post('/editcountry', function() use ($app) {
+    $r = json_decode($app->request->getBody());    
+    $obj = new Common();
+    $response = $obj->updateCountry($r);
+    if($response) {
+        $results = array('status' => 'success', 'message' =>'Country updated successfully.');
+    } else {
+        $results = array('status' => 'error', 'message' =>'Please tr again.');
+    }
+    echoResponse(200, $results);
 });
 
 /*$app->post('/getParcelPackage', function() use ($app){

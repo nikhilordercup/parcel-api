@@ -726,7 +726,7 @@ class Shipment_Model
         ), "shipment_route_id = '$shipment_route_id'");
     }
 
-    public function saveUserCredentialInfo($param, $user_id){
+    public function saveUserCredentialInfo($param, $user_id){        
         return $this->db->update("users", array("device_token_id"=>$param["device_token_id"]), "id='$user_id'");
     }
 

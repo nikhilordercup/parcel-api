@@ -93,11 +93,42 @@
         {
            return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state;//.$arr->country->short_name
         }
-
-        public function countryList(){
-            $sql = "SELECT * FROM `" . DB_PREFIX . "countries`";
-            $records = $this->db->getAllRecords($sql);
+        
+        public function countryList($searchData = array())
+        {
+            $cond = ( isset($searchData['id']) && !empty($searchData['id']) ) ? 'where `id`='.$searchData['id'] : '';
+            $sql = "SELECT * FROM `" . DB_PREFIX . "countries` ".$cond;
+            
+            if($cond) {
+                $records = $this->db->getRowRecord($sql);
+            } else {
+                $records = $this->db->getAllRecords($sql);
+            }
+            //print_r($records); die;
             return $records;
+        }
+
+        public function updateCountry($countryData)
+        {            
+            if(isset($countryData->id) && $countryData->id) 
+            {
+                $countryId = $countryData->id;
+                $data['short_name'] = $countryData->short_name;
+                $data['alpha2_code'] = $countryData->alpha2_code;
+                $data['alpha3_code'] = $countryData->alpha3_code;
+                $data['numeric_code'] = $countryData->numeric_code;
+                $data['currency_code'] = $countryData->currency_code;
+                $data['weight_duitable_limit'] = $countryData->weight_duitable_limit;
+                $data['paperless_trade'] = $countryData->paperless_trade;
+                $data['postal_type'] = $countryData->postal_type;
+                $data['job_type'] = $countryData->job_type;                
+            
+                return $this->db->update("countries", $data, "id='$countryId'");
+            } 
+            else 
+            {
+                return false;
+            }                       
         }
     }
 ?>
