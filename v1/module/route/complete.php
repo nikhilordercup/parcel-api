@@ -64,9 +64,9 @@ class Route_Complete extends Icargo{
                     $timestamp2 = strtotime($temp2["create_date"]);
                     $timestampDiff = $timestamp2 - $timestamp1;
                     
-                    //if(!isset($result[$temp1['for']])){
-                    //    $result[$temp1['for']] = array();
-                    //}
+                    if(!isset($result[$temp1['for']])){
+                        $result[$temp1['for']] = 0;
+                    }
                     $result[$temp1['for']] = $result[$temp1['for']] + $timestampDiff;
 
                     $totalTimeTaken += $timestampDiff;
