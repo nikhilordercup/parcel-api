@@ -28,7 +28,6 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 	private function _getLabel($loadIdentity,$json_data){
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label",$json_data);
-		//print_r($label);die;
 		$labelArr = json_decode($label);
 		$pdf_base64 = $labelArr->label->base_encode;
 		$labels = explode(",",$labelArr->label->file_url);

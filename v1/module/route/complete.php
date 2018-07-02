@@ -53,6 +53,7 @@ class Route_Complete extends Icargo{
 
                 $itemCount = count($apiTrackingData);
                 $itemCount--;
+                $totalTimeTaken = 0;
                 $j = 0;
                 $result = array();
                 for($I=0; $I<$itemCount;$I++){
@@ -64,16 +65,17 @@ class Route_Complete extends Icargo{
                     $timestampDiff = $timestamp2 - $timestamp1;
                     
                     if(!isset($result[$temp1['for']])){
-                        $result[$temp1['for']] = array();
+                        $result[$temp1['for']] = 0;
                     }
-                    $result[$temp1['for']][] = $timestampDiff;
-                }
-                
-                /*foreach($result as $type=>$time_taken){
-                    $saveDriverTimeData = $this->modelObj->saveDriverTimeData(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$driverId["assigned_driver"],"status"=>$type,"time_taken"=>array_sum($time_taken),"create_date"=>date('Y-m-d')));
-                }*/
+                    $result[$temp1['for']] = $result[$temp1['for']] + $timestampDiff;
 
-                //$this->_add_driver_tacking();
+                    $totalTimeTaken += $timestampDiff;
+                }
+
+                foreach($result as $type=>$time_taken){
+                    $this->modelObj->saveDriverTimeData(array("shipment_route_id"=>$this->shipment_route_id,"driver_id"=>$driverId["assigned_driver"],"status"=>$type,"time_taken"=>$time_taken,"create_date"=>date('Y-m-d')));
+                }
+                $this->_add_driver_tacking();
 
                 return $status;
             }
