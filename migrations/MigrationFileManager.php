@@ -37,7 +37,7 @@ class MigrationFileManager {
     }
 
     public function createMigrationTable() {
-        $sql = 'CREATE TABLE IF NOT EXISTS `icargo_new`.`icargo_migration`'
+        $sql = 'CREATE TABLE IF NOT EXISTS `icargo_migration`'
                 . ' ( `id` INT NOT NULL AUTO_INCREMENT , `file_name` VARCHAR(250) NOT NULL ,'
                 . ' `applied_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , '
                 . 'PRIMARY KEY (`id`)) ENGINE = MyISAM;';
