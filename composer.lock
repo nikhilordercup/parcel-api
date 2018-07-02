@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "chargebee/chargebee-php",
-            "version": "v2.5.1",
+            "version": "v2.5.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/chargebee/chargebee-php.git",
-                "reference": "6504bc70177f4bfc27242c18c085f7783873457e"
+                "reference": "b6f1d3e441d94d7ce92a939bba54fbb07af3e07e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/6504bc70177f4bfc27242c18c085f7783873457e",
-                "reference": "6504bc70177f4bfc27242c18c085f7783873457e",
+                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/b6f1d3e441d94d7ce92a939bba54fbb07af3e07e",
+                "reference": "b6f1d3e441d94d7ce92a939bba54fbb07af3e07e",
                 "shasum": ""
             },
             "type": "library",
@@ -38,7 +38,7 @@
                 "recurring billing",
                 "subscription billing"
             ],
-            "time": "2018-05-23T15:13:31+00:00"
+            "time": "2018-06-21T10:52:04+00:00"
         },
         {
             "name": "firebase/php-jwt",
