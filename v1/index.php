@@ -204,7 +204,7 @@ EOD;
     //$app->contentType('application/json');
 
     echo $jwtString;
-//    echo json_encode($response);
+    //echo json_encode($response);
 }
 
 function rootPath(){

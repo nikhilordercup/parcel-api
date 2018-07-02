@@ -102,9 +102,8 @@ class Ws_Model_Rest
     {
         //$sql = "SELECT COUNT(1) AS count FROM " . DB_PREFIX . "driver_shipment as s1 left join " . DB_PREFIX . "shipment as s2 on s1.shipment_ticket = s2.shipment_ticket WHERE s1.driver_id = '$driver_id' AND s1.shipment_route_id = '$route_id' AND s1.is_driveraction_complete = 'N' AND s2.is_receivedinwarehouse = 'YES'";
 
-        $sql = "SELECT COUNT(1) AS count FROM " . DB_PREFIX . "shipment AS ST WHERE ST.assigned_driver = '$driver_id' AND ST.shipment_routed_id = '$route_id' AND ST.current_status = 'O' AND ST.is_receivedinwarehouse = 'YES'";
-
-	    $record = $this->db->getOneRecord($sql);
+        $sql = "SELECT COUNT(1) AS count FROM " . DB_PREFIX . "shipment AS ST WHERE ST.assigned_driver = '$driver_id' AND ST.shipment_routed_id = '$route_id' AND (ST.current_status = 'O' OR ST.current_status = 'Ca') AND ST.is_receivedinwarehouse = 'YES'";
+        $record = $this->db->getOneRecord($sql);
         return $record['count'];
     }
     
@@ -139,7 +138,7 @@ class Ws_Model_Rest
     
     public function check_load_identity_assign_to_driver($ticket, $driver_id, $shipment_route_id)
     {
-        $sql = "SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "driver_shipment AS RT WHERE RT.driver_id = '$driver_id' AND RT.shipment_ticket = '$ticket' AND RT.shipment_route_id = '$shipment_route_id' ORDER BY RT.shipment_route_id";
+        $sql = "SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "driver_shipment AS RT WHERE RT.driver_id = '$driver_id' AND RT.shipment_ticket = '$ticket' AND RT.shipment_route_id = '$shipment_route_id' AND RT.shipment_accepted='YES' ORDER BY RT.shipment_route_id";
         $record = $this->db->getOneRecord($sql);
         return $record;
     }

@@ -167,13 +167,19 @@ class Shipment_Model
 
     function getAssignRouteShipmentDetailsByShipmentRouteId($company_id, $shipment_route_id, $driver_id)
         {
-        $sqldata = "t1.customer_id,t1.`shipment_id`,t1.shipment_address1,t1.shipment_address2,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country,t1.shipment_customer_city,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',t1.shipment_latitude,t1.shipment_longitude,t1.`icargo_execution_order`,t1.`shipment_total_item`,t1.`shipment_customer_name` AS consignee_name";
+        $sqldata = "t1.shipment_customer_name,t1.customer_id,t1.`shipment_id`,t1.shipment_address1,t1.shipment_address2,t1.`estimatedtime` AS estimated_time, t1.`distancemiles` AS distance_miles,t1.`current_status`,t1.`instaDispatch_loadGroupTypeCode`,t1.shipment_customer_country,t1.shipment_customer_city,t1.`shipment_address3`, t2.`name` AS driver_name, t1.`assigned_driver` AS assigned_driver_id,t1.`shipment_service_type`,t1.`assigned_driver`,t1.shipment_postcode,t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',t1.shipment_latitude,t1.shipment_longitude,t1.`icargo_execution_order`,t1.`shipment_total_item`,t1.`shipment_customer_name` AS consignee_name";
 		$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
                INNER JOIN " . DB_PREFIX . "users AS t2  ON t2.id = t1.assigned_driver
                WHERE t1.is_driver_assigned = 1 AND (t1.`current_status`='O' OR t1.`current_status`='D' OR t1.`current_status`='Ca') AND t1.company_id = '" . $company_id . "' AND t1.shipment_routed_id = '$shipment_route_id' AND assigned_driver = '$driver_id' ORDER BY t1.shipment_executionOrder";
-		$record = $this->db->getAllRecords($sql);
+        $record = $this->db->getAllRecords($sql);
         return $record;
         }
+
+    public function getActiveRoute($company_id){
+        $sql = "SELECT * FROM " . DB_PREFIX . "shipment_route WHERE company_id='$company_id' AND is_active='Y' AND driver_id > 0";
+        $records = $this->db->getAllRecords($sql);
+        return $records;
+    }
 
     public
 
@@ -357,13 +363,13 @@ class Shipment_Model
 
     public
 
-    function getMoveToOtherRouteAcions()
+    function getMoveToOtherRouteAcions($companyId)
         {
         $record = array();
         $sqldata = 'R1.shipment_route_id,R1.route_name,R2.name,R2.id as driverid';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_route AS R1
                 LEFT JOIN " . DB_PREFIX . "users AS R2  ON R1.driver_id = R2.id
-                WHERE R1.is_active  = 'Y'";
+                WHERE R1.is_active  = 'Y' AND R1.company_id = " . $companyId . " ";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -727,7 +733,7 @@ class Shipment_Model
     public
 
     function getCustomerById($user_id){
-        $sql = "SELECT `UT`.name as `name` FROM `" . DB_PREFIX . "users` AS `UT` WHERE `UT`.`id` IN('$user_id')";
+        $sql = "SELECT `UT`.name as `name`, uid as uid FROM `" . DB_PREFIX . "users` AS `UT` WHERE `UT`.`id` IN('$user_id')";
         $records = $this->db->getAllRecords($sql);
         return $records;
     }

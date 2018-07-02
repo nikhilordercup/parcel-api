@@ -208,7 +208,7 @@ final class Nextday extends Booking
             "city" => (isset($item->city)) ? $item->city : "",//$this->_param->collection->$key->city,
             "state" => (isset($item->state)) ? $item->state : "",//$this->_param->collection->$key->state,
             "zip" => $item->postcode,//$this->_param->collection->$key->postcode,
-            "country" => $item->country->alpha3_code,//$this->_param->collection->$key->country->currency_code,
+            "country" =>$item->country->alpha3_code,//$this->_param->collection->$key->country->currency_code,
             "country_name" => $item->country->short_name,//$this->_param->collection->$key->country->short_name
         );
     }
