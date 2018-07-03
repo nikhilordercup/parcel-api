@@ -1707,6 +1707,9 @@ class shipment extends Library{
             //email to customer
             Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
 
+            //email to courier
+            Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
+
             return array("status"=>"success", "message"=>"Shipment booked successfully. Booking reference no $loadIdentity");
         }else{
             return array("status"=>"error", "message"=>"Customer account disabled.");
