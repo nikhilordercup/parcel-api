@@ -200,8 +200,8 @@ EOD;
     // setting response content type to json
     //$app->contentType('application/json');
 
-    echo $jwtString;
-    //echo json_encode($response);
+    //echo $jwtString;
+    echo json_encode($response);
 }
 
 function rootPath(){
