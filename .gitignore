@@ -1,6 +1,6 @@
 .DS_Store
 nbproject
-/vendor
+/vendor/
 /.idea
 /.vscode
 /.vagrant
