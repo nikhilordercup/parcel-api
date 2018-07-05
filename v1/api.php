@@ -1979,5 +1979,10 @@ $app->post('/saveRoutePostId', function() use ($app) {
     echoResponse(200, $response);
 });
 
-
+$app->post('/saveNextdayQuotation', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    $obj = new Quotation();
+    $response = $obj->saveAndSendNextdayQuotation($r);
+    echoResponse(200, $response);
+});
 ?>

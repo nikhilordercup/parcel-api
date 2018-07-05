@@ -281,38 +281,23 @@ final class Nextday extends Booking
         $destinations = array();
 
         $this->collection_postcode = $this->_param->collection->$key->postcode;
-        //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
+        $this->_setPostRequest();
 
-        //foreach($this->_param->delivery as $item)
-        //    array_push($destinations, implode(",", (array) $item->geo_position));
+        if($this->data["status"]=="success"){
+            $requestStr = json_encode($this->data);
+            $responseStr = $this->_postRequest($requestStr);
 
-        //$distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
+            $response = json_decode($responseStr);
 
-        //if($distanceMatrix->status=="success"){
+            $response = $this->_getCarrierInfo($response->rate);
 
-            //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
-            //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
-
-            $this->_setPostRequest();
-
-            if($this->data["status"]=="success"){
-                $requestStr = json_encode($this->data);
-                $responseStr = $this->_postRequest($requestStr);
-
-                $response = json_decode($responseStr);
-
-                $response = $this->_getCarrierInfo($response->rate);
-
-                if(isset($response->status) and $response->status="error"){
-                    return array("status"=>"error", "message"=>$response->message);
-                }
-                return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
-            }else {
-                return array("status"=>"error", "message"=>$this->data["message"]);
+            if(isset($response->status) and $response->status="error"){
+                return array("status"=>"error", "message"=>$response->message);
             }
-        //}else{
-        //    return array("status"=>"error", "message"=>"Distance matrix api error");
-        //}
+            return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
+        }else {
+            return array("status"=>"error", "message"=>$this->data["message"]);
+        }
     }
 
     public

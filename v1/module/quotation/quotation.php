@@ -215,8 +215,9 @@ class Quotation extends Library
     function _getCustomerQuoteExpiryDate($customer_id, $service_date)
     {
         $record = $this->db->getRowRecord("SELECT quote_expiry_days FROM " . DB_PREFIX . "customer_info WHERE `user_id` = '$customer_id'");
-        $expiry = date('Y-m-d', strtotime("+5 days")); //$record['quote_expiry_days']
-        return $expiry;
+        //$expiry = date('Y-m-d', strtotime("+5 days")); //$record['quote_expiry_days']
+        $expiry_day = $record['quote_expiry_days'];
+        return date("Y-m-d H:i:s", strtotime($service_date . "+$expiry_day day"));
     }
 
     private
@@ -492,6 +493,47 @@ class Quotation extends Library
             "status" => "success",
             "quoteData" => $quoteArr
         );
+    }
+
+    public 
+
+    function saveAndSendNextdayQuotation($param){
+        $param->service_selected = array_values(array_filter($param->service_selected));
+        $this->company_id = $param->company_id;
+        $expiry_date = $this->_getCustomerQuoteExpiryDate($param->customer_id,$param->collection_date);
+        $quote_number = $this->_generate_quote_no();
+
+        $data = array(
+            "service_request_string"=>base64_decode($param->service_request_string),
+            "service_response_string"=>base64_decode($param->service_response_string),
+            "email"=>$param->quotation_email,
+            "collection_date"=>date("Y-m-d", strtotime($param->collection_date)),
+            "collection_time"=>date("H:i:s", strtotime($param->collection_date)),
+            "customer_id"=>$param->customer_id,
+            "user_id"=>$param->customer_user_id,
+            "expiry_date"=>$expiry_date,
+            "quote_number"=>$quote_number,
+            "shipment_address_json"=>json_encode(array()),
+            "transit_time"=>"0.00",
+            "transit_distance"=>"0.00",
+            "transit_distance_text"=>"",
+            "transit_time_text"=>"",
+            "booking_type"=>"nextday"
+        );
+
+        $service_opted = $param;
+        unset($param->service_request_string);
+        unset($param->service_response_string);
+        unset($param->quotation_email);
+        $data["service_opted"] = json_encode($service_opted);
+
+        $shipmentId = $this->db->save("quote_service", $data);
+        if($shipmentId>0){
+            //send an email
+
+            return array("status"=>"error", "message"=>"Quote saved. Quotation Number : $quote_number");
+        }
+        return array("status"=>"error", "message"=>"Quote not saved");
     }
 }
 

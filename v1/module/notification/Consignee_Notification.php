@@ -29,7 +29,7 @@ class Consignee_Notification
     public
 
     function sendRouteStartNotification($param){
-        $this->__autoload("Consignee_Send_Route_Start_Notification", "sameday");
+        $this->__autoload("Route_Start_Notification_Consignee", "sameday");
         $obj = new Route_Start_Notification_Consignee();
         $obj->send($param);
     }
