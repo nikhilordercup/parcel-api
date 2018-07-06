@@ -215,7 +215,7 @@ final class Nextday extends Booking
 
     private
 
-    function _setPostRequest(){
+    function _setPostRequest(){//print_r($this->_param);die;
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
 
@@ -257,12 +257,10 @@ final class Nextday extends Booking
                 "number_of_drops" => 0,
                 "total_waiting_time" => 0
             );
-
-           $this->data["insurance"] = array(
-                "value" => 0.00,
-                "currency" => $this->_param->collection->$key->country->currency_code
-            );
-
+           if(isset($this->_param->is_insured)){
+			   if($this->_param->is_insured==true)
+				$this->data["insurance"] = array("value" => $this->_param->insurance_amount,"currency" => $this->_param->collection->$key->country->currency_code);
+		   }
             $this->data["status"] = "success";
         }else{
             $this->data = $carrierLists;
@@ -464,7 +462,7 @@ final class Nextday extends Booking
 
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
 
-            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending");
+            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending",$this->_param->is_insured);
 
             if($serviceStatus["status"]=="error"){
                 $this->rollBackTransaction();
@@ -542,5 +540,5 @@ final class Nextday extends Booking
 		return array("status"=>"success","file_path"=>$bookingInfo['file_path']);
 		//print_r($bookingInfo);die;
 	}
-	}
+}
 ?>
