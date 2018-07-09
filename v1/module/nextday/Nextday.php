@@ -461,8 +461,10 @@ final class Nextday extends Booking
             $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
 
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
-
-            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending",$this->_param->is_insured);
+			if(isset($this->_param->is_insured))
+				$serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending",$this->_param->is_insured);
+			else
+				$serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending","");
 
             if($serviceStatus["status"]=="error"){
                 $this->rollBackTransaction();

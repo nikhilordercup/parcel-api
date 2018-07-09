@@ -348,7 +348,9 @@ class Booking extends Icargo
     protected
 
     function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status,$is_insured){
-
+        if($is_insured == "")
+			$is_insured = false;
+		
         $service_data = array();
 
         $price_version = $this->modelObj->findPriceNextVersionNo($load_identity);
