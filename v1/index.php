@@ -130,6 +130,8 @@ require_once 'module/package/Module_Package_Index.php';
 
 require_once 'module/booking/collection.php';
 
+//Country file included
+require_once 'module/country/model/country.php';
 
 
 /**

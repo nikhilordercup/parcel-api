@@ -256,8 +256,8 @@ final class Nextday extends Booking {
                                 $service->collected_by = $this->carrierList[$accountNumber]["collected_by"];
 
                                 //$collected_item["carrier_price_info"]["taxes"] = number_format($service->taxes->total_tax, 2);
-                                $collected_item["carrier_price_info"]["taxes"] = number_format((($serviceCcf["original_price"] + $surchargePrice) * $service->taxes->tax_percentage / 100), 2);
-                                $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2);
+                                $collected_item["carrier_price_info"]["taxes"] = isset($service->taxes->tax_percentage) ? ( number_format((($serviceCcf["original_price"] + $surchargePrice) * $service->taxes->tax_percentage / 100), 2) ) : 0;
+                                $collected_item["customer_price_info"]["taxes"] = isset($service->taxes->tax_percentage) ? ( number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * $service->taxes->tax_percentage / 100), 2) ) : 0;
                                 foreach ($service->collected_by as $collected_key => $collected_item) {
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice = 0;
@@ -361,13 +361,15 @@ final class Nextday extends Booking {
 
         if ($carrierLists["status"] == "success") {
             $key = 0;
+            $isDocument = '';
+            $currencyCode = ( isset( $this->_param->collection->$key->country->currency_code ) && !empty( $this->_param->collection->$key->country->currency_code ) ) ? $this->_param->collection->$key->country->currency_code : 'GBP';            
             $this->data = array(
                 "carriers" => $carrierLists["data"],
                 "from" => $this->_getAddress($this->_param->collection->$key),
                 "to" => $this->_getAddress($this->_param->delivery->$key),
                 "ship_date" => date("Y-m-d", strtotime($this->_param->collection_date)),
-                "extra" => array('neutral_delivery' => ''),
-                "currency" => $this->_param->collection->$key->country->currency_code,
+                "extra" => array('is_document' => false),
+                "currency" => $currencyCode //$this->_param->collection->$key->country->currency_code,
             );
 
             $this->data["package"] = array();
@@ -384,8 +386,11 @@ final class Nextday extends Booking {
                         "weight" => $item->weight,
                         "weight_unit" => "KG"
                     ));
+                    $isDocument = (isset($item->is_document)) ? ( ($item->is_document && !is_bool($isDocument)) ? "true" : "false" ) : "false";
                 }
             }
+            $this->data['extra']['is_document'] = $isDocument;
+            ($isDocument === "false") ? ( $this->data['extra']['customs_form_declared_value'] = "0" ) : '';
 
             $this->data["transit"][] = array(
                 "transit_distance" => 0, //$this->distanceMatrixInfo->value,
@@ -394,10 +399,10 @@ final class Nextday extends Booking {
                 "number_of_drops" => 0,
                 "total_waiting_time" => 0
             );
-
+            
             $this->data["insurance"] = array(
                 "value" => 0.00,
-                "currency" => $this->_param->collection->$key->country->currency_code
+                "currency" => $currencyCode
             );
         } else {
             $this->data["status"] = "success";        

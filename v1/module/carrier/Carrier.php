@@ -8,7 +8,7 @@ class Carrier{
 	public function __construct(){
         $this->modelObj = new Booking_Model_Booking();
     }
-	public function getShipmentInfo($loadIdentity, $rateDetail){
+	public function getShipmentInfo($loadIdentity, $rateDetail){            
 		$carrierObj = null;
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);

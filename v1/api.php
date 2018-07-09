@@ -1679,18 +1679,6 @@ $app->post('/loadCountry', function() use ($app) {
     echoResponse(200, $response);
 });
 
-$app->post('/editcountry', function() use ($app) {
-    $r = json_decode($app->request->getBody());    
-    $obj = new Common();
-    $response = $obj->updateCountry($r);
-    if($response) {
-        $results = array('status' => 'success', 'message' =>'Country updated successfully.');
-    } else {
-        $results = array('status' => 'error', 'message' =>'Please tr again.');
-    }
-    echoResponse(200, $results);
-});
-
 /*$app->post('/getParcelPackage', function() use ($app){
     $r = json_decode($app->request->getBody());
     $dummyData = array("0"=>array("name"=>"Parcels","id"=>"1"));
@@ -1999,4 +1987,70 @@ $app->post('/saveRoutePostId', function() use ($app) {
     echoResponse(200, $response);
 });
 
+
+/****** Country Master update and add/edit non-dutiable list, Starts from here ************/
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: Used for updating the country detail
+ */
+$app->post('/editcountry', function() use ($app) {
+    $r = json_decode($app->request->getBody());    
+    $obj = new Country($r);
+    $response = $obj->updateCountry($r);
+    if($response) {
+        $results = array('status' => 'success', 'message' =>'Country updated successfully.');
+    } else {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    }
+    echoResponse(200, $results);
+});
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: For getting non-dutiable and dutiable country list for country specific
+ */
+$app->post('/loadNonDuitableCountry', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Country($r);       
+    $response = $obj->loadNonDuitableCountry($r);       
+    
+    echoResponse(200, $response);
+});
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: Used for disabling the non-dutiable list
+ */
+$app->post('/updateNonDutiable', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Country($r);       
+    $response = $obj->updateNonDutiable($r);       
+    
+    if($response) {
+        $results = array('status' => 'success', 'message' =>'Non dutiable list removed successfully.');
+    } else {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    }
+    echoResponse(200, $results);
+});
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: Used for adding non-dutiable country
+ */
+$app->post('/addNonDutiable', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Country($r);       
+    $response = $obj->addNonDutiable($r);       
+    
+    if($response) {
+        $results = array('status' => 'success', 'message' =>'Non dutiable country added successfully.');
+    } else {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    }
+    echoResponse(200, $results);
+});
+
+/****** Country Master update and add/edit non-dutiable list, Ends here ************/
 ?>

@@ -47,6 +47,7 @@ final class Coreprime_Dhl extends Carrier {
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail) {
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
+        print_r($shipmentInfo); die;
 
         foreach ($shipmentInfo as $key => $data) {
             if ($data['shipment_service_type'] == 'P') {
