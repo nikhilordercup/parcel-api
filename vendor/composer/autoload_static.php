@@ -80,6 +80,8 @@ class ComposerStaticInited6faeb3c5de09fbb58ea39528003cf7
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInited6faeb3c5de09fbb58ea39528003cf7::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInited6faeb3c5de09fbb58ea39528003cf7::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInited6faeb3c5de09fbb58ea39528003cf7::$classMap;
+
         }, null, ClassLoader::class);
     }
 }
