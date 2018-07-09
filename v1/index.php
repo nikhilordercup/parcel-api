@@ -38,6 +38,9 @@ require_once 'vehicle.php';
 //validate and beautify postcode
 require_once 'postcode.php';
 
+
+require_once 'module/configuration/GridConfiguration.php';
+require_once 'module/configuration/CustomFilterConfiguration.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
@@ -213,4 +216,3 @@ function rootPath(){
 }
 
 $app->run();
-?>

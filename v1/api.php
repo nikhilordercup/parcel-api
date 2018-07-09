@@ -1998,4 +1998,15 @@ $app->post('/getServiceFlowType', function() use ($app) {
 });
 /*end of adding flow type*/
 
-?>
+/*$app->post('/temp', function() use ($app) {
+	$db = new DbHandler();
+	$sql = "SELECT shipment_latlong, shipment_id from icargo_shipment;";
+	$records = $db->getAllRecords($sql);
+	foreach($records as $record){
+		$temp = explode(',',$record['shipment_latlong']);
+		$sql = "UPDATE icargo_shipment SET shipment_latitude = '" . $temp[0] . "', shipment_longitude = '" . $temp[1] . "' WHERE shipment_id = '". $record['shipment_id'] ."';";
+		echo $sql.'<br>';
+	}
+});*/
+GridConfiguration::initRoutes($app);
+CustomFilterConfiguration::initRoutes($app);
