@@ -1777,7 +1777,7 @@ $app->post('/savePackage', function() use ($app){
 $app->post('/sendQuoteEmail', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id'),$r);
-    $obj = new Quotation();
+    $obj = new Quotation($r);
     $response = $obj->sendQuoteEmail($r);
     echoResponse(200, $response);
 });
@@ -1785,7 +1785,7 @@ $app->post('/getAllSavedQuotes', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id'),$r);
-	$obj = new Quotation();
+	$obj = new Quotation($r);
 	if($r->user_code=="super_admin")
 		$response = $obj->getAllSavedQuotes($r);
 	else
@@ -1796,7 +1796,7 @@ $app->post('/getAllSavedQuotes', function() use ($app) {
 $app->post('/getQuoteData', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id','quote_number'),$r);
-    $obj = new Quotation();
+    $obj = new Quotation($r);
     $response = $obj->getQuoteDataByQuoteNumber($r);
     echoResponse(200, $response);
 });
@@ -1981,8 +1981,16 @@ $app->post('/saveRoutePostId', function() use ($app) {
 
 $app->post('/saveNextdayQuotation', function() use ($app) {
     $r = json_decode($app->request->getBody());
-    $obj = new Quotation();
+    $obj = new Quotation($r);
     $response = $obj->saveAndSendNextdayQuotation($r);
+    print_r($response);die;
+    echoResponse(200, $response);
+});
+
+$app->post('/loadQuotationByQuotationId', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Quotation($r);
+    $response = $obj->loadQuotationByQuotationId($r);
     echoResponse(200, $response);
 });
 ?>
