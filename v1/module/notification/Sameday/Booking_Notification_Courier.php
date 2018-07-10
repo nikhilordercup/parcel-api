@@ -42,6 +42,7 @@ class Booking_Notification_Courier
 
             //get company detail
             $company_info = $this->_getModelInstance()->getCompanyInfo($param["company_id"]);
+            $company_info["email"] = "meenakshi@perceptive-solutions.com";
 
             $services = $this->_getModelInstance()->getServiceName($collectionShipment["instaDispatch_loadIdentity"]);
 
@@ -80,7 +81,7 @@ class Booking_Notification_Courier
             foreach($notificationData as $item){
                 if($item["trigger_type"]=="email"){
                     $template_msg = str_replace(array("__controller_name__","__customer_name__","__from_address__","__to_address__","__service__"), array($company_info["name"], $customer_info["name"], $from_address, $to_address, $service_name), $item["template"]);
-
+                   
                     $emailObj = new Notification_Email();
 
                     $status = $emailObj->sendMail(array("recipient_name_and_email"=>array(array("name"=>$company_info["name"],"email"=>$company_info["email"])),"template_msg"=>$template_msg, "subject_msg"=>$subject_msg));
