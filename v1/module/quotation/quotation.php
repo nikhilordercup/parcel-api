@@ -552,6 +552,7 @@ class Quotation extends Icargo
         if($shipmentId>0){
             $this->db->commitTransaction();
             //send an email
+            Consignee_Notification::_getInstance()->sendNextdayQuotationEmailToConsignee(array("quote_number"=>$quote_number, "company_id"=>$param->company_id, "warehouse_id"=>$param->warehouse_id));
 
             return array("status"=>"success", "message"=>"Quote saved. Quotation Number : $quote_number");
         }

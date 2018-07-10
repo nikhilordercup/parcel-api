@@ -164,6 +164,13 @@ class Notification_Model_Index
         return $this->_db->getRowRecord($sql);
     }
 
+    public
+
+    function getQuotationByQuotationNumber($quotation_number){
+        $sql = "SELECT * FROM `".DB_PREFIX."quote_service` WHERE quote_number ='$quotation_number'";
+        return $this->_db->getRowRecord($sql);
+    }
+
     public function startTransaction() {
         $this->_db->startTransaction();
     }

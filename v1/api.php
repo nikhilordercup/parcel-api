@@ -1983,7 +1983,6 @@ $app->post('/saveNextdayQuotation', function() use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Quotation($r);
     $response = $obj->saveAndSendNextdayQuotation($r);
-    print_r($response);die;
     echoResponse(200, $response);
 });
 

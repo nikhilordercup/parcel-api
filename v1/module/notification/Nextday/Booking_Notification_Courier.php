@@ -42,7 +42,7 @@ class Booking_Notification_Courier
 
             //get company detail
             $company_info = $this->_getModelInstance()->getCompanyInfo($param["company_id"]);
-            $company_info["email"] = "nishant.verma@ordercup.com";
+
             $services = $this->_getModelInstance()->getServiceName($collectionShipment["instaDispatch_loadIdentity"]);
 
             $service_name = $services["service_name"];

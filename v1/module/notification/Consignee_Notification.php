@@ -73,4 +73,12 @@ class Consignee_Notification
         $obj = new Booking_Notification_Consignee();
         $obj->send($param);
     }
+
+    public
+
+    function sendNextdayQuotationEmailToConsignee($param){
+        $this->__autoload("Quotation_Notification_Consignee", "nextday");
+        $obj = new Quotation_Notification_Consignee($param);
+        $obj->send($param);
+    }
 }
