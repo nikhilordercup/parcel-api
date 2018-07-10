@@ -294,7 +294,7 @@ final class Nextday extends Booking
             if(isset($response->status) and $response->status="error"){
                 return array("status"=>"error", "message"=>$response->message);
             }
-            return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
+            return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>$requestStr,"service_response_string"=>$responseStr, "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
         }else {
             return array("status"=>"error", "message"=>$this->data["message"]);
         }

@@ -449,18 +449,21 @@ class Quotation extends Icargo
             //$quoteArr[$value['quote_number']]["service"] = $serviceArr;
         }
 
-        $sql = "SELECT QST.quote_number, QST.expiry_date, QST.email AS email_id, QST.service_opted, UT.name, QST.service_opted, QST.booking_type FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.company_id='".$param['company_id']."' AND booking_type='nextday'";
+        $sql = "SELECT QST.quote_number, QST.expiry_date, QST.email AS email_id, QST.service_opted, UT.name, QST.booking_type FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.company_id='".$param['company_id']."' AND booking_type='nextday'";
         $quoteData = $this->db->getAllRecords($sql);
         $key = 0;
         foreach($quoteData as $value)
         {
             $json_data = json_decode($value["service_opted"]);
-            $quoteArr[$value['quote_number']]["quote_number"] = $value['quote_number'];
-            $quoteArr[$value['quote_number']]["name"] = $value['name'];
-            $quoteArr[$value['quote_number']]["email"] = $value['email_id'];
-            $quoteArr[$value['quote_number']]["expiry_date"] = Library::_getInstance()->date_format($value['expiry_date']);
-            $quoteArr[$value['quote_number']]["postcode"] = array($json_data->collection->$key->postcode, $json_data->delivery->$key->postcode);
-            $quoteArr[$value['quote_number']]["booking_type"] = $value['booking_type'];
+
+            if(isset($json_data->collection->$key->postcode)){
+                $quoteArr[$value['quote_number']]["quote_number"] = $value['quote_number'];
+                $quoteArr[$value['quote_number']]["name"] = $value['name'];
+                $quoteArr[$value['quote_number']]["email"] = $value['email_id'];
+                $quoteArr[$value['quote_number']]["expiry_date"] = Library::_getInstance()->date_format($value['expiry_date']);
+                $quoteArr[$value['quote_number']]["postcode"] = array($json_data->collection->$key->postcode, $json_data->delivery->$key->postcode);
+                $quoteArr[$value['quote_number']]["booking_type"] = $value['booking_type'];
+            }
         }
         return $quoteArr;
     }
@@ -523,8 +526,8 @@ class Quotation extends Icargo
         $quote_number = $this->_generate_quote_no();
 
         $data = array(
-            "service_request_string"=>base64_decode($param->service_request_string),
-            "service_response_string"=>base64_decode($param->service_response_string),
+            "service_request_string"=>json_encode($param->service_request_string),
+            "service_response_string"=>json_encode($param->service_response_string),
             "email"=>$param->quotation_email,
             "collection_date"=>date("Y-m-d", strtotime($param->collection_date)),
             "collection_time"=>date("H:i:s", strtotime($param->collection_date)),
@@ -563,9 +566,11 @@ class Quotation extends Icargo
     public
 
     function loadQuotationByQuotationId($param){
-        $sql = "SELECT QST.service_opted FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.company_id='".$param->company_id."' AND quote_number='".$param->quotation_id."'";
+        $sql = "SELECT QST.service_opted, QST.service_request_string, QST.service_response_string FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.company_id='".$param->company_id."' AND quote_number='".$param->quotation_id."'";
         $quoteData = $this->db->getRowRecord($sql);
-        $quoteData = json_decode($quoteData["service_opted"]);
+        $quoteData["service_opted"] = json_decode($quoteData["service_opted"]);
+        $quoteData["service_request_string"] = json_decode($quoteData["service_request_string"]);
+        $quoteData["service_response_string"] = json_decode($quoteData["service_response_string"]);
         return $quoteData;
     }
 }
