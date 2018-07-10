@@ -8,6 +8,7 @@ final class Nextday extends Booking
     public
 
     function __construct($data){
+        
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->_param = $data;
         $this->customerccf = new CustomerCostFactor();
