@@ -566,11 +566,18 @@ class Quotation extends Icargo
     public
 
     function loadQuotationByQuotationId($param){
-        $sql = "SELECT QST.service_opted, QST.service_request_string, QST.service_response_string FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.company_id='".$param->company_id."' AND quote_number='".$param->quotation_id."'";
+        $sql = "SELECT QST.service_opted, QST.service_request_string, QST.service_response_string FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.expiry_date>=CURDATE() AND QST.company_id='".$param->company_id."' AND quote_number='".$param->quotation_id."'";
+
         $quoteData = $this->db->getRowRecord($sql);
-        $quoteData["service_opted"] = json_decode($quoteData["service_opted"]);
-        $quoteData["service_request_string"] = json_decode($quoteData["service_request_string"]);
-        $quoteData["service_response_string"] = json_decode($quoteData["service_response_string"]);
+        if(count($quoteData)>0){
+            $quoteData["service_opted"] = json_decode($quoteData["service_opted"]);
+            $quoteData["service_request_string"] = json_decode($quoteData["service_request_string"]);
+            $quoteData["service_response_string"] = json_decode($quoteData["service_response_string"]);
+            $quoteData["status"] = "success";
+        }else{
+            $quoteData["status"] = "error";
+            $quoteData["message"] = "Quotation not found or expired";
+        }
         return $quoteData;
     }
 }
