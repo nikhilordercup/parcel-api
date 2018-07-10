@@ -434,8 +434,8 @@ class Quotation extends Icargo
     {
         $quoteArr = array();
 
-        $sql = "SELECT t1.quote_number,t1.shipment_postcode as postcode,t1.expiry_date,t1.email_id,t3.name,t2.service_opted, t2.booking_type FROM " . DB_PREFIX . "quote_shipment as t1 INNER JOIN " . DB_PREFIX . "quote_service AS t2 ON t1.quote_number = t2.quote_number INNER JOIN " . DB_PREFIX . "users AS t3 ON t1.customer_id = t3.id WHERE t2.booking_type='sameday' AND t1.company_id = " . $param["company_id"];
-
+        $sql = "SELECT t1.quote_number,t1.shipment_postcode as postcode,t1.expiry_date,t1.email_id,t3.name,t2.service_opted, t2.booking_type FROM " . DB_PREFIX . "quote_shipment as t1 INNER JOIN " . DB_PREFIX . "quote_service AS t2 ON t1.quote_number = t2.quote_number INNER JOIN " . DB_PREFIX . "users AS t3 ON t1.customer_id = t3.id WHERE t2.expiry_date>=CURDATE() AND t2.booking_type='sameday' AND t1.company_id = " . $param["company_id"];
+        //echo $sql;die;
         $quoteData = $this->db->getAllRecords($sql);
         foreach($quoteData as $value)
         {
@@ -449,7 +449,7 @@ class Quotation extends Icargo
             //$quoteArr[$value['quote_number']]["service"] = $serviceArr;
         }
 
-        $sql = "SELECT QST.quote_number, QST.expiry_date, QST.email AS email_id, QST.service_opted, UT.name, QST.booking_type FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.company_id='".$param['company_id']."' AND booking_type='nextday'";
+        $sql = "SELECT QST.quote_number, QST.expiry_date, QST.email AS email_id, QST.service_opted, UT.name, QST.booking_type FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.expiry_date>=CURDATE() AND QST.company_id='".$param['company_id']."' AND booking_type='nextday'";
         $quoteData = $this->db->getAllRecords($sql);
         $key = 0;
         foreach($quoteData as $value)
