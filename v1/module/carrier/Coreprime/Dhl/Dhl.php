@@ -46,8 +46,7 @@ final class Coreprime_Dhl extends Carrier {
 
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail) {
         $response = array();
-        $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
-        print_r($shipmentInfo); die;
+        $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);        
 
         foreach ($shipmentInfo as $key => $data) {
             if ($data['shipment_service_type'] == 'P') {
@@ -90,14 +89,14 @@ final class Coreprime_Dhl extends Carrier {
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
         $response['package'] = $this->getPackageInfo($loadIdentity);
         $serviceInfo = $this->getServiceInfo($loadIdentity);
-        $response['currency'] = $serviceInfo['currency'];
+        $response['currency'] = isset($serviceInfo['currency']) && !empty($serviceInfo['currency']) ? $serviceInfo['currency'] : 'GBP';
         $response['service'] = $serviceInfo['service_code'];
 
         /*         * ********start of static data from requet json ************** */
         $response['extra'] = array(
             'reference_id' => 'M0009',              // icargo order number  load identity
             'reference_id2' => '',                  // customer identification number
-            'contents' => 'domestic',               // contents of the parcel field, (qn for multiple ?)
+            'contents' => 'test description',               // contents of the parcel field, (qn for multiple ?)
             'terms_of_trade' => '',                 // ask arvind (this is only applicable for duitable shipment)
             'neutral_delivery' => '',               // ?
             'paperless_trade' => '',                // flag that delivery country support paperless trade
@@ -138,8 +137,7 @@ final class Coreprime_Dhl extends Carrier {
             'invoice_number' => ''                  // ?
         );
 
-        $response['insurance'] = array('value' => '', 'currency' => '', 'insurer' => '');
-
+        $response['insurance'] = array('value' => '', 'currency' => $response['currency'], 'insurer' => '');
         if ($rateDetail) {
             $rateDetail = (array) $rateDetail;
             unset($rateDetail['price']);

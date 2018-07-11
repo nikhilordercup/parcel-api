@@ -1711,8 +1711,8 @@ class allShipments extends Icargo
                 }
             }
         }
-     return $returnTax;
-     }
+        return $returnTax;
+    }
     
      public function getAllCarrier($param){
          $data =  $this->modelObj->getAllCarrier($param->company_id);
@@ -1741,6 +1741,6 @@ class allShipments extends Icargo
 		}
 			
 	}
-         
+
 }
 ?>

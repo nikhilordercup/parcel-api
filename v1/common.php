@@ -91,7 +91,8 @@
 		
 		public function getAddressBookSearchString($arr)
         {
-           return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state;//.$arr->country->short_name
+			return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country.$arr->name.$arr->email.$arr->comapany;
+           //return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country;
         }
         
         public function countryList($searchData = array())
@@ -106,6 +107,16 @@
             }
             //print_r($records); die;
             return $records;
+        }
+        
+        public function checkDutiableCountry($data = array())
+        {                        
+            $collectionCountry = $data->collection_country;
+            $deliveryCountry = $data->delivery_country;            
+            echo $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";                        
+            $records = $this->db->getRowRecord($sql);   
+            print_r($records);
+            return $records['dutiable'];
         }
 
     }

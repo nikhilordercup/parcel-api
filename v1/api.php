@@ -1671,6 +1671,7 @@ $app->post('/generateReport', function() use($app){
     echoResponse(200, $response);
 });
 
+/*end of report module comment by kavita 20march2018*/
 $app->post('/loadCountry', function() use ($app) {
     $r = json_decode($app->request->getBody());
     $countryId = isset($r->id) ? $r->id : 0;
@@ -1715,9 +1716,7 @@ $app->post('/getPriceDetails', function() use ($app){
     }
 });
 
-/*end of report module comment by kavita 20march2018*/
-
-/*$app->post('/loadCountry', function() use ($app) {
+/* $app->post('/loadCountry', function() use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Common();
     $response = $obj->countryList(array("controller_id"=>$r->company_id));
@@ -1802,6 +1801,7 @@ $app->post('/getQuoteData', function() use($app){
     echoResponse(200, $response);
 });
 /*end of save quote feature comment by kavita 2april2018*/ 
+
 $app->post('/updateCarrierPrice', function() use ($app) { 
 	$response = array();
 	$r = json_decode($app->request->getBody()); 
@@ -1957,13 +1957,6 @@ $app->post('/getAllShipmentsCarrier', function() use ($app) {
     $response = $obj->getAllCarrier($r);
     echoResponse(200, $response);
 });
-$app->post('/getAllShipmentsCarrier', function() use ($app) {
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
-    $obj = new allShipments($r);
-    $response = $obj->getAllCarrier($r);
-    echoResponse(200, $response);
-});
 $app->post('/getAllMasterCouriers', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','user_id'),$r);
@@ -1984,9 +1977,25 @@ $app->post('/saveRoutePostId', function() use ($app) {
     $data = array("shipment_route_id"=>$r->shipment_route_id, "post_id"=>$r->post_id, "company_id"=>$r->company_id, "email"=>$r->email, "access_token"=>$r->access_token);
     $obj = new Route_Assign($data);
     $response = $obj->saveRoutePostId($data);
-    echoResponse(200, $response);
+	echoResponse(200, $response);
 });
 
+$app->post('/getAddressBySearchString', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','search_str','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->getAddressBySearchString($r);
+    echoResponse(200, $response);
+});
+/*start of adding flow type*/
+$app->post('/getServiceFlowType', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','service_id'),$r);
+    $obj = new Master($r);
+    $response = $obj->getServiceFlowType($r->service_id);
+    echoResponse(200, $response);
+});
+/*end of adding flow type*/
 
 /****** Country Master update and add/edit non-dutiable list, Starts from here ************/
 /*
@@ -2053,6 +2062,25 @@ $app->post('/addNonDutiable', function() use ($app) {
 });
 
 /****** Country Master update and add/edit non-dutiable list, Ends here ************/
+
+/*
+ * Author: Amita Pandey
+ * Date: 11-July-2018
+ * Purpose: Check delivery country is dutiable for collection or not
+ */
+$app->post('/checkDutiableCountry', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Common();
+    $response = $obj->checkDutiableCountry($r);       
+    
+    if($response) {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    } else {
+        $results = array('status' => 'success', 'result' => $response);
+    }
+    echoResponse(200, $results);
+});
+
         
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);

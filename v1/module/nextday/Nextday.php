@@ -355,7 +355,8 @@ final class Nextday extends Booking {
     }
 
     private
-            function _setPostRequest() {
+
+    function _setPostRequest(){//print_r($this->_param);die;
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
 
@@ -399,17 +400,19 @@ final class Nextday extends Booking {
                 "number_of_drops" => 0,
                 "total_waiting_time" => 0
             );
-            
-            $this->data["insurance"] = array(
-                "value" => 0.00,
-                "currency" => $currencyCode
-            );
+
+           if(isset($this->_param->is_insured)) {
+			   if($this->_param->is_insured==true) 
+				$this->data["insurance"] = array("value" => $this->_param->insurance_amount,"currency" => $this->_param->collection->$key->country->currency_code);
+		   }
+            $this->data["status"] = "success";
         } else {
-            $this->data["status"] = "success";        
             $this->data = $carrierLists;
         }
     }
 
+
+    public
     function searchNextdayCarrierAndPrice(){
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
@@ -418,7 +421,6 @@ final class Nextday extends Booking {
         //find distance matrix
         $key = 0;
         $destinations = array();
-
         $this->collection_postcode = $this->_param->collection->$key->postcode;
         //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
         //foreach($this->_param->delivery as $item)
@@ -427,16 +429,14 @@ final class Nextday extends Booking {
         //if($distanceMatrix->status=="success"){
             //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
-
             $this->_setPostRequest();
-            if(count($this->data)>0){
+
+            if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
-
                 $response = json_decode($responseStr);
-
                 $response = $this->_getCarrierInfo($response->rate);
-                
+
                 if(isset($response->status) and $response->status="error"){
                     return array("status"=>"error", "message"=>$response->message);
                 }
@@ -612,7 +612,14 @@ final class Nextday extends Booking {
 
             $surchargesArr = isset($this->_param->service_opted->collection_carrier->surcharges) ? $this->_param->service_opted->collection_carrier->surcharges : array();
 
-            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $surchargesArr, $loadIdentity, $this->_param->customer_id, "pending");
+            if(isset($this->_param->is_insured)) 
+            {            
+                $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending",$this->_param->is_insured);
+            }
+            else 
+            {            
+                $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending","");
+            }
 
             if ($serviceStatus["status"] == "error") {
                 $this->rollBackTransaction();
@@ -677,13 +684,13 @@ final class Nextday extends Booking {
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
-
-        /*         * ***********call label generation method*********** */
+		
+        /*************call label generation method************/
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();
         $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail);
-
-        return array("status" => "success", "message" => "Shipment booked successful. Shipment ticket $loadIdentity", "file_path" => $labelInfo['file_path']);
+		
+        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
     }
 
     public function getLabelFromLoadIdentity($loadIdentity, $rateDetail) {
@@ -693,9 +700,8 @@ final class Nextday extends Booking {
         //return array("status" => "success", "file_path" => $bookingInfo['file_path']);
         //print_r($bookingInfo);die;
         // call label generation method
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
+        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity", "file_path" => $bookingInfo['file_path']);
     }
-
 }
 
 ?>

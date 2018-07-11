@@ -1132,5 +1132,11 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
             return array("status"=>"error","message"=>"Warehouse not updated");
         }
     }
-}
+	
+	public function getAddressBySearchString($param){
+		$data =  $this->modelObj->getAddressBySearchStr($param);
+		return $data;
+		
+	}
+ }
 ?>
