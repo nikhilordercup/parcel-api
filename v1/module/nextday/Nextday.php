@@ -8,6 +8,7 @@ final class Nextday extends Booking
     public
 
     function __construct($data){
+        
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->_param = $data;
         $this->customerccf = new CustomerCostFactor();
@@ -281,44 +282,28 @@ final class Nextday extends Booking
         $destinations = array();
 
         $this->collection_postcode = $this->_param->collection->$key->postcode;
-        //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
+        $this->_setPostRequest();
 
-        //foreach($this->_param->delivery as $item)
-        //    array_push($destinations, implode(",", (array) $item->geo_position));
+        if($this->data["status"]=="success"){
+            $requestStr = json_encode($this->data);
+            $responseStr = $this->_postRequest($requestStr);
 
-        //$distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
+            $response = json_decode($responseStr);
 
-        //if($distanceMatrix->status=="success"){
+            $response = $this->_getCarrierInfo($response->rate);
 
-            //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
-            //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
-
-            $this->_setPostRequest();
-
-            if($this->data["status"]=="success"){
-                $requestStr = json_encode($this->data);
-                $responseStr = $this->_postRequest($requestStr);
-
-                $response = json_decode($responseStr);
-
-                $response = $this->_getCarrierInfo($response->rate);
-
-                if(isset($response->status) and $response->status="error"){
-                    return array("status"=>"error", "message"=>$response->message);
-                }
-                return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
-            }else {
-                return array("status"=>"error", "message"=>$this->data["message"]);
+            if(isset($response->status) and $response->status="error"){
+                return array("status"=>"error", "message"=>$response->message);
             }
-        //}else{
-        //    return array("status"=>"error", "message"=>"Distance matrix api error");
-        //}
+            return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>$requestStr,"service_response_string"=>$responseStr, "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
+        }else {
+            return array("status"=>"error", "message"=>$this->data["message"]);
+        }
     }
 
     public
 
     function saveBooking(){
-        //print_r($this->_param->service_opted->collection_carrier);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
             return $accountStatus;
@@ -436,6 +421,15 @@ final class Nextday extends Booking
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
+
+        //if($is_internal==1){
+            //email to customer
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+
+            //email to courier
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+        //}
+
         // call label generation method
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
