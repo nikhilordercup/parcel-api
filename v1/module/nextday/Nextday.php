@@ -422,13 +422,13 @@ final class Nextday extends Booking
         }
         $this->commitTransaction();
 
-        if($is_internal==1){
+        //if($is_internal==1){
             //email to customer
             Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
 
             //email to courier
             Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
-        }
+        //}
 
         // call label generation method
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
