@@ -310,5 +310,17 @@ class Booking_Model_Booking
 		$sql = "SELECT label_file_pdf FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity IN('$loadIdentity')";
 		return $this->_db->getAllRecords($sql);
 	}
+
+    public
+
+    function getCustomerInfo($user_id){
+        return $this->_db->getRowRecord("SELECT quote_expiry_days FROM " . DB_PREFIX . "customer_info AS CIT WHERE CIT.user_id='$user_id'");
+    }
+
+    public
+
+    function getUserInfo($user_id){
+        return $this->_db->getRowRecord("SELECT email FROM " . DB_PREFIX . "users AS UT WHERE UT.id='$user_id'");
+    }
 }
 ?>

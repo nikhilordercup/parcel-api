@@ -5,8 +5,8 @@ final class Nextday extends Booking {
     private $_param = array();
     protected static $_ccf = NULL;
 
-    public
-            function __construct($data) {
+    public function __construct($data){
+        
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->_param = $data;
         $this->customerccf = new CustomerCostFactor();
@@ -422,6 +422,7 @@ final class Nextday extends Booking {
         $key = 0;
         $destinations = array();
         $this->collection_postcode = $this->_param->collection->$key->postcode;
+
         //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
         //foreach($this->_param->delivery as $item)
         //    array_push($destinations, implode(",", (array) $item->geo_position));
@@ -443,10 +444,7 @@ final class Nextday extends Booking {
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
                 return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
-            }
-        //}else{
-        //    return array("status"=>"error", "message"=>"Distance matrix api error");
-        //}
+        }
     }
 
     public function saveBookingBKP() {
@@ -699,6 +697,15 @@ final class Nextday extends Booking {
         $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail);
         //return array("status" => "success", "file_path" => $bookingInfo['file_path']);
         //print_r($bookingInfo);die;
+
+        //if($is_internal==1){
+            //email to customer
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+
+            //email to courier
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+        //}
+
         // call label generation method
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity", "file_path" => $bookingInfo['file_path']);
     }
