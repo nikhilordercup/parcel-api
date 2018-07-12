@@ -21,7 +21,7 @@ class ConfigurationManager
 
     }
     public function addConfiguration($companyId,$configData){
-        $configData=addslashes($configData);
+        $configData=$configData;
         $sql="INSERT INTO ".DB_PREFIX."system_configuration (configuration_type,company_id,config_data)".
             " VALUES ('APP',$companyId,'$configData')";
         //exit($sql);
