@@ -9,8 +9,8 @@ define('DB_NAME', 'iCargo_v1');
 define('DB_PREFIX', 'icargo_');*/
 
 
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
+define('DB_USERNAME','icargoN'); 
+define('DB_PASSWORD', 'icargoN');
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'icargo');
+define('DB_NAME', 'icargoN');
 define('DB_PREFIX', 'icargo_');
