@@ -88,14 +88,14 @@ class Carrier{
 			$labelArr = array();
 			foreach($labelPdfArr as $file){
 				$file['label_file_pdf'] = explode('/',$file['label_file_pdf']);
-				$file = "var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7].'/'.$file['label_file_pdf'][8];
+				$file = "/var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7];
 				array_push($labelArr,$file);
 			}
 			$fileName = uniqid().'.pdf';
 			$pdf = new ConcatPdf();
 			$pdf->setFiles($labelArr);
 			$pdf->concat();
-			$pdf->Output('var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
+			$pdf->Output('/var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
 		}catch(Exception $e){
 			print_r($e);die;
 		}
