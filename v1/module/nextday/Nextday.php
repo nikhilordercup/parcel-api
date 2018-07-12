@@ -532,14 +532,21 @@ final class Nextday extends Booking
 
 		$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity);
 		
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
+		/*************save label data in db******************/
+		$labelData = array("label_tracking_number"=>$labelInfo['label_tracking_number'],"label_files_png"=>$labelInfo['label_files_png'],"label_file_pdf"=>$labelInfo['label_file_pdf']);
+		$saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData,$loadIdentity);
+		
+		if($saveLabelInfo)
+			return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
+		else
+			return array("status"=>"error","message"=>"Shipment not booked successfully,error while generating label!","file_path"=>"");
     }
 
 	public function getLabelFromLoadIdentity($loadIdentity){
 		/* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation*/
 		$carrierObj = new Carrier();
 		$bookingInfo = $carrierObj->getShipmentInfo($loadIdentity);
-		return array("status"=>"success","file_path"=>$bookingInfo['file_path']);
+		return array("status"=>"success","file_path"=>$bookingInfo['file_path'],"label_tracking_number"=>$bookingInfo['label_tracking_number'],"label_files_png"=>$bookingInfo['label_files_png'],"label_file_pdf"=>$bookingInfo['label_file_pdf']);
 		//print_r($bookingInfo);die;
 	}
 }

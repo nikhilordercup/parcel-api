@@ -560,6 +560,7 @@ class Customer extends Icargo{
       $data['customer']['invoicecycle'] = (int)$customerpersonaldata['invoicecycle'];
       $data['customer']['type'] = $customerpersonaldata['customer_type'];
       $data['customer']['charge_from_base'] = $customerpersonaldata['charge_from_base'];
+	  $data['customer']['auto_label_print'] = $customerpersonaldata['auto_label_print'];
       
      $data['customerbilling']['name'] = $customerbillingdata['name'];
      $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
@@ -696,7 +697,8 @@ class Customer extends Icargo{
             $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
             $customerinfo['invoicecycle'] = isset($param->customer->invoicecycle)?$param->customer->invoicecycle:0;
             $customerinfo['charge_from_base'] = isset($param->customer->charge_from_base)?$param->customer->charge_from_base:'YES';
-              $condition = "user_id = '" . $param->customer_id . "'"; 
+			$customerinfo['auto_label_print'] = isset($param->customer->auto_label_print)?$param->customer->auto_label_print:'YES';
+            $condition = "user_id = '" . $param->customer_id . "'"; 
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);  
               
             if($customerinfoStatus){

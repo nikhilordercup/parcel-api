@@ -30,7 +30,7 @@ class Carrier{
 
 		$carrierObj = new $coreprimeCarrierClass();
 		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
-		return array("status"=>"success","file_path"=>$shipmentInfo['file_path']);
+		return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_file_pdf"=>$shipmentInfo['label_file_pdf']);
 		//$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
 		
 		/* $response['package'] = $this->getPackageInfo($loadIdentity);
@@ -88,18 +88,18 @@ class Carrier{
 			$labelArr = array();
 			foreach($labelPdfArr as $file){
 				$file['label_file_pdf'] = explode('/',$file['label_file_pdf']);
-				$file = "C:/xampp/htdocs/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7].'/'.$file['label_file_pdf'][8];
+				$file = "var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7].'/'.$file['label_file_pdf'][8];
 				array_push($labelArr,$file);
 			}
 			$fileName = uniqid().'.pdf';
 			$pdf = new ConcatPdf();
 			$pdf->setFiles($labelArr);
 			$pdf->concat();
-			$pdf->Output('C:/xampp/htdocs/projects/api/temp/'.$fileName,'F');
+			$pdf->Output('var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
 		}catch(Exception $e){
 			print_r($e);die;
 		}
-		return array("status"=>"success","file_path"=>"http://localhost/projects/api/temp/".$fileName);
+		return array("status"=>"success","file_path"=>"http://api.instadispatch.com/dev/temp/".$fileName);
 	}
 
 

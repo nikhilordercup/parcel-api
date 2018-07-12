@@ -26,40 +26,36 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 	} */
 
 	private function _getLabel($loadIdentity,$json_data){
+		$images = array();
+		$label_images = array();
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label",$json_data);
 		$labelArr = json_decode($label);
+
 		$pdf_base64 = $labelArr->label->base_encode;
 		$labels = explode(",",$labelArr->label->file_url);
-		//print_r($label);die;
-		//Get File content from txt file
-		//$pdf_base64_handler = fopen($pdf_base64,'r');
-		//$pdf_content = fread ($pdf_base64_handler,filesize($pdf_base64));
-		//fclose ($pdf_base64_handler);
+
 		$label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))).'/label/';
+		
 		$file_url = mkdir($label_path.$loadIdentity.'/ukmail/', 0777, true);
 		foreach($labels as $dataFile){
 			$dataFile = explode(".",$dataFile);
 			$dataFile = $dataFile[0].'.png';
-			//print_r($label_path);die;
+			$labelImages = array_push($label_images,$dataFile);
+			
 			$file_name = $label_path.$loadIdentity.'/ukmail/'.$dataFile;
 			$data = base64_decode($pdf_base64);
 			file_put_contents($file_name,$data);
 			header('Content-Type: application/image');
+			array_push($images,$file_name);
 		}
-		$flabel = explode(".",$labels[0]);
-		//echo $file_name;
-		return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://localhost/projects/api/label/".$loadIdentity.'/ukmail/'.$flabel[0].'.png');
 		
-		/* //Decode pdf content
-		$pdf_decoded = base64_decode ($pdf_base64);
-		//Write data back to pdf file
-		$pdf = fopen ($file_url.'/ukmail-1-41141060000087.png','w');
-		fwrite ($pdf,$pdf_decoded);
-		//close output file
-		fclose ($pdf);
-		echo 'Done'; */
-		/* print_r($labelArr->label->base_encode); */die;
+		$pdfFile = $label_path.$loadIdentity.'/ukmail/combined.pdf';
+		$img = new \Imagick($images);
+		$img->setImageFormat('pdf');
+		$pdf = $img->writeImages($label_path.$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',true);
+
+		return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_tracking_number"=>$labelArr->label->tracking_number,"label_files_png"=>implode(',',$label_images),"label_file_pdf"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf');
     }
 	
 	public function getShipmentDataFromCarrier($loadIdentity){
@@ -96,7 +92,6 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 		$response['label'] = array();
 		$response['method_type'] = "post";
 		/**********end of static data from requet json ***************/
-        //print_r($response);die;
 		return $this->_getLabel($loadIdentity,json_encode($response));
 		//return $response;
 		

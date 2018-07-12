@@ -1734,8 +1734,12 @@ class allShipments extends Icargo
 			else
 				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
 		}elseif(count($labelInfo)>1){
-			$label_pdf = $carrierObj->mergePdf($labelInfo);
-			return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
+			if($labelInfo[0]['label_file_pdf']!==''){
+				$label_pdf = $carrierObj->mergePdf($labelInfo);
+				return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
+			}else{
+				return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
+			}
 		}else{
 			return array("status"=>"error","file_path"=>"","message"=>"label not found!");
 		}

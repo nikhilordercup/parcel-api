@@ -309,5 +309,9 @@ class Booking_Model_Booking
 		$sql = "SELECT label_file_pdf FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity IN('$loadIdentity')";
 		return $this->_db->getAllRecords($sql);
 	}
+	
+	public function saveLabelDataByLoadIdentity($labelArr,$loadIdentity){
+		return $this->_db->update("shipment_service",$labelArr,"load_identity='".$loadIdentity."'");
+	}
 }
 ?>
