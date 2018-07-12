@@ -213,6 +213,13 @@ SELECT  S.warehouse_id as warehouse_id,
         return $record;
       }
     
+	public function getAllParcelsByIdentity($identity){  
+      $sqldata = 'DISTINCT(S.instaDispatch_loadIdentity)';
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '".$identity."'";
+	  $record = $this->db->getAllRecords($sql);
+      return $record;
+    }
+	
     /*
     public function getShipmentsPriceDetail($identity,$courier_id,$company_id,$priceversion){ 
        $record = array();

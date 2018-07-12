@@ -259,7 +259,8 @@ class allShipments extends Icargo
                 'basicinfo' => $allInfo['basicInfo'],
                 'priceinfo' => $allInfo['priceinfo'],
                 'trackinginfo' => $allInfo['trackinginfo'],
-                'podinfo' => $allInfo['podinfo']
+                'podinfo' => $allInfo['podinfo'],
+				'parcelInfo'=>$allInfo['parcelInfo']
             )
         );
     }
@@ -269,6 +270,7 @@ class allShipments extends Icargo
     {
         $trackinginfo           = array();
         $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
+		$parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
@@ -317,8 +319,6 @@ class allShipments extends Icargo
             $basicInfo['insurencevalue']           = "N/A";
             $basicInfo['handcost']                 = "N/A";
             $basicInfo['flowtype']                 = "Domestic";
-
-
 
             $shipmentsurchargeData   = $this->modelObj->getShipmentsurchargeData($identity);
             $basicInfo['chargedata'] = array();
@@ -381,7 +381,8 @@ class allShipments extends Icargo
             'basicInfo' => $basicInfo,
             'priceinfo' => $shipmentsPriceInfoData,
             'trackinginfo' => $trackinginfo,
-            'podinfo' => $podinfo
+            'podinfo' => $podinfo,
+			'parcelInfo'=>$parcelInfo
         );
     }
 
