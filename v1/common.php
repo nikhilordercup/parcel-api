@@ -113,9 +113,9 @@
         {                        
             $collectionCountry = $data->collection_country;
             $deliveryCountry = $data->delivery_country;            
-            echo $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";                        
+            //echo $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";                        
             $records = $this->db->getRowRecord($sql);   
-            print_r($records);
+            //print_r($records);
             return $records['dutiable'];
         }
 

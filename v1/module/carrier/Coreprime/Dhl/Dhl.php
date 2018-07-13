@@ -44,7 +44,7 @@ final class Coreprime_Dhl extends Carrier {
         return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.png');
     }
 
-    public function getShipmentDataFromCarrier($loadIdentity, $rateDetail) {
+    public function getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData = array()) {        
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);        
 
@@ -86,29 +86,36 @@ final class Coreprime_Dhl extends Carrier {
                 $carrierAccountNumber = $data['carrier_account_number'];
             }
         }
+                        
+        $packageCode = '';
+        foreach ($allData->parcel as $parcel) {
+           $packageCode = $parcel->package_code;
+        }
+        
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
         $response['package'] = $this->getPackageInfo($loadIdentity);
         $serviceInfo = $this->getServiceInfo($loadIdentity);
         $response['currency'] = isset($serviceInfo['currency']) && !empty($serviceInfo['currency']) ? $serviceInfo['currency'] : 'GBP';
         $response['service'] = $serviceInfo['service_code'];
+        $isDutiable = ( isset($allData->dutiable) && !empty($allData->dutiable) ) ?  "1" : "0";
 
         /*         * ********start of static data from requet json ************** */
         $response['extra'] = array(
-            'reference_id' => 'M0009',              // icargo order number  load identity
+            'reference_id' => "$loadIdentity",              // icargo order number  load identity
             'reference_id2' => '',                  // customer identification number
-            'contents' => 'test description',               // contents of the parcel field, (qn for multiple ?)
-            'terms_of_trade' => '',                 // ask arvind (this is only applicable for duitable shipment)
-            'neutral_delivery' => '',               // ?
-            'paperless_trade' => '',                // flag that delivery country support paperless trade
+            'contents' => 'test description',       // contents of the parcel field, (qn for multiple ?)
+            'terms_of_trade' => isset($allData->terms_of_trade) ? $allData->terms_of_trade : '',                 // ask arvind (this is only applicable for duitable shipment)
+            'neutral_delivery' => "false",          // ?
+            'paperless_trade' => "false",           // flag that delivery country support paperless trade
             'inxpress' => '',                       // not in use
             'region_code' => 'EU',                  // ?
             'confirmation' => '',                   // ? delivery has been done or not, confirm with Akshar?
             'inbound' => 'false',                   // import shipment, if it is coming from another country
-            'is_document' => 'false',               // doc or non doc
+            'is_document' => isset($allData->is_document) && !empty($allData->is_document) ? "true" : "false",               // doc or non doc
             'customs_form_declared_value' => '',    // duitable related value 
             'other_reseller_account' => '',         // not in use
             'gnd_payment_type' => '0',              // not in use
-            'dutiable' => '',                       // true or false
+            'dutiable' => $isDutiable,              // true or false
             'residential_boolean' => '',            // yes or no (from customer)
             'itn' => '',                            // ?
             'auto_return' => '',                    // ?
@@ -130,14 +137,15 @@ final class Coreprime_Dhl extends Carrier {
             'print_to_screen' => 'false',           // no idea
             'mask_account_number' => '',            // not needed
             'intra_eu_shipping' => '',              // not needed
-            'package_type' => '',                   // package type ( Asked for multiple
+            'package_type' => "$packageCode",                   // package type ( Asked for multiple
             'payer_of_duties' => '',                // ask receiver will pay or sender will pay
             'dropoff_type' => '',                   // ?
             'thermal_image' => '',                  // ?
             'invoice_number' => ''                  // ?
         );
-
+        
         $response['insurance'] = array('value' => '', 'currency' => $response['currency'], 'insurer' => '');
+        
         if ($rateDetail) {
             $rateDetail = (array) $rateDetail;
             unset($rateDetail['price']);
@@ -145,13 +153,46 @@ final class Coreprime_Dhl extends Carrier {
             unset($rateDetail['currency']);
             unset($rateDetail['rate_type']);
         }
+        
         $response['constants'] = $rateDetail;
         $response['label_options'] = array('format' => 'EPL2', 'size' => '', 'rotation' => '');
         $response['customs'] = '';
         $response['billing_account'] = array('payor_type' => '', 'billing_account' => '', 'billing_country_code' => '', 'billing_person_name' => '', 'billing_email' => '');
         $response['label'] = array();
         $response['method_type'] = 'post';
-        /*         * ********end of static data from requet json ************** */
+        
+        $items = $contents = array(); 
+        $totalValue = 0;
+                
+        if(isset($allData->items)) {            
+            $key = 0;
+            foreach ( $allData->items as $item ) {                
+                $items[$key]['item_description'] = $item->item_description;
+                $items[$key]["item_quantity"] = $item->item_quantity;
+                $items[$key]["country_of_origin"] = $item->country_of_origin->alpha2_code;
+                $items[$key]["item_value"] = $item->item_value;                
+                $items[$key]["hs_code"] = '';
+                $items[$key]["item_code"] = '';
+                $items[$key]["item_weight"] = '';
+                
+                $contents[] = $item->item_description;
+                $totalValue = $totalValue + $item->item_value;
+                $key++;
+            }
+        }
+        
+        $response['customs'] = array( 
+            'items' => $items, 
+            'declared_value' => "$totalValue", 
+            'total_weight' => '', 
+            'terms_of_trade' => isset($allData->terms_of_trade) ? $allData->terms_of_trade : '', 
+            'contents' => ($contents) ? implode(', ', $contents) : ''
+        );
+        
+        $response['extra']['contents'] = ($contents) ? implode(', ', $contents) : '';
+        $response['extra']['customs_form_declared_value'] = "$totalValue";
+        
+        /**********end of static data from requet json ************** */
         //print_r($response);die;
         return $this->_getLabel($loadIdentity, json_encode($response));
         //return $response;

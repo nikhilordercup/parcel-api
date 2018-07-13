@@ -347,9 +347,7 @@ class Booking extends Icargo
 
     protected
 
-    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status,$is_insured){
-        if($is_insured == "")
-			$is_insured = false;
+    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail){       
 		
         $service_data = array();
 
@@ -396,7 +394,11 @@ class Booking extends Icargo
             $service_data["invoice_reference"] = "";
             $service_data["service_request_string"] = $this->serviceRequestString;
             $service_data["service_response_string"] = $this->serviceResponseString;
-			$service_data["is_insured"] = ($is_insured==true) ? 1 : 0;
+            
+            $service_data["is_insured"] = ($otherDetail['is_insured'] == true) ? 1 : 0;;
+            $service_data["reason_for_export"] = $otherDetail['reason_for_export'];
+            $service_data["tax_status"] = $otherDetail['tax_status'];
+            $service_data["terms_of_trade"] =  $otherDetail['terms_of_trade'];
 
             $service_data["status"] = $booking_status;
                                     
@@ -407,6 +409,25 @@ class Booking extends Icargo
             return array("status"=>"error", "message"=>"shipment service not saved");
         }
         return $surchargeAndTaxValue;
+    }
+    protected function _saveShipmentItems($item, $load_identity, $customer_id, $booking_status){
+        
+        $items_data = array();
+        $date = date('Y-m-d H:i:s');            
+        $items_data["load_identity"] = $load_identity;
+        $items_data["item_description"] = $item->item_description;
+        $items_data["item_quantity"] = $item->item_quantity;
+        $items_data["country_of_origin"] = $item->country_of_origin->alpha2_code;
+        $items_data["item_value"] = $item->item_value;
+        $items_data["created"] = $date;
+        $items_data["updated"] = $date;
+        $items_data["status"] = $booking_status;            
+        
+        $item_id = $this->modelObj->saveItemService($items_data);
+        if($item_id>0){
+            return array("status"=>"success", "message"=>"shipment item saved", "item_id"=>$item_id);
+        }        
+        return array("status"=>"error", "message"=>"shipment item not saved");        
     }
 
     private

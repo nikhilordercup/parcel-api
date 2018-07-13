@@ -610,15 +610,15 @@ final class Nextday extends Booking {
 
             $surchargesArr = isset($this->_param->service_opted->collection_carrier->surcharges) ? $this->_param->service_opted->collection_carrier->surcharges : array();
 
-            if(isset($this->_param->is_insured)) 
-            {            
-                $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending",$this->_param->is_insured);
-            }
-            else 
-            {            
-                $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending","");
-            }
-
+            $otherDetail = array(
+                'reason_for_export' => isset($this->_param->reason_for_export) ? $this->_param->reason_for_export : '',
+                'tax_status' => isset($this->_param->tax_status) ? $this->_param->tax_status : '',
+                'terms_of_trade' => isset($this->_param->terms_of_trade) ? $this->_param->terms_of_trade : '',
+                'is_insured' => isset($this->_param->is_insured) ? $this->_param->is_insured : false
+            );
+                        
+            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending", $otherDetail);
+                                   
             if ($serviceStatus["status"] == "error") {
                 $this->rollBackTransaction();
                 return $serviceStatus;
@@ -675,7 +675,17 @@ final class Nextday extends Booking {
                     }
                 }
             }
-
+            
+            if(isset($this->_param->items)) 
+            {            
+                foreach($this->_param->items as $item){
+                    $serviceStatus = $this-> _saveShipmentItems($item, $loadIdentity, $this->_param->customer_id, $booking_status = 0);
+                    if($serviceStatus["status"]=="error"){
+                        $this->rollBackTransaction();
+                        return $serviceStatus;
+                    }
+                }
+            } 
             //get shipment volume and heighest dimension
             $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
 
@@ -684,17 +694,18 @@ final class Nextday extends Booking {
         $this->commitTransaction();
 		
         /*************call label generation method************/
+        $allData = $this->_param;
         $carrier_code = $this->_param->service_opted->carrier_info->code;
-        $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();
-        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail);
+        $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();        
+        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
 		
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
     }
 
-    public function getLabelFromLoadIdentity($loadIdentity, $rateDetail) {
+    public function getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData = array()) {        
         /* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation */
         $carrierObj = new Carrier();
-        $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail);
+        $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail, $allData);
         //return array("status" => "success", "file_path" => $bookingInfo['file_path']);
         //print_r($bookingInfo);die;
 

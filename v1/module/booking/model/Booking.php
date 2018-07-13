@@ -223,6 +223,13 @@ class Booking_Model_Booking
 
     public
 
+    function saveItemService($data){        
+        $id = $this->_db->save("shipment_items", $data);
+        return $id;
+    }
+
+    public
+
     function saveShipmentPrice($data){
         $id = $this->_db->save("shipment_price", $data);
         return $id;

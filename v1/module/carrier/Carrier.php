@@ -8,7 +8,7 @@ class Carrier{
 	public function __construct(){
         $this->modelObj = new Booking_Model_Booking();
     }
-	public function getShipmentInfo($loadIdentity, $rateDetail){             
+	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){             
 		$carrierObj = null;
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
@@ -29,7 +29,7 @@ class Carrier{
 		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($deliveryCarrier));
 
 		$carrierObj = new $coreprimeCarrierClass();
-		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail);
+		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
 		return array("status"=>"success","file_path"=>$shipmentInfo['file_path']);
 		//$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
 		
