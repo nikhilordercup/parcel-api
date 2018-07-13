@@ -104,10 +104,6 @@ class Firebase_Route_Assign extends Firebase
         
         $this->_route_type  = $this->_get_route_type($route_data);
         
-        //if($shipment['shipment_service_type']=="P")
-        //    $this->_route_type             = "collection";
-        //$tempData = $this->_shipmentDrops($this->_getDropOfCurrentRoute());
-        
         $tempData = $this->_shipmentDrops($route_data);
         $routeInfo['total_parcel']  = $tempData['total_parcel'];
 		$routeInfo['job_remaining'] = $tempData['job_remaining'];
@@ -141,6 +137,24 @@ class Firebase_Route_Assign extends Firebase
 
         $newPost = $database
             ->getReference('route-posts/'.$data["uid"])
+            ->push($data);
+        return $newPost->getKey();
+    }
+
+    private function _assignToExistingRoute($data){
+        $serviceAccount = ServiceAccount::fromJsonFile($this->_getFirebaseCredential());
+        $firebase = (new Factory)
+            ->withServiceAccount($serviceAccount)
+            // The following line is optional if the project id in your credentials file
+            // is identical to the subdomain of your Firebase project. If you need it,
+            // make sure to replace the URL with the URL of your project.
+            ->withDatabaseUri($this->_getFirebaseDbUrl())
+            ->create();
+
+        $database = $firebase->getDatabase();
+
+        $newPost = $database
+            ->getReference('route-services/'.$data["uid"])
             ->push($data);
         return $newPost->getKey();
     }
@@ -181,7 +195,7 @@ class Firebase_Route_Assign extends Firebase
             'warehouse_id'=>$this->_getWarehouseId(),
             'company_id'=>$this->_getCompanyId()
         ));
-
+       
         $notification->sendRouteAssignNotification();
 
         return $postId;
@@ -292,7 +306,8 @@ class Firebase_Route_Assign extends Firebase
     {   
         $routeData = $this->_getRouteDetailByShipmentRouteId();
         $shipmentData = $this->_getDropOfCurrentRoute();
-        return array("code"=>"shipment/assigned-to-current-route","uid"=>$routeData["uid"],"target_post_id"=>$routeData["firebase_id"],"shipment_route_id"=>$routeData["shipment_route_id"],"shipments"=>$this->_shipmentDrops($shipmentData));
+        $data = array("code"=>"shipment/assigned-to-current-route","uid"=>$routeData["uid"],"target_post_id"=>$routeData["firebase_id"],"shipment_route_id"=>$routeData["shipment_route_id"],"shipments"=>$this->_shipmentDrops($shipmentData));
+        return $this->_assignToExistingRoute($data);
     }
 }
 ?>

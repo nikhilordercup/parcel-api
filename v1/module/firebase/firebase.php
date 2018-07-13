@@ -153,11 +153,11 @@ class Firebase{
            
            
             array_push($this->_shipment_tickets, $shipment['shipment_ticket']);
-            
+
             $temp[$drop]['totweight']                       = $temp[$drop]['totweight'] + $shipment['shipment_total_weight'];
             $temp[$drop]['totvolume']                       = $temp[$drop]['totvolume'] + $shipment['shipment_total_volume'];
             $temp[$drop]['totparcel']                       = $temp[$drop]['totparcel'] + $shipment['shipment_total_item'];
-            //$temp[$drop]['estimated_time']                  = $temp[$drop]['estimated_time'] + $shipment['estimatedtime'];
+            $temp[$drop]['estimated_time']                  = $temp[$drop]['estimated_time'] + strtotime($shipment['estimatedtime']);
             $temp[$drop]['distance_miles']                  = $temp[$drop]['distance_miles'] + $shipment['distancemiles'];
           
             $temp[$drop]['shipment_id']                     = implode(',', $temp1[$drop]['shipment_id']);

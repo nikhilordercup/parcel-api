@@ -932,7 +932,7 @@ class View_Support extends Icargo{
     		   $failBucket[] = $ship['shipment_ticket'];		
     		}
 	    }
-        $returnStatus = (count($failBucket)>0) ? false : true;  
+        $returnStatus = (count($failBucket)>0) ? "error" : "success";  
        
         $firebaseData = array();
 
@@ -942,13 +942,11 @@ class View_Support extends Icargo{
                 "shipmet_tickets"=>$this->shipment_ticket,
                 "driver_id"=>$routeDetail["driver_id"], 
                 "route_id"=>$this->shipment_route_id,
-                'get_drop_from'=>"shipment_ticket")
+                "get_drop_from"=>"shipment_ticket")
             );
             $firebaseData = $firebaseObj->getCurrentAssignedShipmentData();
-            $firebaseData["driver_id"] = $routeDetail["driver_id"];
-
         }
-        return array('status'=>$returnStatus,'message'=>count($successBucket).' Job(s) has been assigned to route ' . $routeDetail["route_name"],"firebaseData"=>$firebaseData);
+        return array('status'=>$returnStatus,'message'=>count($successBucket).' Job(s) has been assigned to route ' . $routeDetail["route_name"]);
        }	
  
     public function assignShipment($shipmentDetails,$shipment_route_id,$companyid,$warehouseid) { 
@@ -1037,7 +1035,7 @@ class View_Support extends Icargo{
 		
 		
 		$updatedRoute['driver_id']         = $driverid;
-        $updatedRoute['assign_start_time'] = date("H:i:s", strtotime($start_time));//str_replace(' ', '', $start_time . ':00');
+        $updatedRoute['assign_start_time'] = date("H:i:s", strtotime($start_time));
         $updatedRoute['is_active']         = 'Y';
         $updatedRoute['status']            = '1';
 		$condition        = "shipment_route_id = '".$shipment_route_id."'";
@@ -1082,18 +1080,17 @@ class View_Support extends Icargo{
 		        $countdata+=$numaffected;
 		    }
 		} 
-		$data =   ($numaffected>0) ?true:false;
+		$data =   ($numaffected>0) ?"success":"error";
         
-        if($data==true){ 
+        if($data=="success"){ 
             $firebaseObj = new Firebase_Route_Assign(array("driver_id"=>$driverid,"route_id"=>$shipment_route_id,"warehouse_id"=>$warehouse_id,
                                                "email"=>$this->email,"company_id"=>$company_id));
-            
-           return array(
-                'status' => true,
-                'message' => 'Requested Route has been Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+            $postId = $firebaseObj->getCurrentAssignedRouteData();
+            $this->modelObj->editContent("shipment_route",array("firebase_id"=>$postId),"shipment_route_id = '$shipment_route_id'");
+            return array(
+                'status' => "success",
+                'message' => "Requested Route has been Assigned to driver."
             );
-        
        }else{
         return array('status'=>$data,'message'=>'Total '.count($numaffected).' Shipment has been Assign to driver.');   
        }
@@ -1835,41 +1832,6 @@ class View_Support extends Icargo{
         return $temparr;
     }
 
-    /*public function checkUkPostcodeettern($requestedPostcode){  
-	 $validatorPettern[] =  '/^[A-Za-z]{1}[0-9]{1}[\s]{1}[0-9]{1}[A-Za-z]{2}/';  //A9 9AA
-	 $validatorPettern[] =  '/^[A-Za-z]{1}[0-9]{2}[\s]{1}[0-9]{1}[A-Za-z]{2}/';  //A99 9AA
-	 $validatorPettern[] =  '/^[A-Za-z]{1}[0-9]{1}[A-Za-z]{1}[\s]{1}[0-9]{1}[A-Za-z]{2}/'; //A9A 9AA	
-	 $validatorPettern[] =  '/^[A-Za-z]{2}[0-9]{1}[A-Za-z]{1}[\s]{1}[0-9]{1}[A-Za-z]{2}/';//AA9A 9AA
-	 $validatorPettern[] = '/^[A-Za-z]{2}[0-9]{2}[\s]{1}[0-9]{1}[A-Za-z]{2}/';	//AA99 9AA
-	 $validatorPettern[] =  '/^[A-Za-z]{2}[0-9]{1}[\s]{1}[0-9]{1}[A-Za-z]{2}/';	//AA9 9AA
-     $status = 'fail';
-	 foreach($validatorPettern as $key=>$val){
-         if (preg_match($val,$requestedPostcode)){
-             $status = 'pass';
-		     break;
-         }
-	 }
-	  return $status;
-    } */
-    
-    /*public function get_lat_longbyPostcode($postcode,$lat,$long){
-        $curl_handle=curl_init();
-        curl_setopt($curl_handle, CURLOPT_URL,"https://api.postcodes.io/postcodes/$postcode");
-        curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl_handle, CURLOPT_USERAGENT, 'cargo');
-        $query = curl_exec($curl_handle);
-        curl_close($curl_handle);
-        $json = json_decode($query);
-        if($json->status==200){
-        return $json->result->latitude.','.$json->result->longitude;
-            }else{
-        return $lat.','.$long;
-		}
-   
-  } */
-    
-    
   public function getaddressbypostcode(){
           $pcaLookup = new Address_Lookup();
           $addresses = $pcaLookup->lookup($this->shipment_postcode);
@@ -1889,99 +1851,5 @@ class View_Support extends Icargo{
               return array();
           }
       }
-    
-    /*
-    public function exportrunsheet(){  
-		$shipRoute_id 	= $this->shipment_route_id;
-		$driverid 	    = $this->driver_Id;
-		$company_id 	= $this->company_id;
-        
-         $getDriverDetails = $this->modelObj->getDriverRunsheetExportData($driverid,$shipRoute_id);
-         $timeStr = "H:i:s";
-         $data = array();
-         if(count($getDriverDetails)>0){
-			 $count = 1;
-			 foreach($getDriverDetails as $key=>$value){
-				 $ticket = "'".$value['shipment_ticket']."'";
-				 $additionalInfo =  $this->modelObj->getShipmentAdditionalDetailsOneRow($ticket);
-				 $driverName = $value['name'];
-				 $routeName = $value['route_name'];
-				 $data[] =  array("sr"=>$count,
-									"shipment_consignment"=>$value['instaDispatch_objectIdentity'],
-									"instaDispatch_docketNumber"=>$value['instaDispatch_docketNumber'],	
-									"shipment_total_item"=>$value['shipment_total_item'],	
-									"shipment_required_service_date"=>date("d-m-Y",strtotime($value['shipment_required_service_date'])).'<br/>'.'('.date($timeStr,strtotime($value['shipment_required_service_starttime'])).' - '.date($timeStr,strtotime($value['shipment_required_service_endtime'])).')',
-									"shipment_postcode"=>$value['shipment_postcode'],
-									"recived_data"=>$additionalInfo);
-				 $count++;
-				}
-				$exportData = $data;		 
-			 }
-			 
-            return $this->getHtmlTemplate($data,$driverName,$routeName);      
-        }
-
-    public function getHtmlTemplate($data,$driverName,$routeName){
-	     //$imgSrc = "https://www.perceptive-solutions.com/wp-content/uploads/2014/12/pcs-logo1.png";
-		 $imgSrc = "";
-	     $html = "";
-	     $htmlhead = "";
-	     $htmlhead.= '<table border="1">';
-	     $htmlhead.= '<tr>';
-	     $htmlhead.= '<td colspan="3" style="text-align:center;font-size:15px;font-weight:bold;" height="20px;">'.'Driver Run Sheet'.'<img src="'.$imgSrc.'" height="20px;" width="70px;"></td>';
-	     $htmlhead.= '</tr>';
-	     $htmlhead.= '<tr>';
-	     $htmlhead.= '<td style=" padding:10px; height:20px;"><strong>'.str_repeat('&nbsp;',3).'Driver : '.$driverName.'</strong></td>';
-	     $htmlhead.= '<td style=" padding:10px; height:20px;"><strong>'.str_repeat('&nbsp;',3).'Date : '.date("d-m-Y").'</strong></td>';
-	     $htmlhead.= '<td style=" padding:10px; height:20px;"><strong>'.str_repeat('&nbsp;',3).'Route : '.$routeName.'</strong></td>';
-	     $htmlhead.= '</tr>';
-	     $htmlhead.= '<tr>';
-	     $htmlhead.= '<td colspan="3">';
-	     $htmlhead.= '<table cellpadding="0" cellspacing="0" class="pdf-content" border="0">';
-	     $htmlhead.= '<tr>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;" width="35px;"><b>Order</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;" width="52px;"><b>Docket No</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;"><b>Ref1</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;" width="50px;"><b>Postcode</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;"  width="39.5px;"><b>Exp. Item(S)</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;"><b>Exp. Delivery Date</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;" width="100px;"><b>Received Item(S)</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;" width="76.7px;"><b>Signature</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;border-right: 1px solid #000000;" width="124.3px;"><b>Name</b></td>';
-	     $htmlhead.= '<td align="center" style=" padding:10px; height:30.01px;" width="126.8px;"><b>Date & Time</b></td>';
-	     $htmlhead.= '</tr>'; 
-	     $htmlhead.= '</table>'; 
-	     $htmlhead.= '</td>'; 
-	     $htmlhead.= '</tr>'; 
-	     $htmlhead.= '</table>'; 
-	   
-	      $html.= '<table cellpadding="0" cellspacing="0" class="pdf-content" border="0">';
-	      $html.= '<tr>';
-	      $html.= '<td colspan="3">';
-	      $html.= '<table cellpadding="0" cellspacing="0" class="pdf-content" border="1">';
-	      $counter = 1;
-	     foreach($data as $inerVals){	
-		   $html.= '<tr>';
-		   $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="35px;">'.$counter.'</td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="52px;">'.$inerVals['instaDispatch_docketNumber'].'</td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;">'.$inerVals['shipment_consignment'].'</td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="50px;">'.$inerVals['shipment_postcode'].'</td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="39.5px;">'.$inerVals['shipment_total_item'].'</td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;">'.$inerVals['shipment_required_service_date'].'</td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="100px;">'.str_replace(',','<br/>',$inerVals['recived_data']).'</td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="76.7px;"></td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="124.3px;"></td>';
-	       $html.= '<td align="center" style=" padding:10px; height:30.01px;" width="127px;"></td>';
-	       $html.= '</tr>'; 
-		   $counter++; 
-	     }
-	     $html.= '</table>';
-	     $html.= '</td>'; 
-	     $html.= '</tr>';
-	     $html.= '</table>'; 
-	     echo $htmlhead.$html;die;
-      }
-	  */
-    
   }	
 ?>
