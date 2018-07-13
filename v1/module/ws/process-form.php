@@ -276,7 +276,6 @@ class Process_Form{
                             'status'  => "error"
                         ); 
                     }
-                    
                 } 
             else 
             {
