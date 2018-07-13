@@ -5,6 +5,7 @@
 		"firebase/php-jwt": "^5.0",
     "setasign/fpdf": "^1.8",
     "setasign/fpdi": "^2.0",
-		"sngrl/php-firebase-cloud-messaging": "dev-master"
+		"sngrl/php-firebase-cloud-messaging": "dev-master",
+    "kreait/firebase-php": "^4.0"
 	}
 }

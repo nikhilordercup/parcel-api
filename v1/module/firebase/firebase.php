@@ -157,7 +157,7 @@ class Firebase{
             $temp[$drop]['totweight']                       = $temp[$drop]['totweight'] + $shipment['shipment_total_weight'];
             $temp[$drop]['totvolume']                       = $temp[$drop]['totvolume'] + $shipment['shipment_total_volume'];
             $temp[$drop]['totparcel']                       = $temp[$drop]['totparcel'] + $shipment['shipment_total_item'];
-            $temp[$drop]['estimated_time']                  = $temp[$drop]['estimated_time'] + $shipment['estimatedtime'];
+            //$temp[$drop]['estimated_time']                  = $temp[$drop]['estimated_time'] + $shipment['estimatedtime'];
             $temp[$drop]['distance_miles']                  = $temp[$drop]['distance_miles'] + $shipment['distancemiles'];
           
             $temp[$drop]['shipment_id']                     = implode(',', $temp1[$drop]['shipment_id']);
@@ -262,6 +262,20 @@ class Firebase{
     protected function _getRouteDetailByShipmentRouteId()
     {
         return $this->modelObj->getShipmentRouteByShipmentRouteId($this->_getRouteId());
+    }
+
+    protected function _getFbCredential(){
+        if(ENV=='live')
+            return './credentials/idriver-production-270f0f61a989.json';
+        else
+            return './credentials/idriver-1476714038443-dca3cfbca340.json';
+    }
+
+    protected function _getFirebaseDb(){
+        if(ENV=='live')
+            return 'https://idriver-production.firebaseio.com/';
+        else
+            return 'https://idriver-1476714038443.firebaseio.com/';
     }
 }
 ?>

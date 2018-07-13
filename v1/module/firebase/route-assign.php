@@ -1,4 +1,7 @@
 <?php
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\ServiceAccount;
+
 class Firebase_Route_Assign extends Firebase
 {
 	private $_driver_id;
@@ -31,6 +34,14 @@ class Firebase_Route_Assign extends Firebase
         if(isset($param['shipmet_tickets'])){
             $this->fbObj->_shipment_tickets = $param['shipmet_tickets'];
         }
+    }
+
+    private function _getFirebaseCredential(){
+        return $this->_getFbCredential();
+    }
+
+    private function _getFirebaseDbUrl(){
+        return $this->_getFirebaseDb();
     }
     
     private function _setWarehouseId($v)
@@ -68,12 +79,12 @@ class Firebase_Route_Assign extends Firebase
 		return $this->email;
 	}
 	
-    protected function _getDropOfCurrentRoute()
+    private function _getDropOfCurrentRoute()
     {
         return parent::_assignedShipmentOfRoute();
     }
     
-    protected function _get_route_type($input)
+    private function _get_route_type($input)
     {
         foreach($input as $data)
         {
@@ -115,6 +126,24 @@ class Firebase_Route_Assign extends Firebase
         
 		return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
     }
+
+    private function _assignRoute($data){
+        $serviceAccount = ServiceAccount::fromJsonFile($this->_getFirebaseCredential());
+        $firebase = (new Factory)
+            ->withServiceAccount($serviceAccount)
+            // The following line is optional if the project id in your credentials file
+            // is identical to the subdomain of your Firebase project. If you need it,
+            // make sure to replace the URL with the URL of your project.
+            ->withDatabaseUri($this->_getFirebaseDbUrl())
+            ->create();
+
+        $database = $firebase->getDatabase();
+
+        $newPost = $database
+            ->getReference('route-posts/'.$data["uid"])
+            ->push($data);
+        return $newPost->getKey();
+    }
 	
 	public function getCurrentAssignedRouteData()
 	{
@@ -143,11 +172,21 @@ class Firebase_Route_Assign extends Firebase
 
         $notification = new Push_Notification_Index(array("user_id"=>array($this->_getDriverId())));
 
+        $postId = $this->_assignRoute(array(
+            'code'=>'route/assigned',
+            'route_info'=>$routeInfo,
+            'shipment_drops'=>$tempData['shipments_drops'],
+            'uid'=>$this->_getDriverFirebaseId(),
+            'username'=>$driver_data['name'],
+            'warehouse_id'=>$this->_getWarehouseId(),
+            'company_id'=>$this->_getCompanyId()
+        ));
+
         $notification->sendRouteAssignNotification();
 
+        return $postId;
 
-
-        return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
+        //return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());
     }
 	
 	private function _shipmentDrops($shipmentDrops)

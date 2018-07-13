@@ -88,27 +88,34 @@ class Load_Assign_Model extends Shipment_Model
         $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$loadidentity'  AND shipment_service_type = 'P' AND current_status = 'C'";
         return $this->db->getRowRecord($sql);
         }
-      public
+
+    public
 
     function getCollectionjobDetails($loadidentity)
         {
         $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$loadidentity'  AND shipment_service_type = 'P'";
         return $this->db->getRowRecord($sql);
         }
-      public
+    public
 
     function checkNotPendingDeliveryjob($loadidentity)
         {
         $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$loadidentity'  AND shipment_service_type = 'D' AND current_status = 'C'";
         return $this->db->getAllRecords($sql);
         }
-     public
+    public
 
     function getTempRouteDetail($route_id)
         {
         $sql = "SELECT route_type FROM " . DB_PREFIX . "temp_routes WHERE temp_route_id = '$route_id'";
         $data =  $this->db->getRowRecord($sql);
          return $data['route_type'];
-        }   
+        }
+
+    public
+
+    function saveRouteFirebaseId($shipment_route_id, $firebase_id){
+        return $this->db->update("shipment_route", array("firebase_id"=>$firebase_id), "shipment_route_id = $shipment_route_id");
     }
+}
 ?>
