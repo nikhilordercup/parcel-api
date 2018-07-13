@@ -153,8 +153,6 @@ class Process_Form{
                 { 
                     $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
                      
-                    $shipment_details['current_status'] = "O"; //only for testing. after testing remove the line;
-                   
                     if($shipment_details!=null and $shipment_details['current_status']!='D')
                     {
                         if(isset($pod_data["pod"]) and !empty($pod_data["pod"]))
