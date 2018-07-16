@@ -41,7 +41,9 @@ class Load_Assign_Model extends Shipment_Model
 
     function getRouteDetails($shipment_str, $access_token)
         {
-        $sql = "SELECT t1.load_identity,t1.shipment_type,t1.drag_temp_route_id, t1.execution_order, t1.drop_execution_order, t1.temp_shipment_ticket, t1.distancemiles, t1.estimatedtime, t2.route_id, t2.route_name, t2.is_optimized, t2.optimized_type, t2.last_optimized_time, t2.route_type FROM " . DB_PREFIX . "temp_routes_shipment AS t1 ";
+        $sql = "SELECT t1.load_identity,t1.shipment_type,t1.drag_temp_route_id, t1.execution_order, t1.drop_execution_order, "
+                . "t1.temp_shipment_ticket, t1.distancemiles, t1.estimatedtime, t2.route_id, t2.route_name, t2.is_optimized, "
+                . "t2.optimized_type, t2.last_optimized_time, t2.route_type FROM " . DB_PREFIX . "temp_routes_shipment AS t1 ";
         $sql.= "LEFT JOIN " . DB_PREFIX . "temp_routes AS t2 ON t1.drag_temp_route_id = t2.temp_route_id ";
         $sql.= "WHERE t1.temp_shipment_ticket IN('$shipment_str') AND t1.session_id = '$access_token ' ORDER BY t1.execution_order";
         return $this->db->getAllRecords($sql);

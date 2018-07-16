@@ -138,7 +138,7 @@ class Route_Optimize extends Library
 				{
                                 $time=$item->duration;
 				$temp = explode("__SEPARATOR__",$item->name);
-                $this->_update_optimization_order($temp[2],++$key,$time);
+                                $this->_update_optimization_order($temp[2],++$key,$time);
 				array_push($data, array('execution_order'=>++$execution_order,'temp_route_id'=>$temp[0],'data_index'=>$temp[1],'shipment_id'=>$temp[2],'route_index'=>$temp[3],'address_string'=>$item->name));
 				}
 			return array("status"=>true,"message"=>$results['message'],"data"=>$data);
