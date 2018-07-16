@@ -313,5 +313,41 @@ class Booking_Model_Booking
 	public function saveLabelDataByLoadIdentity($labelArr,$loadIdentity){
 		return $this->_db->update("shipment_service",$labelArr,"load_identity='".$loadIdentity."'");
 	}
+	
+	public function getBookingStatusByLoadidentity($loadIdentity){
+		$sql = "SELECT status as booking_status FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity='$loadIdentity'";
+		return $this->_db->getRowRecord($sql);
+	}
+	
+	public function deleteBookingDataByLoadIdentity($loadIdentity){
+		$service_id = $this->_db->getRowRecord("SELECT id FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity='$loadIdentity'");
+		//delete from shipment table
+		$deleteShipment = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment WHERE instaDispatch_loadIdentity='$loadIdentity'");
+		if($deleteShipment){
+			//delete from shipment parcel
+			$deleteShipmentParcel = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipments_parcel WHERE instaDispatch_loadIdentity='$loadIdentity'");
+			//delete from shipment price table
+			$deleteShipmentPrice = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_price WHERE load_identity='$loadIdentity'");
+			//delete from shipment attribute table
+			$deleteShipmentAttributes = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_attributes WHERE load_identity='$loadIdentity'");
+			//delete from shipment collection table
+			$deleteShipmentCollection = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_collection WHERE service_id=".$service_id['id']."");
+			//delete from shipment service table
+			$deleteShipmentService = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_service WHERE load_identity='$loadIdentity'");
+			
+			return array("status"=>"success","message"=>"shipment deleted successfully");
+		}else{
+			return array("status"=>"error","message"=>"error while deleting shipment");
+		}
+	}
+	
+	public function updateBookingStatus($statusArr,$loadIdentity){
+		return $this->_db->update("shipment_service",$statusArr,"load_identity='".$loadIdentity."'");
+	}
+	
+	public function getAutoPrintStatusByCustomerId($customerId){
+		$sql = "SELECT auto_label_print as auto_label_print FROM ".DB_PREFIX."customer_info AS CI WHERE CI.id=".$customerId."";
+		return $this->_db->getRowRecord($sql);
+	}
 }
 ?>
