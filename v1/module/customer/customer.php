@@ -1135,6 +1135,40 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         }
     }
 	
+	public function setCustomerWarehouse($param){
+	    try{
+            $this->modelObj->startTransaction();
+            if($param->status==1){
+				//Set requested address as "Y"
+				$status = $this->modelObj->searchCustomerAddressByAddressId($param);
+				if($status>0){
+					$status = $this->modelObj->enableCustomerWarehouseAddress($param);
+				}else{
+					$status = $this->modelObj->saveCustomerWarehouseAddress($param);
+				}
+				if($status){
+					$this->modelObj->commitTransaction();
+					return array("status"=>"success","message"=>"Warehouse updated successfully");
+				}else{
+					$this->modelObj->rollBackTransaction();
+					return array("status"=>"error","message"=>"Warehouse not updated");
+				}
+			}else{
+				$status = $this->modelObj->disableCustomerWarehouseAddressByAddressId($param);
+				if($status){
+					$this->modelObj->commitTransaction();
+					return array("status"=>"success","message"=>"Warehouse updated successfully");
+				}else{
+					$this->modelObj->rollBackTransaction();
+					return array("status"=>"error","message"=>"Warehouse not updated");
+				}
+			}
+        }catch(Exception $e){
+            $this->modelObj->rollBackTransaction();
+            return array("status"=>"error","message"=>"Warehouse not updated");
+        }
+    }
+	
 	public function getAddressBySearchString($param){
 		$data =  $this->modelObj->getAddressBySearchStr($param);
 		return $data;
