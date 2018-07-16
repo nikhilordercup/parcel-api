@@ -1992,3 +1992,4 @@ $app->post('/saveRoutePostId', function() use ($app) {
 });*/
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
+DriverController::initRoutes($app);

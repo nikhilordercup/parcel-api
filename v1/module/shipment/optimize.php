@@ -58,7 +58,6 @@ class Route_Optimize extends Library
 			$this->http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE); // Last received HTTP code
 			$this->error = curl_error($ch); // Get the last error
 			curl_close($ch); // Close the connection
-			
 			if($output)
 				{
 				$result = json_decode($output);
@@ -102,9 +101,9 @@ class Route_Optimize extends Library
 		
 	private
 	
-	function _update_optimization_order($shipment_id, $order)
+	function _update_optimization_order($shipment_id, $order,$duration=0)
 		{
-        $status = $this->db->update('temp_routes_shipment', array('execution_order'=>$order,'drop_execution_order'=>$order),'shipment_id IN('.$shipment_id.')');
+        $status = $this->db->update('temp_routes_shipment', array('execution_order'=>$order,'drop_execution_order'=>$order,'estimatedtime'=>$duration),'shipment_id IN('.$shipment_id.')');
 		return $status;
 		}
 	
@@ -127,9 +126,9 @@ class Route_Optimize extends Library
 	public
 
 	function tour()
-		{
+		{ 
 		$this->prepareRoutexlPostData();
-		$results = $this->_optimize_using_routexl();
+		$results = $this->_optimize_using_routexl();               
         $data = array();
 		if($results['status'])
 			{
@@ -137,8 +136,9 @@ class Route_Optimize extends Library
 			$execution_order = 0;
 			foreach($items->route as $key => $item)
 				{
+                                $time=$item->duration;
 				$temp = explode("__SEPARATOR__",$item->name);
-                $this->_update_optimization_order($temp[2],++$key);
+                $this->_update_optimization_order($temp[2],++$key,$time);
 				array_push($data, array('execution_order'=>++$execution_order,'temp_route_id'=>$temp[0],'data_index'=>$temp[1],'shipment_id'=>$temp[2],'route_index'=>$temp[3],'address_string'=>$item->name));
 				}
 			return array("status"=>true,"message"=>$results['message'],"data"=>$data);

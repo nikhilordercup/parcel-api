@@ -11,9 +11,8 @@
  *
  * @author Mandeep Singh Nain
  */
-class DriverController extends Icargo {
+class DriverController{
 
-    private $_user_id;
     protected $_parentObj;
     private $_db;
     private $_app;
@@ -27,6 +26,21 @@ class DriverController extends Icargo {
         $this->_db = new DbHandler();
         $this->_app = $app;
         $this->_requestParams = json_decode($this->_app->request->getBody());
+    }
+    /**
+     * Register routes for driver data
+     * @param type $app
+     */
+    public static function initRoutes($app) {        
+        
+        $app->post('/fetchDayRoutes', function() use ($app) { 
+            $self = new DriverController($app);
+            $r = json_decode($app->request->getBody());	
+            verifyRequiredParams(array('access_token'), $r);
+            $data=$self->getDayRoutes( $r->company_id, $r->route_date);
+            echoResponse(200, array('result'=>'success','message'=> json_encode($data)));
+        });
+       
     }
 
     /**
@@ -56,7 +70,10 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
      * Fetch all routes information according to date and grouped with assigned driver.
      */
     public function getDayRoutes($companyId,$date) {
-        $sql="SELECT * FROM `icargo_shipment_route` WHERE company_id=$companyId AND is_active='Y' AND service_date='$date'";
+        $sql="SELECT * FROM `".DB_PREFIX."shipment_route` WHERE company_id=$companyId  AND service_date='$date'";
+        $sql="SELECT * FROM `".DB_PREFIX."shipment_route` WHERE company_id=$companyId  AND driver_id > 0";
+        $rec =$this->_db->getAllRecords($sql);
+        return $rec;
     }
 
 }
