@@ -1855,6 +1855,14 @@ $app->post('/setCustomerDefaultWarehouse', function() use($app){
     echoResponse(200, $response);
 });
 
+$app->post('/setCustomerWarehouse', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','address_id','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->setCustomerWarehouse($r);
+    echoResponse(200, $response);
+});
+
 $app->post('/setInternalCarrier', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id','carrier_id','status'),$r);

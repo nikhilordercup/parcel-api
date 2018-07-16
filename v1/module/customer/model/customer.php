@@ -469,6 +469,10 @@ public function checkCustomerEmailExist($company_email){
     public function disableCustomerWarehouseAddress($param){
 	    return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='N' WHERE user_id = ".$param->customer_id);
     }
+	
+	public function disableCustomerWarehouseAddressByAddressId($param){
+	    return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='N' WHERE user_id = ".$param->customer_id." AND address_id = " . $param->address_id);
+    }
 
     public function enableCustomerWarehouseAddress($param){
 		return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='Y' WHERE user_id = '".$param->customer_id."' AND address_id = " . $param->address_id);
