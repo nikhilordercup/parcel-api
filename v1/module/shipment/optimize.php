@@ -93,7 +93,8 @@ class Route_Optimize extends Library
 			{
             //if($counter<9){
                 $drop = (isset($data->drop)) ? $data->drop : "";
-				array_push($this->_locations,array("address"=>$data->temp_route_id."__SEPARATOR__".$data->data_index."__SEPARATOR__".$data->shipment_id."__SEPARATOR__".$data->route_index."__SEPARATOR__".$drop,"lat"=>$data->latitude,"lng"=>$data->longitude));
+				array_push($this->_locations,array("address"=>$data->temp_route_id."__SEPARATOR__".$data->data_index."__SEPARATOR__".$data->shipment_id."__SEPARATOR__".$data->route_index."__SEPARATOR__".$drop,
+                                    "lat"=>$data->latitude,"lng"=>$data->longitude,"servicetime"=>3));
 			//}
 			//$counter++;
 			}
@@ -136,7 +137,7 @@ class Route_Optimize extends Library
 			$execution_order = 0;
 			foreach($items->route as $key => $item)
 				{
-                                $time=$item->duration;
+                                $time=$item->arrival;
 				$temp = explode("__SEPARATOR__",$item->name);
                                 $this->_update_optimization_order($temp[2],++$key,$time);
 				array_push($data, array('execution_order'=>++$execution_order,'temp_route_id'=>$temp[0],'data_index'=>$temp[1],'shipment_id'=>$temp[2],'route_index'=>$temp[3],'address_string'=>$item->name));
