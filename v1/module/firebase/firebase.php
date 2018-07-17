@@ -251,7 +251,7 @@ class Firebase{
 				}
 				$drops[$drop['drops']] = $drop;
 				$drops[$drop['drops']]['shipments'] = $shipData;
-				$drops[$drop['drops']]['firebase_profile'] = $this->_getFirebaseProfile();
+				//$drops[$drop['drops']]['firebase_profile'] = $this->_getFirebaseProfile();
 			}
 			return array('shipments_drops'=>$drops,'firebase_profile'=>$this->_getFirebaseProfile());
 		} else {
@@ -264,18 +264,14 @@ class Firebase{
         return $this->modelObj->getShipmentRouteByShipmentRouteId($this->_getRouteId());
     }
 
-    protected function _getFbCredential(){
-        if(ENV=='live')
-            return './credentials/idriver-production-270f0f61a989.json';
-        else
-            return './credentials/idriver-1476714038443-dca3cfbca340.json';
+    protected function _getFirebaseIdByShipmentRouteId()
+    {
+        return $this->modelObj->getFirebaseIdByShipmentRouteId($this->_getRouteId());
     }
 
-    protected function _getFirebaseDb(){
-        if(ENV=='live')
-            return 'https://idriver-production.firebaseio.com/';
-        else
-            return 'https://idriver-1476714038443.firebaseio.com/';
+    protected function _getJobCountByShipmentRouteId()
+    {
+        return $this->modelObj->getJobCountByShipmentRouteId($this->_getRouteId());
     }
 }
 ?>

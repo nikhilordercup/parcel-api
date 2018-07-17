@@ -1,7 +1,6 @@
 <?php
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\ServiceAccount;
-
+//use Kreait\Firebase\Factory;
+//use Kreait\Firebase\ServiceAccount;
 class Firebase_Route_Assign extends Firebase
 {
 	private $_driver_id;
@@ -124,39 +123,13 @@ class Firebase_Route_Assign extends Firebase
     }
 
     private function _assignRoute($data){
-        $serviceAccount = ServiceAccount::fromJsonFile($this->_getFirebaseCredential());
-        $firebase = (new Factory)
-            ->withServiceAccount($serviceAccount)
-            // The following line is optional if the project id in your credentials file
-            // is identical to the subdomain of your Firebase project. If you need it,
-            // make sure to replace the URL with the URL of your project.
-            ->withDatabaseUri($this->_getFirebaseDbUrl())
-            ->create();
-
-        $database = $firebase->getDatabase();
-
-        $newPost = $database
-            ->getReference('route-posts/'.$data["uid"])
-            ->push($data);
-        return $newPost->getKey();
+        $fbObj = new Firebase_Api();
+        return $fbObj->save('route-posts/'.$data["uid"], $data);
     }
 
     private function _assignToExistingRoute($data){
-        $serviceAccount = ServiceAccount::fromJsonFile($this->_getFirebaseCredential());
-        $firebase = (new Factory)
-            ->withServiceAccount($serviceAccount)
-            // The following line is optional if the project id in your credentials file
-            // is identical to the subdomain of your Firebase project. If you need it,
-            // make sure to replace the URL with the URL of your project.
-            ->withDatabaseUri($this->_getFirebaseDbUrl())
-            ->create();
-
-        $database = $firebase->getDatabase();
-
-        $newPost = $database
-            ->getReference('route-services/'.$data["uid"])
-            ->push($data);
-        return $newPost->getKey();
+        $fbObj = new Firebase_Api();
+        $fbObj->save('route-services/'.$data["uid"], $data);
     }
 	
 	public function getCurrentAssignedRouteData()

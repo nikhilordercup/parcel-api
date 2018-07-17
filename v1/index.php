@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once 'constant.php';
 require_once '../Credentials.php';
 require_once 'dbHandler.php';
@@ -16,16 +12,6 @@ require '../vendor/autoload.php';
 use Firebase\JWT\JWT;
 
 $app = new \Slim\Slim();
-
-/*$corsOptions = array(
-    //"origin" => array('*'),
-    "origin" => array('https://app-tree.co.uk','https://route.instadispatch.com'),
-    //"exposeHeaders" => array("X-My-Custom-Header", "X-Another-Custom-Header"),
-    "maxAge" => 1728000,
-    "allowCredentials" => false,
-    "allowMethods" => array("POST, GET, PUT, PATCH, PATCH, DELETE, HEAD, OPTIONS"),
-    "allowHeaders" => array("X-PINGOTHER, Accept, Content-Type, Pragma, X-Requested-With")
-);*/
 
 // User id from db - Global Variable
 $user_id = NULL;
@@ -66,10 +52,14 @@ require_once 'module/ws/idriver.php';
 require_once 'module/push_notification/Push_Notification_Index.php';
 
 require_once 'module/firebase/model/rest.php';
-require_once 'module/firebase/firebase.php';
-require_once 'module/firebase/shipment-withdraw-from-route.php';
+require_once 'module/firebase/Firebase.php';
+require_once 'module/firebase/Firebase_Api.php';
+require_once 'module/firebase/Firebase_Shipment_Withdraw_From_Route.php';
+require_once 'module/firebase/Firebase_Shipment_Deliver_From_Route.php';
 require_once 'module/firebase/route-accept.php';
-require_once 'module/firebase/route-assign.php';
+require_once 'module/firebase/Firebase_Route_Assign.php';
+require_once 'module/firebase/Firebase_Withdraw_Route.php';
+
 require_once 'module/firebase/route-release.php';
 
 require_once 'module/chargebee/Chargebee.php';

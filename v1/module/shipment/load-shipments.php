@@ -1126,9 +1126,6 @@ class loadShipment extends Library
     }
     public function sameDayDriverAssign($data)
     {
-        require_once dirname(dirname(__FILE__))."/firebase/route-assign.php";
-        require_once dirname(dirname(__FILE__))."/firebase/model/rest.php";
-        
         $common_obj = new Common();
         $shipment_tickets    = explode(',', $this->shipment_ticket);
         $vehicleIdofDriver = $this->_get_driver_data_by_id($this->driver_id);
