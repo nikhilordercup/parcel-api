@@ -177,5 +177,12 @@ class Ws_Model_Rest
         $records = $this->db->getRowRecord($sql);
         return $records;
     }
+
+    public function findShipmentCurrentStage($ticket, $assigned_driver, $shipment_routed_id)
+    {
+        $sql = "SELECT action_by AS action_by FROM " . DB_PREFIX . "shipment WHERE shipment_ticket = '$ticket' AND shipment_routed_id = '$shipment_routed_id' AND assigned_driver = '$assigned_driver'";
+        $record = $this->db->getOneRecord($sql);
+        return $record;
+    }
 }
 ?>

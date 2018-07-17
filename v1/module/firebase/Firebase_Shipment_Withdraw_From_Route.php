@@ -79,23 +79,21 @@ class Firebase_Shipment_Withdraw_From_Route extends Firebase
             $message = "Route completed by controller";
         }
 
-        $url = 'appservices/'.$firebaseProfile["firebase_id"];
+        $url = 'appservices/'.$firebaseProfile["firebase_id"].'/'.parent::_getDriverId();;
 
-        /*$appServiceData = $fbObj->getAppServiceMessage($url);
+        $appServiceData = $fbObj->getAppServiceMessage($url);
 
         if(is_array($appServiceData) and count($appServiceData)>0){
-            foreach($appServiceData as $id=>$item){
-                array_push($appServiceData[$id]["messages"], $message);
-            }
+            array_push($appServiceData[$id]["messages"], $message);
             $fbObj->update($url, $appServiceData);
-        }else{*/
+        }else{
             $appServiceData = array(
                 "code" => "app/refresh",
                 "sub-code" => "app refreshed from web",
                 "messages" => array($message)
             );
-            $id = $fbObj->save($url, $appServiceData);
-        //}
+            $id = $fbObj->update($url, $appServiceData);
+        }
         return array("postId"=>$id, "jobCount"=>$jobCount);
     }
 }

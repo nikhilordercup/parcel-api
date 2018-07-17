@@ -187,7 +187,8 @@ class Process_Form{
                            $condition          = "instaDispatch_docketNumber = '" . $shipment_details['instaDispatch_docketNumber'] . "' AND shipment_service_type = 'D'";
                                  $status             = $this->model_rest->update("shipment", array(
                                 'is_driverpickupfromwarehouse' => 'YES',
-                                'driver_pickuptime' => date("Y-m-d H:m:s")
+                                'driver_pickuptime' => date("Y-m-d H:m:s"),
+                                'action_by' => 'driver'
                             ), $condition);
 
                         }
@@ -199,7 +200,8 @@ class Process_Form{
                                 'actual_given_service_date' => date("Y-m-d"),
                                 'actual_given_service_time' => date("H:m:s"),
                                 'current_status' => 'D',
-                                'driver_comment' => $service_msg
+                                'driver_comment' => $service_msg,
+                                'action_by' => 'driver'
                             ), $condition);
                         }
 					
@@ -270,13 +272,21 @@ class Process_Form{
                     }
                     else
                     {
-                       return array(
+                        $currentStage = $this->model_rest->findShipmentCurrentStage($ticket, $driver_id, $route_id);
+                        if($currentStage["action_by"]=="controller"){
+                            return array(
+                                'message' => "Shipment($ticket) Already Processed By Controller",
+                                'success' => true,
+                                'status'  => "success"
+                            );
+                        }
+                        return array(
                             'message' => 'Shipment already delivered',
-                            'success' => false,
-                            'status'  => "error"
+                            'success' => true,
+                            'status'  => "success"
                         ); 
                     }
-            /*    } 
+            /*} 
             else 
             {
                 return array(
@@ -299,6 +309,7 @@ class Process_Form{
     private function _carded_shipment($ticket, $driver_id, $route_id, $comment, $status)
     {    
         $shipmentExist = $this->model_rest->shipment_exist_by_ticket_driver($ticket, $driver_id, $route_id);
+
         if ($shipmentExist['exist'] == 1)
         {
             $getshipmentDetails = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
@@ -309,7 +320,8 @@ class Process_Form{
                 'actual_given_service_date' => date("Y-m-d"),
                 'actual_given_service_time' => date("H:m:s"),
                 'current_status' => $status,
-                'driver_comment' => $comment
+                'driver_comment' => $comment,
+                'action_by' => 'driver'
             ), $condition);
             
             $condition2 = "shipment_route_id = '" . $getshipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $getshipmentDetails['assigned_driver'] . "'  AND shipment_ticket = '" . $ticket . "' AND shipment_accepted = 'YES' ";
@@ -339,11 +351,18 @@ class Process_Form{
             }
         }
         else{
+            $currentStage = $this->model_rest->findShipmentCurrentStage($ticket, $driver_id, $route_id);
+            if($currentStage["action_by"]=="controller"){
+                return array(
+                    'message' => "Shipment($ticket) Already Processed By Controller",
+                    'success' => true,
+                    'status'  => "success"
+                );
+            }
             return array(
                 'message' => "Sync error : Shipment($ticket) Not Found",
                 'success' => false,
-                'status'  => "error",
-                'test'    => $shipmentExist
+                'status'  => "error"
             );
         }
     }

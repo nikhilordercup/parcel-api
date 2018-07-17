@@ -619,55 +619,55 @@ class View_Support extends Icargo{
     }
 
     public function acceptRejectShipments(){
-	$shipRoute_id 	= $this->shipment_route_id;
-	$route_data     = $this->modelObj->_get_assigned_route_detail($shipRoute_id);
-	$driverid 	    = $route_data['driver_id'];
-	$driverUsername = $route_data['name'];
-    $company_id 	= $this->company_id;
-	$acceptStatus 	=  $this->accept_status;
-	
-	$allShipTickets = '"' .$this->shipment_ticket. '"';
-	$alltickets = explode(",", $allShipTickets);
-	$countdata = 0;$numaffected=0;
-	foreach ($alltickets as $valticket) {
-		 $ticket    	= str_replace('"', '', $valticket);
-		 $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
-		 $status        = $this->modelObj->editContent("shipment", array('is_driver_accept' => $acceptStatus), $condition);
-		 $condition2    = "shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
-		 $status2        = $this->modelObj->editContent("driver_shipment", array('shipment_accepted' => $acceptStatus,'taken_action_by' => 'Controller'
-		  ), $condition2);
-		 $numaffected = $this->modelObj->getAffectedRows();
-		 $countdata+=$numaffected;
-		 $actions =  ($acceptStatus =='YES')?"Shipment ACCEPT by " . $driverUsername:"Shipment REJECT by " . $driverUsername;
-		 $actionsCode = ($acceptStatus =='YES')?'ACCEPTBYDRIVER':'REJECTBYDRIVER';
-	     $this->_add_shipment_life_history($valticket, $actions, $driverid, $shipRoute_id, $actionsCode,$company_id );
-   }
-   return array('message'=>'Total '.$countdata.' '.$actions,'status'=>true);   
-}
+    	$shipRoute_id 	= $this->shipment_route_id;
+    	$route_data     = $this->modelObj->_get_assigned_route_detail($shipRoute_id);
+    	$driverid 	    = $route_data['driver_id'];
+    	$driverUsername = $route_data['name'];
+        $company_id 	= $this->company_id;
+    	$acceptStatus 	=  $this->accept_status;
+    	
+    	$allShipTickets = '"' .$this->shipment_ticket. '"';
+    	$alltickets = explode(",", $allShipTickets);
+    	$countdata = 0;$numaffected=0;
+    	foreach ($alltickets as $valticket) {
+    		 $ticket    	= str_replace('"', '', $valticket);
+    		 $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
+    		 $status        = $this->modelObj->editContent("shipment", array('is_driver_accept' => $acceptStatus), $condition);
+    		 $condition2    = "shipment_route_id = '" . $shipRoute_id . "' AND driver_id = '" . $driverid . "'  AND shipment_ticket = '" . $ticket . "'";
+    		 $status2        = $this->modelObj->editContent("driver_shipment", array('shipment_accepted' => $acceptStatus,'taken_action_by' => 'Controller'
+    		  ), $condition2);
+    		 $numaffected = $this->modelObj->getAffectedRows();
+    		 $countdata+=$numaffected;
+    		 $actions =  ($acceptStatus =='YES')?"Shipment ACCEPT by " . $driverUsername:"Shipment REJECT by " . $driverUsername;
+    		 $actionsCode = ($acceptStatus =='YES')?'ACCEPTBYDRIVER':'REJECTBYDRIVER';
+    	     $this->_add_shipment_life_history($valticket, $actions, $driverid, $shipRoute_id, $actionsCode,$company_id );
+       }
+       return array('message'=>'Total '.$countdata.' '.$actions,'status'=>true);   
+    }
     
     public function pickup_by_driver(){
-	$shipRoute_id 	= $this->shipment_route_id;
-	$route_data     = $this->modelObj->_get_assigned_route_detail($shipRoute_id);
-	$driverid 	    = $route_data['driver_id'];
-	$driverUsername = $route_data['name'];
-    $company_id 	= $this->company_id;
-	$acceptStatus 	=  $this->accept_status;
-	$allShipTickets = '"' .$this->shipment_ticket. '"';
-	$alltickets = explode(",", $allShipTickets);
-	$countdata = 0;$numaffected=0;
-	foreach ($alltickets as $valticket) {
-		 $ticket    	= str_replace('"', '', $valticket);
-		 $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
-		 $status        = $this->modelObj->editContent("shipment", array('is_driverpickupfromwarehouse' => $acceptStatus,'driver_pickuptime'=>date("Y-m-d H:m:s")), $condition);
-         $status        = $this->modelObj->editContent("shipments_parcel", array('is_driverpickupfromwarehouse' => $statusParcel,'driver_pickuptime'=>date("Y-m-d H:m:s")), $condition);
-		 $numaffected = $this->modelObj->getAffectedRows();
-		 $countdata+=$numaffected;
-		 $actions =  ($acceptStatus =='YES')?"Received by Driver":"Not Received by Driver";
-		 $actionsCode = ($acceptStatus =='YES')?'RECEIVEDBYDRIVER':'NOTRECEIVEDBYDRIVER';
-	     $this->_add_shipment_life_history($valticket, $actions, $driverid, $shipRoute_id, $actionsCode,$company_id);
-   }
-   return array('message'=>'Total '.$countdata.' '.$actions,'status'=>true);   
-}    
+    	$shipRoute_id 	= $this->shipment_route_id;
+    	$route_data     = $this->modelObj->_get_assigned_route_detail($shipRoute_id);
+    	$driverid 	    = $route_data['driver_id'];
+    	$driverUsername = $route_data['name'];
+        $company_id 	= $this->company_id;
+    	$acceptStatus 	=  $this->accept_status;
+    	$allShipTickets = '"' .$this->shipment_ticket. '"';
+    	$alltickets = explode(",", $allShipTickets);
+    	$countdata = 0;$numaffected=0;
+    	foreach ($alltickets as $valticket) {
+            $ticket    	= str_replace('"', '', $valticket);
+            $condition     = "shipment_ticket = '" . $ticket . "' AND company_id = '" . $company_id . "'";
+            $status        = $this->modelObj->editContent("shipment", array('is_driverpickupfromwarehouse' => $acceptStatus,'driver_pickuptime'=>date("Y-m-d H:m:s")), $condition);
+            $status        = $this->modelObj->editContent("shipments_parcel", array('is_driverpickupfromwarehouse' => $statusParcel,'driver_pickuptime'=>date("Y-m-d H:m:s")), $condition);
+            $numaffected = $this->modelObj->getAffectedRows();
+            $countdata+=$numaffected;
+            $actions =  ($acceptStatus =='YES')?"Received by Driver":"Not Received by Driver";
+            $actionsCode = ($acceptStatus =='YES')?'RECEIVEDBYDRIVER':'NOTRECEIVEDBYDRIVER';
+            $this->_add_shipment_life_history($valticket, $actions, $driverid, $shipRoute_id, $actionsCode,$company_id);
+        }
+        return array('message'=>'Total '.$countdata.' '.$actions,'status'=>true);   
+    }    
 
     public function addDriverTacking($driveruserName, $driverid, $for, $shipment_route_id){
 	    try{
@@ -1261,7 +1261,7 @@ class View_Support extends Icargo{
             $fbData = $firebaseObj->getShipmentFromRoute();
 
 			foreach ($ticketarr as $ticket) {
-				$statusdata = $this->deliveredShipment('"'.$ticket.'"', $driverid, $shipment_route_id, $driverUsername, $podData, $lattitude, $longitude, $servicedate, $servicetime,$company_id);
+				$statusdata = $this->deliveredShipment('"'.$ticket.'"', $driverid, $shipment_route_id, $driverUsername, $podData, $lattitude, $longitude, $servicedate, $servicetime,$company_id,'controller');
 				array_push($statusarr, $statusdata);
 			}
 			         
@@ -1274,99 +1274,98 @@ class View_Support extends Icargo{
 		}
     }	
  
-    public function deliveredShipment($eachTicket, $driverid, $shipment_route_id, $driverName, $podData, $lattitude, $longitude, $servicedate, $servicetime,$company_id){
-        //$firebasedata = array();
-        if (($eachTicket != '') && ($driverid != '') && ($shipment_route_id != '')) {
-				   $ticket = str_replace('"', '', $eachTicket); 
-				   $getshipmentDetails = $this->modelObj->getShipmentStatusDetails($eachTicket);
-				   $condition = "shipment_ticket = '" . $ticket . "'";
-                   $status    = $this->modelObj->editContent("shipment", array(
-                        'actual_given_service_date' => $servicedate,
-                        'actual_given_service_time' => $servicetime,
-                        'current_status' => 'D'
-                    ), $condition);
+    public function deliveredShipment($eachTicket, $driverid, $shipment_route_id, $driverName, $podData, $lattitude, $longitude, $servicedate, $servicetime,$company_id, $user_type='driver'){
+        if(($eachTicket != '') && ($driverid != '') && ($shipment_route_id != '')) {
+    	    $ticket = str_replace('"', '', $eachTicket); 
+    	    $getshipmentDetails = $this->modelObj->getShipmentStatusDetails($eachTicket);
+    	    $condition = "shipment_ticket = '" . $ticket . "'";
+            $status    = $this->modelObj->editContent("shipment", array(
+                'actual_given_service_date' => $servicedate,
+                'actual_given_service_time' => $servicetime,
+                'current_status' => 'D',
+                'action_by' => ($user_type=='driver') ? 'driver' : 'controller'
+            ), $condition);
+           
+    	    if ($getshipmentDetails['shipment_service_type'] == 'P' && $getshipmentDetails['instaDispatch_loadGroupTypeCode'] == 'SAME') {
+                $conditionsameDay     = "instaDispatch_docketNumber = '" . $getshipmentDetails['instaDispatch_docketNumber'] . "'";
+                $statussamedayNextDay = $this->modelObj->editContent("shipment", array(
+                    'is_driverpickupfromwarehouse' => 'YES'
+                ), $conditionsameDay);
+            }
+            $condition2 = "shipment_route_id = '" . $shipment_route_id . "' 
+    						  AND driver_id = '" . $driverid . "'  
+    						  AND shipment_ticket = '" . $ticket . "' AND shipment_accepted = 'YES' ";
+                              
+            $status2    = $this->modelObj->editContent("driver_shipment", array(
+                'shipment_status' => 'D',
+                'is_driveraction_complete' => 'Y',
+                'service_date' => date("Y-m-d"),
+                'service_time' => date("H:m:s")
+            ), $condition2);
+        
+		
+            $getshipmentDetails 									= $this->modelObj->getShipmentStatusDetails($eachTicket);
+    		$driverDelivered                                        = array();
+            $driverDelivered['shipment_ticket']                     = $ticket;
+            $driverDelivered['instaDispatch_docketNumber']          = $getshipmentDetails['instaDispatch_docketNumber'];
+            $driverDelivered['instaDispatch_loadIdentity']          = $getshipmentDetails['instaDispatch_loadIdentity'];
+            $driverDelivered['instaDispatch_jobIdentity']           = $getshipmentDetails['instaDispatch_jobIdentity'];
+            $driverDelivered['instaDispatch_objectIdentity']        = $getshipmentDetails['instaDispatch_objectIdentity'];
+            $driverDelivered['instaDispatch_objectTypeName']        = $getshipmentDetails['instaDispatch_objectTypeName'];
+            $driverDelivered['shipment_service_type']               = $getshipmentDetails['shipment_service_type'];
+            $driverDelivered['shipment_required_service_date']      = $getshipmentDetails['shipment_required_service_date'];
+            $driverDelivered['shipment_required_service_starttime'] = $getshipmentDetails['shipment_required_service_starttime'];
+            $driverDelivered['shipment_required_service_endtime']   = $getshipmentDetails['shipment_required_service_endtime'];
+            $driverDelivered['shipment_assigned_service_date']      = $getshipmentDetails['shipment_assigned_service_date'];
+            $driverDelivered['shipment_assigned_service_time']      = $getshipmentDetails['shipment_assigned_service_time'];
+            $driverDelivered['actual_given_service_date']           = $servicedate;
+            $driverDelivered['actual_given_service_time']           = $servicetime;
+            $driverDelivered['shipment_latlong']                    = $getshipmentDetails['shipment_latlong'];
+            $driverDelivered['shipment_create_date']                = $getshipmentDetails['shipment_create_date'];
+            $driverDelivered['shipment_total_attempt']              = $getshipmentDetails['shipment_total_attempt'];
+            $driverDelivered['shipment_routed_id']                  = $getshipmentDetails['shipment_routed_id'];
+            $driverDelivered['shipment_pod']                        = $getshipmentDetails['shipment_pod'];
+            $driverDelivered['assigned_driver']                     = $getshipmentDetails['assigned_driver'];
+            $driverDelivered['assigned_vehicle']                    = $getshipmentDetails['assigned_vehicle'];
+    		$driverDelivered['company_id']                    		= $getshipmentDetails['company_id'];
+    		$driverDelivered['warehouse_id']                    	= $getshipmentDetails['warehouse_id'];
+            $driverDelivered['dataof']                              = $getshipmentDetails['dataof'];
+            $driverDelivered['search_string']                       = $getshipmentDetails['search_string'];
+            $driverDeliveryid                                       = $this->modelObj->addContent("delivered_shipments", $driverDelivered);
                    
-				  if ($getshipmentDetails['shipment_service_type'] == 'P' && $getshipmentDetails['instaDispatch_loadGroupTypeCode'] == 'SAME') {
-                            $conditionsameDay     = "instaDispatch_docketNumber = '" . $getshipmentDetails['instaDispatch_docketNumber'] . "'";
-                            $statussamedayNextDay = $this->modelObj->editContent("shipment", array(
-                                'is_driverpickupfromwarehouse' => 'YES'
-                            ), $conditionsameDay);
-                    }
-                    $condition2    = "shipment_route_id = '" . $shipment_route_id . "' 
-									  AND driver_id = '" . $driverid . "'  
-									  AND shipment_ticket = '" . $ticket . "' AND shipment_accepted = 'YES' ";
-                    $status2       = $this->modelObj->editContent("driver_shipment", array(
-                        'shipment_status' => 'D',
-                        'is_driveraction_complete' => 'Y',
-                        'service_date' => date("Y-m-d"),
-                        'service_time' => date("H:m:s")
-                    ), $condition2);
-                    
-					
-                    $getshipmentDetails 									= $this->modelObj->getShipmentStatusDetails($eachTicket);
-					$driverDelivered                                        = array();
-                    $driverDelivered['shipment_ticket']                     = $ticket;
-                    $driverDelivered['instaDispatch_docketNumber']          = $getshipmentDetails['instaDispatch_docketNumber'];
-                    $driverDelivered['instaDispatch_loadIdentity']          = $getshipmentDetails['instaDispatch_loadIdentity'];
-                    $driverDelivered['instaDispatch_jobIdentity']           = $getshipmentDetails['instaDispatch_jobIdentity'];
-                    $driverDelivered['instaDispatch_objectIdentity']        = $getshipmentDetails['instaDispatch_objectIdentity'];
-                    $driverDelivered['instaDispatch_objectTypeName']        = $getshipmentDetails['instaDispatch_objectTypeName'];
-                    $driverDelivered['shipment_service_type']               = $getshipmentDetails['shipment_service_type'];
-                    $driverDelivered['shipment_required_service_date']      = $getshipmentDetails['shipment_required_service_date'];
-                    $driverDelivered['shipment_required_service_starttime'] = $getshipmentDetails['shipment_required_service_starttime'];
-                    $driverDelivered['shipment_required_service_endtime']   = $getshipmentDetails['shipment_required_service_endtime'];
-                    $driverDelivered['shipment_assigned_service_date']      = $getshipmentDetails['shipment_assigned_service_date'];
-                    $driverDelivered['shipment_assigned_service_time']      = $getshipmentDetails['shipment_assigned_service_time'];
-                    $driverDelivered['actual_given_service_date']           = $servicedate;
-                    $driverDelivered['actual_given_service_time']           = $servicetime;
-                    $driverDelivered['shipment_latlong']                    = $getshipmentDetails['shipment_latlong'];
-                    $driverDelivered['shipment_create_date']                = $getshipmentDetails['shipment_create_date'];
-                    $driverDelivered['shipment_total_attempt']              = $getshipmentDetails['shipment_total_attempt'];
-                    $driverDelivered['shipment_routed_id']                  = $getshipmentDetails['shipment_routed_id'];
-                    $driverDelivered['shipment_pod']                        = $getshipmentDetails['shipment_pod'];
-                    $driverDelivered['assigned_driver']                     = $getshipmentDetails['assigned_driver'];
-                    $driverDelivered['assigned_vehicle']                    = $getshipmentDetails['assigned_vehicle'];
-					$driverDelivered['company_id']                    		= $getshipmentDetails['company_id'];
-					$driverDelivered['warehouse_id']                    	= $getshipmentDetails['warehouse_id'];
-                    $driverDelivered['dataof']                              = $getshipmentDetails['dataof'];
-                    $driverDelivered['search_string']                       = $getshipmentDetails['search_string'];
-                    $driverDeliveryid                                       = $this->modelObj->addContent("delivered_shipments", $driverDelivered);
-                   
-				   
-				   $actions     = "Shipment Delivered By Driver";
-				   $actionsCode = 'DELIVEREDBYDRIVER';
-			       $this->_add_shipment_life_history($eachTicket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
+		    $actions     = "Shipment Delivered By Driver";
+		    $actionsCode = 'DELIVEREDBYDRIVER';
+	        $this->_add_shipment_life_history($eachTicket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
 			
-				   if ($podData != NULL and is_array($podData)) {
-                        $contactName = ($podData['contact'] != '') ? $podData['contact'] : '';
-                        $comment     = ($podData['comment'] != '') ? $podData['comment'] : '';
-                        if (($contactName != '') || ($comment != '')) {
-                                $poddata                            = array();
-                                $poddata['shipment_ticket']         = $ticket;
-                                $poddata['driver_id']               = $driverid;
-                                $poddata['type']                    = 'text';
-                                $poddata['value']                   = 'text';
+		    if($podData != NULL and is_array($podData)) {
+                $contactName = ($podData['contact'] != '') ? $podData['contact'] : '';
+                $comment     = ($podData['comment'] != '') ? $podData['comment'] : '';
+                if (($contactName != '') || ($comment != '')) {
+                    $poddata                            = array();
+                    $poddata['shipment_ticket']         = $ticket;
+                    $poddata['driver_id']               = $driverid;
+                    $poddata['type']                    = 'text';
+                    $poddata['value']                   = 'text';
 
 
-                                $poddata['comment']        = $comment;
-                                $poddata['contact_person'] = $contactName;
-                                //$poddata['date']                    = date("Y-m-d");
-                                //$poddata['time']                    = date("H:m:s");
-                                $poddata['status']                  = '1';
-                                $poddata['latitude']                = $lattitude;
-                                $poddata['longitude']               = $longitude;
-                                $poddataid                          = $this->modelObj->addContent("shipments_pod", $poddata);
-                        }
-					} 
-                    $checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $shipment_route_id);
-					if ($checkMoreShipmentofthisRouteDriver == '0') {
-						$condition = "shipment_route_id = '" . $shipment_route_id . "' AND driver_id = '" . $driverid . "'";
-						$status    = $this->modelObj->editContent("shipment_route", array('is_active' => 'N'), $condition);
-                        //$firebasedata = $this->releaseRoute($driverid, $shipment_route_id);
-					}
-					return array('status' => true,'message' => 'delivery request has been completed');//,'firebase_data'=>$firebasedata
-				} 
-            }	
+                    $poddata['comment']        = $comment;
+                    $poddata['contact_person'] = $contactName;
+                    //$poddata['date']                    = date("Y-m-d");
+                    //$poddata['time']                    = date("H:m:s");
+                    $poddata['status']                  = '1';
+                    $poddata['latitude']                = $lattitude;
+                    $poddata['longitude']               = $longitude;
+                    $poddataid                          = $this->modelObj->addContent("shipments_pod", $poddata);
+                }
+			} 
+            $checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $shipment_route_id);
+			if ($checkMoreShipmentofthisRouteDriver == '0') {
+				$condition = "shipment_route_id = '" . $shipment_route_id . "' AND driver_id = '" . $driverid . "'";
+				$status    = $this->modelObj->editContent("shipment_route", array('is_active' => 'N'), $condition);
+			}
+			return array('status' => true,'message' => 'delivery request has been completed');
+		} 
+    }	
     
     public function inWareHouseCollectionShipments(){
 			$company_id 		= $this->company_id;
