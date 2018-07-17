@@ -147,10 +147,10 @@ class Process_Form{
             //$shipmentExist = $this->dbmodelObj->getShipmentDetailsByTicketAcceptedExist($ticket, $driverid, $routeid);
             //if ($shipmentExist == 1) {
 
-                $checkDriverAcceptinwarehouse = $this->model_rest->check_shipment_accepted_by_driver_by_ticket($ticket, $driver_id, $route_id);
+                //$checkDriverAcceptinwarehouse = $this->model_rest->check_shipment_accepted_by_driver_by_ticket($ticket, $driver_id, $route_id);
               
-                if ($checkDriverAcceptinwarehouse['exist'] == 1)
-                { 
+                //if ($checkDriverAcceptinwarehouse['exist'] == 1)
+                //{ 
                     $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
 
                     if($shipment_details!=null and $shipment_details['current_status']!='D')
@@ -276,7 +276,7 @@ class Process_Form{
                             'status'  => "error"
                         ); 
                     }
-                } 
+            /*    } 
             else 
             {
                 return array(
@@ -284,7 +284,7 @@ class Process_Form{
                     'success' => false,
                     'status'  => "error"
                 );
-            }
+            }*/
         } 
         else 
         {
