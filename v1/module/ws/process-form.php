@@ -152,7 +152,7 @@ class Process_Form{
                 if ($checkDriverAcceptinwarehouse['exist'] == 1)
                 { 
                     $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
-                     
+
                     if($shipment_details!=null and $shipment_details['current_status']!='D')
                     {
                         if(isset($pod_data["pod"]) and !empty($pod_data["pod"]))
