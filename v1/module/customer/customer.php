@@ -839,7 +839,6 @@ public function getAllCourierDataOfSelectedCustomer($param){
           $data[$key]['internal'] = ($data[$key]['internal']==1)?true:false;
           $data[$key]['customer_id'] = $param->customer_id;
       }
-   
      return  $data;
     } 
      

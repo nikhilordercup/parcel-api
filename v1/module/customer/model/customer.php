@@ -422,8 +422,12 @@ public function checkCustomerEmailExist($company_email){
         return $response;
     }
 	
-	public function getAddressDataById($param){
+	/* public function getAddressDataById($param){
 		return $this->db->getRowRecord("SELECT address_line1,address_line2,postcode,city,state,country,name,phone,address_type,email,billing_address,pickup_address FROM ".DB_PREFIX."address_book where id = ".$param->address_id."");
+	} */
+	
+	public function getAddressDataById($param){
+		return $this->db->getRowRecord("SELECT ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.name,ABT.phone,ABT.address_type,ABT.email,ABT.billing_address,ABT.pickup_address,UAT.warehouse_address FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=".$param->customer_id." where ABT.id = ".$param->address_id."");
 	}
 	
 	public function deleteUserById($param){
