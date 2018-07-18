@@ -1651,7 +1651,8 @@ $app->post('/shipmentTracking', function() use($app){
     verifyRequiredParams(array('identity'),$r);
     $obj = new Module_Shipment_Tracking();
     $response = $obj->getTracking($r);
-    echoResponse(200, $response);
+    //echoResponse(200, $response);
+     json_encode($response);
 });
 
 /*start of report module comment by kavita 20march2018*/
