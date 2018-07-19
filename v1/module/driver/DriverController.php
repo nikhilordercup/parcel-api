@@ -79,9 +79,11 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
         $shipments=$this->_db->getAllRecords($shipmentSql);
         $result=array();
         foreach($rec as $k=>$r){
+            $index=0;
             foreach ($shipments as $s){
                 if($r['shipment_route_id']==$s['shipment_routed_id']){
-                    $rec[$k]['shipments'][]=$s;
+                    $rec[$k]['shipments'][$index]=$s;
+                    $index++;
                 }                
             }
         }
