@@ -131,7 +131,7 @@ class loadRouteDetails extends Library
                //$data[$key]['action'] = '<a ng-href="#shipmentedetails/'.$ticketID.'">Action</a>'; 
                $tempdata[$key]['action'] = "Action";     
             }
-        } 
+        }
 	return array("aaData"=>$tempdata);
 	}
 	private function getUnAssignedRouteDetails(){

@@ -39,11 +39,16 @@ class Firebase_Api{
     public
 
     function save($url, $data){
-        $newPost = $this->database
+        $newPostKey = $this->createNewPostKey($url);
+
+        /*$newPost = $this->database
             ->getReference($url)
             ->push($data);
         $newPostKey = $newPost->getKey();
-        $this->update("$url/$newPostKey", array("postId"=>$newPostKey));
+        $this->update("$url/$newPostKey", array("postId"=>$newPostKey));*/
+
+        $data["postId"] = $newPostKey;
+        $this->update("$url/$newPostKey", $data);
         return $newPostKey;
     }
 
@@ -70,6 +75,16 @@ class Firebase_Api{
                    ->getReference($url)
                    ->getSnapshot()
                    ->getValue();
+    }
+
+    public
+
+    function createNewPostKey($url){
+        $newPost = $this->database
+            ->getReference($url)
+            ->push('');
+        $newPostKey = $newPost->getKey();
+        return $newPostKey;
     }
 }
 ?>

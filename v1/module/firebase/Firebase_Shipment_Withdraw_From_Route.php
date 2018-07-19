@@ -84,7 +84,7 @@ class Firebase_Shipment_Withdraw_From_Route extends Firebase
         $appServiceData = $fbObj->getAppServiceMessage($url);
 
         if(is_array($appServiceData) and count($appServiceData)>0){
-            array_push($appServiceData[$id]["messages"], $message);
+            array_push($appServiceData["messages"], $message);
             $fbObj->update($url, $appServiceData);
         }else{
             $appServiceData = array(

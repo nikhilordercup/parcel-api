@@ -1992,4 +1992,20 @@ $app->post('/loadQuotationByQuotationId', function() use ($app){
     $response = $obj->loadQuotationByQuotationId($r);
     echoResponse(200, $response);
 });
+
+$app->post('/releaseShipmentFromSameday', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','shipment_route_id','warehouse_id'),$r);
+    $obj = new Shipment_Sameday_Release(array("email"=>$r->email, "access_token"=>$r->access_token));
+    $response = $obj->releaseShipments($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/withdrawAssignedRoute', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','shipment_route_id'),$r);
+    $obj = new Route_Release(array("email"=>$r->email, "access_token"=>$r->access_token));
+    $response = $obj->routeReleaseFromDriver($r);
+    echoResponse(200, $response);
+});
 ?>

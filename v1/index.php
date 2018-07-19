@@ -44,6 +44,8 @@ require_once 'module/shipment/load-assign.php';
 require_once 'module/shipment/view-support.php';
 require_once 'module/shipment/optimize.php';
 require_once 'module/shipment/load-route-details.php';
+require_once 'module/shipment/Shipment_Sameday_Release.php';
+require_once 'module/shipment/Route_Release.php';
 
 require_once 'module/company/company.php';
 require_once 'module/company/setup.php';
