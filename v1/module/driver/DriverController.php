@@ -73,7 +73,7 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
         $sql="SELECT shipment_route_id, assign_start_time FROM `".DB_PREFIX."shipment_route` "
                 . "WHERE company_id=$companyId  AND service_date LIKE '$date%' AND driver_id > 0";
 //        $sql="SELECT * FROM `".DB_PREFIX."shipment_route` WHERE company_id=$companyId  AND driver_id > 0";
-        $shipmentSql="SELECT MAX(estimatedtime), shipment_routed_id,  FROM `".DB_PREFIX."shipment` "
+        $shipmentSql="SELECT MAX(estimatedtime), shipment_routed_id  FROM `".DB_PREFIX."shipment` "
                 . "WHERE shipment_routed_id IN ("
                 . "SELECT shipment_route_id FROM `".DB_PREFIX."shipment_route` WHERE "
                 . "company_id=$companyId  AND service_date LIKE '$date%')"
