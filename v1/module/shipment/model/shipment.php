@@ -614,9 +614,9 @@ class Shipment_Model
 
     public
 
-    function getShipmentRouteByShipmentRouteId($shipment_id)
+    function getShipmentRouteByShipmentRouteId($shipment_route_id)
         {
-        $sql = "SELECT * FROM " . DB_PREFIX . "shipment_route AS RT WHERE shipment_route_id = $shipment_id";
+        $sql = "SELECT * FROM " . DB_PREFIX . "shipment_route AS RT WHERE shipment_route_id = $shipment_route_id";
         $records = $this->db->getRowRecord($sql);
         return $records;
         }
@@ -759,6 +759,15 @@ class Shipment_Model
         {
         $sql = "SELECT `shipment_ticket` AS `shipment_ticket` FROM " . DB_PREFIX . "shipment AS RT WHERE shipment_routed_id = '$shipment_route_id' AND assigned_driver='$driver_id'";
         $records = $this->db->getAllRecords($sql);
+        return $records;
+        }
+
+    public
+
+    function findAssignedDriverAndRouteInfo($shipment_route_id)
+        {
+        $sql = "SELECT RT.route_name AS route_name, UT.name AS driver_name FROM " . DB_PREFIX . "shipment_route AS RT INNER JOIN " . DB_PREFIX . "users AS UT ON RT.driver_id = UT.id WHERE shipment_route_id = $shipment_route_id";
+        $records = $this->db->getRowRecord($sql);
         return $records;
         }
 }

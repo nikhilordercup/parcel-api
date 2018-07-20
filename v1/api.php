@@ -333,8 +333,8 @@ $app->post('/resolveDropError', function() use ($app) {
 $app->post('/getRouteDetail', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('route_type','route_id','email','access_token','company'),$r);
-	$obj = new loadRouteDetails(array('route_type'=>$r->route_type,'route_id'=>$r->route_id,'company_id'=>$r->company,'email'=>$r->email,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	verifyRequiredParams(array('route_type','route_id','email','access_token','company_id'),$r);
+	$obj = new loadRouteDetails(array('route_type'=>$r->route_type,'route_id'=>$r->route_id,'company_id'=>$r->company_id,'email'=>$r->email,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
 	$records = $obj->loadRouteShipmentsDetails();
     echoResponse(200, $records);
 });
