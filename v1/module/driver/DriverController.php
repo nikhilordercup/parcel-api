@@ -40,6 +40,14 @@ class DriverController{
             $data=$self->getDayRoutes( $r->company_id, $r->route_date);
             echoResponse(200, array('result'=>'success','message'=> json_encode($data)));
         });
+        
+        $app->post('/saveUpdatedRoute', function() use ($app) { 
+            $self = new DriverController($app);
+            $r = json_decode($app->request->getBody());	
+            verifyRequiredParams(array('access_token'), $r);
+            $self->saveUpdatedRoute( $r->model);
+            echoResponse(200, array('result'=>'success','message'=> "Saved!"));
+        });
        
     }
 
@@ -91,6 +99,13 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
             }
         }
         return $rec;
+    }
+    public function saveUpdatedRoute($data){
+        foreach ($data as $d){
+            $d=(array)$d;
+            $updateSql="UPDATE ".DB_PREFIX."shipment_route SET assign_start_time='{$d['startTime']}' WHERE shipment_route_id={$d['route_id']}";
+            $this->_db->updateData($updateSql);
+        }
     }
 
 }
