@@ -78,7 +78,7 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
      * Fetch all routes information according to date and grouped with assigned driver.
      */
     public function getDayRoutes($companyId,$date) {
-        $sql="SELECT shipment_route_id, assign_start_time, driver_id FROM `".DB_PREFIX."shipment_route` "
+        $sql="SELECT shipment_route_id, assign_start_time, driver_id, route_name, route_type FROM `".DB_PREFIX."shipment_route` "
                 . "WHERE company_id=$companyId  AND service_date LIKE '$date%' AND driver_id > 0";
 //        $sql="SELECT * FROM `".DB_PREFIX."shipment_route` WHERE company_id=$companyId  AND driver_id > 0";
         $shipmentSql="SELECT estimatedtime, current_status, shipment_routed_id  FROM `".DB_PREFIX."shipment` "
