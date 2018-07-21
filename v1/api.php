@@ -1918,7 +1918,7 @@ $app->post('/getAllWarehouseAddressByCompanyAndUser', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
     $obj = new Controller($r);
-    $response = $obj->getAllWarehouseAddressByCompanyAndUser(array("company_id" => $r->company_id, "user_id" => $r->user_id));
+    $response = $obj->getAllWarehouseAddressByCompanyAndUser(array("company_id" => $r->company_id, "user_id" => $r->user_id, "is_warehouse" => isset($r->is_warehouse) ? $r->is_warehouse : ''));
     echoResponse(200, $response);
 });
 
@@ -2108,6 +2108,25 @@ $app->post('/loadQuotationByQuotationId', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new Quotation($r);
     $response = $obj->loadQuotationByQuotationId($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/savePickup', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);    
+    $response = $obj->savePickupForCustomer($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllPickups', function() use ($app){   
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);        
+    $response = $obj->getAllPickups($r);    
+    echoResponse(200, $response);
+});
+$app->post('/saveUpdateAddress', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);    
+    $response = $obj->saveUpdateAddress($r);
     echoResponse(200, $response);
 });
 ?>
