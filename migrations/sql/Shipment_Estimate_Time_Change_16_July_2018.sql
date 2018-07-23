@@ -1,1 +1,1 @@
-ALTER TABLE `icargo_shipment` CHANGE `estimatedtime` `estimatedtime` FLOAT NOT NULL DEFAULT '0' COMMENT 'initially it was varchar';
+ALTER TABLE `icargo_shipment` CHANGE `estimatedtime` `estimatedtime` VARCHAR(10) NOT NULL DEFAULT '0' COMMENT 'initially it was varchar';
