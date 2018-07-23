@@ -839,7 +839,6 @@ public function getAllCourierDataOfSelectedCustomer($param){
           $data[$key]['internal'] = ($data[$key]['internal']==1)?true:false;
           $data[$key]['customer_id'] = $param->customer_id;
       }
-   
      return  $data;
     } 
      
@@ -1020,17 +1019,25 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         return $response;
 	}
 	
-	public function editAddress($param){
+	public function editAddress($param){print_r($param);die;
+		if(isset($param->carrier)){
+			$carrier_time_data = $param->carrier;
+			unset($param->carrier);
+		}
 		$response = array();
 
-		$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country, $param->postcode, $param->address_type, $param->email);
+		$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country->short_name, $param->postcode, $param->address_type, $param->email);
 
         $searchString = preg_replace('!\s+!', '', strtolower(implode('',$searchString)));
 
         $param->search_string = $searchString;
-        
+        $param->country = $param->country->short_name;
 		$data =  $this->modelObj->editAddress($param);
+		
 		if ($data!= NULL) {
+			foreach($carrier_time_data as $carrier=>$carrier_time){
+				//$deleteCarrierData = $this->modelObj->deleteCarrierData($carrier,$param->id,$param->);
+			} 
 			$response["status"] = "success";
 			$response["message"] = "Address updated successfully";  
 		}else{

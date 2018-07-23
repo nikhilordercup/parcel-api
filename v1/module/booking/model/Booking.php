@@ -158,7 +158,7 @@ class Booking_Model_Booking
     public
 
     function getDefaultCollectionAddress($customer_id){
-        $sql = "SELECT ABT.address_line1 AS street1, ABT.company_name AS business_name, ABT.city AS city, ABT.postcode AS zip, ABT.country AS country_name FROM " . DB_PREFIX . "address_book AS ABT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON ABT.id=UAT.address_id WHERE UAT.user_id='$customer_id' AND UAT.default_address='Y' AND ABT.customer_id='$customer_id'";
+        $sql = "SELECT ABT.id AS address_id,ABT.address_line1 AS street1, ABT.company_name AS business_name, ABT.city AS city, ABT.postcode AS zip, ABT.country AS country_name FROM " . DB_PREFIX . "address_book AS ABT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON ABT.id=UAT.address_id WHERE UAT.user_id='$customer_id' AND UAT.default_address='Y' AND ABT.customer_id='$customer_id'";
         return $this->_db->getRowRecord($sql);
     }
 
@@ -313,5 +313,48 @@ class Booking_Model_Booking
 	public function saveLabelDataByLoadIdentity($labelArr,$loadIdentity){
 		return $this->_db->update("shipment_service",$labelArr,"load_identity='".$loadIdentity."'");
 	}
+	
+	public function getBookingStatusByLoadidentity($loadIdentity){
+		$sql = "SELECT status as booking_status FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity='$loadIdentity'";
+		return $this->_db->getRowRecord($sql);
+	}
+	
+	public function deleteBookingDataByLoadIdentity($loadIdentity){
+		$service_id = $this->_db->getRowRecord("SELECT id FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity='$loadIdentity'");
+		//delete from shipment table
+		$deleteShipment = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment WHERE instaDispatch_loadIdentity='$loadIdentity'");
+		if($deleteShipment){
+			//delete from shipment parcel
+			$deleteShipmentParcel = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipments_parcel WHERE instaDispatch_loadIdentity='$loadIdentity'");
+			//delete from shipment price table
+			$deleteShipmentPrice = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_price WHERE load_identity='$loadIdentity'");
+			//delete from shipment attribute table
+			$deleteShipmentAttributes = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_attributes WHERE load_identity='$loadIdentity'");
+			//delete from shipment collection table
+			$deleteShipmentCollection = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_collection WHERE service_id=".$service_id['id']."");
+			//delete from shipment service table
+			$deleteShipmentService = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_service WHERE load_identity='$loadIdentity'");
+			
+			return array("status"=>"success","message"=>"shipment deleted successfully");
+		}else{
+			return array("status"=>"error","message"=>"error while deleting shipment");
+		}
+	}
+	
+	public function updateBookingStatus($statusArr,$loadIdentity){
+		return $this->_db->update("shipment_service",$statusArr,"load_identity='".$loadIdentity."'");
+	}
+	
+	public function getAutoPrintStatusByCustomerId($customerId){
+		$sql = "SELECT auto_label_print as auto_label_print FROM ".DB_PREFIX."customer_info AS CI WHERE CI.id=".$customerId."";
+		return $this->_db->getRowRecord($sql);
+	}
+	
+	//get collection start time by carrier code,address_id and customer_id
+	public function getCollectionStartTime($addressId,$customerId,$carrierCode){
+		$sql = "SELECT collection_start_time as collection_start_time,collection_end_time as collection_end_time FROM ".DB_PREFIX."address_carrier_time AS ACT WHERE ACT.address_id=".$addressId." AND ACT.customer_id=".$customerId." AND ACT.carrier_code='".$carrierCode."'";
+		return $this->_db->getRowRecord($sql);
+	}
+	
 }
 ?>

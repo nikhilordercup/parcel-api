@@ -403,8 +403,6 @@ final class Nextday extends Booking
     }
 	
     public function saveBooking(){
-		
-		
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         //print_r($this->_param->service_opted->collection_carrier);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
@@ -527,27 +525,45 @@ final class Nextday extends Booking
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
-		
-		/*************call label generation method************/
 
+		/*************call label generation method*********************************/
 		$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity);
 		
-		/*************save label data in db******************/
+		if($labelInfo['status']=='success'){
+		/*************save label data in db****************************************/
 		$labelData = array("label_tracking_number"=>$labelInfo['label_tracking_number'],"label_files_png"=>$labelInfo['label_files_png'],"label_file_pdf"=>$labelInfo['label_file_pdf']);
 		$saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData,$loadIdentity);
 		
+		/************update booking status to success from pending*****************/
+		$statusArr = array("status"=>"success");
+		$this->modelObj->updateBookingStatus($statusArr,$loadIdentity);
+		/***********get customer auto print setting*******************************/
+		$autoPrint = $this->modelObj->getAutoPrintStatusByCustomerId($this->_param->customer_id);
+	
 		if($saveLabelInfo)
-			return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
+			return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path'],"auto_print"=>$autoPrint['auto_label_print']);
 		else
-			return array("status"=>"error","message"=>"Shipment not booked successfully,error while generating label!","file_path"=>"");
+			return array("status"=>"error","message"=>"Shipment not booked successfully,error while saving label!","file_path"=>"","auto_print"=>"");
+		}else{
+			$deleteBooking = $this->_deleteBooking($loadIdentity);
+			if($deleteBooking){
+				return array("status"=>"error","message"=>$labelInfo['message'],"file_path"=>"");
+			}
+		}
     }
 
 	public function getLabelFromLoadIdentity($loadIdentity){
 		/* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation*/
 		$carrierObj = new Carrier();
 		$bookingInfo = $carrierObj->getShipmentInfo($loadIdentity);
-		return array("status"=>"success","file_path"=>$bookingInfo['file_path'],"label_tracking_number"=>$bookingInfo['label_tracking_number'],"label_files_png"=>$bookingInfo['label_files_png'],"label_file_pdf"=>$bookingInfo['label_file_pdf']);
-		//print_r($bookingInfo);die;
+		if($bookingInfo['status']=='success')
+			return array("status"=>"success","file_path"=>$bookingInfo['file_path'],"label_tracking_number"=>$bookingInfo['label_tracking_number'],"label_files_png"=>$bookingInfo['label_files_png'],"label_file_pdf"=>$bookingInfo['label_file_pdf']);
+		else
+			return array("status"=>$bookingInfo['status'],"message"=>$bookingInfo['message'],"file_path"=>"","label_tracking_number"=>"","label_files_png"=>"","label_file_pdf"=>"");
+	}
+	
+	protected function _deleteBooking($loadIdentity){
+		return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
 	}
 }
 ?>

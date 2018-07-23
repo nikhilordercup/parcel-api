@@ -1437,6 +1437,10 @@ class shipment extends Library{
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
             $data["address_line2"] = (isset($address["address_line2"])) ? addslashes($address["address_line2"]) : "";
+			
+			$data["first_name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
+			$data["phone"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
+			$data["email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
             
             $data["postcode"] = addslashes($address["postcode"]);
             $data["city"] = (isset($address["city"])) ? addslashes($address["city"]) : "";

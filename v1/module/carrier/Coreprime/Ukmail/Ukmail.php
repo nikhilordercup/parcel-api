@@ -31,36 +31,41 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label",$json_data);
 		$labelArr = json_decode($label);
+		if(isset($labelArr->label)){
+			$pdf_base64 = $labelArr->label->base_encode;
+			$pdf_base64 = explode(',',$pdf_base64);
+			//print_r($pdf_base64);die;
+			$labels = explode(",",$labelArr->label->file_url);
 
-		$pdf_base64 = $labelArr->label->base_encode;
-		$pdf_base64 = explode(',',$pdf_base64);
-		//print_r($pdf_base64);die;
-		$labels = explode(",",$labelArr->label->file_url);
+			$label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))).'/label/';
 
-		$label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))).'/label/';
+			if(!file_exists($label_path.$loadIdentity.'/ukmail/')){
+				$oldmask = umask(0);
+				mkdir($label_path.$loadIdentity.'/ukmail/', 0777, true);
+				umask($oldmask); 
+			}  
 
-		if(!file_exists($label_path.$loadIdentity.'/ukmail/')){
-			$oldmask = umask(0);
-			mkdir($label_path.$loadIdentity.'/ukmail/', 0777, true);
-			umask($oldmask); 
-		}  
+				
+			foreach($pdf_base64 as $base64str){
+				$dataFile = uniqid().'.png';
+				$file_name = $label_path.$loadIdentity.'/ukmail/'.$dataFile;
+				$labelImages = array_push($label_images,$dataFile);
+				$data = base64_decode($base64str);
+				file_put_contents($file_name,$data);
+				header('Content-Type: application/image');
+				array_push($images,$file_name);
+			}
 
+			$img = new \Imagick($images);
+			$img->setImageFormat('pdf');
+			$pdf = $img->writeImages($label_path.$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',true);
+
+			return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_tracking_number"=>$labelArr->label->tracking_number,"label_files_png"=>implode(',',$label_images),"label_file_pdf"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf');
 			
-		foreach($pdf_base64 as $base64str){
-			$dataFile = uniqid().'.png';
-			$file_name = $label_path.$loadIdentity.'/ukmail/'.$dataFile;
-			$labelImages = array_push($label_images,$dataFile);
-			$data = base64_decode($base64str);
-			file_put_contents($file_name,$data);
-			header('Content-Type: application/image');
-			array_push($images,$file_name);
+		}else{
+			return array("status"=>"error","message"=>$labelArr->error);
 		}
-
-		$img = new \Imagick($images);
-		$img->setImageFormat('pdf');
-		$pdf = $img->writeImages($label_path.$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',true);
-
-		return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_tracking_number"=>$labelArr->label->tracking_number,"label_files_png"=>implode(',',$label_images),"label_file_pdf"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf');
+		
     }
 	
 	public function getShipmentDataFromCarrier($loadIdentity){
