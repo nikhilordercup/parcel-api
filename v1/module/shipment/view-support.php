@@ -877,7 +877,7 @@ class View_Support extends Icargo{
 	public function assignToCurrentRoute(){
         $shipment_tickets = implode("','", $this->shipment_ticket);
 		$shipDetails = $this->modelObj->getShipmentDetailsByShipmentTicket($shipment_tickets);
-        
+       
         $lastExecutionOrder = $this->modelObj->getLastDropExecutionOrderOfRoute($this->shipment_route_id);
 
         $lastExecutionOrder = $lastExecutionOrder["execution_order"];
@@ -993,10 +993,16 @@ class View_Support extends Icargo{
 		 $dataTobeUpdate['distancemiles'] = isset($shipmentDetails['distancemiles'])?$shipmentDetails['distancemiles']:00.00;
 		 $dataTobeUpdate['estimatedtime'] = isset($shipmentDetails['estimatedtime'])?$shipmentDetails['estimatedtime']:00.00;
 		 $dataTobeUpdate['shipment_routed_id'] = $shipment_route_id;
+         $dataTobeUpdate['shipment_assigned_service_date'] = $routeDetails["service_date"];
+
+         if($routeDetails["driver_accepted"]==1){
+            $dataTobeUpdate['is_receivedinwarehouse'] = 'YES';
+         }
+
 		 $condition        = "shipment_ticket IN('".$shipment_ticket."')";
 
          $this->modelObj->editContent("shipment",$dataTobeUpdate,$condition);
-		
+		    
          if($dataTobeUpdate['current_status']=='S'){
              $actions     = "Assign to Saved Route";
              $actionsCode = 'ASSIGNTOSAVEDROUTE';     

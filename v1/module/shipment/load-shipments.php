@@ -1147,7 +1147,8 @@ class loadShipment extends Library
                 'optimized_type'    => 'N',
                 'status'            => '1',
                 'company_id'        => $this->company_id,
-                'warehouse_id'      => $this->warehouse_id
+                'warehouse_id'      => $this->warehouse_id,
+                'service_date'      => date('Y-m-d H:i:s', $timestamp)
             );
             
             $shipment_routed_id    = $this->db->save('shipment_route', $insertData);
