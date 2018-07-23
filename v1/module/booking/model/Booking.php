@@ -158,7 +158,7 @@ class Booking_Model_Booking
     public
 
     function getDefaultCollectionAddress($customer_id){
-        $sql = "SELECT ABT.address_line1 AS street1, ABT.company_name AS business_name, ABT.city AS city, ABT.postcode AS zip, ABT.country AS country_name FROM " . DB_PREFIX . "address_book AS ABT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON ABT.id=UAT.address_id WHERE UAT.user_id='$customer_id' AND UAT.default_address='Y' AND ABT.customer_id='$customer_id'";
+        $sql = "SELECT ABT.id AS address_id,ABT.address_line1 AS street1, ABT.company_name AS business_name, ABT.city AS city, ABT.postcode AS zip, ABT.country AS country_name FROM " . DB_PREFIX . "address_book AS ABT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON ABT.id=UAT.address_id WHERE UAT.user_id='$customer_id' AND UAT.default_address='Y' AND ABT.customer_id='$customer_id'";
         return $this->_db->getRowRecord($sql);
     }
 
@@ -349,5 +349,12 @@ class Booking_Model_Booking
 		$sql = "SELECT auto_label_print as auto_label_print FROM ".DB_PREFIX."customer_info AS CI WHERE CI.id=".$customerId."";
 		return $this->_db->getRowRecord($sql);
 	}
+	
+	//get collection start time by carrier code,address_id and customer_id
+	public function getCollectionStartTime($addressId,$customerId,$carrierCode){
+		$sql = "SELECT collection_start_time as collection_start_time,collection_end_time as collection_end_time FROM ".DB_PREFIX."address_carrier_time AS ACT WHERE ACT.address_id=".$addressId." AND ACT.customer_id=".$customerId." AND ACT.carrier_code='".$carrierCode."'";
+		return $this->_db->getRowRecord($sql);
+	}
+	
 }
 ?>

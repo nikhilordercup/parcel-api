@@ -18,7 +18,6 @@
         function _multipleDestinationsDistanceAndDuration($param)
             {
             $matrix = $this->libObj->multiple_destinations_distance_and_duration(array("origin"=>$param["origin_geo_location"],"destinations"=>$param["destination_geo_location"],"departure_time"=>$param["departure_time"],"mode"=>$param["mode"]));
-            print_r($matrix);die;
             if($matrix["status"]=="success")
                 {
                 if($param["mode"] == "bicycling")// save distance as duration_in_traffic
