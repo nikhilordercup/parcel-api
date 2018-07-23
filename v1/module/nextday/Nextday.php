@@ -531,7 +531,7 @@ final class Nextday extends Booking
 		
 		if($labelInfo['status']=='success'){
 		/*************save label data in db****************************************/
-		$labelData = array("label_tracking_number"=>$labelInfo['label_tracking_number'],"label_files_png"=>$labelInfo['label_files_png'],"label_file_pdf"=>$labelInfo['label_file_pdf']);
+		$labelData = array("label_tracking_number"=>$labelInfo['label_tracking_number'],"label_files_png"=>$labelInfo['label_files_png'],"label_file_pdf"=>$labelInfo['label_file_pdf'],"label_json"=>$labelInfo['label_json']);
 		$saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData,$loadIdentity);
 		
 		/************update booking status to success from pending*****************/
@@ -557,9 +557,9 @@ final class Nextday extends Booking
 		$carrierObj = new Carrier();
 		$bookingInfo = $carrierObj->getShipmentInfo($loadIdentity);
 		if($bookingInfo['status']=='success')
-			return array("status"=>"success","file_path"=>$bookingInfo['file_path'],"label_tracking_number"=>$bookingInfo['label_tracking_number'],"label_files_png"=>$bookingInfo['label_files_png'],"label_file_pdf"=>$bookingInfo['label_file_pdf']);
+			return array("status"=>"success","file_path"=>$bookingInfo['file_path'],"label_tracking_number"=>$bookingInfo['label_tracking_number'],"label_files_png"=>$bookingInfo['label_files_png'],"label_file_pdf"=>$bookingInfo['label_file_pdf'],"label_json"=>$bookingInfo['label_json']);
 		else
-			return array("status"=>$bookingInfo['status'],"message"=>$bookingInfo['message'],"file_path"=>"","label_tracking_number"=>"","label_files_png"=>"","label_file_pdf"=>"");
+			return array("status"=>$bookingInfo['status'],"message"=>$bookingInfo['message'],"file_path"=>"","label_tracking_number"=>"","label_files_png"=>"","label_file_pdf"=>"","label_json"=>"");
 	}
 	
 	protected function _deleteBooking($loadIdentity){
