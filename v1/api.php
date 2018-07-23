@@ -1993,4 +1993,5 @@ $app->post('/loadQuotationByQuotationId', function() use ($app){
     $response = $obj->loadQuotationByQuotationId($r);
     echoResponse(200, $response);
 });
-?>
+GridConfiguration::initRoutes($app);
+CustomFilterConfiguration::initRoutes($app);
