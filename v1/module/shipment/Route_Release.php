@@ -21,7 +21,7 @@ class Route_Release extends Icargo
         $shipmentRouteData = $this->modelObj->getShipmentRouteByShipmentRouteId($param->shipment_route_id);
        
         $shipments = $this->modelObj->findShipmentByShipmentRouteIdAndDriverId($param->shipment_route_id, $shipmentRouteData["driver_id"]);
-
+		
         $firebaseShipmentTickets = array();
         foreach($shipments as $shipment)
         {
@@ -69,14 +69,14 @@ class Route_Release extends Icargo
                 $actionsCode = 'RELEASEFROMASSIGNEDROUTE';
 
                 foreach ($shipments as $shipment)
-                    $this->commonModelObj->addShipmentlifeHistory($shipment["shipment_ticket"], $action, $shipmentRouteData["driver_id"], $param->shipment_route_id, $param->company_id, $param->warehouse_id, $actionCode, 'controller');
+                    $this->commonModelObj->addShipmentlifeHistory($shipment["shipment_ticket"], $action, $shipmentRouteData["driver_id"], $param->shipment_route_id, $param->company_id, $param->warehouse_id, $actionsCode, 'controller');
 
                 $this->modelObj->commitTransaction();
                 $fbData = $firebaseObj->withdrawShipments($firebaseData);
 
                 if($fbData["jobCount"]==0)
                 {
-                    $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$param->shipment_route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
+                    $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$param->shipment_route_id,'company_id'=>$param->company_id,'email'=>$param->email,'access_token'=>$param->access_token));
                     $completeRouteObj->saveCompletedRoute();
                 }
 

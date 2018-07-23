@@ -757,7 +757,7 @@ class Shipment_Model
 
     function findShipmentByShipmentRouteIdAndDriverId($shipment_route_id, $driver_id)
         {
-        $sql = "SELECT `shipment_ticket` AS `shipment_ticket` FROM " . DB_PREFIX . "shipment AS RT WHERE shipment_routed_id = '$shipment_route_id' AND assigned_driver='$driver_id'";
+        $sql = "SELECT `shipment_ticket` AS `shipment_ticket`, current_status FROM " . DB_PREFIX . "shipment AS RT WHERE shipment_routed_id = '$shipment_route_id' AND assigned_driver='$driver_id' AND current_status!='D'";
         $records = $this->db->getAllRecords($sql);
         return $records;
         }
@@ -769,6 +769,26 @@ class Shipment_Model
         $sql = "SELECT RT.route_name AS route_name, UT.name AS driver_name FROM " . DB_PREFIX . "shipment_route AS RT INNER JOIN " . DB_PREFIX . "users AS UT ON RT.driver_id = UT.id WHERE shipment_route_id = $shipment_route_id";
         $records = $this->db->getRowRecord($sql);
         return $records;
+        }
+		
+	public
+
+    function findAllUndeliveredShipmentOfRoute($routeId)
+        {
+        $record = array();
+        $sql = "SELECT shipment_ticket,icargo_execution_order as execution_order,distancemiles,estimatedtime FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id = '$routeId' AND current_status!='D'";
+        $records = $this->db->getAllRecords($sql);
+        return $records;
+        }
+		
+	public
+
+    function findShipmentCurrentStatus($shipment_ticket)
+        {
+        $record = array();
+        $sql = "SELECT current_status AS current_status FROM " . DB_PREFIX . "shipment WHERE shipment_ticket = '$shipment_ticket'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
         }
 }
 ?>

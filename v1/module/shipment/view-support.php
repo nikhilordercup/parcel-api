@@ -1030,7 +1030,7 @@ class View_Support extends Icargo{
 		$company_id        = $this->company_id;
 		$vehicalDetails    = $this->modelObj->_get_driver_assigned_vehicle($driverid);
         $vehicalId         = $vehicalDetails['vehicle_id'];
-        $shipment_ticket   = $this->modelObj->_get_all_tickets_by_route($shipment_route_id);
+        $shipment_ticket   = $this->modelObj->findAllUndeliveredShipmentOfRoute($shipment_route_id);
 		
 		
 		$updatedRoute['driver_id']         = $driverid;
@@ -1099,9 +1099,15 @@ class View_Support extends Icargo{
     public function getAllowFailedAction(){
 		$company_id 	= $this->company_id;
 		$shipment_ticket 	= $this->shipment_ticket;
-		$data = $this->modelObj->getAllowedFailActionsforController($company_id);
-		$driverComment = $this->modelObj->getDriverCommentByTicket($shipment_ticket);
-		return array("status"=>true, "failed_action"=>$data,'driver_comment'=>$driverComment);
+		$shipmentStatus = $this->modelObj->findShipmentCurrentStatus($this->shipment_ticket);
+		if($shipmentStatus["current_status"]!='D'){
+			$data = $this->modelObj->getAllowedFailActionsforController($company_id);
+			$driverComment = $this->modelObj->getDriverCommentByTicket($shipment_ticket);
+			return array("status"=>"success", "failed_action"=>$data,'driver_comment'=>$driverComment);
+		}else{
+			return array("status"=>"error", 'message'=>"Shipment already delivered/collected");
+		}
+		
 	}
 	
     public function getDriverComments(){
@@ -1177,13 +1183,7 @@ class View_Support extends Icargo{
 			$this->_add_shipment_life_history($eachTicket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
 			
 			$releseShipment                           = array();
-            $releseShipment['is_shipment_routed']     = '0';
-            $releseShipment['shipment_routed_id']     = '0';
-            $releseShipment['is_driver_assigned']     = '0';
-            $releseShipment['is_driver_accept']       = 'Pending';
-            $releseShipment['assigned_driver']        = '0';
-            $releseShipment['shipment_total_attempt'] = $eachShipmentDetails['shipment_total_attempt'] + 1;
-            $releseShipment['assigned_vehicle']       = '0';
+			$releseShipment['shipment_total_attempt'] = $eachShipmentDetails['shipment_total_attempt'] + 1;
             if ($eachShipmentDetails['instaDispatch_loadGroupTypeCode'] == 'Vendor') {
                 $attempt = $this->shipmentAttemptConf['regularattemptconf'];
                 if ($releseShipment['shipment_total_attempt'] >= $attempt) {
@@ -1200,13 +1200,23 @@ class View_Support extends Icargo{
                 }
             } else {
                 $attempt                          = 0;
-                $releseShipment['current_status'] = 'C';
+                $releseShipment['current_status'] = 'Ca';
             }
-            $releseShipment['icargo_execution_order']       = '0';
-            $releseShipment['is_driverpickupfromwarehouse'] = 'NO';
-            $releseShipment['driver_pickuptime']            = '1970-01-01 00:00:00';
+			if($releseShipment['current_status']!='Ca'){
+				 $releseShipment['icargo_execution_order']       = '0';
+				$releseShipment['is_driverpickupfromwarehouse'] = 'NO';
+				$releseShipment['driver_pickuptime']            = '1970-01-01 00:00:00';
+				$releseShipment['driver_comment']               = '0';
+				$releseShipment['assigned_vehicle']       = '0';
+				$releseShipment['is_shipment_routed']     = '0';
+				$releseShipment['shipment_routed_id']     = '0';
+				$releseShipment['is_driver_assigned']     = '0';
+				$releseShipment['is_driver_accept']       = 'Pending';
+				$releseShipment['assigned_driver']        = '0';
+			
+			}
+           
             $releseShipment['last_history_id']              = $historyid;
-            $releseShipment['driver_comment']               = '0';
             $condition                                      = "shipment_ticket = '" . $tickets . "'";
             $status                                         = $this->modelObj->editContent("shipment", $releseShipment, $condition);
             if ($releseShipment['current_status'] == 'Rit') {
