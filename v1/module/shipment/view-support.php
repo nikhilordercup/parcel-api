@@ -433,7 +433,6 @@ class View_Support extends Icargo{
     
     function _completed_load($param){
         $records = $this->modelObj->getCompletedRouteShipmentDetailsByShipmentRouteIdAndSearchDate($this->company_id, $param["search_date"], $param["warehouse_id"]);
-
         foreach($records as $key => $record){
             $data = $this->modelObj->getShipmentsByShipmentRouteId($record["shipment_route_id"]);
 
@@ -762,6 +761,10 @@ class View_Support extends Icargo{
 
         if($returnstatus == "success"){
             $fbData = $firebaseObj->withdrawShipments($firebaseData);
+            if($fbData["jobCount"]==0){
+                $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$shipment_route_id,'company_id'=>$company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));
+                $completeRouteObj->saveCompletedRoute();
+            }
             return array('status' => $returnstatus,'message' => 'Total '.$numaffected.' Shipment has been released, left shipment(s) '.$checkMoreShipmentofthisRoute,"job_remaining"=>$fbData["jobCount"]);
         }
 		return array('status' => $returnstatus,'message' => 'Total '.$numaffected.' Shipment has been released, left shipment(s) '.$checkMoreShipmentofthisRoute);
