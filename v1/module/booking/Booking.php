@@ -153,7 +153,7 @@ class Booking extends Icargo
             $data['shipment_customer_country'] = $addressInfo->country;
             $data['shipment_instruction'] = (isset($param2->pickup_instruction)) ? $param2->pickup_instruction : "";
             $data['shipment_country_code'] = $param2->country->alpha3_code;
-
+                                    
             //customer info
             $data['shipment_customer_name']    = (isset($param2->name)) ? $param2->name : "";
             $data['shipment_customer_email']   = (isset($param2->email)) ? $param2->email : "";
@@ -164,7 +164,7 @@ class Booking extends Icargo
             $data['shipment_total_volume']     = 0;//$param["weight"];
             $data['shipment_statusName']       = "Un Attainded";
             $data['shipment_shouldBookIn']     = "false";
-            $data['shipment_companyName']      = "";
+            $data['shipment_companyName']      = (isset($param2->company_name)) ? $param2->company_name : "";
             $data['distancemiles']             = "0.00";
             $data['estimatedtime']             = "00:00:00";
             /**/
@@ -232,8 +232,13 @@ class Booking extends Icargo
 
             $data['customer_id'] = $param1->customer_id;
 
-            $data['search_string'] = "";
-
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
+            $sStr["postcode"]      = $addressInfo->postcode;
+            $sStr["address_line1"] = $addressInfo->address_line1;
+            $sStr["iso_code"]      = $param2->country->alpha3_code;            
+            $data['search_string'] = str_replace(' ','',implode('',$sStr));             
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
+            
             $data['shipment_assigned_service_date'] = "1970-01-01" ;
             $data['shipment_assigned_service_time'] = "00:00:00" ;
             $data["booked_by"] =  $param1->booked_by;

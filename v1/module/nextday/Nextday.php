@@ -575,7 +575,7 @@ final class Nextday extends Booking {
         $collection_end_at = $this->_param->service_opted->collection_carrier->collection_end_at; //$this->_param->service_opted->collected_by[0]->collection_end_at;
         $carrier_account_number = $this->_param->service_opted->collection_carrier->account_number; //$this->_param->service_opted->collected_by[0]->account_number;
         $is_internal = $this->_param->service_opted->collection_carrier->is_internal; //$this->_param->service_opted->collected_by[0]->is_internal;
-
+        $searchString = $companyName = $contactName = '';
 
         foreach ($this->_param->collection as $key => $item) {
             $execution_order++;
@@ -586,6 +586,15 @@ final class Nextday extends Booking {
                 return $addressInfo;
             }
             $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "COLL", "NEXT", "P", $execution_order, $carrier_account_number, $is_internal);
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
+            $sStr["postcode"]      = $item->postcode;
+            $sStr["address_line1"] = $item->address_line1;
+            $sStr["iso_code"]      = $item->country->alpha3_code;            
+            $searchString          = str_replace(' ','',implode('',$sStr));       
+            
+            $companyName = $item->company_name;
+            $contactName = $item->name;
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
             if ($shipmentStatus["status"] == "error") {
                 $this->rollBackTransaction();
                 return $shipmentStatus;
@@ -675,39 +684,59 @@ final class Nextday extends Booking {
                     }
                 }
             }
-            
-            if(isset($this->_param->items)) 
-            {            
-                foreach($this->_param->items as $item){
-                    $serviceStatus = $this-> _saveShipmentItems($item, $loadIdentity, $this->_param->customer_id, $booking_status = 0);
-                    if($serviceStatus["status"]=="error"){
-                        $this->rollBackTransaction();
-                        return $serviceStatus;
-                    }
-                }
-            } 
+                         
             //get shipment volume and heighest dimension
             $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
 
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
-        $this->commitTransaction();
+        
+        if(isset($this->_param->items)) 
+        {            
+            foreach($this->_param->items as $item){
+                $serviceStatus = $this-> _saveShipmentItems($item, $loadIdentity, $this->_param->customer_id, $booking_status = 0);
+                if($serviceStatus["status"]=="error"){
+                    $this->rollBackTransaction();
+                    return $serviceStatus;
+                }
+            }
+        }
+                
 		
         /*************call label generation method************/
         $allData = $this->_param;
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();        
-        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
-		
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path']);
+        //$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
+        $labelInfo =  array('status' => 'success', "file_path" => 'test');
+		                
+        if( $labelInfo['status'] == 'success' ) {    
+            // call label generation method
+            //$this->commitTransaction();
+            
+            /************For carrier DHL check shipment exist or not (Start from here) *************/
+            $checkPickupExist = array();
+            if ( strtolower($carrier_code) == 'dhl' ) {
+                $userId = $this->_param->collection_user_id;
+                $carrierId = $this->_param->service_opted->carrier_info->carrier_id;
+                $collectionDate = date('Y-m-d', strtotime($this->_param->service_opted->collection_carrier->collection_date_time)); 
+                $checkPickupExist = $this->modelObj->checkExistingPickupForShipment($this->_param->customer_id, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity);
+                //print_r($checkPickupExist);
+            }        
+            /************For carrier DHL check shipment exist or not (Ends here) *************/
+            $this->rollBackTransaction();
+            return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path'], 'pickups' => $checkPickupExist);
+        } else {            
+            $this->rollBackTransaction();
+            return $labelInfo;
+        }
     }
 
     public function getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData = array()) {        
         /* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation */
         $carrierObj = new Carrier();
         $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail, $allData);
-        //return array("status" => "success", "file_path" => $bookingInfo['file_path']);
-        //print_r($bookingInfo);die;
+        //return array("status" => "success", "file_path" => $bookingInfo['file_path']);        
 
         //if($is_internal==1){
             //email to customer
@@ -716,9 +745,21 @@ final class Nextday extends Booking {
             //email to courier
             Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
         //}
-
+        if( $bookingInfo['status'] == 'success' ) {    
         // call label generation method
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity", "file_path" => $bookingInfo['file_path']);
+            return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity", "file_path" => $bookingInfo['file_path']);
+        } else {
+            return $bookingInfo;
+        }
+    }
+    
+    public function assignPickupForShipment($pickupData) {
+        $flag = $this->modelObj->updateShipment($pickupData->pickup_id, $pickupData->shipment_id);
+        if($flag) {
+            return array('status' => 'success', 'message' => 'Pickup assigned successfully');
+        } else {
+            return array('status' => 'error', 'message' => 'Problem in assigning the pickup, please create new one.');
+        }
     }
 }
 

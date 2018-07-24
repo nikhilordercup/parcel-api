@@ -19,29 +19,33 @@ final class Coreprime_Dhl extends Carrier {
         $label = $obj->_postRequest("label", $json_data);
         //print_r($label);die;
         $labelArr = json_decode($label);
-        $pdf_base64 = $labelArr->label->base_encode;
-        $labels = explode(",", $labelArr->label->file_url);
-        //print_r($label);die;
-        //Get File content from txt file
-        //$pdf_base64_handler = fopen($pdf_base64,'r');
-        //$pdf_content = fread ($pdf_base64_handler,filesize($pdf_base64));
-        //fclose ($pdf_base64_handler);
-        $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/';
-        $file_url = mkdir($label_path . $loadIdentity . '/dhl/', 0777, true);
-        foreach ($labels as $dataFile) {
-            $dataFile = explode(".", $dataFile);
-            $dataFile = $dataFile[0] . '.pdf';
-            //print_r($label_path);die;
-            $file_name = $label_path . $loadIdentity . '/dhl/' . $dataFile;
-            $data = base64_decode($pdf_base64);
-            file_put_contents($file_name, $data);
-            header('Content-Type: application/pdf');
-        }
-        $flabel = explode(".", $labels[0]);
-        //echo $file_name;
-        $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
+        if( isset($labelArr->label) ) {
+            $pdf_base64 = $labelArr->label->base_encode;
+            $labels = explode(",", $labelArr->label->file_url);
+            //print_r($label);die;
+            //Get File content from txt file
+            //$pdf_base64_handler = fopen($pdf_base64,'r');
+            //$pdf_content = fread ($pdf_base64_handler,filesize($pdf_base64));
+            //fclose ($pdf_base64_handler);
+            $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/';
+            $file_url = mkdir($label_path . $loadIdentity . '/dhl/', 0777, true);
+            foreach ($labels as $dataFile) {
+                $dataFile = explode(".", $dataFile);
+                $dataFile = $dataFile[0] . '.pdf';
+                //print_r($label_path);die;
+                $file_name = $label_path . $loadIdentity . '/dhl/' . $dataFile;
+                $data = base64_decode($pdf_base64);
+                file_put_contents($file_name, $data);
+                header('Content-Type: application/pdf');
+            }
+            $flabel = explode(".", $labels[0]);
+            //echo $file_name;
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
 
-        return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.png');
+            return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.png');
+        } else {
+            return array("status" => "error", "message" => $labelArr->error);
+        }       
     }
 
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData = array()) {        
@@ -88,8 +92,10 @@ final class Coreprime_Dhl extends Carrier {
         }
                         
         $packageCode = '';
+        $contents = array(); 
         foreach ($allData->parcel as $parcel) {
            $packageCode = $parcel->package_code;
+           $contents[] = $parcel->name;
         }
         
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
@@ -161,7 +167,7 @@ final class Coreprime_Dhl extends Carrier {
         $response['label'] = array();
         $response['method_type'] = 'post';
         
-        $items = $contents = array(); 
+        $items = array(); 
         $totalValue = 0;
                 
         if(isset($allData->items)) {            
@@ -174,8 +180,7 @@ final class Coreprime_Dhl extends Carrier {
                 $items[$key]["hs_code"] = '';
                 $items[$key]["item_code"] = '';
                 $items[$key]["item_weight"] = '';
-                
-                $contents[] = $item->item_description;
+                                
                 $totalValue = $totalValue + $item->item_value;
                 $key++;
             }
@@ -189,7 +194,7 @@ final class Coreprime_Dhl extends Carrier {
             'contents' => ($contents) ? implode(', ', $contents) : ''
         );
         
-        $response['extra']['contents'] = ($contents) ? implode(', ', $contents) : '';
+        $response['extra']['contents'] = ($contents) ? implode(', ', $contents) : $response['extra']['contents'];
         $response['extra']['customs_form_declared_value'] = "$totalValue";
         
         /**********end of static data from requet json ************** */

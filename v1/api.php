@@ -2129,4 +2129,10 @@ $app->post('/saveUpdateAddress', function() use ($app){
     $response = $obj->saveUpdateAddress($r);
     echoResponse(200, $response);
 });
+$app->post('/savePickupForShipment', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Nextday($r);    
+    $response = $obj->assignPickupForShipment($r);
+    echoResponse(200, $response);
+});
 ?>

@@ -60,3 +60,8 @@ ALTER TABLE `icargo_pickups`
 --
 ALTER TABLE `icargo_pickups`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+
+-- Pickup Id for shipment
+--
+ALTER TABLE `icargo_shipment` ADD `pickup_id` INT(11) NULL DEFAULT '0' AFTER `is_internal`;

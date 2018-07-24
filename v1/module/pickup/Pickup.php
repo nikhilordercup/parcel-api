@@ -50,31 +50,40 @@ class Pickup extends Icargo
         $this->company_id = $data->company_id;              
         $date = date('Y-m-d H:i:s');                
         //print_r($data); die;
+        
+        /********Search string used for shipments (DHL, FEDEX etc) ***********/
+        $sStr["postcode"]      = $data->pickup_postcode;
+        $sStr["address_line1"] = $data->pickup_address_line1;
+        $sStr["iso_code"]      = $data->pickup_country->alpha3_code;           
+        $searchString          = str_replace(' ','',implode('',$sStr));             
+        
+        /********Search string used for shipments (DHL, FEDEX etc) ***********/        
         $pickupData = array(
-            'carrier_id' => $data->carrier_id,
-            'company_id' => $data->company_id,
-            'customer_id' => $data->customer_id,
-            'user_id' =>  $data->customer_user_id,
-            'company_name' =>  isset($data->company_name) ? $data->company_name : '',
-            'name' =>  isset($data->contact_name) ? $data->contact_name : '',
-            'phone' =>  isset($data->pickup_phone) ? $data->pickup_phone : '',
-            'email' =>  isset($data->pickup_email) ? $data->pickup_email : '',
-            'address_line1' =>  $data->pickup_address_line1,
-            'address_line2' =>  $data->pickup_address_line2,
-            'city' =>  $data->pickup_city,
-            'state' =>  $data->pickup_state,
-            'country' =>  $data->pickup_country->alpha3_code,
-            'postal_code' =>  $data->pickup_postcode,
-            'address_type' =>  $data->address_type,
-            'package_quantity' =>  $data->package_quantity,
-            'package_type' =>  $data->package_type,
-            'is_overweight' =>  $data->is_overweight,
-            'package_location' =>  $data->package_location,
-            'pickup_date' =>  $data->pickup_date->value,
-            'earliest_pickup_time' => $data->readyTime,
-            'latest_pickup_time' =>  $data->closeTime,
-            'pickup_reference' =>  $data->pickup_reference,
-            'instruction_todriver' =>  $data->special_instruction,                                      
+            'carrier_id'            => $data->carrier_id,
+            'company_id'            => $data->company_id,
+            'customer_id'           => $data->customer_id,
+            'user_id'               => $data->customer_user_id,
+            'company_name'          => isset($data->company_name) ? $data->company_name : '',
+            'name'                  => isset($data->contact_name) ? $data->contact_name : '',
+            'phone'                 => isset($data->pickup_phone) ? $data->pickup_phone : '',
+            'email'                 => isset($data->pickup_email) ? $data->pickup_email : '',
+            'address_line1'         => $data->pickup_address_line1,
+            'address_line2'         => $data->pickup_address_line2,
+            'city'                  => $data->pickup_city,
+            'state'                 => $data->pickup_state,
+            'country'               => $data->pickup_country->alpha3_code,
+            'postal_code'           => $data->pickup_postcode,
+            'address_type'          => $data->address_type,
+            'package_quantity'      => $data->package_quantity,
+            'package_type'          => $data->package_type,
+            'is_overweight'         => $data->is_overweight,
+            'package_location'      => $data->package_location,
+            'pickup_date'           => $data->pickup_date->value,
+            'earliest_pickup_time'  => $data->readyTime,
+            'latest_pickup_time'    => $data->closeTime,
+            'pickup_reference'      => $data->pickup_reference,
+            'instruction_todriver'  => $data->special_instruction,
+            'search_string'         => $searchString
         );
           
         $pickupConfDetail = $this->_getConfirmationNumber($pickupData, $data->pickup_country->alpha2_code);                       
