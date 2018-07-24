@@ -188,7 +188,7 @@ class Carrier{
 			$requestArr['carrier'] = $param->carrier;
 			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
 			$requestArr['carrier_cancel_return'] = false;
-			$requestArr['ship_date'] = $param['ship_date'];
+			$requestArr['ship_date'] = $param->ship_date;
 			
 			$cancel = $obj->_postRequest("void",json_encode($requestArr));
 			print_r($cancel);die;
