@@ -2006,6 +2006,17 @@ $app->post('/getServiceFlowType', function() use ($app) {
 });
 /*end of adding flow type*/
 
+/*start of cancel shipment*/
+$app->post('/cancelShipmentByLoadIdentity', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','load_identity'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->cancelShipmentByLoadIdentity($r);
+    echoResponse(200, $response);
+});
+/*end of cancel shipment*/
+
+
 /*$app->post('/temp', function() use ($app) {
 	$db = new DbHandler();
 	$sql = "SELECT shipment_latlong, shipment_id from icargo_shipment;";

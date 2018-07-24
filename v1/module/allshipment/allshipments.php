@@ -165,6 +165,7 @@ class allShipments extends Icargo
                             $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             //$data['pickup_date']        = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date']        = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
+							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -207,6 +208,7 @@ class allShipments extends Icargo
                             $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             //$data['pickup_date'] = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
+							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
@@ -1744,6 +1746,32 @@ class allShipments extends Icargo
 		}else{
 			return array("status"=>"error","file_path"=>"","message"=>"label not found!");
 		}
+			
+	}
+	
+	public function cancelShipmentByLoadIdentity($param){
+        $carrierObj = new Carrier();
+		$labelInfo = $carrierObj->cancelShipmentByLoadIdentity($param);
+		/* if($labelInfo[0]['label_json']!=''){
+			$labelArr = json_decode($labelInfo[0]['label_json']);
+			$
+			//{"credentials":{"username":"mark.parrett@fieldfaretrailers.co.uk", "password":"Trailers1", "authentication_token":"D1A08432-194F-40E0-BE69-32CE43777AAB", "authentication_token_created_at":"", "token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0", "account_number":"D919022", "master_carrier_account_number":"", "latest_time":"17:00:00", "earliest_time":"14:00:00", "carrier_account_type":""}, "carrier":"ukmail", "tracking_number":"41141060000226", "carrier_cancel_return":"false", "ship_date":"2018-07-23", "void":{"credentials":{"username":"mark.parrett@fieldfaretrailers.co.uk", "password":"Trailers1", "authentication_token":"", "authentication_token_created_at":"", "token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0", "account_number":"D919022", "master_carrier_account_number":"", "latest_time":"17:00:00", "earliest_time":"14:00:00", "carrier_account_type":""}, "carrier":"ukmail", "tracking_number":"41141060000226", "carrier_cancel_return":"false", "ship_date":"2018-07-23"}}
+		} */
+		/* if(count($labelInfo)==1){
+			if($labelInfo[0]['label_file_pdf']!=='')		
+				return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
+			else
+				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+		}elseif(count($labelInfo)>1){
+			if($labelInfo[0]['label_file_pdf']!==''){
+				$label_pdf = $carrierObj->mergePdf($labelInfo);
+				return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
+			}else{
+				return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
+			}
+		}else{
+			return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+		} */
 			
 	}
 }

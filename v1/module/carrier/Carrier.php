@@ -174,5 +174,27 @@ class Carrier{
         }
 
     }
+	
+	/*****start of cancelling shipment from shipment grid*******/
+	public function cancelShipmentByLoadIdentity($param){
+		$obj = new Carrier_Coreprime_Request();
+		$requestArr = array();
+		$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
+		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
+		if($labelInfo[0]['label_json']!=''){
+			$labelArr = json_decode($labelInfo[0]['label_json']);
+            $requestArr['credentials'] = array('username'=>'nikhil.kumar@ordercup.com','password'=>'Password123','authentication_token'=>$labelArr->label->authenticationtoken,
+												'authentication_token_created_at'=>$labelArr->label->authenticationtoken_created_at,'token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0','account_number' => $labelArr->label->accountnumber);
+			$requestArr['carrier'] = $param->carrier;
+			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
+			$requestArr['carrier_cancel_return'] = false;
+			$requestArr['ship_date'] = $param['ship_date'];
+			
+			$cancel = $obj->_postRequest("void",json_encode($requestArr));
+			print_r($cancel);die;
+		}
+		
+	}
+	/*****end of cancelling shipment from shipment grid*******/
 }
 ?>

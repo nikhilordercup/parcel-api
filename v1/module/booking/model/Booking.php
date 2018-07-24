@@ -306,7 +306,7 @@ class Booking_Model_Booking
 	}
 	
 	public function getLabelByLoadIdentity($loadIdentity){
-		$sql = "SELECT label_file_pdf FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity IN('$loadIdentity')";
+		$sql = "SELECT label_file_pdf,label_json FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity IN('$loadIdentity')";
 		return $this->_db->getAllRecords($sql);
 	}
 	
@@ -355,6 +355,7 @@ class Booking_Model_Booking
 		$sql = "SELECT collection_start_time as collection_start_time,collection_end_time as collection_end_time FROM ".DB_PREFIX."address_carrier_time AS ACT WHERE ACT.address_id=".$addressId." AND ACT.customer_id=".$customerId." AND ACT.carrier_code='".$carrierCode."'";
 		return $this->_db->getRowRecord($sql);
 	}
+	
 	
 }
 ?>
