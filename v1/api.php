@@ -1651,7 +1651,8 @@ $app->post('/shipmentTracking', function() use($app){
     verifyRequiredParams(array('identity'),$r);
     $obj = new Module_Shipment_Tracking();
     $response = $obj->getTracking($r);
-    echoResponse(200, $response);
+    //echoResponse(200, $response);
+    echo json_encode($response);exit();
 });
 
 /*start of report module comment by kavita 20march2018*/
@@ -2080,11 +2081,7 @@ $app->post('/checkDutiableCountry', function() use ($app) {
     }
     echoResponse(200, $results);
 });
-
         
-GridConfiguration::initRoutes($app);
-CustomFilterConfiguration::initRoutes($app);
-
 
 /*$app->post('/temp', function() use ($app) {
 	$db = new DbHandler();
@@ -2135,4 +2132,7 @@ $app->post('/savePickupForShipment', function() use ($app){
     $response = $obj->assignPickupForShipment($r);
     echoResponse(200, $response);
 });
-?>
+
+GridConfiguration::initRoutes($app);
+CustomFilterConfiguration::initRoutes($app);
+DriverController::initRoutes($app);
