@@ -1651,7 +1651,8 @@ $app->post('/shipmentTracking', function() use($app){
     verifyRequiredParams(array('identity'),$r);
     $obj = new Module_Shipment_Tracking();
     $response = $obj->getTracking($r);
-    echoResponse(200, $response);
+    //echoResponse(200, $response);
+    echo json_encode($response);exit();
 });
 
 /*start of report module comment by kavita 20march2018*/
@@ -1777,7 +1778,7 @@ $app->post('/savePackage', function() use ($app){
 $app->post('/sendQuoteEmail', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id'),$r);
-    $obj = new Quotation();
+    $obj = new Quotation($r);
     $response = $obj->sendQuoteEmail($r);
     echoResponse(200, $response);
 });
@@ -1785,7 +1786,7 @@ $app->post('/getAllSavedQuotes', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id'),$r);
-	$obj = new Quotation();
+	$obj = new Quotation($r);
 	if($r->user_code=="super_admin")
 		$response = $obj->getAllSavedQuotes($r);
 	else
@@ -1796,7 +1797,7 @@ $app->post('/getAllSavedQuotes', function() use ($app) {
 $app->post('/getQuoteData', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id','quote_number'),$r);
-    $obj = new Quotation();
+    $obj = new Quotation($r);
     $response = $obj->getQuoteDataByQuoteNumber($r);
     echoResponse(200, $response);
 });
@@ -1979,17 +1980,18 @@ $app->post('/saveRoutePostId', function() use ($app) {
     echoResponse(200, $response);
 });
 
-
-/*$app->post('/temp', function() use ($app) {
-	$db = new DbHandler();
-	$sql = "SELECT shipment_latlong, shipment_id from icargo_shipment;";
-	$records = $db->getAllRecords($sql);
-	foreach($records as $record){
-		$temp = explode(',',$record['shipment_latlong']);
-		$sql = "UPDATE icargo_shipment SET shipment_latitude = '" . $temp[0] . "', shipment_longitude = '" . $temp[1] . "' WHERE shipment_id = '". $record['shipment_id'] ."';";
-		echo $sql.'<br>';
-	}
-});*/
+$app->post('/saveNextdayQuotation', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    $obj = new Quotation($r);
+    $response = $obj->saveAndSendNextdayQuotation($r);
+    echoResponse(200, $response);
+});
+$app->post('/loadQuotationByQuotationId', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    $obj = new Quotation($r);
+    $response = $obj->loadQuotationByQuotationId($r);
+    echoResponse(200, $response);
+});
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
