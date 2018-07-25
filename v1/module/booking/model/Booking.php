@@ -346,7 +346,7 @@ class Booking_Model_Booking
 	}
 	
 	public function getAutoPrintStatusByCustomerId($customerId){
-		$sql = "SELECT auto_label_print as auto_label_print FROM ".DB_PREFIX."customer_info AS CI WHERE CI.id=".$customerId."";
+		$sql = "SELECT auto_label_print as auto_label_print FROM ".DB_PREFIX."customer_info AS CI WHERE CI.user_id=".$customerId."";
 		return $this->_db->getRowRecord($sql);
 	}
 	

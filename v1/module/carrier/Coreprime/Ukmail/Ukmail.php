@@ -125,12 +125,12 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 		$credentialData = array();
 		//$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
 		
-		$credentialInfo["username"] = "mark.parrett@fieldfaretrailers.co.uk";
-		$credentialInfo["password"] = "Trailers1";
+		$credentialInfo["username"] = "nikhil.kumar@ordercup.com";
+		$credentialInfo["password"] = "Password123";
 		$credentialInfo["authentication_token"] = "";
 		$credentialInfo["authentication_token_created_at"] = "";
 		$credentialInfo["token"] ="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0";
-		$credentialInfo["account_number"] ="D919022";
+		$credentialInfo["account_number"] ="K906430"; 
 		$credentialInfo["master_carrier_account_number"] = "";
         $credentialInfo["latest_time"] = "17:00:00";
 		$credentialInfo["earliest_time"]="14:00:00";

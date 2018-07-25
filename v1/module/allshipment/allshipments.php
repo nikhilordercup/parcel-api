@@ -135,7 +135,6 @@ class allShipments extends Icargo
 
     private function _prepareShipments($shipmentsData)
     {
-
         $dataArray  = array();
         $returndata = array();
         foreach ($shipmentsData as $key => $val) {
@@ -166,6 +165,7 @@ class allShipments extends Icargo
                             //$data['pickup_date']        = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date']        = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
 							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+							$data['cancel_status']      = $pickupData['cancel_status'];
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -198,6 +198,12 @@ class allShipments extends Icargo
                     $data['action'] = 'nextday';
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
+							$labelArr = json_decode($pickupData['label_json']);
+							if(count($labelArr)>0)
+								$collectionReference = $labelArr->label->collectionjobnumber;
+							else
+								$collectionReference = "";
+							//}
                             $data['customer']    = $pickupData['shipment_customer_name'];
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
@@ -208,7 +214,10 @@ class allShipments extends Icargo
                             $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             //$data['pickup_date'] = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
-							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+							$data['cancel_status'] = $pickupData['cancel_status'];
+							$data['collection_reference'] = $collectionReference;
+							
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
@@ -1723,29 +1732,35 @@ class allShipments extends Icargo
 	}
     
 	public function printLabelByLoadIdentity($param){
-        $carrierObj = new Carrier();
-		if(is_array($param->load_identity)){
-			$load_identity = implode("','",$param->load_identity);
-			$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
-		}else{
-			$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
-		}
-		
-		if(count($labelInfo)==1){
-			if($labelInfo[0]['label_file_pdf']!=='')		
-				return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
-			else
-				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
-		}elseif(count($labelInfo)>1){
-			if($labelInfo[0]['label_file_pdf']!==''){
-				$label_pdf = $carrierObj->mergePdf($labelInfo);
-				return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
+		$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
+		if($shipmentStatus!='cancel'){
+			$carrierObj = new Carrier();
+			if(is_array($param->load_identity)){
+				$load_identity = implode("','",$param->load_identity);
+				$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
 			}else{
-				return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
+				$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
+			}
+			
+			if(count($labelInfo)==1){
+				if($labelInfo[0]['label_file_pdf']!=='')		
+					return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
+				else
+					return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+			}elseif(count($labelInfo)>1){
+				if($labelInfo[0]['label_file_pdf']!==''){
+					$label_pdf = $carrierObj->mergePdf($labelInfo);
+					return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
+				}else{
+					return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
+				}
+			}else{
+				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
 			}
 		}else{
-			return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+			return array("status"=>"error","file_path"=>"","message"=>"This shipment is cancelled, you cannot print label for this shipment");
 		}
+        
 			
 	}
 	
@@ -1753,28 +1768,17 @@ class allShipments extends Icargo
         $carrierObj = new Carrier();
 		$cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
 		$cancelShipment = json_decode($cancelShipment);
-		print_r($cancelShipment);die;
-		/* if($labelInfo[0]['label_json']!=''){
-			$labelArr = json_decode($labelInfo[0]['label_json']);
-			$
-			//{"credentials":{"username":"mark.parrett@fieldfaretrailers.co.uk", "password":"Trailers1", "authentication_token":"D1A08432-194F-40E0-BE69-32CE43777AAB", "authentication_token_created_at":"", "token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0", "account_number":"D919022", "master_carrier_account_number":"", "latest_time":"17:00:00", "earliest_time":"14:00:00", "carrier_account_type":""}, "carrier":"ukmail", "tracking_number":"41141060000226", "carrier_cancel_return":"false", "ship_date":"2018-07-23", "void":{"credentials":{"username":"mark.parrett@fieldfaretrailers.co.uk", "password":"Trailers1", "authentication_token":"", "authentication_token_created_at":"", "token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0", "account_number":"D919022", "master_carrier_account_number":"", "latest_time":"17:00:00", "earliest_time":"14:00:00", "carrier_account_type":""}, "carrier":"ukmail", "tracking_number":"41141060000226", "carrier_cancel_return":"false", "ship_date":"2018-07-23"}}
-		} */
-		/* if(count($labelInfo)==1){
-			if($labelInfo[0]['label_file_pdf']!=='')		
-				return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
+		if(isset($cancelShipment->void_consignment)){
+			//update shipment status as cancel in shipment service table
+			$updateStatus = $this->modelObj->editContent("shipment_service",array("status"=>"cancel"),"load_identity='".$param->load_identity."'");
+			if($updateStatus)
+				return array("status"=>"success","message"=>"Shipment cancelled successfully");
 			else
-				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
-		}elseif(count($labelInfo)>1){
-			if($labelInfo[0]['label_file_pdf']!==''){
-				$label_pdf = $carrierObj->mergePdf($labelInfo);
-				return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
-			}else{
-				return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
-			}
-		}else{
-			return array("status"=>"error","file_path"=>"","message"=>"label not found!");
-		} */
+				return array("status"=>"error","message"=>"Error while cancellation,please try again");
 			
+		}else{
+			return array("status"=>"error","message"=>$cancelShipment->error);
+		}
 	}
 }
 ?>
