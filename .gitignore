@@ -1,3 +1,7 @@
-/vendor
+.DS_Store
+nbproject
+/.idea/
+/vendor/
+composer.lock
 config.php
 parcel-api.userprefs
