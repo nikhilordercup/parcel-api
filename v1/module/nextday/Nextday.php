@@ -707,12 +707,11 @@ final class Nextday extends Booking {
         $allData = $this->_param;
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();        
-        //$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
-        $labelInfo =  array('status' => 'success', "file_path" => 'test');
+        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
 		                
         if( $labelInfo['status'] == 'success' ) {    
             // call label generation method
-            //$this->commitTransaction();
+            $this->commitTransaction();
             
             /************For carrier DHL check shipment exist or not (Start from here) *************/
             $checkPickupExist = array();
@@ -723,8 +722,7 @@ final class Nextday extends Booking {
                 $checkPickupExist = $this->modelObj->checkExistingPickupForShipment($this->_param->customer_id, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity);
                 //print_r($checkPickupExist);
             }        
-            /************For carrier DHL check shipment exist or not (Ends here) *************/
-            $this->rollBackTransaction();
+            /************For carrier DHL check shipment exist or not (Ends here) *************/            
             return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path'], 'pickups' => $checkPickupExist);
         } else {            
             $this->rollBackTransaction();

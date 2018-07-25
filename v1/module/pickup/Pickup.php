@@ -228,5 +228,16 @@ class Pickup extends Icargo
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
     }
+    
+    public function getPickupDetail($searchData) {
+        $sql = "SELECT IP.*, IC.name carrier_name, GROUP_CONCAT(ISH.shipment_ticket) AS shipments FROM ".DB_PREFIX."pickups IP";        
+        $sql .= " LEFT JOIN ".DB_PREFIX."courier IC ON IP.carrier_id = IC.id ";
+        $sql .= " LEFT JOIN ".DB_PREFIX."shipment ISH ON IP.id = ISH.pickup_id ";
+        $sql .= " WHERE IP.id=".$searchData->id;
+        $sql .= " GROUP BY IP.id";
+                     
+        $record = $this->db->getRowRecord($sql);        
+        return $record;
+    }
 }
 ?>

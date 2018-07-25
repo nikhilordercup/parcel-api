@@ -2132,6 +2132,12 @@ $app->post('/savePickupForShipment', function() use ($app){
     $response = $obj->assignPickupForShipment($r);
     echoResponse(200, $response);
 });
+$app->post('/getPickupDetail', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);    
+    $response = $obj->getPickupDetail($r);
+    echoResponse(200, $response);
+});
 
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);

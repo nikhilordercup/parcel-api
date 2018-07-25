@@ -42,7 +42,7 @@ final class Coreprime_Dhl extends Carrier {
             //echo $file_name;
             $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
 
-            return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.png');
+            return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.pdf');
         } else {
             return array("status" => "error", "message" => $labelArr->error);
         }       
