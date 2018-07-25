@@ -1751,7 +1751,9 @@ class allShipments extends Icargo
 	
 	public function cancelShipmentByLoadIdentity($param){
         $carrierObj = new Carrier();
-		$labelInfo = $carrierObj->cancelShipmentByLoadIdentity($param);
+		$cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
+		$cancelShipment = json_decode($cancelShipment);
+		print_r($cancelShipment);die;
 		/* if($labelInfo[0]['label_json']!=''){
 			$labelArr = json_decode($labelInfo[0]['label_json']);
 			$

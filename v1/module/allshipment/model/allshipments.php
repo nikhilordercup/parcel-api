@@ -118,7 +118,8 @@ SELECT  S.warehouse_id as warehouse_id,
                     SST.service_name as shipment_service_name,
                     COUR.name as carrier,
                     UT.name as booked_by,
-                    SST.isInvoiced as isInvoiced';
+                    SST.isInvoiced as isInvoiced,
+					SST.status as cancel_status';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
@@ -553,5 +554,11 @@ SELECT  S.warehouse_id as warehouse_id,
          $record = $this->db->getAllRecords($sql);
          return  $record;  
 	 }
+	 
+	 //get status from shipment service table_name
+	 public function getStatusByLoadIdentity($load_identity){
+		$record = $this->db->getOneRecord("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '". $load_identity ."'");
+		return $record['status'];
+	} 
   }
 ?>
