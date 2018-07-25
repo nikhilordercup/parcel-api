@@ -1,10 +1,10 @@
 <?php
 /*
  * Database configuration
- */ 
-define('DB_USERNAME', 'app_stable');
-define('DB_PASSWORD', 'pcs@pcs');
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'app_stable');
+ */
+define('DB_USERNAME', 'root');
+define('DB_PASSWORD', 'baner123');
+define('DB_HOST', '127.0.0.1:3306');
+define('DB_NAME', 'icargo_v4');
 define('DB_PREFIX', 'icargo_');
 ?>

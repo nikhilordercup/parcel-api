@@ -115,6 +115,7 @@ class Route_Assign
         $createdRoute['is_optimized'] = $getRouteDetails[0]['is_optimized'];
         $createdRoute['optimized_type'] = $getRouteDetails[0]['optimized_type'];
         $createdRoute['last_optimized_time'] = $getRouteDetails[0]['last_optimized_time'];
+       
         $createdRoute['company_id'] = $this->company_id;
         $createdRoute['warehouse_id'] = $this->warehouse_id;
         $createdRoute['route_type'] = $getRouteDetails[0]['route_type'];
@@ -161,6 +162,7 @@ class Route_Assign
             $cargoshipment['distancemiles'] = $shipdata['distancemiles'];
             $cargoshipment['estimatedtime'] = $shipdata['estimatedtime'];
             $condition = "shipment_ticket = '" . $shipdata['temp_shipment_ticket'] . "'";
+            
             $this->db->update('shipment', $cargoshipment, $condition);
             $this->_add_shipment_life_history($shipdata['temp_shipment_ticket'], 'Assign to Driver', 'ASSIGNTODRIVER', 'Controller', $this->company_id, $this->warehouse_id, '0', $shipment_route_id);
             }

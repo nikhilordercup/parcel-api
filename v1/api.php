@@ -1986,7 +1986,6 @@ $app->post('/saveNextdayQuotation', function() use ($app) {
     $response = $obj->saveAndSendNextdayQuotation($r);
     echoResponse(200, $response);
 });
-
 $app->post('/loadQuotationByQuotationId', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new Quotation($r);
@@ -2009,4 +2008,6 @@ $app->post('/withdrawAssignedRoute', function() use ($app){
     $response = $obj->routeReleaseFromDriver($r);
     echoResponse(200, $response);
 });
-?>
+GridConfiguration::initRoutes($app);
+CustomFilterConfiguration::initRoutes($app);
+DriverController::initRoutes($app);
