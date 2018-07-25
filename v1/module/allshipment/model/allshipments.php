@@ -119,7 +119,8 @@ SELECT  S.warehouse_id as warehouse_id,
                     COUR.name as carrier,
                     UT.name as booked_by,
                     SST.isInvoiced as isInvoiced,
-					SST.status as cancel_status';
+					SST.status as cancel_status,
+					SST.label_json as label_json';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id

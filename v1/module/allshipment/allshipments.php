@@ -198,6 +198,12 @@ class allShipments extends Icargo
                     $data['action'] = 'nextday';
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
+							$labelArr = json_decode($pickupData['label_json']);
+							if(count($labelArr)>0)
+								$collectionReference = $labelArr->label->collectionjobnumber;
+							else
+								$collectionReference = "";
+							//}
                             $data['customer']    = $pickupData['shipment_customer_name'];
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
@@ -210,6 +216,8 @@ class allShipments extends Icargo
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
 							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
 							$data['cancel_status'] = $pickupData['cancel_status'];
+							$data['collection_reference'] = $collectionReference;
+							
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
