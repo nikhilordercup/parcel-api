@@ -206,7 +206,6 @@ class Route_Assign
         $timeStamp = strtotime($this->start_time);
         $getRouteDetails = $this->modelObj->getRouteDetails($this->tickets_str, $this->access_token);//$this->_get_route_details();
 
-
         if($getRouteDetails[0]['route_type']=='SAMEDAY'){
           if(count($getRouteDetails)==1){
              return array(
@@ -234,7 +233,7 @@ class Route_Assign
 
 
         // create routes
-        $createdRoute['route_id'] = $getRouteDetails[0]['route_id'];
+        $createdRoute['route_id'] = ($getRouteDetails[0]['route_id'] == "") ? "0" : $getRouteDetails[0]['route_id'];
         $createdRoute['custom_route'] = ($getRouteDetails[0]['route_id'] == 0) ? 'Y' : 'N';
         $createdRoute['route_name'] = $this->route_name;
         $createdRoute['driver_id'] = $this->driver_id;
