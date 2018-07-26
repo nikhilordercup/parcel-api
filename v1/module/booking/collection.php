@@ -113,7 +113,7 @@ final Class Collection{
 
     private
 
-    function _nextCollectionTime($collection_start_at, $collection_end_at, $collection_date=null){
+    function _nextCollectionTime($collection_start_at, $collection_end_at, $collection_date=null){//print_r($collection_start_at);echo '-----'; print_r($collection_end_at);die;
         $todayStartTimeTimestamp = strtotime($this->today.' '.$collection_start_at);
 		$todayEndTimeTimestamp = strtotime($this->today.' '.$collection_end_at);
 
@@ -186,6 +186,7 @@ final Class Collection{
             //if($item["pickup"]==1 || $this->isRegularPickup){
 			//get carrier time for customer
 			$collectionStartTime = $this->modelObj->getCollectionStartTime($defaultCollectionAddress['address_id'],$this->customerId,$item['carrier_code']);
+			//print_r($collectionStartTime);die;
 			if($collectionStartTime=='')
 				$collectionDateTime = $this->_nextCollectionTime($item["collection_start_at"],$item["collection_end_at"]);
 			else

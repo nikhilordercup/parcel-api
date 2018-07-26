@@ -515,5 +515,16 @@ public function checkCustomerEmailExist($company_email){
 		else
 			return array("status"=>"error","data"=>"no record found");
 	}
+	
+	public function deleteCarrierData($carrier,$customer_id,$address_id){
+		return $this->db->delete("DELETE FROM ".DB_PREFIX."address_carrier_time WHERE address_id = ".$address_id." AND customer_id = ".$customer_id." AND carrier_code = '".$carrier."'");
+	}
+	
+	public function addCarrierData($carrier,$customer_id,$carrier_time,$address_id){
+		//print_r($carrier_time);die;
+		$data = array("carrier_code"=>$carrier,"address_id"=>$address_id,"customer_id"=>$customer_id,"collection_start_time"=>$carrier_time->collection_start_time,"collection_end_time"=>$carrier_time->collection_end_time,"booking_start_time"=>$carrier_time->booking_start_time,"booking_end_time"=>$carrier_time->booking_end_time);
+		
+		return $this->db->save("address_carrier_time",$data);
+	}
 }
 ?>

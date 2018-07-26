@@ -70,8 +70,10 @@ class AllShipment_Model
                 WHERE 1 ".$subquery."
                 AND S.company_id  = '" . $componyId . "'
                 ".$filter."
+				order by booking_date DESC
                 ".$limitstr."
                 ";
+		//echo $sql;die;		
         $record = $this->db->getAllRecords($sql);
         return $record;
         
