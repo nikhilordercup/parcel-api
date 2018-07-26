@@ -1027,13 +1027,13 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 		}
 		$response = array();
 //echo($param->address_1.'-'.$param->address_2.'--'.$param->city.'---'.$param->state.'----'.$param->country.'-----'.$param->postcode.'------'.$param->address_type.'-------'.$param->email.'--------');die;
-		//$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country->short_name, $param->postcode, $param->address_type, $param->email);
-		$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country, $param->postcode, $param->address_type, $param->email);
-
+		$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country->short_name, $param->postcode, $param->address_type, $param->email);
+		//$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country, $param->postcode, $param->address_type, $param->email);
+        //print_r($searchString);die;
         $searchString = preg_replace('!\s+!', '', strtolower(implode('',$searchString)));
 
         $param->search_string = $searchString;
-        $param->country = $param->country;//$param->country->short_name;
+        $param->country = $param->country->short_name;
 		$data =  $this->modelObj->editAddress($param);
 		
 		if ($data!= NULL) {
