@@ -31,18 +31,25 @@ final class Nextday extends Booking
 
         //$carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
-
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
+				foreach($this->_param->parcel as $parceldata){
+					$checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code']);
+					if(count($checkPackageSpecificService)>0){
+						foreach($checkPackageSpecificService as $serviceData){//print_r($serviceData);die;
+							$carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;//$checkPackageSpecificService;
+						}
+					}else{
+						$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
 
-                $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
-
-                if(count($services)>0){
-                    foreach($services as $service)
-                        $carrier[$key]["services"][$service["service_code"]] = $service;
-                }else {
-                    unset($carrier[$key]);
-                }
+						if(count($services)>0){
+							foreach($services as $service)
+								$carrier[$key]["services"][$service["service_code"]] = $service;
+						}else {
+							unset($carrier[$key]);
+						}
+					}
+				}
             }
 
             $collectionIndex = 0;
@@ -287,6 +294,7 @@ final class Nextday extends Booking
             $this->_setPostRequest();
             if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
+				//print_r($requestStr);die;
                 $responseStr = $this->_postRequest($requestStr);
                 $response = json_decode($responseStr);
                 $response = $this->_getCarrierInfo($response->rate);

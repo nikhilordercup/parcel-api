@@ -356,6 +356,11 @@ class Booking_Model_Booking
 		return $this->_db->getRowRecord($sql);
 	}
 	
+	public function checkPackageSpecificService($company_id,$package_code,$carrier_code){
+		$sql = "SELECT PST.service_code as service_code,CST.service_name as service_name FROM ".DB_PREFIX."package_service AS PST INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON PST.service_code = CST.service_code WHERE PST.package_code='$package_code' AND PST.carrier_code='$carrier_code' AND PST.company_id=$company_id";
+		return $this->_db->getAllRecords($sql);
+	}
+	
 	
 }
 ?>
