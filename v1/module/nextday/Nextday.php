@@ -5,8 +5,8 @@ final class Nextday extends Booking {
     private $_param = array();
     protected static $_ccf = NULL;
 
-    public
-            function __construct($data) {
+    public function __construct($data){
+        
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->_param = $data;
         $this->customerccf = new CustomerCostFactor();
@@ -355,7 +355,8 @@ final class Nextday extends Booking {
     }
 
     private
-            function _setPostRequest() {
+
+    function _setPostRequest(){//print_r($this->_param);die;
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
 
@@ -399,17 +400,19 @@ final class Nextday extends Booking {
                 "number_of_drops" => 0,
                 "total_waiting_time" => 0
             );
-            
-            $this->data["insurance"] = array(
-                "value" => 0.00,
-                "currency" => $currencyCode
-            );
+
+           if(isset($this->_param->is_insured)) {
+			   if($this->_param->is_insured==true) 
+				$this->data["insurance"] = array("value" => $this->_param->insurance_amount,"currency" => $this->_param->collection->$key->country->currency_code);
+		   }
+            $this->data["status"] = "success";
         } else {
-            $this->data["status"] = "success";        
             $this->data = $carrierLists;
         }
     }
 
+
+    public
     function searchNextdayCarrierAndPrice(){
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
@@ -418,8 +421,8 @@ final class Nextday extends Booking {
         //find distance matrix
         $key = 0;
         $destinations = array();
-
         $this->collection_postcode = $this->_param->collection->$key->postcode;
+
         //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
         //foreach($this->_param->delivery as $item)
         //    array_push($destinations, implode(",", (array) $item->geo_position));
@@ -427,26 +430,21 @@ final class Nextday extends Booking {
         //if($distanceMatrix->status=="success"){
             //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
-
             $this->_setPostRequest();
-            if(count($this->data)>0){
+
+            if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
                 $responseStr = $this->_postRequest($requestStr);
-
                 $response = json_decode($responseStr);
-
                 $response = $this->_getCarrierInfo($response->rate);
-                
+
                 if(isset($response->status) and $response->status="error"){
                     return array("status"=>"error", "message"=>$response->message);
                 }
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
                 return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
-            }
-        //}else{
-        //    return array("status"=>"error", "message"=>"Distance matrix api error");
-        //}
+        }
     }
 
     public function saveBookingBKP() {
@@ -577,7 +575,7 @@ final class Nextday extends Booking {
         $collection_end_at = $this->_param->service_opted->collection_carrier->collection_end_at; //$this->_param->service_opted->collected_by[0]->collection_end_at;
         $carrier_account_number = $this->_param->service_opted->collection_carrier->account_number; //$this->_param->service_opted->collected_by[0]->account_number;
         $is_internal = $this->_param->service_opted->collection_carrier->is_internal; //$this->_param->service_opted->collected_by[0]->is_internal;
-
+        $searchString = $companyName = $contactName = '';
 
         foreach ($this->_param->collection as $key => $item) {
             $execution_order++;
@@ -588,6 +586,15 @@ final class Nextday extends Booking {
                 return $addressInfo;
             }
             $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "COLL", "NEXT", "P", $execution_order, $carrier_account_number, $is_internal);
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
+            $sStr["postcode"]      = $item->postcode;
+            $sStr["address_line1"] = $item->address_line1;
+            $sStr["iso_code"]      = $item->country->alpha3_code;            
+            $searchString          = str_replace(' ','',implode('',$sStr));       
+            
+            $companyName = $item->company_name;
+            $contactName = $item->name;
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
             if ($shipmentStatus["status"] == "error") {
                 $this->rollBackTransaction();
                 return $shipmentStatus;
@@ -612,8 +619,15 @@ final class Nextday extends Booking {
 
             $surchargesArr = isset($this->_param->service_opted->collection_carrier->surcharges) ? $this->_param->service_opted->collection_carrier->surcharges : array();
 
-            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $surchargesArr, $loadIdentity, $this->_param->customer_id, "pending");
-
+            $otherDetail = array(
+                'reason_for_export' => isset($this->_param->reason_for_export) ? $this->_param->reason_for_export : '',
+                'tax_status' => isset($this->_param->tax_status) ? $this->_param->tax_status : '',
+                'terms_of_trade' => isset($this->_param->terms_of_trade) ? $this->_param->terms_of_trade : '',
+                'is_insured' => isset($this->_param->is_insured) ? $this->_param->is_insured : false
+            );
+                        
+            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending", $otherDetail);
+                                   
             if ($serviceStatus["status"] == "error") {
                 $this->rollBackTransaction();
                 return $serviceStatus;
@@ -670,32 +684,81 @@ final class Nextday extends Booking {
                     }
                 }
             }
-
+                         
             //get shipment volume and heighest dimension
             $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
 
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
-        $this->commitTransaction();
-
-        /*         * ***********call label generation method*********** */
+        
+        if(isset($this->_param->items)) 
+        {            
+            foreach($this->_param->items as $item){
+                $serviceStatus = $this-> _saveShipmentItems($item, $loadIdentity, $this->_param->customer_id, $booking_status = 0);
+                if($serviceStatus["status"]=="error"){
+                    $this->rollBackTransaction();
+                    return $serviceStatus;
+                }
+            }
+        }
+                
+		
+        /*************call label generation method************/
+        $allData = $this->_param;
         $carrier_code = $this->_param->service_opted->carrier_info->code;
-        $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();
-        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail);
-
-        return array("status" => "success", "message" => "Shipment booked successful. Shipment ticket $loadIdentity", "file_path" => $labelInfo['file_path']);
+        $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();        
+        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
+		                
+        if( $labelInfo['status'] == 'success' ) {    
+            // call label generation method
+            $this->commitTransaction();
+            
+            /************For carrier DHL check shipment exist or not (Start from here) *************/
+            $checkPickupExist = array();
+            if ( strtolower($carrier_code) == 'dhl' ) {
+                $userId = $this->_param->collection_user_id;
+                $carrierId = $this->_param->service_opted->carrier_info->carrier_id;
+                $collectionDate = date('Y-m-d', strtotime($this->_param->service_opted->collection_carrier->collection_date_time)); 
+                $checkPickupExist = $this->modelObj->checkExistingPickupForShipment($this->_param->customer_id, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity);
+                //print_r($checkPickupExist);
+            }        
+            /************For carrier DHL check shipment exist or not (Ends here) *************/            
+            return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path'], 'pickups' => $checkPickupExist);
+        } else {            
+            $this->rollBackTransaction();
+            return $labelInfo;
+        }
     }
 
-    public function getLabelFromLoadIdentity($loadIdentity, $rateDetail) {
+    public function getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData = array()) {        
         /* 1.get carrier by loadIdentity 2. after getting carrier call that specific carrier's function for labal generation */
         $carrierObj = new Carrier();
-        $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail);
-        //return array("status" => "success", "file_path" => $bookingInfo['file_path']);
-        //print_r($bookingInfo);die;
-        // call label generation method
-        return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
-    }
+        $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail, $allData);
+        //return array("status" => "success", "file_path" => $bookingInfo['file_path']);        
 
+        //if($is_internal==1){
+            //email to customer
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+
+            //email to courier
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+        //}
+        if( $bookingInfo['status'] == 'success' ) {    
+        // call label generation method
+            return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity", "file_path" => $bookingInfo['file_path']);
+        } else {
+            return $bookingInfo;
+        }
+    }
+    
+    public function assignPickupForShipment($pickupData) {
+        $flag = $this->modelObj->updateShipment($pickupData->pickup_id, $pickupData->shipment_id);
+        if($flag) {
+            return array('status' => 'success', 'message' => 'Pickup assigned successfully');
+        } else {
+            return array('status' => 'error', 'message' => 'Problem in assigning the pickup, please create new one.');
+        }
+    }
 }
 
 ?>

@@ -1,3 +1,7 @@
 .DS_Store
 nbproject
 config.php
+/.idea/
+/vendor/
+/label/
+composer.lock

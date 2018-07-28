@@ -797,10 +797,10 @@ class shipment extends Library{
 		   $shipdata = $this->_getSingleShipmentData((object)$data,$this->company_id);
           
 		   $shipid = $this->_add_shipment_data_uk_mail($shipdata);
-		   
+
 		   if($shipid["status"]=="success"){
                $gridData[] =  $this->_getgridData($shipid["ticket_number"]);
-               return array('success'=>true,'message'=>'Shipment has been added successfully','griddata'=>$gridData);
+               return array('success'=>true,'message'=>'Shipment has been added successfully - '.$shipid["ticket_number"],'griddata'=>$gridData);
            }else{
                return array('success'=>false,'message'=>'Shipment has not been added successfully','griddata'=>array());
            }
@@ -1703,9 +1703,12 @@ class shipment extends Library{
                 $counter++;
             }
             $this->db->commitTransaction();
-
+           
             //email to customer
             Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
+
+            //email to courier
+            Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
 
             return array("status"=>"success", "message"=>"Shipment booked successfully. Booking reference no $loadIdentity");
         }else{

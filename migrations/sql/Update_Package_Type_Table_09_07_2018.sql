@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_package_type` ADD `carrier` VARCHAR(25) NOT NULL AFTER `is_internal`; 

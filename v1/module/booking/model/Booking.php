@@ -223,6 +223,13 @@ class Booking_Model_Booking
 
     public
 
+    function saveItemService($data){        
+        $id = $this->_db->save("shipment_items", $data);
+        return $id;
+    }
+
+    public
+
     function saveShipmentPrice($data){
         $id = $this->_db->save("shipment_price", $data);
         return $id;
@@ -310,5 +317,65 @@ class Booking_Model_Booking
 		$sql = "SELECT label_file_pdf FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity IN('$loadIdentity')";
 		return $this->_db->getAllRecords($sql);
 	}
+
+    public
+
+    function getCustomerInfo($user_id){
+        return $this->_db->getRowRecord("SELECT quote_expiry_days FROM " . DB_PREFIX . "customer_info AS CIT WHERE CIT.user_id='$user_id'");
+    }
+
+    public
+
+    function getUserInfo($user_id){
+        return $this->_db->getRowRecord("SELECT email FROM " . DB_PREFIX . "users AS UT WHERE UT.id='$user_id'");
+    }
+    
+    public function checkExistingPickupForShipment($customerId, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity)
+    {        
+        $sql = "SELECT IP.* FROM " . DB_PREFIX . "pickups AS IP WHERE IP.user_id='$userId' AND IP.customer_id='$customerId' AND carrier_id='$carrierId' AND pickup_date='$collectionDate' AND search_string='$searchString'";        
+        $pickUps = $this->_db->getAllRecords($sql);        
+        $fullMatch = false;
+        $pickupId = 0;
+        $allPickup = array();
+        $results = array();
+        
+        if(count($pickUps) ) {            
+            foreach ($pickUps as $pickUp) {               
+                if( strtolower($pickUp['name']) == strtolower($contactName) && strtolower($pickUp['company_name']) == strtolower($companyName) ) {
+                    (!$fullMatch) ? ( $allPickup = array() ) : '';
+                    (!$pickupId) ? ( $pickupId = $pickUp['id'] ) : '';
+                    $results = array('full_match' => '1');
+                    $allPickup[] = $pickUp;
+                    $fullMatch = true;                    
+                } else if( !$fullMatch ) {
+                    $results = array('full_match' => '0');
+                    $allPickup[] = $pickUp;
+                }
+            }             
+            
+            $results['data'] = $allPickup;
+            $results['search'] = 1;
+            $results['shipment_id'] = $loadIdentity;
+                        
+            if( count($allPickup) == 1 && $pickupId ) {                
+                $results['assign'] = 1; 
+                $results['data'] = array();                
+                //$loadIdentity of collection (P - pickup)
+                //echo "UPDATE " . DB_PREFIX . "shipment SET pickup_id = '$pickupId' WHERE shipment_ticket = " . $loadIdentity;die;
+                $this->updateShipment($pickupId, $loadIdentity);                
+            } else {
+                $results['assign'] = 0;
+            }                     
+            
+        } else {
+            $results = array( 'search' => 0, 'full_match' => 0, 'data' => $allPickup, 'assign' => 0 , 'shipment_id' => $loadIdentity);
+        }               
+        return $results;
+    }
+    
+    public function updateShipment($pickupId, $loadIdentity) {
+        $flag = $this->_db->updateData("UPDATE " . DB_PREFIX . "shipment SET pickup_id = '$pickupId' WHERE shipment_ticket = '$loadIdentity'");
+        return $flag ;
+    }
 }
 ?>
