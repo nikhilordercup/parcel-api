@@ -1732,14 +1732,26 @@ class allShipments extends Icargo
 	}
     
 	public function printLabelByLoadIdentity($param){
-		$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
-		if($shipmentStatus!='cancel'){
+		/* $shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
+		if($shipmentStatus!='cancel'){ */
 			$carrierObj = new Carrier();
 			if(is_array($param->load_identity)){
 				$load_identity = implode("','",$param->load_identity);
-				$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
+				$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($load_identity);
+				foreach($shipmentStatus as $status){
+					if($status['status']!='cancel'){
+						$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
+					}else{
+						return array("status"=>"error","file_path"=>"","message"=>"One of selected shipment is cancelled, you cannot print label for that shipment");
+					}
+				}
 			}else{
-				$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
+				$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
+				if($shipmentStatus!='cancel'){
+					$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
+				}else{
+					return array("status"=>"error","file_path"=>"","One of selected shipment is cancelled, you cannot print label for that shipment");
+				}
 			}
 			
 			if(count($labelInfo)==1){
@@ -1748,18 +1760,26 @@ class allShipments extends Icargo
 				else
 					return array("status"=>"error","file_path"=>"","message"=>"label not found!");
 			}elseif(count($labelInfo)>1){
+				foreach($labelInfo as $data){
+					if($data['label_file_pdf'] ==''){
+						return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
+					}
+				}
+				$label_pdf = $carrierObj->mergePdf($labelInfo);
+				return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");
+				/* die;
 				if($labelInfo[0]['label_file_pdf']!==''){
 					$label_pdf = $carrierObj->mergePdf($labelInfo);
 					return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
 				}else{
 					return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
-				}
+				} */
 			}else{
 				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
 			}
-		}else{
+		/* }else{
 			return array("status"=>"error","file_path"=>"","message"=>"This shipment is cancelled, you cannot print label for this shipment");
-		}
+		} */
         
 			
 	}
