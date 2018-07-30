@@ -33,15 +33,14 @@ final class Nextday extends Booking
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
-				foreach($this->_param->parcel as $parceldata){
+				foreach($this->_param->parcel as $key=>$parceldata){
 					$checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code']);
 					if(count($checkPackageSpecificService)>0){
-						foreach($checkPackageSpecificService as $serviceData){//print_r($serviceData);die;
-							$carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;//$checkPackageSpecificService;
+						foreach($checkPackageSpecificService as $serviceData){
+							$carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
 						}
 					}else{
 						$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
-
 						if(count($services)>0){
 							foreach($services as $service)
 								$carrier[$key]["services"][$service["service_code"]] = $service;
@@ -225,7 +224,7 @@ final class Nextday extends Booking
     function _setPostRequest(){//print_r($this->_param);die;
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
-
+print_r($carrierLists);die;
         if($carrierLists["status"]=="success"){
             $key = 0;
             $this->data = array(
@@ -292,9 +291,9 @@ final class Nextday extends Booking
             //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
             $this->_setPostRequest();
-            if($this->data["status"]=="success"){
+            if($this->data["status"]=="success"){echo 1;die;
                 $requestStr = json_encode($this->data);
-				//print_r($requestStr);die;
+				print_r($requestStr);die;
                 $responseStr = $this->_postRequest($requestStr);
                 $response = json_decode($responseStr);
                 $response = $this->_getCarrierInfo($response->rate);
@@ -302,7 +301,7 @@ final class Nextday extends Booking
                     return array("status"=>"error", "message"=>$response->message);
                 }
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
-            }else {
+            }else {echo 2;die;
                 return array("status"=>"error", "message"=>$this->data["message"]);
             }
         //}else{

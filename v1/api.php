@@ -1755,6 +1755,7 @@ $app->post('/savePackage', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new Module_Package_Index($r);
     $response = $obj->savePackage($r);
+	//print_r($response);die;
     if($response["status"]=="error"){
         echoResponse(500, $response);
     }else{
