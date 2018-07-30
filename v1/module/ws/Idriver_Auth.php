@@ -72,6 +72,7 @@ class Idriver_Auth
        
         //return array("config_data" => base64_encode(json_encode($data)));
 
+        $data = $this->db->getRowRecord($sql);
 
         return array("config_data"=>base64_encode(json_encode($data["system_configuration"])));
     }
