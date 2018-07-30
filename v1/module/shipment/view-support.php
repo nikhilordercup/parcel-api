@@ -938,11 +938,11 @@ class View_Support extends Icargo{
     		}
 	    }
         $returnStatus = (count($failBucket)>0) ? "error" : "success";  
-       
+
+        $routeDetail = $this->modelObj->getShipmentRouteByShipmentRouteId($this->shipment_route_id);
         $firebaseData = array();
 
         if(count($successBucket)>0){
-            $routeDetail = $this->modelObj->getShipmentRouteByShipmentRouteId($this->shipment_route_id);
             $firebaseObj = new Firebase_Route_Assign(array(
                 "shipmet_tickets"=>$this->shipment_ticket,
                 "driver_id"=>$routeDetail["driver_id"], 
@@ -1005,7 +1005,9 @@ class View_Support extends Icargo{
 		 $condition        = "shipment_ticket IN('".$shipment_ticket."')";
 
          $this->modelObj->editContent("shipment",$dataTobeUpdate,$condition);
-		    
+
+         $numaffected = $this->modelObj->getAffectedRows();
+               
          if($dataTobeUpdate['current_status']=='S'){
              $actions     = "Assign to Saved Route";
              $actionsCode = 'ASSIGNTOSAVEDROUTE';     
@@ -1016,7 +1018,7 @@ class View_Support extends Icargo{
 		 //$shipment_ticket = '"' .$shipment_ticket. '"';
          
 	     $this->_add_shipment_life_history($shipment_ticket, $actions, $driverid, $shipment_route_id, $actionsCode,$companyid );
-         $numaffected = $this->modelObj->getAffectedRows();
+         
 		 $data =   ($numaffected>0) ?true:false;
          return $data;
     }
