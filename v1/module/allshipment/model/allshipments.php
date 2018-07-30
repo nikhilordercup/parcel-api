@@ -561,8 +561,9 @@ SELECT  S.warehouse_id as warehouse_id,
 
 	//get status from shipment service table_name
 	 public function getStatusByLoadIdentity($load_identity){
-		$record = $this->db->getOneRecord("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '". $load_identity ."'");
-		return $record['status'];
+		//$record = $this->db->getOneRecord("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '". $load_identity ."'");
+		$records = $this->db->getAllRecords("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity IN ('$load_identity')");
+		return $records;
 	} 
   }
 ?>

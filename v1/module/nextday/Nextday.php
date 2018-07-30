@@ -33,13 +33,13 @@ final class Nextday extends Booking
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
-				foreach($this->_param->parcel as $key=>$parceldata){
+				/* foreach($this->_param->parcel as $key=>$parceldata){
 					$checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code']);
 					if(count($checkPackageSpecificService)>0){
 						foreach($checkPackageSpecificService as $serviceData){
 							$carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
 						}
-					}else{
+					}else{ */
 						$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
 						if(count($services)>0){
 							foreach($services as $service)
@@ -48,8 +48,8 @@ final class Nextday extends Booking
 							unset($carrier[$key]);
 						}
 					}
-					
-				}
+					/* }
+				} */
             }
             $collectionIndex = 0;
 			
@@ -223,7 +223,6 @@ final class Nextday extends Booking
     function _setPostRequest(){//print_r($this->_param);die;
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
-//print_r($carrierLists);die;
         if($carrierLists["status"]=="success"){
             $key = 0;
             $this->data = array(
