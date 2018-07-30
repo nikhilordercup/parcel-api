@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_system_configuration` CHANGE COLUMN `extra_data` `extra_data` TEXT NULL DEFAULT NULL ;
