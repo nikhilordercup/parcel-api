@@ -74,7 +74,7 @@ class Idriver_Auth
 
         $data = $this->db->getRowRecord($sql);
 
-        return array("config_data"=>base64_encode(json_encode($data["app_configuration"])));
+        return array("config_data"=>base64_encode(json_encode(json_decode($data["app_configuration"]))));
     }
 
     private function _getAppFormConfiguration($company_id)
