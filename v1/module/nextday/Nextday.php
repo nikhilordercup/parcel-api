@@ -8,6 +8,7 @@ final class Nextday extends Booking
     public
 
     function __construct($data){
+        
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->_param = $data;
         $this->customerccf = new CustomerCostFactor();
@@ -299,12 +300,8 @@ final class Nextday extends Booking
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
             }else {
                 return array("status"=>"error", "message"=>$this->data["message"]);
-            }
-        //}else{
-        //    return array("status"=>"error", "message"=>"Distance matrix api error");
-        //}
-    }
-	
+			}
+	}
 	public function saveBookingBKP(){
         //print_r($this->_param->service_opted->collection_carrier);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
@@ -529,6 +526,14 @@ final class Nextday extends Booking
         }
         $this->commitTransaction();
 
+        //if($is_internal==1){
+            //email to customer
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+
+            //email to courier
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+        //}
+		
 		/*************call label generation method*********************************/
 		$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity);
 		
@@ -553,6 +558,7 @@ final class Nextday extends Booking
 				return array("status"=>"error","message"=>$labelInfo['message'],"file_path"=>"");
 			}
 		}
+
     }
 
 	public function getLabelFromLoadIdentity($loadIdentity){

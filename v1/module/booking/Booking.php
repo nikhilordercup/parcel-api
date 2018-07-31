@@ -758,5 +758,17 @@ class Booking extends Icargo
 	protected function _saveLabelInfoByLoadIdentity($labelArr,$loadIdentity){
 		return $this->modelObj->saveLabelDataByLoadIdentity($labelArr,$loadIdentity);
 	}
+
+    protected
+
+    function getCustomerInfo($user_id){
+        return $this->modelObj->getCustomerInfo($user_id);
+    }
+
+    protected
+
+    function getUserInfo($user_id){
+        return $this->modelObj->getUserInfo($user_id);
+    }
 }
 ?>

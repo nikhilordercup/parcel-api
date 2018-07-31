@@ -41,6 +41,7 @@ require_once 'postcode.php';
 
 require_once 'module/configuration/GridConfiguration.php';
 require_once 'module/configuration/CustomFilterConfiguration.php';
+require_once 'module/driver/DriverController.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
@@ -121,6 +122,7 @@ require_once 'module/booking/Booking.php';
 require_once 'module/carrier/Carrier.php';
 require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
 require_once 'module/nextday/Nextday.php';
+
 require_once 'module/allshipment/allshipments.php';
 require_once 'module/allshipment/model/allshipments.php';
 

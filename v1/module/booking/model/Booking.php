@@ -275,7 +275,7 @@ class Booking_Model_Booking
         $sql = "SELECT CCCT.company_courier_account_id AS account_id, CCCT.courier_id AS carrier_id, CCCT.account_number FROM  `icargo_courier_vs_company_vs_customer` AS CCCT WHERE CCCT.customer_id='$customer_id' AND CCCT.company_id = '$company_id' AND CCCT.status = 1 AND CCCT.company_courier_account_id IN($carrier_acccount)";
         return $this->_db->getAllRecords($sql);
     }
-	
+
 	public function getShipmentDataByLoadIdentity($loadIdentity){
 		$sql = "SELECT * FROM  ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT'";
         return $this->_db->getAllRecords($sql);
@@ -362,6 +362,16 @@ class Booking_Model_Booking
 		return $this->_db->getAllRecords($sql);
 	}
 	
-	
+    public
+
+    function getCustomerInfo($user_id){
+        return $this->_db->getRowRecord("SELECT quote_expiry_days FROM " . DB_PREFIX . "customer_info AS CIT WHERE CIT.user_id='$user_id'");
+    }
+
+    public
+
+    function getUserInfo($user_id){
+        return $this->_db->getRowRecord("SELECT email FROM " . DB_PREFIX . "users AS UT WHERE UT.id='$user_id'");
+    }
 }
 ?>
