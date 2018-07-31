@@ -174,7 +174,7 @@ public function getCustomerPersonalDetails($company_id,$company_customer_id){
      $record = array();
 	 $sqldata ='t1.id,t1.name,t1.email,t1.password,t1.phone,t1.address_1,t1.address_2,t1.city,t1.postcode,t1.state,
                 t1.country,t1.status,CI.ccf_operator_service,CI.ccf_operator_surcharge,CI.ccf,CI.surcharge,CI.customer_type,
-                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base';
+                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base,CI.auto_label_print';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS t1
 			 INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
@@ -422,8 +422,12 @@ public function checkCustomerEmailExist($company_email){
         return $response;
     }
 	
-	public function getAddressDataById($param){
+	/* public function getAddressDataById($param){
 		return $this->db->getRowRecord("SELECT address_line1,address_line2,postcode,city,state,country,name,phone,address_type,email,billing_address,pickup_address FROM ".DB_PREFIX."address_book where id = ".$param->address_id."");
+	} */
+	
+	public function getAddressDataById($param){
+		return $this->db->getRowRecord("SELECT ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.name,ABT.phone,ABT.address_type,ABT.email,ABT.billing_address,ABT.pickup_address,UAT.warehouse_address FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=".$param->customer_id." where ABT.id = ".$param->address_id."");
 	}
 	
 	public function deleteUserById($param){
@@ -469,6 +473,10 @@ public function checkCustomerEmailExist($company_email){
     public function disableCustomerWarehouseAddress($param){
 	    return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='N' WHERE user_id = ".$param->customer_id);
     }
+	
+	public function disableCustomerWarehouseAddressByAddressId($param){
+	    return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='N' WHERE user_id = ".$param->customer_id." AND address_id = " . $param->address_id);
+    }
 
     public function enableCustomerWarehouseAddress($param){
 		return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET warehouse_address='Y' WHERE user_id = '".$param->customer_id."' AND address_id = " . $param->address_id);
@@ -506,6 +514,17 @@ public function checkCustomerEmailExist($company_email){
 			return array("status"=>"success","data"=>$records);
 		else
 			return array("status"=>"error","data"=>"no record found");
+	}
+	
+	public function deleteCarrierData($carrier,$customer_id,$address_id){
+		return $this->db->delete("DELETE FROM ".DB_PREFIX."address_carrier_time WHERE address_id = ".$address_id." AND customer_id = ".$customer_id." AND carrier_code = '".$carrier."'");
+	}
+	
+	public function addCarrierData($carrier,$customer_id,$carrier_time,$address_id){
+		//print_r($carrier_time);die;
+		$data = array("carrier_code"=>$carrier,"address_id"=>$address_id,"customer_id"=>$customer_id,"collection_start_time"=>$carrier_time->collection_start_time,"collection_end_time"=>$carrier_time->collection_end_time,"booking_start_time"=>$carrier_time->booking_start_time,"booking_end_time"=>$carrier_time->booking_end_time);
+		
+		return $this->db->save("address_carrier_time",$data);
 	}
 }
 ?>

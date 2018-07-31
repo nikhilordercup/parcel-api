@@ -70,8 +70,10 @@ class AllShipment_Model
                 WHERE 1 ".$subquery."
                 AND S.company_id  = '" . $componyId . "'
                 ".$filter."
+				order by booking_date DESC
                 ".$limitstr."
                 ";
+		//echo $sql;die;		
         $record = $this->db->getAllRecords($sql);
         return $record;
         
@@ -105,6 +107,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     S.instaDispatch_loadGroupTypeCode,
                     S.shipment_service_type,
                     S.current_status,
+					S.shipment_create_date,
                     S.shipment_required_service_date,
                     S.shipment_required_service_starttime,
                     S.shipment_postcode AS shipment_postcode,
@@ -117,7 +120,10 @@ SELECT  S.warehouse_id as warehouse_id,
                     SST.service_name as shipment_service_name,
                     COUR.name as carrier,
                     UT.name as booked_by,
-                    SST.isInvoiced as isInvoiced';
+                    SST.isInvoiced as isInvoiced,
+					SST.status as cancel_status,
+					SST.label_json as label_json';
+
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
@@ -213,6 +219,13 @@ SELECT  S.warehouse_id as warehouse_id,
         return $record;
       }
     
+	public function getAllParcelsByIdentity($identity){  
+      $sqldata = 'DISTINCT(S.instaDispatch_loadIdentity)';
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '".$identity."'";
+	  $record = $this->db->getAllRecords($sql);
+      return $record;
+    }
+	
     /*
     public function getShipmentsPriceDetail($identity,$courier_id,$company_id,$priceversion){ 
        $record = array();
@@ -545,5 +558,12 @@ SELECT  S.warehouse_id as warehouse_id,
          $record = $this->db->getAllRecords($sql);
          return  $record;  
 	 }
+
+	//get status from shipment service table_name
+	 public function getStatusByLoadIdentity($load_identity){
+		//$record = $this->db->getOneRecord("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '". $load_identity ."'");
+		$records = $this->db->getAllRecords("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity IN ('$load_identity')");
+		return $records;
+	} 
   }
 ?>

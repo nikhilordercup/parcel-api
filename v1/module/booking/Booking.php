@@ -101,6 +101,10 @@ class Booking extends Icargo
             $param["state"]         = (isset($data->state)) ? $data->state : "";
             $param["country"]       = $data->country->short_name;
             $param["iso_code"]      = $data->country->alpha3_code;
+			$param["first_name"]    = (isset($data->name)) ? $data->name : "";
+            $param["last_name"]     = "";
+            $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
+            $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = "";
 
             $param["search_string"] = str_replace(' ','',implode('',$param));;
@@ -790,6 +794,10 @@ class Booking extends Icargo
         $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);
         return $lists;
     }
+	
+	protected function _saveLabelInfoByLoadIdentity($labelArr,$loadIdentity){
+		return $this->modelObj->saveLabelDataByLoadIdentity($labelArr,$loadIdentity);
+	}
 
     protected
 

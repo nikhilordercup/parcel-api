@@ -5,3 +5,5 @@ config.php
 /vendor/
 /label/
 composer.lock
+/config.php
+/temp/

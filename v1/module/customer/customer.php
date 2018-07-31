@@ -560,6 +560,7 @@ class Customer extends Icargo{
       $data['customer']['invoicecycle'] = (int)$customerpersonaldata['invoicecycle'];
       $data['customer']['type'] = $customerpersonaldata['customer_type'];
       $data['customer']['charge_from_base'] = $customerpersonaldata['charge_from_base'];
+	  $data['customer']['auto_label_print'] = $customerpersonaldata['auto_label_print'];
       
      $data['customerbilling']['name'] = $customerbillingdata['name'];
      $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
@@ -696,7 +697,8 @@ class Customer extends Icargo{
             $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
             $customerinfo['invoicecycle'] = isset($param->customer->invoicecycle)?$param->customer->invoicecycle:0;
             $customerinfo['charge_from_base'] = isset($param->customer->charge_from_base)?$param->customer->charge_from_base:'YES';
-              $condition = "user_id = '" . $param->customer_id . "'"; 
+			$customerinfo['auto_label_print'] = isset($param->customer->auto_label_print)?$param->customer->auto_label_print:'YES';
+            $condition = "user_id = '" . $param->customer_id . "'"; 
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);  
               
             if($customerinfoStatus){
@@ -837,7 +839,6 @@ public function getAllCourierDataOfSelectedCustomer($param){
           $data[$key]['internal'] = ($data[$key]['internal']==1)?true:false;
           $data[$key]['customer_id'] = $param->customer_id;
       }
-   
      return  $data;
     } 
      
@@ -924,7 +925,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         return $dataArr;
 	}
 	
-	/****get all address list from db by customer id****/
+	/***get all address list from db by customer id****/
 	public function getCustomerAddressDataByCustomerId($param){  
         $data =  $this->modelObj->getCustomerAddressDataByCustomerId($param->customer_id);
         $result = array();
@@ -1018,17 +1019,30 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         return $response;
 	}
 	
-	public function editAddress($param){
+	public function editAddress($param){//print_r($param);die;
+		$carrier_time_data = array();
+		 if(isset($param->carrier)){
+			$carrier_time_data = $param->carrier;
+			unset($param->carrier);
+		}
 		$response = array();
-
-		$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country, $param->postcode, $param->address_type, $param->email);
-
+//echo($param->address_1.'-'.$param->address_2.'--'.$param->city.'---'.$param->state.'----'.$param->country.'-----'.$param->postcode.'------'.$param->address_type.'-------'.$param->email.'--------');die;
+		$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country->short_name, $param->postcode, $param->address_type, $param->email);
+		//$searchString = array($param->address_1, $param->address_2, $param->city, $param->state, $param->country, $param->postcode, $param->address_type, $param->email);
+        //print_r($searchString);die;
         $searchString = preg_replace('!\s+!', '', strtolower(implode('',$searchString)));
 
         $param->search_string = $searchString;
-        
+        $param->country = $param->country->short_name;
 		$data =  $this->modelObj->editAddress($param);
+		
 		if ($data!= NULL) {
+			if(count($carrier_time_data)>0){
+				foreach($carrier_time_data as $carrier=>$carrier_time){
+					$deleteCarrierData = $this->modelObj->deleteCarrierData($carrier,$param->customer_id,$param->id);
+					$addCarrierData = $this->modelObj->addCarrierData($carrier,$param->customer_id,$carrier_time,$param->id);
+				} 
+			}
 			$response["status"] = "success";
 			$response["message"] = "Address updated successfully";  
 		}else{
@@ -1090,7 +1104,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 	}
 	
 	public function getCustomerDefaultUser($param){
-		$data =  $this->modelObj->checkDefaultUserExist(/* $param->company_id, */$param->customer_id);
+		$data =  $this->modelObj->checkDefaultUserExist(/* $param->company_id,*/$param->customer_id);
 		$response = array();
 		if(count($data)>0)
 			$response = array("status"=>"success","message"=>"Default user found","default_user_id"=>$data['id']);
@@ -1127,6 +1141,40 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
             }else{
                 $this->modelObj->disableCustomerWarehouseAddress($param);
             }
+        }catch(Exception $e){
+            $this->modelObj->rollBackTransaction();
+            return array("status"=>"error","message"=>"Warehouse not updated");
+        }
+    }
+	
+	public function setCustomerWarehouse($param){
+	    try{
+            $this->modelObj->startTransaction();
+            if($param->status==1){
+				//Set requested address as "Y"
+				$status = $this->modelObj->searchCustomerAddressByAddressId($param);
+				if($status>0){
+					$status = $this->modelObj->enableCustomerWarehouseAddress($param);
+				}else{
+					$status = $this->modelObj->saveCustomerWarehouseAddress($param);
+				}
+				if($status){
+					$this->modelObj->commitTransaction();
+					return array("status"=>"success","message"=>"Warehouse updated successfully");
+				}else{
+					$this->modelObj->rollBackTransaction();
+					return array("status"=>"error","message"=>"Warehouse not updated");
+				}
+			}else{
+				$status = $this->modelObj->disableCustomerWarehouseAddressByAddressId($param);
+				if($status){
+					$this->modelObj->commitTransaction();
+					return array("status"=>"success","message"=>"Warehouse updated successfully");
+				}else{
+					$this->modelObj->rollBackTransaction();
+					return array("status"=>"error","message"=>"Warehouse not updated");
+				}
+			}
         }catch(Exception $e){
             $this->modelObj->rollBackTransaction();
             return array("status"=>"error","message"=>"Warehouse not updated");

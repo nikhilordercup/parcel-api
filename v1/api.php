@@ -1857,6 +1857,14 @@ $app->post('/setCustomerDefaultWarehouse', function() use($app){
     echoResponse(200, $response);
 });
 
+$app->post('/setCustomerWarehouse', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','address_id','customer_id'),$r);
+    $obj = new Customer($r);
+    $response = $obj->setCustomerWarehouse($r);
+    echoResponse(200, $response);
+});
+
 $app->post('/setInternalCarrier', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id','carrier_id','status'),$r);
@@ -2094,6 +2102,15 @@ $app->post('/checkDutiableCountry', function() use ($app) {
 		echo $sql.'<br>';
 	}
 });*/
+/*start of cancel shipment*/
+$app->post('/cancelShipmentByLoadIdentity', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','load_identity'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->cancelShipmentByLoadIdentity($r);
+    echoResponse(200, $response);
+});
+/*end of cancel shipment*/
 
 $app->post('/saveNextdayQuotation', function() use ($app) {
     $r = json_decode($app->request->getBody());

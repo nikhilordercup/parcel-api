@@ -134,8 +134,12 @@ class Module_Addressbook_Addressbook extends Icargo{
         }else{
 			$addresses = Addressbook_Model::_getInstance()->searchAddressByAddressId(array("address_id"=>$param->id));
 			return array("status"=>"success", "data"=>array(
-				"residential_type"=>(strtolower($addresses["address_type"])=="residential") ? "yes" : "no",
+				"name"=>$addresses["first_name"],
+                "phone"=>$addresses["contact_no"],
+                "email"=>$addresses["contact_email"],
 				"city"=>$addresses["city"],
+				
+				"residential_type"=>(strtolower($addresses["address_type"])=="residential") ? "yes" : "no",
 				"state"=>$addresses["state"],
 				"address_line1"=>$addresses["address_line1"],
 				"address_line2"=>$addresses["address_line2"],
