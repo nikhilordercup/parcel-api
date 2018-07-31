@@ -55,6 +55,7 @@ final class Coreprime_Dhl extends Carrier {
     }
 
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData = array()) {        
+        //print_r($allData); die;
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);        
         $paperLessTrade = false;
@@ -210,7 +211,7 @@ final class Coreprime_Dhl extends Carrier {
         /**********end of static data from requet json ************** */
         //print_r($response);die;
         $response = $this->_getLabel($loadIdentity, json_encode($response));
-        if( !$paperLessTrade ) {
+        if( !$paperLessTrade && $allData->dutiable) {
             $response = $this->_getCustomInvoice($allData, $loadIdentity, $response);
         } else {
             unset($response['label_detail']);
@@ -253,7 +254,7 @@ final class Coreprime_Dhl extends Carrier {
         $sender .= '<tr><td style="padding:2px; height:25px;">'.$collection->state.'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;">'.$collection->postcode.'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;">'.$collection->country->short_name.'</td></tr>';
-        $sender .= '<tr><td style="padding:2px; height:25px;">'.(isset($collection->email) ? 'testcolletion@gmail.com':'').'</td></tr>';
+        $sender .= '<tr><td style="padding:2px; height:25px;">'.(isset($collection->email) ? $collection->email:'').'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;">Phone Number: '.$collection->phone.'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;"></td></tr></table></td>';
 
@@ -264,10 +265,10 @@ final class Coreprime_Dhl extends Carrier {
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->address_line1.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->address_line2.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->city.'</td></tr>';
-        $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->state.'</td></tr>';
+        $receiver .= '<tr><td style="padding:2px; height:25px;">'.( isset($delivery->state) ? $delivery->state : '').'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->postcode.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->country->short_name.'</td></tr>';
-        $receiver .= '<tr><td style="padding:2px; height:25px;">'.(isset($delivery->email) ? 'testdeliver@gmail.com':'').'</td></tr>';
+        $receiver .= '<tr><td style="padding:2px; height:25px;">'.(isset($delivery->email) ? $delivery->email:'').'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">Phone Number: '.$delivery->phone.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;"></td></table></td></tr></table></td></tr>';
 
