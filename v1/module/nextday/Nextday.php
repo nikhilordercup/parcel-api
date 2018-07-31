@@ -525,14 +525,6 @@ final class Nextday extends Booking
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         $this->commitTransaction();
-
-        //if($is_internal==1){
-            //email to customer
-            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
-
-            //email to courier
-            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
-        //}
 		
 		/*************call label generation method*********************************/
 		$labelInfo = $this->getLabelFromLoadIdentity($loadIdentity);
@@ -548,10 +540,19 @@ final class Nextday extends Booking
 		/***********get customer auto print setting*******************************/
 		$autoPrint = $this->modelObj->getAutoPrintStatusByCustomerId($this->_param->customer_id);
 	
-		if($saveLabelInfo)
+		if($saveLabelInfo){
+			//if($is_internal==1){
+            //email to customer
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+
+            //email to courier
+            Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
+        //}
 			return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path'],"auto_print"=>$autoPrint['auto_label_print']);
-		else
+		}
+		else{
 			return array("status"=>"error","message"=>"Shipment not booked successfully,error while saving label!","file_path"=>"","auto_print"=>"");
+		}
 		}else{
 			$deleteBooking = $this->_deleteBooking($loadIdentity);
 			if($deleteBooking){
