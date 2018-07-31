@@ -409,6 +409,11 @@ class Booking extends Icargo
             $service_data["tax_status"] = $otherDetail['tax_status'];
             $service_data["terms_of_trade"] =  $otherDetail['terms_of_trade'];
 
+            $service_data["label_tracking_number"] = '0';
+            $service_data["label_files_png"] = '';
+            $service_data["label_file_pdf"] =  '';
+            $service_data["label_json"] =  '';
+            
             $service_data["status"] = $booking_status;
                                     
             $service_id = $this->modelObj->saveShipmentService($service_data);
@@ -696,7 +701,7 @@ class Booking extends Icargo
     protected
 
     function _postRequest($data_string){
-        //echo $data_string; die;
+        echo $data_string; die;
         
         //return '{"rate": {"DHL": [{"420714888": [{"express_ww": [{"rate": {"weight_charge": 183.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]}, {"express_domestic": [{"rate": {"weight_charge": 183.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]},{"express_domestic_12": [{"rate": {"weight_charge": 189.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]}]}]}}';
         

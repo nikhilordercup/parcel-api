@@ -36,19 +36,31 @@ final class Coreprime_Dhl extends Carrier {
             $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/'; 
             $file_url = mkdir($label_path . $loadIdentity .'/dhl/', 0777, true);
             foreach ($labels as $dataFile) {
-                $dataFile = explode(".", $dataFile);
-                $dataFile = $dataFile[0] . '.pdf';
+                //$dataFile = explode(".", $dataFile);
+                $dataFile = $loadIdentity . '.pdf';
                 //print_r($label_path);die;
                 $file_name = $label_path . $loadIdentity .'/dhl/'. $dataFile;
                 $data = base64_decode($pdf_base64);
                 file_put_contents($file_name, $data);
                 header('Content-Type: application/pdf');
             }
-            $flabel = explode(".", $labels[0]);
             //echo $file_name;
             $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
 
-            return array("status" => "success", "message" => "label generated successfully", 'label_detail'=> $labelArr, "file_loc"=>$file_name, "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.pdf');
+            //return array("status" => "success", "message" => "label generated successfully", 'label_detail'=> $labelArr, "file_loc"=>$file_name, "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.pdf');
+            unset($labelArr->label->base_encode);            
+            
+            return array(
+                    "status" => "success",
+                    "message" => "label generated successfully",
+                    "label_detail" => $labelArr, 
+                    "file_loc"=>$file_name, 
+                    "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $loadIdentity . '.pdf',
+                    "label_tracking_number"=>$labelArr->label->tracking_number,
+                    "label_files_png" => '',
+                    "label_json" =>json_encode($labelArr)
+            );
+            
         } else {
             return array("status" => "error", "message" => $labelArr->error);
         }       
@@ -212,7 +224,7 @@ final class Coreprime_Dhl extends Carrier {
         //print_r($response);die;
         $response = $this->_getLabel($loadIdentity, json_encode($response));
         if( !$paperLessTrade && $allData->dutiable) {
-            $response = $this->_getCustomInvoice($allData, $loadIdentity, $response);
+            $customResp = $this->_getCustomInvoice($allData, $loadIdentity, $response);
         } else {
             unset($response['label_detail']);
         }
@@ -239,10 +251,10 @@ final class Coreprime_Dhl extends Carrier {
         $wayBillNo = $label->license_plate_number[0];
 
         foreach ($allData->collection as $coll) {
-            $collection = $coll;
+            $collection = $coll;            
         }                         
         foreach ($allData->delivery as $coll) {
-            $delivery = $coll;
+            $delivery = $coll;            
         }     
 
         $sender  = '<tr><th align="left" style="padding:2px; height:25px;">Sender:</th></tr>';
@@ -281,8 +293,8 @@ final class Coreprime_Dhl extends Carrier {
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Reason for Export: </th><td align="left" style="padding:2px; height:25px;"> '.$allData->reason_for_export.' </td></tr>';
         $invoice .= '</table></td><td style="width:500px;"><table width="100%" border="1" cellpadding="0" cellspacing="0" style=" font-family: arial; font-size: 14px;">';
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Invoice Number:</th><td align="left" style="padding:2px; height:25px;"></td></tr>';
-        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;"> Sender\'s Reference: </th><td align="left" style="padding:2px; height:25px;"></td></tr>';
-        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Recipient\'s Reference: </th><td align="left" style="padding:2px; height:25px;"></td></tr>';
+        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Sender\'s Reference: </th><td align="left" style="padding:2px; height:25px;">'.( isset($collection->recipient_ref) ? $collection->recipient_ref : '' ).'</td></tr>';
+        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Recipient\'s Reference: </th><td align="left" style="padding:2px; height:25px;">'.( isset($delivery->sender_ref) ? $delivery->sender_ref : '' ).'</td></tr>';
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Type of Export:</th><td align="left" style="padding:2px; height:25px;"> '.$allData->terms_of_trade.' </td></tr>';
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Tax Id/VAT/EIN#: </th><td align="left" style="padding:2px; height:25px;">'.$allData->tax_status.'</td></tr>';
         $invoice .= '</table></td></tr></table></td></tr>';
@@ -352,10 +364,10 @@ final class Coreprime_Dhl extends Carrier {
         $pdf = new ConcatPdf();
         $pdf->setFiles(array( $labelFilePath, $invoiceName));
         $pdf->concat();
-        $pdf->Output( $label_path . $loadIdentity . '/dhl/' . 'custom-invoice-'.$loadIdentity.'.pdf','F');
+        $pdf->Output( $label_path . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf','F');
         $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
 
-        return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . 'custom-invoice-'.$loadIdentity.'.pdf');
+        return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf');
      
     }
 

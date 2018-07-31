@@ -559,7 +559,6 @@ final class Nextday extends Booking {
 
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         //print_r($this->_param->service_opted->collection_carrier);die;
-        $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
 
         if ($accountStatus["status"] == "error") {
             return $accountStatus;
@@ -714,16 +713,17 @@ final class Nextday extends Booking {
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();        
         
-        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity);
+        $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
 		
         if($labelInfo['status']=='success')
         {
+            //print_r($labelInfo); die;
             
             /*************save label data in db****************************************/            
             $labelData = array(
-                "label_tracking_number" => isset( $labelInfo['label_tracking_number'] ) ? $labelInfo['label_tracking_number'] : '',
+                "label_tracking_number" => isset( $labelInfo['label_tracking_number'] ) ? $labelInfo['label_tracking_number'] : '0',
                 "label_files_png"=> isset( $labelInfo['label_files_png'] ) ? $labelInfo['label_files_png'] : '' ,
-                "label_file_pdf" => isset( $labelInfo['label_file_pdf'] ) ?  $labelInfo['label_file_pdf'] : '',
+                "label_file_pdf" => isset( $labelInfo['file_path'] ) ?  $labelInfo['file_path'] : '',
                 "label_json" => isset( $labelInfo['label_json'] ) ? $labelInfo['label_json'] : ''
             );
             
