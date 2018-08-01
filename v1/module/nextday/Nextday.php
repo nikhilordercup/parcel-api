@@ -311,8 +311,8 @@ final class Nextday extends Booking {
                                         }
                                     }
 
-                                    $collected_item["carrier_price_info"]["price"] = $serviceCcf["original_price"];
-                                    $collected_item["customer_price_info"]["price"] = $serviceCcf["price_with_ccf"];
+                                    $collected_item["carrier_price_info"]["price"] = isset($serviceCcf["original_price"]) ? $serviceCcf["original_price"] : 0;
+                                    $collected_item["customer_price_info"]["price"] = isset($serviceCcf["price_with_ccf"]) ? $serviceCcf["price_with_ccf"] : 0;
 
                                     $collected_item["carrier_price_info"]["surcharges"] = number_format($surchargePrice, 2);
                                     $collected_item["customer_price_info"]["surcharges"] = number_format($surchargeWithCcfPrice, 2);
