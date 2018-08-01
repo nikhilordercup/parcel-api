@@ -53,7 +53,6 @@ class Booking_Model_Booking
     function getCustomerCarrierServices($customer_id, $carrier_id, $account_number){
 
         $sql = "SELECT CST.service_code, CST.service_name FROM `" . DB_PREFIX . "company_vs_customer_vs_services` AS CCST INNER JOIN `" . DB_PREFIX . "courier_vs_services_vs_company` AS CSCT ON CSCT.service_id=CCST.service_id INNER JOIN `" . DB_PREFIX . "courier_vs_company` AS CCT ON CCST.company_id=CCT.company_id AND CCT.account_number='$account_number' INNER JOIN `" . DB_PREFIX . "courier_vs_services` AS CST ON CST.id=CSCT.service_id WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.service_type='NEXTDAY' AND CCST.company_customer_id='$customer_id' AND CCST.courier_id='$carrier_id'";
-echo $sql; echo "        ------------         ";
         //$sql = "SELECT DISTINCT(CST.service_code) AS service_code, CST.service_name FROM " . DB_PREFIX . "company_vs_customer_vs_services AS CCST INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS CSCT ON CCST.service_id = CSCT.service_id INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON CST.id = CSCT.service_id WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.courier_id= '$carrier_id' AND CCST.company_customer_id='$customer_id'";
         return $this->_db->getAllRecords($sql);
     }
