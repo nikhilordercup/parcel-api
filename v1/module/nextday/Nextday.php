@@ -28,7 +28,7 @@ final class Nextday extends Booking {
 
         //$carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
-print_r($carrier);
+
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
                 foreach($this->_param->parcel as $parceldata){
@@ -39,16 +39,23 @@ print_r($carrier);
                         }
                     } else {
                         //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
-                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["account_id"], $item["account_number"]);
-                        if(count($services)>0){
-                                foreach($services as $service)
-                                        $carrier[$key]["services"][$service["service_code"]] = $service;
-                        }else {
-                                unset($carrier[$key]);
+                        $accountId = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
+                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"]);
+                        if(count($services)>0)
+                        {
+                            foreach($services as $service) 
+                            {
+                                $carrier[$key]["services"][$service["service_code"]] = $service;
+                            }
+                        }
+                        else 
+                        {
+                            unset($carrier[$key]);
                         }
                     }
                 }
-            } die;
+            } 
+            
             $collectionIndex = 0;
             $collectionList = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
 

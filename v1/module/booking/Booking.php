@@ -795,18 +795,15 @@ class Booking extends Icargo
                 }
             }
         }        
-        $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);
-        print_r($lists); die;
+        $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);        
         return $lists;
     }
 	
-	protected function _saveLabelInfoByLoadIdentity($labelArr,$loadIdentity){
-		return $this->modelObj->saveLabelDataByLoadIdentity($labelArr,$loadIdentity);
-	}
+    protected function _saveLabelInfoByLoadIdentity($labelArr,$loadIdentity){
+            return $this->modelObj->saveLabelDataByLoadIdentity($labelArr,$loadIdentity);
+    }
 
-    protected
-
-    function getCustomerInfo($user_id){
+    protected function getCustomerInfo($user_id){
         return $this->modelObj->getCustomerInfo($user_id);
     }
 
