@@ -791,6 +791,7 @@ class Booking extends Icargo
             foreach($carriers as $key => $carrier) {
                 if($carrierList["account_id"]==$carrier["account_id"]){
                     $carrier["account_number"] = $carrierList["account_number"];
+                    print_r($carrier);
                     array_push($lists, $carrier);
                 }
             }

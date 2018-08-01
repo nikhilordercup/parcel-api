@@ -28,7 +28,7 @@ final class Nextday extends Booking {
 
         //$carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
-
+print_r($carrier);
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
                 foreach($this->_param->parcel as $parceldata){
