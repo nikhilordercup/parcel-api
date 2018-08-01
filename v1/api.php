@@ -1169,7 +1169,6 @@ $app->post('/getAllCourierServices', function() use ($app) {
     verifyRequiredParams(array('access_token','company_id','user_id'),$r);
     $obj = new Master($r);
     $response = $obj->getAllCourierServices($r);
-    print_r($response); die;
     echoResponse(200, $response);
 });
 $app->post('/getAllCourierSurcharge', function() use ($app) {
