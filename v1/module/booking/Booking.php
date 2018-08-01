@@ -545,7 +545,7 @@ class Booking extends Icargo
         $price_breakdown["shipment_type"] = $data->rate->shipment_type;
         $price_breakdown["version"]       = $price_version;
         $price_breakdown["api_key"]       = "service";
-        $price_breakdown["price_code"]    = $data->rate->info->courier_service_code;
+        $price_breakdown["price_code"]    = isset( $data->rate->info->courier_service_code ) ? $data->rate->info->courier_service_code : '';
         $price_breakdown["ccf_operator"]  = $data->rate->info->operator;
         $price_breakdown["ccf_value"]     = $data->rate->info->ccf_value;
         $price_breakdown["ccf_level"]     = $data->rate->info->level;
