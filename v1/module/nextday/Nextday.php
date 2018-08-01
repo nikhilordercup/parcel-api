@@ -47,7 +47,7 @@ final class Nextday extends Booking {
                         }
                     }
                 }
-            }
+            } die;
             $collectionIndex = 0;
             $collectionList = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
 
@@ -297,7 +297,7 @@ final class Nextday extends Booking {
 
                                             $surchargeWithCcfPrice += $surchargeCcf["price_with_ccf"];
 
-                                            if ( isset($surchargeCcf["operator"]) && ( $surchargeCcf["operator"] != "FLAT" ) ) {
+                                            if ($surchargeCcf["operator"] != "FLAT") {
                                                 $surchargePrice += $surchargeCcf["original_price"];
                                             }
                                         }
@@ -414,8 +414,6 @@ final class Nextday extends Booking {
         } else {
             $this->data = $carrierLists;
         }
-        
-        print_r($this->data); die;
     }
 
 
