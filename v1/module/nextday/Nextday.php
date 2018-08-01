@@ -297,7 +297,7 @@ final class Nextday extends Booking {
 
                                             $surchargeWithCcfPrice += $surchargeCcf["price_with_ccf"];
 
-                                            if ($surchargeCcf["operator"] != "FLAT") {
+                                            if ( isset($surchargeCcf["operator"]) && ( $surchargeCcf["operator"] != "FLAT" ) ) {
                                                 $surchargePrice += $surchargeCcf["original_price"];
                                             }
                                         }
