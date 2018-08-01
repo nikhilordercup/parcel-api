@@ -99,6 +99,15 @@ class Master extends Icargo{
          INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
          INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
          INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid." ");
+         
+         echo "
+         SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,L.service_id as service_id
+         FROM ".DB_PREFIX."courier_vs_services_vs_company as L 
+         INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
+         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
+         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid." ";
+         
+         die;
        foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editServiceAccount';
            $data[$key]['actioncode'] = 'INNER';
