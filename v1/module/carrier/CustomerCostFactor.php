@@ -146,7 +146,8 @@ class CustomerCostFactor
                 $surcharge_ccf_price = $this->_calculateSurcharge($price, $customerCcf["company_carrier_ccf"], $customerCcf["company_carrier_operator"], $surcharge_code, $surcharge_code, $surcharge_code, $surcharge_code, "level 5", 0);
             }
         }
-        $surcharge_ccf_price["price_with_ccf"] = number_format($surcharge_ccf_price["price"] + $price, 2);
+        $surchargeCcfPrice = isset($surcharge_ccf_price["price"]) ? $surcharge_ccf_price["price"] : '0';
+        $surcharge_ccf_price["price_with_ccf"] = number_format( $surchargeCcfPrice + $price, 2);
         $surcharge_ccf_price["carrier_id"] = $courier_id;
 
         return $surcharge_ccf_price;
