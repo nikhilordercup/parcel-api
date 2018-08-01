@@ -414,6 +414,8 @@ final class Nextday extends Booking {
         } else {
             $this->data = $carrierLists;
         }
+        
+        print_r($this->data); die;
     }
 
 
