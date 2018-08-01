@@ -99,8 +99,6 @@ class Master extends Icargo{
          INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
          INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
          INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid." ");
-         
-         print_r($data);
        foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editServiceAccount';
            $data[$key]['actioncode'] = 'INNER';
@@ -110,7 +108,6 @@ class Master extends Icargo{
 			    $data[$key]['flow_type'][] = $flowType['flow_type'];
 		   }
        }
-       print_r($data);die;
       return  $data;  
     }
   public function getAllCourierSurcharge($param){
