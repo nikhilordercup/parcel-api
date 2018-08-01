@@ -795,7 +795,7 @@ class Booking extends Icargo
                 }
             }
         }
-
+        print_r($lists); die;
         $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);
         return $lists;
     }
