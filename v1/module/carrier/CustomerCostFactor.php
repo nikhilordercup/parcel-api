@@ -114,7 +114,9 @@ class CustomerCostFactor
             }
         }
 
-        $service_ccf_price["price_with_ccf"] = number_format($service_ccf_price["price"] + $serviceprice, 2);
+        $serviceCcfPrice = isset($service_ccf_price["price"]) ? $service_ccf_price["price"] : '0';
+        
+        $service_ccf_price["price_with_ccf"] = number_format( $serviceCcfPrice + $serviceprice, 2);
         return $service_ccf_price;
     }
 
