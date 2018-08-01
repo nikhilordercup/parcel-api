@@ -790,14 +790,13 @@ class Booking extends Icargo
         foreach($carrierLists as $carrierList){
             foreach($carriers as $key => $carrier) {
                 if($carrierList["account_id"]==$carrier["account_id"]){
-                    $carrier["account_number"] = $carrierList["account_number"];
-                    print_r($carrier);
+                    $carrier["account_number"] = $carrierList["account_number"];                    
                     array_push($lists, $carrier);
                 }
             }
-        }
-        print_r($lists); die;
+        }        
         $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);
+        print_r($lists); die;
         return $lists;
     }
 	
