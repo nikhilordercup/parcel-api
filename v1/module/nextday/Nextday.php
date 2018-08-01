@@ -320,8 +320,8 @@ final class Nextday extends Booking {
                                     $collected_item["carrier_price_info"]["taxes"] = isset($service->taxes->total_tax) ? number_format($service->taxes->total_tax, 2) : 0;
                                     $collected_item["customer_price_info"]["taxes"] = number_format((($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice) * ( isset($service->taxes->tax_percentage) ? $service->taxes->tax_percentage : 0) / 100), 2);
 
-                                    $collected_item["carrier_price_info"]["grand_total"] = number_format($serviceCcf["original_price"] + $surchargePrice + ( isset($service->taxes->total_tax) ? $service->taxes->total_tax : 0 ), 2);
-                                    $collected_item["customer_price_info"]["grand_total"] = number_format($serviceCcf["price_with_ccf"] + $surchargeWithCcfPrice + $collected_item["customer_price_info"]["taxes"], 2);
+                                    $collected_item["carrier_price_info"]["grand_total"] = number_format( ( isset($serviceCcf["original_price"]) ? $serviceCcf["original_price"] : 0 ) + $surchargePrice + ( isset($service->taxes->total_tax) ? $service->taxes->total_tax : 0 ), 2);
+                                    $collected_item["customer_price_info"]["grand_total"] = number_format( ( isset($serviceCcf["price_with_ccf"]) ? $serviceCcf["price_with_ccf"]  : 0 ) + $surchargeWithCcfPrice + $collected_item["customer_price_info"]["taxes"], 2);
 
 
                                     $service->collected_by[$collected_key] = $collected_item;
