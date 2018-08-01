@@ -38,7 +38,8 @@ final class Nextday extends Booking {
                                 $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
                         }
                     } else {
-                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
+                        //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
+                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["account_id"], $item["account_number"]);
                         if(count($services)>0){
                                 foreach($services as $service)
                                         $carrier[$key]["services"][$service["service_code"]] = $service;
