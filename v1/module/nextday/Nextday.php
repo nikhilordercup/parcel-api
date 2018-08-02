@@ -96,8 +96,7 @@ final class Nextday extends Booking {
         return array("status" => "error", "message" => "Carrier not configured");
     }
 
-    private function _getCarrierInfo($data) {
-        print_r($data);
+    private function _getCarrierInfo($data) {       
         foreach ($data as $carrier_code => $lists) {
             switch ($carrier_code) {
                 case 'UKMAIL':
@@ -107,8 +106,7 @@ final class Nextday extends Booking {
                     $this->getDhlServiceList($carrier_code, $lists);
                     break;
             }
-        }
-        print_r($data); die;
+        }        
         return $data;
     }
 
@@ -237,6 +235,7 @@ final class Nextday extends Booking {
                             $ratePrice = $services[0]->rate->weight_charge;
                             $accountId = isset($this->carrierList[$accountNumber]["account_id"]) ? $this->carrierList[$accountNumber]["account_id"] : $this->carrierList[$accountNumber]["carrier_id"];
                             $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $ratePrice, $accountId, $this->_param->customer_id, $this->_param->company_id); //$services[0]->rate
+                            print_r($serviceCcf);
                             $services[0]->rate->price = $serviceCcf["price_with_ccf"];
                             $services[0]->rate->info = $serviceCcf;
                             //Assign currency, if it is not exist.
