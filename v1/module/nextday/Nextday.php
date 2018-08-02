@@ -97,6 +97,7 @@ final class Nextday extends Booking {
     }
 
     private function _getCarrierInfo($data) {
+        print_r($data);
         foreach ($data as $carrier_code => $lists) {
             switch ($carrier_code) {
                 case 'UKMAIL':
@@ -107,6 +108,7 @@ final class Nextday extends Booking {
                     break;
             }
         }
+        print_r($data); die;
         return $data;
     }
 
