@@ -97,6 +97,8 @@ class Carrier_Model_Carrier
         AND CCST.company_id = '$company_id'
         AND CCST.courier_id = '$courier_id'
         AND COURSER.service_code = '$service_code'"; 
+        echo $sql;
+        echo ";      ";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 

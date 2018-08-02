@@ -121,10 +121,8 @@ final class Nextday extends Booking {
                         if (!isset($services[0]->rate->error)) {
 
                             $ratePrice = $services[0]->rate->price;
-
-                            $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $ratePrice, $this->carrierList[$accountNumber]["carrier_id"], $this->_param->customer_id, $this->_param->company_id); //$services[0]->rate
-                            print_r($serviceCcf);
-                            echo " UKMAIL ";
+                            $accountId = isset($this->carrierList[$accountNumber]["account_id"]) ? $this->carrierList[$accountNumber]["account_id"] : $this->carrierList[$accountNumber]["carrier_id"];
+                            $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $ratePrice, $accountId, $this->_param->customer_id, $this->_param->company_id); //$services[0]->rate                            
                             $services[0]->rate->price = $serviceCcf["price_with_ccf"];
                             $services[0]->rate->info = $serviceCcf;
 
