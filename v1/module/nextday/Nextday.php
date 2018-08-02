@@ -31,15 +31,18 @@ final class Nextday extends Booking {
 
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
-                foreach($this->_param->parcel as $parceldata){
+                
+                $accountId = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
+                $carrier[$key]["account_id"] = $accountId;
+                
+                foreach($this->_param->parcel as $parceldata){                    
                     $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code']);
                     if(count($checkPackageSpecificService)>0){
                         foreach($checkPackageSpecificService as $serviceData){
                                 $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
                         }
                     } else {
-                        //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
-                        $accountId = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
+                        //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
                         $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"]);
                         if(count($services)>0)
                         {
