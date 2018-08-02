@@ -36,6 +36,7 @@ CREATE TABLE `icargo_pickups` (
   `ready_time` varchar(20) NOT NULL COMMENT 'Ready Time coming from service',
   `next_date` varchar(50) DEFAULT NULL COMMENT 'Next Date coming from service',
   `second_time` varchar(50) DEFAULT NULL COMMENT 'Second Time coming from service',
+  `search_string` varchar(520) DEFAULT NULL COMMENT 'Search string',
   `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1=Successfull, 0 = Pending',
   `created` datetime NOT NULL,
   `updated` datetime NOT NULL
