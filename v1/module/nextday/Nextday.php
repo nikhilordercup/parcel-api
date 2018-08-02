@@ -225,7 +225,7 @@ final class Nextday extends Booking {
 
     /*     * **********UKMAIL Service list (Ends Here) ********* */
 
-    /*     * **********UKMAIL Service list (Start from Here) ********* */
+    /*     * **********DHL Service list (Start from Here) ********* */
 
     private function getDhlServiceList($carrier_code, $lists) {
         print_r($this->carrierList); die;

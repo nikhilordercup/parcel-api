@@ -183,6 +183,7 @@ final Class Collection{
         $this->_findCollectionAddressIsRegularPickup($defaultCollectionAddress);
 
         foreach($list as $item){
+            print_r($item);
             //if($item["pickup"]==1 || $this->isRegularPickup){
 			//get carrier time for customer
 			$collectionStartTime = $this->modelObj->getCollectionStartTime($defaultCollectionAddress['address_id'],$this->customerId,$item['carrier_code']);
