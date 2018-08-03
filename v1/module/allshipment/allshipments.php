@@ -156,6 +156,7 @@ class allShipments extends Icargo
                             $data['account']            = $pickupData['shipment_customer_account'];
                             $data['service']            = $pickupData['shipment_service_name'];
                             $data['carrier']            = $pickupData['carrier'];
+							$data['carrier_icon']       = $pickupData['carrier_icon'];
                             $data['amount']             = $pickupData['shipment_customer_price'];
                             $data['booked_by']          = $pickupData['booked_by'];
                             $data['isInvoiced']         = $pickupData['isInvoiced'];
@@ -208,7 +209,7 @@ class allShipments extends Icargo
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
                             $data['carrier']	 = $pickupData['carrier'];
-							$data['carrier_icon']= 'http://localhost/projects/icargo/'.$pickupData['carrier_icon'];
+							$data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
                             $data['amount']      = $pickupData['shipment_customer_price'];
                             $data['booked_by']   = $pickupData['booked_by'];
                             $data['isInvoiced']  = $pickupData['isInvoiced'];

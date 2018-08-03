@@ -17,7 +17,6 @@ final class Nextday extends Booking {
     private
             function _getJobCollectionList($carriers, $address) {
         $jobCollectionList = $this->collectionModel->getJobCollectionList($carriers, $address, $this->_param->customer_id, $this->_param->company_id, $this->_param->collection_date);
-
         $this->regular_pickup = $jobCollectionList["regular_pickup"];
         return $jobCollectionList["carrier_list"];
     }
@@ -64,6 +63,11 @@ final class Nextday extends Booking {
 
             if (count($collectionList) > 0) {
                 foreach ($collectionList as $item) {
+					if(strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])){
+						$item['highlight_class'] = '';
+					}else{
+						$item['highlight_class'] = 'highlighted-datetime';
+					}
                     if (count($item["services"]) > 0) {
                         $serviceItems = array();
                         $isRegularPickup = ($item["is_regular_pickup"] == "no") ? "1" : "0";
@@ -199,8 +203,8 @@ final class Nextday extends Booking {
 
                                     $service->collected_by[$collected_key] = $collected_item;
                                 }
-
                                 $service->carrier_info = array(
+								    "highlight_class" => $this->carrierList[$accountNumber]["highlight_class"],
                                     "carrier_id" => $this->carrierList[$accountNumber]["carrier_id"],
                                     "name" => $this->carrierList[$accountNumber]["name"],
                                     "icon" => $this->carrierList[$accountNumber]["icon"],
