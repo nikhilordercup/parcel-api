@@ -195,7 +195,7 @@ final class Coreprime_Dhl extends Carrier {
                 
         if(isset($allData->items)) {            
             $key = 0;
-            foreach ( $allData->items as $item ) {                
+            foreach ( $allData->items as $item ) {                         
                 $items[$key]['item_description'] = $item->item_description;
                 $items[$key]["item_quantity"] = $item->item_quantity;
                 $items[$key]["country_of_origin"] = $item->country_of_origin->alpha2_code;
@@ -204,7 +204,7 @@ final class Coreprime_Dhl extends Carrier {
                 $items[$key]["item_code"] = '';
                 $items[$key]["item_weight"] = '';
                                 
-                $totalValue = $totalValue + $item->item_value;
+                $totalValue = $totalValue + $item->item_value * $item->item_quantity;
                 $key++;
             }
         } else {
@@ -223,7 +223,6 @@ final class Coreprime_Dhl extends Carrier {
         $response['extra']['customs_form_declared_value'] = "$totalValue";
         
         /**********end of static data from requet json ************** */
-        //print_r($response);die;
         $response = $this->_getLabel($loadIdentity, json_encode($response));
         if( !$paperLessTrade && ($response['status'] != 'error') && $allData->dutiable ) {
             $customResp = $this->_getCustomInvoice($allData, $loadIdentity, $response);
