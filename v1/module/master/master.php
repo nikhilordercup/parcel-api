@@ -452,6 +452,8 @@ class Master extends Icargo{
                 "address_id" => $param->address_id,
                 "collection_start_at" => date("H:i:s", strtotime($param->collection_start_at)),
                 "collection_end_at" => date("H:i:s", strtotime($param->collection_end_at)),
+                "authentication_token" => isset($param->authentication_token) ? $param->authentication_token : '',
+                "authentication_token_created_at" => isset($param->authentication_token_created_at) ? $param->authentication_token : '',
             );
             $id = $this->_parentObj->db->save("courier_vs_company", $data);
             if($id){

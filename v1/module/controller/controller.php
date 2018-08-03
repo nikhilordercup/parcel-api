@@ -51,7 +51,7 @@ class Controller extends Icargo{
 		//return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->user_id." AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
 	}
 	
-	public function getControllerDataByCompanyAndWarehouseId($param){
+	public function getControllerDataByCompanyAndWarehouseId($param){            
         return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->company_id." AND t2.warehouse_id = ".$param->warehouse_id." AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
     }
 
@@ -268,9 +268,14 @@ class Controller extends Icargo{
         return $customerLists;
     }
 
-    public function getAllWarehouseAddressByCompanyAndUser($param){
-        $sql = "SELECT `ABT`.`id`,`ABT`.`address_line1`, `ABT`.`address_line2`, `ABT`.`postcode`, `ABT`.`city`, `ABT`.`state`, `ABT`.`country` FROM `". DB_PREFIX  ."address_book` AS `ABT` INNER JOIN `". DB_PREFIX ."user_address` AS `UAT` ON `ABT`.`id` = `UAT`.`address_id` WHERE `UAT`.`default_address`='Y' AND `ABT`.`customer_id`=".$param['user_id']." AND `ABT`.`status`=1";
-        $records = $this->_parentObj->db->getAllRecords($sql);
+    public function getAllWarehouseAddressByCompanyAndUser($param)
+    {            
+        if(isset($param['is_warehouse']) && $param['is_warehouse']) {
+            $sql = "SELECT `ABT`.`id`,`ABT`.`address_line1`, `ABT`.`address_line2`, `ABT`.`postcode`, `ABT`.`city`, `ABT`.`state`, `ABT`.`country`, `ABT`.`iso_code`, `ABT`.`email`, `ABT`.`phone`, `ABT`.`name`, `ABT`.`company_name`, `UAT`.`warehouse_address`, `UAT`.`default_address` FROM `". DB_PREFIX  ."address_book` AS `ABT` INNER JOIN `". DB_PREFIX ."user_address` AS `UAT` ON `ABT`.`id` = `UAT`.`address_id` WHERE `UAT`.`warehouse_address`='Y' AND `ABT`.`customer_id`=".$param['user_id']." AND `ABT`.`status`=1";
+        } else {
+            $sql = "SELECT `ABT`.`id`,`ABT`.`address_line1`, `ABT`.`address_line2`, `ABT`.`postcode`, `ABT`.`city`, `ABT`.`state`, `ABT`.`country`, `ABT`.`iso_code`, `ABT`.`email`, `ABT`.`phone`, `ABT`.`name`, `ABT`.`company_name`, `UAT`.`warehouse_address`, `UAT`.`default_address` FROM `". DB_PREFIX  ."address_book` AS `ABT` INNER JOIN `". DB_PREFIX ."user_address` AS `UAT` ON `ABT`.`id` = `UAT`.`address_id` WHERE `UAT`.`default_address`='Y' AND `ABT`.`customer_id`=".$param['user_id']." AND `ABT`.`status`=1";
+        }        
+        $records = $this->_parentObj->db->getAllRecords($sql);        
         return $records;
     }
 }

@@ -8,7 +8,7 @@ class Carrier{
 	public function __construct(){
         $this->modelObj = new Booking_Model_Booking();
     }
-	public function getShipmentInfo($loadIdentity){
+	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){             
 		$carrierObj = null;
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
@@ -29,11 +29,19 @@ class Carrier{
 		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($deliveryCarrier));
 
 		$carrierObj = new $coreprimeCarrierClass();
-		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
-		if($shipmentInfo['status']=="success")
-			return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_file_pdf"=>$shipmentInfo['label_file_pdf'],"label_json"=>$shipmentInfo['label_json']);
-		else
-			return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
+                
+                if( strtolower($deliveryCarrier) == 'dhl' ) {
+                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
+                } else {
+                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
+                }
+                
+                
+                if( $shipmentInfo['status'] == 'success' ) {
+                    return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json']);
+                } else {
+                    return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
+                }		
 		//$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
 		
 		/* $response['package'] = $this->getPackageInfo($loadIdentity);

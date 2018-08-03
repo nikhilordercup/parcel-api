@@ -165,6 +165,7 @@ final Class Collection{
             "carrier_code"         => $item["carrier_code"],
             "description"          => $item["description"],
             "carrier_id"           => $item["carrier_id"],
+            "account_id"           => isset($item["account_id"])?$item["account_id"]:$item["carrier_id"],
             "username"             => $item["username"],
             "password"             => $item["password"],
             "internal"             => $item["internal"],
@@ -182,7 +183,7 @@ final Class Collection{
         $defaultCollectionAddress = $this->modelObj->getDefaultCollectionAddress($this->customerId);
         $this->_findCollectionAddressIsRegularPickup($defaultCollectionAddress);
 
-        foreach($list as $item){
+        foreach($list as $item){            
             //if($item["pickup"]==1 || $this->isRegularPickup){
 			//get carrier time for customer
 			$collectionStartTime = $this->modelObj->getCollectionStartTime($defaultCollectionAddress['address_id'],$this->customerId,$item['carrier_code']);

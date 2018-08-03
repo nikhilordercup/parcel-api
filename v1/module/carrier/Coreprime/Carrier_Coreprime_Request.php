@@ -35,7 +35,7 @@ Class Carrier_Coreprime_Request{
 
     private function _send($url, $data_string){
         $url = "$this->access_url/$url";
-//print_r($url);die;
+        //print_r($url);die;
         //echo $data_string;die;
 
         $ch = curl_init($url);

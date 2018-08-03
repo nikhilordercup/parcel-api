@@ -94,11 +94,30 @@
 			return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country.$arr->name.$arr->email.$arr->comapany;
            //return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country;
         }
-
-        public function countryList(){
-            $sql = "SELECT * FROM `" . DB_PREFIX . "countries`";
-            $records = $this->db->getAllRecords($sql);
+        
+        public function countryList($searchData = array())
+        {
+            $cond = ( isset($searchData['id']) && !empty($searchData['id']) ) ? 'where `id`='.$searchData['id'] : '';
+            $sql = "SELECT * FROM `" . DB_PREFIX . "countries` ".$cond;
+            
+            if($cond) {
+                $records = $this->db->getRowRecord($sql);
+            } else {
+                $records = $this->db->getAllRecords($sql);
+            }
+            //print_r($records); die;
             return $records;
         }
+        
+        public function checkDutiableCountry($data = array())
+        {                        
+            $collectionCountry = $data->collection_country;
+            $deliveryCountry = $data->delivery_country;            
+            $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";                        
+            $records = $this->db->getRowRecord($sql);   
+            //print_r($records);
+            return $records['dutiable'];
+        }
+
     }
 ?>

@@ -200,7 +200,7 @@ class allShipments extends Icargo
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
 							$labelArr = json_decode($pickupData['label_json']);
 							if(count($labelArr)>0)
-								$collectionReference = $labelArr->label->collectionjobnumber;
+								$collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
 							else
 								$collectionReference = "";
 							//}
@@ -1801,5 +1801,6 @@ class allShipments extends Icargo
 			return array("status"=>"error","message"=>$cancelShipment->error);
 		}
 	}
+
 }
 ?>

@@ -1,10 +1,9 @@
-/vendor/
-/config.php
-/label/
-/temp/
 .DS_Store
 nbproject
+config.php
 /.idea/
 /vendor/
+/label/
 composer.lock
-config.php
+/config.php
+/temp/

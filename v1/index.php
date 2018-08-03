@@ -50,6 +50,7 @@ require_once('../vendor/setasign/fpdf/fpdf.php');
 require_once('../vendor/setasign/fpdi/src/autoload.php');
 require_once 'module/fpdf/ConcatPdf.php';
 
+//require_once('../vendor/dompdf/autoload.inc.php');
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
 
@@ -121,7 +122,9 @@ require_once 'module/booking/Booking.php';
 
 require_once 'module/carrier/Carrier.php';
 require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
+require_once 'module/carrier/Coreprime/Dhl/Dhl.php';
 require_once 'module/nextday/Nextday.php';
+require_once 'module/pickup/Pickup.php';
 
 require_once 'module/allshipment/allshipments.php';
 require_once 'module/allshipment/model/allshipments.php';
@@ -134,7 +137,12 @@ require_once 'module/package/Module_Package_Index.php';
 
 require_once 'module/booking/collection.php';
 
+//Country file included
+require_once 'module/country/model/country.php';
 
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 /**
  * Verifying required params posted or not

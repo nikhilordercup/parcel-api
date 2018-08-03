@@ -1537,7 +1537,7 @@ $app->post('/getNotificationStatus', function() use ($app) {
 });
 
 $app->post('/loadCustomerAndUserByCustomerId', function() use ($app) {
-    $r = json_decode($app->request->getBody());
+    $r = json_decode($app->request->getBody());    
     verifyRequiredParams(array('access_token','company_id','email'),$r);
     $obj = new Controller($r);
     $response = $obj->loadCustomerAndUserByCustomerId(array("controller_id"=>$r->company_id, "warehouse_id"=>$r->warehouse_id));
@@ -1673,11 +1673,11 @@ $app->post('/generateReport', function() use($app){
 });
 
 /*end of report module comment by kavita 20march2018*/
-
 $app->post('/loadCountry', function() use ($app) {
     $r = json_decode($app->request->getBody());
+    $countryId = isset($r->id) ? $r->id : 0;
     $obj = new Common();
-    $response = $obj->countryList(array("controller_id"=>$r->company_id));
+    $response = $obj->countryList(array("controller_id"=>$r->company_id, 'id' => $countryId));
     echoResponse(200, $response);
 });
 
@@ -1688,7 +1688,7 @@ $app->post('/loadCountry', function() use ($app) {
 });*/
 
 $app->post('/getNextdayAvailableCarrier', function() use ($app){
-	$r = json_decode($app->request->getBody());
+	$r = json_decode($app->request->getBody());        
     $obj = new Nextday($r);
     $response = $obj->searchNextdayCarrierAndPrice();
 
@@ -1700,6 +1700,7 @@ $app->post('/getNextdayAvailableCarrier', function() use ($app){
 });
 
 $app->post('/bookNextDayJob', function() use ($app){
+    //echo $app->request->getBody(); die;
     $r = json_decode($app->request->getBody());
     $obj = new Nextday($r);
     $response = $obj->saveBooking($r);
@@ -1927,7 +1928,7 @@ $app->post('/getAllWarehouseAddressByCompanyAndUser', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
     $obj = new Controller($r);
-    $response = $obj->getAllWarehouseAddressByCompanyAndUser(array("company_id" => $r->company_id, "user_id" => $r->user_id));
+    $response = $obj->getAllWarehouseAddressByCompanyAndUser(array("company_id" => $r->company_id, "user_id" => $r->user_id, "is_warehouse" => isset($r->is_warehouse) ? $r->is_warehouse : ''));
     echoResponse(200, $response);
 });
 
@@ -1973,7 +1974,6 @@ $app->post('/getAllMasterCouriers', function() use ($app) {
     $response = $obj->getAllMasterCouriers($r);
     echoResponse(200, $response);
 });
-
 $app->post('/printLabelByLoadIdentity', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array(/* 'load_identity', */'company_id'),$r);
@@ -2007,6 +2007,101 @@ $app->post('/getServiceFlowType', function() use ($app) {
 });
 /*end of adding flow type*/
 
+/****** Country Master update and add/edit non-dutiable list, Starts from here ************/
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: Used for updating the country detail
+ */
+$app->post('/editcountry', function() use ($app) {
+    $r = json_decode($app->request->getBody());    
+    $obj = new Country($r);
+    $response = $obj->updateCountry($r);
+    if($response) {
+        $results = array('status' => 'success', 'message' =>'Country updated successfully.');
+    } else {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    }
+    echoResponse(200, $results);
+});
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: For getting non-dutiable and dutiable country list for country specific
+ */
+$app->post('/loadNonDuitableCountry', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Country($r);       
+    $response = $obj->loadNonDuitableCountry($r);       
+    
+    echoResponse(200, $response);
+});
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: Used for disabling the non-dutiable list
+ */
+$app->post('/updateNonDutiable', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Country($r);       
+    $response = $obj->updateNonDutiable($r);       
+    
+    if($response) {
+        $results = array('status' => 'success', 'message' =>'Non dutiable list removed successfully.');
+    } else {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    }
+    echoResponse(200, $results);
+});
+/*
+ * Author: Amita Pandey
+ * Date: 29-June-2018
+ * Purpose: Used for adding non-dutiable country
+ */
+$app->post('/addNonDutiable', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Country($r);       
+    $response = $obj->addNonDutiable($r);       
+    
+    if($response) {
+        $results = array('status' => 'success', 'message' =>'Non dutiable country added successfully.');
+    } else {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    }
+    echoResponse(200, $results);
+});
+
+/****** Country Master update and add/edit non-dutiable list, Ends here ************/
+
+/*
+ * Author: Amita Pandey
+ * Date: 11-July-2018
+ * Purpose: Check delivery country is dutiable for collection or not
+ */
+$app->post('/checkDutiableCountry', function() use ($app) {
+    $r = json_decode($app->request->getBody()); 
+    $obj = new Common();
+    $response = $obj->checkDutiableCountry($r);       
+    
+    if($response) {
+        $results = array('status' => 'error', 'message' =>'Please try again.');
+    } else {
+        $results = array('status' => 'success', 'result' => $response);
+    }
+    echoResponse(200, $results);
+});
+        
+
+/*$app->post('/temp', function() use ($app) {
+	$db = new DbHandler();
+	$sql = "SELECT shipment_latlong, shipment_id from icargo_shipment;";
+	$records = $db->getAllRecords($sql);
+	foreach($records as $record){
+		$temp = explode(',',$record['shipment_latlong']);
+		$sql = "UPDATE icargo_shipment SET shipment_latitude = '" . $temp[0] . "', shipment_longitude = '" . $temp[1] . "' WHERE shipment_id = '". $record['shipment_id'] ."';";
+		echo $sql.'<br>';
+	}
+});*/
 /*start of cancel shipment*/
 $app->post('/cancelShipmentByLoadIdentity', function() use ($app) {
     $r = json_decode($app->request->getBody());
@@ -2023,12 +2118,45 @@ $app->post('/saveNextdayQuotation', function() use ($app) {
     $response = $obj->saveAndSendNextdayQuotation($r);
     echoResponse(200, $response);
 });
+
 $app->post('/loadQuotationByQuotationId', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new Quotation($r);
     $response = $obj->loadQuotationByQuotationId($r);
     echoResponse(200, $response);
 });
+
+$app->post('/savePickup', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);    
+    $response = $obj->savePickupForCustomer($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAllPickups', function() use ($app){   
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);        
+    $response = $obj->getAllPickups($r);    
+    echoResponse(200, $response);
+});
+$app->post('/saveUpdateAddress', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);    
+    $response = $obj->saveUpdateAddress($r);
+    echoResponse(200, $response);
+});
+$app->post('/savePickupForShipment', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Nextday($r);    
+    $response = $obj->assignPickupForShipment($r);
+    echoResponse(200, $response);
+});
+$app->post('/getPickupDetail', function() use ($app){
+    $r = json_decode($app->request->getBody());    
+    $obj = new Pickup($r);    
+    $response = $obj->getPickupDetail($r);
+    echoResponse(200, $response);
+});
+
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
