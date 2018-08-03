@@ -113,7 +113,7 @@ public function getAllCouriersofCustomerAccount($componyId,$customerId){
 	 return $record;  
    }
     
-public function getAllCourierServicesForCustomer($company_id,$courier_id){
+/* public function getAllCourierServicesForCustomer($company_id,$courier_id){
      $record = array();
 	 $sqldata ='L.id,L.service_id,L.courier_id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,
                 L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status';
@@ -123,6 +123,20 @@ public function getAllCourierServicesForCustomer($company_id,$courier_id){
               INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id 
               WHERE L.company_id = ".$company_id." AND  L.courier_id = ".$courier_id."
               AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 AND  B.id = ".$courier_id." ";
+	 $record = $this->db->getAllRecords($sql);
+	 return $record;
+    } */
+	
+	public function getAllCourierServicesForCustomer($company_id/* ,$courier_id */){
+     $record = array();
+	 $sqldata ='L.id,L.service_id,L.courier_id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,
+                L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status';
+      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX."courier_vs_services_vs_company as L 
+			  INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
+              INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id  AND B.company_id = ".$company_id." 
+              INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id 
+              WHERE L.company_id = ".$company_id."
+              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;
     }
@@ -142,7 +156,7 @@ public function checkServiceExistFromCustomerAccount($service_id,$company_servic
    } 
                 
 
-public function getAllCourierSurchargeForCustomer($company_id,$courier_id){
+/* public function getAllCourierSurchargeForCustomer($company_id,$courier_id){
      $record = array();
 	 $sqldata ='L.id,L.surcharge_id,L.courier_id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,
                 C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status';
@@ -154,7 +168,21 @@ public function getAllCourierSurchargeForCustomer($company_id,$courier_id){
               AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 AND  B.id = ".$courier_id." ";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;    
-    }
+    } */
+	
+	public function getAllCourierSurchargeForCustomer($company_id){
+     $record = array();
+	 $sqldata ='L.id,L.surcharge_id,L.courier_id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,
+                C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status';
+      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX."courier_vs_surcharge_vs_company as L 
+              INNER JOIN ".DB_PREFIX."courier_vs_surcharge AS A ON L.surcharge_id = A.id 
+              INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$company_id." 
+              INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id
+              WHERE L.company_id = ".$company_id."
+              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1";
+	 $record = $this->db->getAllRecords($sql);
+	 return $record;    
+    } 
     
     
 public function checkSurchargeExistFromCustomerAccount($surcharge_id,$company_surcharge_id,$courier_id,$company_id,$company_customer_id){ 

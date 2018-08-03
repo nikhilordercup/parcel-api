@@ -92,13 +92,15 @@ class Master extends Icargo{
       return  $data;  
 	}
     */
-     public function getAllCourierServices($param){  
+	
+	
+     /* public function getAllCourierServices($param){  
          $data  = $this->_parentObj->db->getAllRecords("
          SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,L.service_id as service_id
          FROM ".DB_PREFIX."courier_vs_services_vs_company as L 
          INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
-         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
-         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid." ");
+         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."' 
+         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid."");
        foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editServiceAccount';
            $data[$key]['actioncode'] = 'INNER';
@@ -109,14 +111,48 @@ class Master extends Icargo{
 		   }
        }
       return  $data;  
-    }
-  public function getAllCourierSurcharge($param){
+    } */
+	
+	public function getAllCourierServices($param){  
+         $data  = $this->_parentObj->db->getAllRecords("
+         SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,L.service_id as service_id
+         FROM ".DB_PREFIX."courier_vs_services_vs_company as L 
+         INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
+         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." 
+         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id."");//AND  L.courier_id = ".$param->viewid."  //AND B.account_number = '".$param->account_number."'
+       foreach( $data as $key=>$val){
+           $data[$key]['action'] = 'editServiceAccount';
+           $data[$key]['actioncode'] = 'INNER';
+           $data[$key]['status'] = ($val['status']==1)?true:false;
+		   $flowtype = $this->_parentObj->db->getAllRecords("SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = ".$val['service_id']." ");
+		   foreach($flowtype as $flowType){
+			    $data[$key]['flow_type'][] = $flowType['flow_type'];
+		   }
+       }
+      return  $data;  
+    } 	
+	/* public function getAllCourierSurcharge($param){
          $data  = $this->_parentObj->db->getAllRecords("
          SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator
          FROM ".DB_PREFIX."courier_vs_surcharge_vs_company as L 
          INNER JOIN ".DB_PREFIX."courier_vs_surcharge AS A ON L.surcharge_id = A.id 
          INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
          INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid." ");
+       foreach( $data as $key=>$val){
+           $data[$key]['action'] = 'editSurchargeAccount';
+           $data[$key]['actioncode'] = 'INNER';
+           $data[$key]['status'] = ($val['status']==1)?true:false;
+       }
+      return  $data;  
+    } */
+	
+	public function getAllCourierSurcharge($param){
+         $data  = $this->_parentObj->db->getAllRecords("
+         SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator
+         FROM ".DB_PREFIX."courier_vs_surcharge_vs_company as L 
+         INNER JOIN ".DB_PREFIX."courier_vs_surcharge AS A ON L.surcharge_id = A.id 
+         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id."
+         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id."");
        foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editSurchargeAccount';
            $data[$key]['actioncode'] = 'INNER';
