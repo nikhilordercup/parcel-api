@@ -119,6 +119,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     (SST.base_price + SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,
                     SST.service_name as shipment_service_name,
                     COUR.name as carrier,
+					COUR.icon as carrier_icon,
                     UT.name as booked_by,
                     SST.isInvoiced as isInvoiced,
 					SST.status as cancel_status,
@@ -155,7 +156,7 @@ SELECT  S.warehouse_id as warehouse_id,
 
     public function getShipmentsDetail($identity){ 
        $record = array();
-         $sqldata = '
+         /*$sqldata = '
          S.company_id as companyid,
          S.instaDispatch_loadGroupTypeCode as job_type,
          S.shipment_service_type as shipment_type,
@@ -202,6 +203,54 @@ SELECT  S.warehouse_id as warehouse_id,
          UL.user_type as bookingtype,
          UT.name as customer_desc,
          SST.load_identity as customerreference
+        ';*/
+		$sqldata = '
+         S.company_id as companyid,
+         S.instaDispatch_loadGroupTypeCode as job_type,
+         S.shipment_service_type as shipment_type,
+         S.shipment_create_date as bookingdate,
+         S.shipment_required_service_date as expecteddate,
+         S.shipment_required_service_starttime as expectedstarttime,
+         S.shipment_required_service_endtime as expectedendtime,
+         S.shipment_ticket,
+         UTT.name as customer,
+         SST.carrier as carrierid,
+         COUR.name as carriername,
+         SST.service_name as service,
+         SST.rate_type as chargeableunit,
+         SST.transit_distance_text as chargeablevalue,
+         SST.transit_time_text as transittime,
+         UTS.name as user,
+         SST.carrier as carrier,
+         SST.load_identity as reference,
+         DRIV.name as collectedby, 
+         S.waitAndReturn as waitandreturn,
+         SST.label_tracking_number as carrierreference,
+         CI.accountnumber as carrierbillingacount,
+         S.shipment_customer_phone as customerphone,
+         S.shipment_customer_name as customername,
+         S.shipment_customer_email as customeremail,
+         S.shipment_postcode AS postcode,
+         S.shipment_address1 AS address_line1,
+         S.shipment_address2 AS address_line2,
+         S.shipment_customer_country AS country,
+         S.shipment_customer_city AS city,
+         S.shipment_county AS state,
+         (SST.base_price +  SST.courier_commission_value)as customerbaseprice,
+         SST.surcharges as customersurcharge,
+         (SST.base_price +  SST.courier_commission_value + SST.surcharges)as customersubtotal,
+         SST.taxes as customertax,
+         SST.total_price as customertotalprice,
+         (SST.base_price +  SST.courier_commission_value + SST.surcharges + SST.taxes)as customertotalprice,
+         SST.base_price as carrierbaseprice,
+         SST.surcharges as carriersurcharge,
+         (SST.base_price + SST.surcharges) as carriersubtotal,
+         SST.taxes as carriertax,
+         (SST.base_price + SST.surcharges) as carriertotalprice,
+         SST.invoice_reference as customerinvoicereference,
+         UL.user_type as bookingtype,
+         UT.name as customer_desc,
+         SST.load_identity as customerreference
         ';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON (SST.load_identity = S.instaDispatch_loadIdentity AND S.shipment_service_type = 'P')
@@ -221,7 +270,7 @@ SELECT  S.warehouse_id as warehouse_id,
     
 	public function getAllParcelsByIdentity($identity){  
       $sqldata = 'DISTINCT(S.instaDispatch_loadIdentity)';
-      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '".$identity."'";
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' GROUP BY P.instaDispatch_loadIdentity";
 	  $record = $this->db->getAllRecords($sql);
       return $record;
     }

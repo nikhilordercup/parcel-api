@@ -257,7 +257,7 @@ class Customer extends Icargo{
     } 
     
  public function getAllCourierServicesForCustomer($param){
-        $data = $this->modelObj->getAllCourierServicesForCustomer($param->company_id,$param->viewid);
+        $data = $this->modelObj->getAllCourierServicesForCustomer($param->company_id/* ,$param->viewid */);
         foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editServiceAccountStatus';
            $data[$key]['actioncode'] = 'INNER';
@@ -520,7 +520,7 @@ class Customer extends Icargo{
     
     
   public function getAllCourierSurchargeForCustomer($param){
-        $data = $this->modelObj->getAllCourierSurchargeForCustomer($param->company_id,$param->viewid);
+        $data = $this->modelObj->getAllCourierSurchargeForCustomer($param->company_id/* ,$param->viewid */);
          foreach( $data as $key=>$val){
            $data[$key]['action'] = 'editSurchargeAccountStatus';
            $data[$key]['actioncode'] = 'INNER';
@@ -865,7 +865,7 @@ public function getAllCourierDataOfSelectedCustomerwithStatus($param){
         
 public function getAllCourierServicesForSelectedCustomer($param){  
      // $data = $this->modelObj->getAllCourierServicesForCustomer($param->company_id,$param->cid); 
-      $data = $this->modelObj->getAllCourierServicesForCustomer($param->company_id,$param->viewid); 
+      $data = $this->modelObj->getAllCourierServicesForCustomer($param->company_id/* ,$param->viewid */); 
        foreach($data as $key=>$val){
         $innerdata  = $this->modelObj->getAllAllowedCourierServicesofCompanyCustomer($val['service_id'],$val['id'],$val['courier_id'],$param->company_id,$param->customer_id); 
           $data[$key]['customer_status']    =  isset($innerdata['status'])?$innerdata['status']:0; 
@@ -879,9 +879,9 @@ public function getAllCourierServicesForSelectedCustomer($param){
      } 
      return  $data;
     }
-public function getAllCourierSurchargeForSelectedCustomer($param){  
+	public function getAllCourierSurchargeForSelectedCustomer($param){  
       //$data = $this->modelObj->getAllCourierSurchargeForCustomer($param->company_id,$param->cid); 
-      $data = $this->modelObj->getAllCourierSurchargeForCustomer($param->company_id,$param->viewid); 
+      $data = $this->modelObj->getAllCourierSurchargeForCustomer($param->company_id/* ,$param->viewid */); 
        foreach($data as $key=>$val){
         $innerdata  = $this->modelObj->getAllAllowedCourierSurchargeofCompanyCustomer($val['surcharge_id'],$val['id'],$val['courier_id'],$param->company_id,$param->customer_id);   
           $data[$key]['customer_status']    =  isset($innerdata['status'])?$innerdata['status']:0; 
