@@ -11,7 +11,7 @@ class Carrier{
 	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){             
 		$carrierObj = null;
 		$response = array();
-		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
+		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);                
 		$deliveryCarrier = $shipmentInfo['carrier_code'];
 		/* foreach($shipmentInfo as $key=>$data){
 			if($data['shipment_service_type']=='P'){
@@ -163,7 +163,7 @@ class Carrier{
             $this->_setMethodType();
 
             $data_string = json_encode($this->_postParam);
-//echo $data_string;die;
+            //echo $data_string;die;
             $ch = curl_init($this->_getEnvironment()->getApiUrl());
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);

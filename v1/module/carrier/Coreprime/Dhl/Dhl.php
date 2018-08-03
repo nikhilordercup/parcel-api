@@ -16,7 +16,7 @@ final class Coreprime_Dhl extends Carrier {
 
     private function _getLabel($loadIdentity, $json_data) {
         
-        //echo "$loadIdentity"; die;
+        echo "$json_data"; die;
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label", $json_data);
         
@@ -207,6 +207,8 @@ final class Coreprime_Dhl extends Carrier {
                 $totalValue = $totalValue + $item->item_value;
                 $key++;
             }
+        } else {
+            $totalValue = ( $allData->is_insured ? $allData->insurance_amount : 0 ) ;
         }
         
         $response['customs'] = array( 

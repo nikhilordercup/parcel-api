@@ -286,7 +286,7 @@ final class Nextday extends Booking {
 
                                     if (isset($service->surcharges)) {
                                         foreach ($service->surcharges as $surcharge_code => $surcharge_price) {
-                                            if ($collected_item["carrier_code"] != $carrier_code and $surcharge_code == "collection_surcharge") {
+                                            if ($collected_item["carrier_code"] != $carrier_code and $surcharge_code == "collection_surcharge") {                                              
                                                 $surchargeCcf["original_price"] = $collected_item["pickup_surcharge"];
                                                 $surchargeCcf["surcharge_value"] = $collected_item["pickup_surcharge"];
                                                 $surchargeCcf["operator"] = "FLAT";
@@ -300,7 +300,7 @@ final class Nextday extends Booking {
                                                 $surchargeCcf["courier_surcharge_code"] = "collection_surcharge";
                                                 $surchargeCcf["courier_surcharge_name"] = "Collection Surcharge";
                                                 $surchargeCcf["carrier_id"] = $collected_item["carrier_id"];
-                                            } else {
+                                            } else {                                                
                                                 $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$accountNumber]["carrier_id"], $surcharge_price);
                                             }
 
