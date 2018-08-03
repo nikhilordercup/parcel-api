@@ -16,7 +16,7 @@ final class Coreprime_Dhl extends Carrier {
 
     private function _getLabel($loadIdentity, $json_data) {
         
-        echo "$json_data"; die;
+        //echo "$json_data"; die;
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label", $json_data);
         
