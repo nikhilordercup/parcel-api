@@ -5,7 +5,7 @@ class Firebase_Route_Assign extends Firebase
 {
 	private $_driver_id;
 	private $_shipment_route_id;
-	private $_load_scan_flag= true;
+	private $_load_scan_flag= false;
     private $_route_type= "delivery";
 
     public function __construct($param)

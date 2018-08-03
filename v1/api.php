@@ -976,7 +976,7 @@ $app->post('/configuration/update-forms', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','access_token'),$r);
     $obj = new FormConfiguration();
-    $response=$obj->updateFormConfiguration($r->company_id,json_encode($r->config_data),json_encode($r->extra_data));
+    $response=$obj->updateFormConfiguration($r->company_id,$r->extra_data,$r->form_config);
     echoResponse(200, $response);
 });
 $app->post('/configuration/fetch-forms', function() use($app){

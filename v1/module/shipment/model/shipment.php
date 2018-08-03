@@ -625,7 +625,8 @@ class Shipment_Model
 
     function getLastDropExecutionOrderOfRoute($shipment_route_id)
         {
-        $sql = "SELECT execution_order FROM " . DB_PREFIX . "driver_shipment AS RT WHERE shipment_route_id = $shipment_route_id ORDER BY execution_order DESC";
+        //$sql = "SELECT execution_order FROM " . DB_PREFIX . "driver_shipment AS RT WHERE shipment_route_id = $shipment_route_id ORDER BY execution_order DESC";
+        $sql = "SELECT icargo_execution_order AS execution_order FROM " . DB_PREFIX . "shipment AS ST WHERE ST.shipment_routed_id = $shipment_route_id ORDER BY icargo_execution_order DESC";
         $record = $this->db->getOneRecord($sql);
         return $record;
         }

@@ -134,6 +134,25 @@ class Process_Form{
         $trackid              = $this->model_rest->save("api_driver_tracking", $data);
         return $trackid;
     }
+
+    private function get_client_ip() {
+        $ipaddress = '';
+        if (isset($_SERVER['HTTP_CLIENT_IP']))
+            $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
+        else if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+            $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        else if(isset($_SERVER['HTTP_X_FORWARDED']))
+            $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
+        else if(isset($_SERVER['HTTP_FORWARDED_FOR']))
+            $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
+        else if(isset($_SERVER['HTTP_FORWARDED']))
+            $ipaddress = $_SERVER['HTTP_FORWARDED'];
+        else if(isset($_SERVER['REMOTE_ADDR']))
+            $ipaddress = $_SERVER['REMOTE_ADDR'];
+        else
+            $ipaddress = 'UNKNOWN';
+        return $ipaddress;
+    }
     
     private function _delivered_shipment($ticket, $driver_id, $route_id, $driver_name, $pod_data, $latitude, $longitude, $service_msg)
     {   // script for grid update
@@ -144,13 +163,8 @@ class Process_Form{
         if (($ticket != '') && ($driver_id != '') && ($route_id != ''))
         {
             
-            //$shipmentExist = $this->dbmodelObj->getShipmentDetailsByTicketAcceptedExist($ticket, $driverid, $routeid);
-            //if ($shipmentExist == 1) {
 
-                //$checkDriverAcceptinwarehouse = $this->model_rest->check_shipment_accepted_by_driver_by_ticket($ticket, $driver_id, $route_id);
-              
-                //if ($checkDriverAcceptinwarehouse['exist'] == 1)
-                //{ 
+                
                     $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
 
                     if($shipment_details!=null and $shipment_details['current_status']!='D')
@@ -164,11 +178,11 @@ class Process_Form{
                                 "shipment_ticket" => $ticket,
                                 "driver_id" => $driver_id,
                                 "pod_name" => "signature",
-                                "contact_person" => $shipment_details["shipment_customer_name"],
-                                "latitude" => $shipment_details["shipment_latitude"],
-                                "longitude" => $shipment_details["shipment_longitude"],
+                                "contact_person" => $pod_data["contact_person"],
+                                "latitude" => $pod_data["latitude"],
+                                "longitude" => $pod_data["longitude"],
                                 "value" => $podPath,
-                                "comment" => $this->text
+                                "comment" => $pod_data["comment"]
                             ));
                         }
                        
@@ -184,13 +198,12 @@ class Process_Form{
                                 'is_driverpickupfromwarehouse' => 'YES',
                                 'driver_pickuptime' => date("Y-m-d H:m:s")
                             ), $condition);
-                           $condition          = "instaDispatch_docketNumber = '" . $shipment_details['instaDispatch_docketNumber'] . "' AND shipment_service_type = 'D'";
+                           $condition          = "instaDispatch_docketNumber = '" . $shipment_details['instaDispatch_loadIdentity'] . "' AND shipment_service_type = 'D'";
                                  $status             = $this->model_rest->update("shipment", array(
                                 'is_driverpickupfromwarehouse' => 'YES',
                                 'driver_pickuptime' => date("Y-m-d H:m:s"),
                                 'action_by' => 'driver'
                             ), $condition);
-
                         }
                         else
                         {
@@ -206,12 +219,16 @@ class Process_Form{
                         }
 					
                         $condition2         = "shipment_route_id = '" . $shipment_details['shipment_routed_id'] . "' AND driver_id = '" . $shipment_details['assigned_driver'] . "'  AND shipment_ticket = '" . $ticket . "' AND shipment_accepted = 'YES' ";
-                        
+
+                        $serverData = $_SERVER;
+                        $serverData["CLIENT_IP"] = $this->get_client_ip();
+
                         $status2            = $this->model_rest->update("driver_shipment", array(
                             'shipment_status' => 'D',
                             'is_driveraction_complete' => 'Y',
                             'service_date' => date("Y-m-d"),
-                            'service_time' => date("H:m:s")
+                            'service_time' => date("H:m:s"),
+                            'server_string' => json_encode($serverData)
                         ), $condition2);
                         // check all Delivery completed than release to Driver			
                     
@@ -266,35 +283,34 @@ class Process_Form{
                                 'firebase_data'=>$firebasedata,
                                 'grid_data' =>$gridData,
                                 'left' =>$checkMoreShipmentofthisRouteDriver,
-                                'ticket' =>$ticket
+                                'ticket' =>$ticket,
+                                'timestamp' => microtime(true)
                             );
                         }
                     }
                     else
                     {
+                        $gridData = $this->getGridDataByTicket($company_id,$warehouse_id,$route_id,$ticket);
+
                         $currentStage = $this->model_rest->findShipmentCurrentStage($ticket, $driver_id, $route_id);
                         if($currentStage["action_by"]=="controller"){
                             return array(
                                 'message' => "Shipment($ticket) Already Processed By Controller",
                                 'success' => true,
-                                'status'  => "success"
+                                'status'  => "success",
+                                'grid_data' =>$gridData,
+                                'timestamp' => microtime(true)
                             );
                         }
                         return array(
                             'message' => 'Shipment already delivered',
                             'success' => true,
-                            'status'  => "success"
+                            'status'  => "success",
+                            'grid_data' =>$gridData,
+                            'timestamp' => microtime(true)
                         ); 
                     }
-            /*} 
-            else 
-            {
-                return array(
-                    'message' => 'Shipment was not received by driver from warehouse',
-                    'success' => false,
-                    'status'  => "error"
-                );
-            }*/
+            
         } 
         else 
         {
@@ -520,21 +536,25 @@ class Process_Form{
         if($this->loadActionCode == 'processdriversuccessaction')
         {
             $pod_data  = array(
-            'contact' => $this->contact_name,
-            'comment' => $this->text,
-            'pod' => $this->sign
+                'contact' => $this->contact_name,
+                'comment' => $this->text,
+                'pod' => $this->sign,
+                'contact_person' => $this->contact_name,
+                'latitude' => $this->latitude,
+                'longitude' => $this->longitude
             );
 
             $this->_add_driver_tacking();
 
             $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $pod_data, $this->latitude , $this->longitude, $this->service_message);
-
+           
            
             Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array("shipment_ticket"=>$this->shipment_ticket,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"trigger_code"=>"successful"));
 
          
             if($data["status"]=="success"){
                 $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
+               
                 $common_obj = new Common();
                 if($shipmentData["shipment_service_type"]=="P"){
                     $actions = "Collection successful";

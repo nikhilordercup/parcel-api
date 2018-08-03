@@ -984,7 +984,7 @@ class View_Support extends Icargo{
 		 
 
 		 $dataTobeUpdate['is_driver_assigned'] = ($driverid==0)?'0':'1';
-
+         
 		 $dataTobeUpdate['company_id'] = $companyid;
 		 $dataTobeUpdate['warehouse_id'] = $warehouseid;
 		 $dataTobeUpdate['shipment_assigned_service_time'] = date("H:m:s");
@@ -995,8 +995,8 @@ class View_Support extends Icargo{
 		 $dataTobeUpdate['icargo_execution_order'] = isset($shipmentDetails['execution_order'])?$shipmentDetails['execution_order']:0;
 		 $dataTobeUpdate['distancemiles'] = isset($shipmentDetails['distancemiles'])?$shipmentDetails['distancemiles']:00.00;
 		 $dataTobeUpdate['estimatedtime'] = isset($shipmentDetails['estimatedtime'])?$shipmentDetails['estimatedtime']:00.00;
-		 $dataTobeUpdate['shipment_routed_id'] = $shipment_route_id;
-         $dataTobeUpdate['shipment_assigned_service_date'] = $routeDetails["service_date"];
+		 $dataTobeUpdate['shipment_routed_id'] = $shipment_route_id;  
+         $dataTobeUpdate['shipment_assigned_service_date'] = (!isset($routeDetails["service_date"])) ? '1970-01-01' : $routeDetails["service_date"];
 
          if($routeDetails["driver_accepted"]==1){
             $dataTobeUpdate['is_receivedinwarehouse'] = 'YES';
@@ -1278,7 +1278,7 @@ class View_Support extends Icargo{
 		$statusarr          = array();
 
         if (count($ticketarr) > 0) {
-            $firebaseObj = new Firebase_Shipment_Deliver_From_Route(array("shipmet_tickets"=>explode(",",str_replace('"','',$this->shipment_ticket)), "driver_id"=>$driverid, "shipment_route_id"=>$shipment_route_id,'get_drop_from'=>"shipment_ticket_after_carded"));
+            $firebaseObj = new Firebase_Shipment_Deliver_From_Route(array("shipmet_tickets"=>explode(",",str_replace('"','',$this->shipment_ticket)), "driver_id"=>$driverid, "shipment_route_id"=>$shipment_route_id,'get_drop_from'=>"shipment_ticket"));
             $fbData = $firebaseObj->getShipmentFromRoute();
 
 			foreach ($ticketarr as $ticket) {
