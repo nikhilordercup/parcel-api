@@ -191,7 +191,7 @@ final class Coreprime_Dhl extends Carrier {
         $response['method_type'] = 'post';
         
         $items = array(); 
-        $totalValue = 0;
+        $totalValue = $totalWeight = 0;
                 
         if(isset($allData->items)) {            
             $key = 0;
@@ -202,9 +202,10 @@ final class Coreprime_Dhl extends Carrier {
                 $items[$key]["item_value"] = $item->item_value;                
                 $items[$key]["hs_code"] = '';
                 $items[$key]["item_code"] = '';
-                $items[$key]["item_weight"] = '';
+                $items[$key]["item_weight"] = $item->item_weight;
                                 
                 $totalValue = $totalValue + $item->item_value * $item->item_quantity;
+                $totalWeight = $totalWeight + $item->item_weight * $item->item_quantity;
                 $key++;
             }
         } else {
@@ -214,7 +215,7 @@ final class Coreprime_Dhl extends Carrier {
         $response['customs'] = array( 
             'items' => $items, 
             'declared_value' => "$totalValue", 
-            'total_weight' => '', 
+            'total_weight' => $totalWeight, 
             'terms_of_trade' => isset($allData->terms_of_trade) ? $allData->terms_of_trade : '', 
             'contents' => ($contents) ? implode(', ', $contents) : ''
         );
@@ -313,7 +314,7 @@ final class Coreprime_Dhl extends Carrier {
             $items .= '<td align="right" style="padding:2px; height:25px;">'.$item->item_weight.' kgs</td><td align="right" style="padding:2px; height:25px;">'.$item->item_value.'</td>';
             $items .= '<td align="right" style="padding:2px; height:25px;">'.($item->item_quantity * $item->item_value).'</td></tr>';
             //Loop end here
-            $tortalW += $item->item_weight;
+            $tortalW += $item->item_quantity * $item->item_weight;
             $totalPrice += $item->item_quantity * $item->item_value;
             $totalQ += $item->item_quantity;
 
