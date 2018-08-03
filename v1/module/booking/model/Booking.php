@@ -429,5 +429,9 @@ class Booking_Model_Booking
         $flag = $this->_db->updateData("UPDATE " . DB_PREFIX . "shipment SET pickup_id = '$pickupId' WHERE shipment_ticket = '$loadIdentity'");
         return $flag ;
     }
+    
+    public function getCompanyInfo($companyId) {
+        return $this->_db->getRowRecord("SELECT CI.* FROM " . DB_PREFIX . "users AS IU WHERE IU.id='$companyId'");
+    }
 }
 ?>
