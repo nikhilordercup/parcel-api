@@ -38,10 +38,10 @@ final class Nextday extends Booking {
         print_r($deliveryCountry);die;
         if($collectionCountry->id == $deliveryCountry->id){
             $flowType = 'Domestic';
-        } else if($homeCountry == strtolower ($collectionCountry->short_name)) {
-            $flowType = 'Import';
-        } else if($homeCountry == strtolower ($deliveryCountry->short_name)) {
+        } else if($homeCountry == strtolower($collectionCountry->short_name) && $homeCountry != strtolower($deliveryCountry->short_name)) {
             $flowType = 'Export';
+        } else if($homeCountry == strtolower ($deliveryCountry->short_name) && $homeCountry != strtolower($collectionCountry->short_name)) {
+            $flowType = 'Import';
         }
         //echo $flowType;die;
         
