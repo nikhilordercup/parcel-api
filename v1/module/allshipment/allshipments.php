@@ -134,8 +134,7 @@ class allShipments extends Icargo
     }
 
     private function _prepareShipments($shipmentsData)
-    {
-
+    {//print_r($shipmentsData);die;
         $dataArray  = array();
         $returndata = array();
         foreach ($shipmentsData as $key => $val) {
@@ -157,6 +156,7 @@ class allShipments extends Icargo
                             $data['account']            = $pickupData['shipment_customer_account'];
                             $data['service']            = $pickupData['shipment_service_name'];
                             $data['carrier']            = $pickupData['carrier'];
+							$data['carrier_icon']       = $pickupData['carrier_icon'];
                             $data['amount']             = $pickupData['shipment_customer_price'];
                             $data['booked_by']          = $pickupData['booked_by'];
                             $data['isInvoiced']         = $pickupData['isInvoiced'];
@@ -165,6 +165,8 @@ class allShipments extends Icargo
                             $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             //$data['pickup_date']        = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date']        = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
+							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+							$data['cancel_status']      = $pickupData['cancel_status'];
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -197,16 +199,27 @@ class allShipments extends Icargo
                     $data['action'] = 'nextday';
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
+							$labelArr = json_decode($pickupData['label_json']);
+							if(count($labelArr)>0)
+								$collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
+							else
+								$collectionReference = "";
+							//}
                             $data['customer']    = $pickupData['shipment_customer_name'];
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
-                            $data['carrier']     = $pickupData['carrier'];
+                            $data['carrier']	 = $pickupData['carrier'];
+							$data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
                             $data['amount']      = $pickupData['shipment_customer_price'];
                             $data['booked_by']   = $pickupData['booked_by'];
                             $data['isInvoiced']  = $pickupData['isInvoiced'];
                             $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             //$data['pickup_date'] = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
+							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+							$data['cancel_status'] = $pickupData['cancel_status'];
+							$data['collection_reference'] = $collectionReference;
+							
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
@@ -259,7 +272,8 @@ class allShipments extends Icargo
                 'basicinfo' => $allInfo['basicInfo'],
                 'priceinfo' => $allInfo['priceinfo'],
                 'trackinginfo' => $allInfo['trackinginfo'],
-                'podinfo' => $allInfo['podinfo']
+                'podinfo' => $allInfo['podinfo'],
+				'parcelInfo'=>$allInfo['parcelInfo']
             )
         );
     }
@@ -269,6 +283,7 @@ class allShipments extends Icargo
     {
         $trackinginfo           = array();
         $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
+		$parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
@@ -317,8 +332,6 @@ class allShipments extends Icargo
             $basicInfo['insurencevalue']           = "N/A";
             $basicInfo['handcost']                 = "N/A";
             $basicInfo['flowtype']                 = "Domestic";
-
-
 
             $shipmentsurchargeData   = $this->modelObj->getShipmentsurchargeData($identity);
             $basicInfo['chargedata'] = array();
@@ -381,7 +394,8 @@ class allShipments extends Icargo
             'basicInfo' => $basicInfo,
             'priceinfo' => $shipmentsPriceInfoData,
             'trackinginfo' => $trackinginfo,
-            'podinfo' => $podinfo
+            'podinfo' => $podinfo,
+			'parcelInfo'=>$parcelInfo
         );
     }
 
@@ -1720,26 +1734,73 @@ class allShipments extends Icargo
 	}
     
 	public function printLabelByLoadIdentity($param){
-        $carrierObj = new Carrier();
-		if(is_array($param->load_identity)){
-			$load_identity = implode("','",$param->load_identity);
-			$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
-		}else{
-			$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
-		}
-		
-		if(count($labelInfo)==1){
-			if($labelInfo[0]['label_file_pdf']!=='')		
-				return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
-			else
-				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
-		}elseif(count($labelInfo)>1){
-			$label_pdf = $carrierObj->mergePdf($labelInfo);
-			return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
-		}else{
-			return array("status"=>"error","file_path"=>"","message"=>"label not found!");
-		}
+		/* $shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
+		if($shipmentStatus!='cancel'){ */
+			$carrierObj = new Carrier();
+			if(is_array($param->load_identity)){
+				$load_identity = implode("','",$param->load_identity);
+				$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($load_identity);
+				foreach($shipmentStatus as $status){
+					if($status['status']!='cancel'){
+						$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
+					}else{
+						return array("status"=>"error","file_path"=>"","message"=>"One of selected shipment is cancelled, you cannot print label for that shipment");
+					}
+				}
+			}else{
+				$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
+				if($shipmentStatus!='cancel'){
+					$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
+				}else{
+					return array("status"=>"error","file_path"=>"","One of selected shipment is cancelled, you cannot print label for that shipment");
+				}
+			}
 			
+			if(count($labelInfo)==1){
+				if($labelInfo[0]['label_file_pdf']!=='')		
+					return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
+				else
+					return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+			}elseif(count($labelInfo)>1){
+				foreach($labelInfo as $data){
+					if($data['label_file_pdf'] ==''){
+						return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
+					}
+				}
+				$label_pdf = $carrierObj->mergePdf($labelInfo);
+				return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");
+				/* die;
+				if($labelInfo[0]['label_file_pdf']!==''){
+					$label_pdf = $carrierObj->mergePdf($labelInfo);
+					return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
+				}else{
+					return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
+				} */
+			}else{
+				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+			}
+		/* }else{
+			return array("status"=>"error","file_path"=>"","message"=>"This shipment is cancelled, you cannot print label for this shipment");
+		} */
+        
+			
+	}
+	
+	public function cancelShipmentByLoadIdentity($param){
+        $carrierObj = new Carrier();
+		$cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
+		$cancelShipment = json_decode($cancelShipment);
+		if(isset($cancelShipment->void_consignment)){
+			//update shipment status as cancel in shipment service table
+			$updateStatus = $this->modelObj->editContent("shipment_service",array("status"=>"cancel"),"load_identity='".$param->load_identity."'");
+			if($updateStatus)
+				return array("status"=>"success","message"=>"Shipment cancelled successfully");
+			else
+				return array("status"=>"error","message"=>"Error while cancellation,please try again");
+			
+		}else{
+			return array("status"=>"error","message"=>$cancelShipment->error);
+		}
 	}
 
 }

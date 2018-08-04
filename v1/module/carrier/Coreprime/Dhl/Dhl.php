@@ -16,7 +16,7 @@ final class Coreprime_Dhl extends Carrier {
 
     private function _getLabel($loadIdentity, $json_data) {
         
-        //echo "$loadIdentity"; die;
+        //echo "$json_data"; die;
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label", $json_data);
         
@@ -36,25 +36,38 @@ final class Coreprime_Dhl extends Carrier {
             $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/'; 
             $file_url = mkdir($label_path . $loadIdentity .'/dhl/', 0777, true);
             foreach ($labels as $dataFile) {
-                $dataFile = explode(".", $dataFile);
-                $dataFile = $dataFile[0] . '.pdf';
+                //$dataFile = explode(".", $dataFile);
+                $dataFile = $loadIdentity . '.pdf';
                 //print_r($label_path);die;
                 $file_name = $label_path . $loadIdentity .'/dhl/'. $dataFile;
                 $data = base64_decode($pdf_base64);
                 file_put_contents($file_name, $data);
                 header('Content-Type: application/pdf');
             }
-            $flabel = explode(".", $labels[0]);
             //echo $file_name;
-            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
 
-            return array("status" => "success", "message" => "label generated successfully", 'label_detail'=> $labelArr, "file_loc"=>$file_name, "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.pdf');
+            //return array("status" => "success", "message" => "label generated successfully", 'label_detail'=> $labelArr, "file_loc"=>$file_name, "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.pdf');
+            unset($labelArr->label->base_encode);            
+            
+            return array(
+                    "status" => "success",
+                    "message" => "label generated successfully",
+                    "label_detail" => $labelArr, 
+                    "file_loc"=>$file_name, 
+                    "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $loadIdentity . '.pdf',
+                    "label_tracking_number"=>$labelArr->label->tracking_number,
+                    "label_files_png" => '',
+                    "label_json" =>json_encode($labelArr)
+            );
+            
         } else {
             return array("status" => "error", "message" => $labelArr->error);
         }       
     }
 
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData = array()) {        
+        //print_r($allData); die;
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);        
         $paperLessTrade = false;
@@ -160,7 +173,7 @@ final class Coreprime_Dhl extends Carrier {
             'invoice_number' => ''                  // ?
         );
         
-        $response['insurance'] = array('value' => '', 'currency' => $response['currency'], 'insurer' => '');
+        $response['insurance'] = array('value' => ( $allData->is_insured ? $allData->insurance_amount : 0 ) , 'currency' => $response['currency'], 'insurer' => '');
         
         if ($rateDetail) {
             $rateDetail = (array) $rateDetail;
@@ -178,28 +191,31 @@ final class Coreprime_Dhl extends Carrier {
         $response['method_type'] = 'post';
         
         $items = array(); 
-        $totalValue = 0;
+        $totalValue = $totalWeight = 0;
                 
         if(isset($allData->items)) {            
             $key = 0;
-            foreach ( $allData->items as $item ) {                
+            foreach ( $allData->items as $item ) {                         
                 $items[$key]['item_description'] = $item->item_description;
                 $items[$key]["item_quantity"] = $item->item_quantity;
                 $items[$key]["country_of_origin"] = $item->country_of_origin->alpha2_code;
                 $items[$key]["item_value"] = $item->item_value;                
                 $items[$key]["hs_code"] = '';
                 $items[$key]["item_code"] = '';
-                $items[$key]["item_weight"] = '';
+                $items[$key]["item_weight"] = $item->item_weight;
                                 
-                $totalValue = $totalValue + $item->item_value;
+                $totalValue = $totalValue + $item->item_value * $item->item_quantity;
+                $totalWeight = $totalWeight + $item->item_weight * $item->item_quantity;
                 $key++;
             }
+        } else {
+            $totalValue = ( $allData->is_insured ? $allData->insurance_amount : 0 ) ;
         }
         
         $response['customs'] = array( 
             'items' => $items, 
             'declared_value' => "$totalValue", 
-            'total_weight' => '', 
+            'total_weight' => $totalWeight, 
             'terms_of_trade' => isset($allData->terms_of_trade) ? $allData->terms_of_trade : '', 
             'contents' => ($contents) ? implode(', ', $contents) : ''
         );
@@ -208,10 +224,9 @@ final class Coreprime_Dhl extends Carrier {
         $response['extra']['customs_form_declared_value'] = "$totalValue";
         
         /**********end of static data from requet json ************** */
-        //print_r($response);die;
         $response = $this->_getLabel($loadIdentity, json_encode($response));
-        if( !$paperLessTrade ) {
-            $response = $this->_getCustomInvoice($allData, $loadIdentity, $response);
+        if( !$paperLessTrade && ($response['status'] != 'error') && $allData->dutiable ) {
+            $customResp = $this->_getCustomInvoice($allData, $loadIdentity, $response);
         } else {
             unset($response['label_detail']);
         }
@@ -219,7 +234,7 @@ final class Coreprime_Dhl extends Carrier {
     }
 
     
-    private function _getCustomInvoice($allData, $loadIdentity, $labelDetail) {
+    private function _getCustomInvoice($allData, $loadIdentity, $labelDetail) {        
         $label = $labelDetail['label_detail']->label;
         //$allData = '{"collection":{"0":{"geo_position":{"latitude":"0.00000000","longitude":"0.00000000"},"address_origin":"local","country":{"id":"235","short_name":"United Kingdom","alpha2_code":"GB","alpha3_code":"GBR","numeric_code":"826","currency_code":"GBP","weight_dutiable_limit":"2","paperless_trade":"0","postal_type":"1","job_type":"0"},"name":"kavitatest","phone":"+4499999","company_name":"PCS-Test","address_line1":"H-140","address_line2":"5th Floor","city":"Oxford","state":"Oxfordshire","postcode":"OX39RL","notification":true,"address_list":{"id":"333","address":"H-140, 5th Floor, OX39RL"},"carrier_code":"DHL"}},"delivery":{"0":{"country":{"id":"236","short_name":"United States","alpha2_code":"US","alpha3_code":"USA","numeric_code":"840","currency_code":"","weight_dutiable_limit":"2","paperless_trade":"0","postal_type":"1","job_type":"0"},"city":"New York","postcode":"10013","address_line1":"92 Lafayette St, New York, NY 10013, USA","address_line2":"","notification":true,"geo_position":{"latitude":40.7175676,"longitude":-74.0015897},"carrier_code":"DHL","state":"","name":"Amita Pandey","phone":"9412091082"}},"dutiable":true,"is_document":false,"customer_id":"375","customer_user_id":"375","collection_user_id":"375","collection_date":"2018-07-29 13:45","parcel":{"0":{"quantity":1,"weight":3,"length":22,"width":20,"height":20,"name":"custom package (DHL\/UKMAIL)","package_code":"CP"}},"booked_by":"92","warehouse_id":"1","carrier":"all","flow_type":"","email":"testcontroller123@gmail.com","access_token":"OTMwMS01YjVjMGE4MGI4MTUxLTky","company_id":"10","endPointUrl":"bookNextDayJob","collected_by_carrier":{"0":{"carrier":[{"carrier_code":"DHL","account_number":"420714888","is_internal":"0","name":"DHL","icon":"assets\/images\/carrier\/dhl.png","pickup_surcharge":"2.00","collection_date_time":"2018-07-30 09:00","collection_start_at":"09:00","collection_end_at":"17:00","is_regular_pickup":"yes","carrier_id":"3","pickup":"1","surcharges":{"fuel_surcharge":{"original_price":"0.00","surcharge_value":"2.00","operator":"FLAT","price":"2.00","company_surcharge_code":"fuel_surcharge","company_surcharge_name":"Fuel Surcharge","courier_surcharge_code":"fuel_surcharge","courier_surcharge_name":"Fuel Surcharge","level":"level 1","surcharge_id":"5","price_with_ccf":"2.00","carrier_id":"3"},"remote_area_delivery":{"original_price":"0.00","surcharge_value":"3.00","operator":"FLAT","price":"3.00","company_surcharge_code":"remote_area_delivery","company_surcharge_name":"Remote Area Delivery","courier_surcharge_code":"remote_area_delivery","courier_surcharge_name":"Remote Area Delivery","level":"level 1","surcharge_id":"6","price_with_ccf":"3.00","carrier_id":"3"},"insurance_charge":{"original_price":"0.00","surcharge_value":"10.00","operator":"FLAT","price":"10.00","company_surcharge_code":"insurance_charge","company_surcharge_name":"Insurance Charge","courier_surcharge_code":"insurance_charge","courier_surcharge_name":"\r\nInsurance Charge","level":"level 1","surcharge_id":"7","price_with_ccf":"10.00","carrier_id":"3"},"over_weight_charge":{"original_price":"0.00","surcharge_value":"11.00","operator":"FLAT","price":"11.00","company_surcharge_code":"over_weight_charge","company_surcharge_name":"Over Weight Charge","courier_surcharge_code":"over_weight_charge","courier_surcharge_name":"Over Weight Charge","level":"level 1","surcharge_id":"9","price_with_ccf":"11.00","carrier_id":"3"}},"carrier_price_info":{"price":"183.24","surcharges":"0.00","taxes":0,"grand_total":"183.24"},"customer_price_info":{"price":"188.74","surcharges":"26.00","taxes":"0.00","grand_total":"214.74"}}]},"1":{"carrier":[{"carrier_code":"DHL","account_number":"420714888","is_internal":"0","name":"DHL","icon":"assets\/images\/carrier\/dhl.png","pickup_surcharge":"2.00","collection_date_time":"2018-07-30 09:00","collection_start_at":"09:00","collection_end_at":"17:00","is_regular_pickup":"yes","carrier_id":"3","pickup":"1","surcharges":{"fuel_surcharge":{"original_price":"0.00","surcharge_value":"2.00","operator":"FLAT","price":"2.00","company_surcharge_code":"fuel_surcharge","company_surcharge_name":"Fuel Surcharge","courier_surcharge_code":"fuel_surcharge","courier_surcharge_name":"Fuel Surcharge","level":"level 1","surcharge_id":"5","price_with_ccf":"2.00","carrier_id":"3"},"remote_area_delivery":{"original_price":"0.00","surcharge_value":"3.00","operator":"FLAT","price":"3.00","company_surcharge_code":"remote_area_delivery","company_surcharge_name":"Remote Area Delivery","courier_surcharge_code":"remote_area_delivery","courier_surcharge_name":"Remote Area Delivery","level":"level 1","surcharge_id":"6","price_with_ccf":"3.00","carrier_id":"3"},"insurance_charge":{"original_price":"0.00","surcharge_value":"10.00","operator":"FLAT","price":"10.00","company_surcharge_code":"insurance_charge","company_surcharge_name":"Insurance Charge","courier_surcharge_code":"insurance_charge","courier_surcharge_name":"\r\nInsurance Charge","level":"level 1","surcharge_id":"7","price_with_ccf":"10.00","carrier_id":"3"},"over_weight_charge":{"original_price":"0.00","surcharge_value":"11.00","operator":"FLAT","price":"11.00","company_surcharge_code":"over_weight_charge","company_surcharge_name":"Over Weight Charge","courier_surcharge_code":"over_weight_charge","courier_surcharge_name":"Over Weight Charge","level":"level 1","surcharge_id":"9","price_with_ccf":"11.00","carrier_id":"3"}},"carrier_price_info":{"price":"183.24","surcharges":"0.00","taxes":0,"grand_total":"183.24"},"customer_price_info":{"price":"195.24","surcharges":"26.00","taxes":"0.00","grand_total":"221.24"}}]},"2":{"carrier":[{"carrier_code":"DHL","account_number":"420714888","is_internal":"0","name":"DHL","icon":"assets\/images\/carrier\/dhl.png","pickup_surcharge":"2.00","collection_date_time":"2018-07-30 09:00","collection_start_at":"09:00","collection_end_at":"17:00","is_regular_pickup":"yes","carrier_id":"3","pickup":"1","surcharges":{"fuel_surcharge":{"original_price":"0.00","surcharge_value":"2.00","operator":"FLAT","price":"2.00","company_surcharge_code":"fuel_surcharge","company_surcharge_name":"Fuel Surcharge","courier_surcharge_code":"fuel_surcharge","courier_surcharge_name":"Fuel Surcharge","level":"level 1","surcharge_id":"5","price_with_ccf":"2.00","carrier_id":"3"},"remote_area_delivery":{"original_price":"0.00","surcharge_value":"3.00","operator":"FLAT","price":"3.00","company_surcharge_code":"remote_area_delivery","company_surcharge_name":"Remote Area Delivery","courier_surcharge_code":"remote_area_delivery","courier_surcharge_name":"Remote Area Delivery","level":"level 1","surcharge_id":"6","price_with_ccf":"3.00","carrier_id":"3"},"insurance_charge":{"original_price":"0.00","surcharge_value":"10.00","operator":"FLAT","price":"10.00","company_surcharge_code":"insurance_charge","company_surcharge_name":"Insurance Charge","courier_surcharge_code":"insurance_charge","courier_surcharge_name":"\r\nInsurance Charge","level":"level 1","surcharge_id":"7","price_with_ccf":"10.00","carrier_id":"3"},"over_weight_charge":{"original_price":"0.00","surcharge_value":"11.00","operator":"FLAT","price":"11.00","company_surcharge_code":"over_weight_charge","company_surcharge_name":"Over Weight Charge","courier_surcharge_code":"over_weight_charge","courier_surcharge_name":"Over Weight Charge","level":"level 1","surcharge_id":"9","price_with_ccf":"11.00","carrier_id":"3"}},"carrier_price_info":{"price":"189.24","surcharges":"0.00","taxes":0,"grand_total":"189.24"},"customer_price_info":{"price":"201.24","surcharges":"26.00","taxes":"0.00","grand_total":"227.24"}}]}},"service_opted":{"rate":{"weight_charge":183.24,"fuel_surcharge":0,"remote_area_delivery":0,"insurance_charge":0,"over_sized_charge":0,"over_weight_charge":0,"price":"188.74","info":{"original_price":"183.24","ccf_value":"5.50","operator":"FLAT","price":"5.50","company_service_code":"","company_service_name":"","courier_service_code":"express_ww","courier_service_name":"Express Worldwide (2-4 days)","level":"level 4","service_id":"49","price_with_ccf":"188.74"},"currency":"GBP","rate_type":"Weight"},"collected_by":[{"carrier_code":"DHL","account_number":"420714888","is_internal":"0","name":"DHL","icon":"assets\/images\/carrier\/dhl.png","pickup_surcharge":"2.00","collection_date_time":"2018-07-30 09:00","collection_start_at":"09:00","collection_end_at":"17:00","is_regular_pickup":"yes","carrier_id":"3","pickup":"1","surcharges":{"fuel_surcharge":{"original_price":"0.00","surcharge_value":"2.00","operator":"FLAT","price":"2.00","company_surcharge_code":"fuel_surcharge","company_surcharge_name":"Fuel Surcharge","courier_surcharge_code":"fuel_surcharge","courier_surcharge_name":"Fuel Surcharge","level":"level 1","surcharge_id":"5","price_with_ccf":"2.00","carrier_id":"3"},"remote_area_delivery":{"original_price":"0.00","surcharge_value":"3.00","operator":"FLAT","price":"3.00","company_surcharge_code":"remote_area_delivery","company_surcharge_name":"Remote Area Delivery","courier_surcharge_code":"remote_area_delivery","courier_surcharge_name":"Remote Area Delivery","level":"level 1","surcharge_id":"6","price_with_ccf":"3.00","carrier_id":"3"},"insurance_charge":{"original_price":"0.00","surcharge_value":"10.00","operator":"FLAT","price":"10.00","company_surcharge_code":"insurance_charge","company_surcharge_name":"Insurance Charge","courier_surcharge_code":"insurance_charge","courier_surcharge_name":"\r\nInsurance Charge","level":"level 1","surcharge_id":"7","price_with_ccf":"10.00","carrier_id":"3"},"over_weight_charge":{"original_price":"0.00","surcharge_value":"11.00","operator":"FLAT","price":"11.00","company_surcharge_code":"over_weight_charge","company_surcharge_name":"Over Weight Charge","courier_surcharge_code":"over_weight_charge","courier_surcharge_name":"Over Weight Charge","level":"level 1","surcharge_id":"9","price_with_ccf":"11.00","carrier_id":"3"}},"carrier_price_info":{"price":"183.24","surcharges":"0.00","taxes":0,"grand_total":"183.24"},"customer_price_info":{"price":"188.74","surcharges":"26.00","taxes":"0.00","grand_total":"214.74"}},{"carrier_code":"PNP","account_number":"21232123","is_internal":"0","name":"PNP","icon":"assets\/images\/carrier\/default.png","pickup_surcharge":0,"collection_date_time":"2018-07-30 14:30","collection_start_at":"14:30","collection_end_at":"15:00","is_regular_pickup":"yes","carrier_id":"1","pickup":"1","surcharges":{"fuel_surcharge":{"original_price":"0.00","surcharge_value":"2.00","operator":"FLAT","price":"2.00","company_surcharge_code":"fuel_surcharge","company_surcharge_name":"Fuel Surcharge","courier_surcharge_code":"fuel_surcharge","courier_surcharge_name":"Fuel Surcharge","level":"level 1","surcharge_id":"5","price_with_ccf":"2.00","carrier_id":"3"},"remote_area_delivery":{"original_price":"0.00","surcharge_value":"3.00","operator":"FLAT","price":"3.00","company_surcharge_code":"remote_area_delivery","company_surcharge_name":"Remote Area Delivery","courier_surcharge_code":"remote_area_delivery","courier_surcharge_name":"Remote Area Delivery","level":"level 1","surcharge_id":"6","price_with_ccf":"3.00","carrier_id":"3"},"insurance_charge":{"original_price":"0.00","surcharge_value":"10.00","operator":"FLAT","price":"10.00","company_surcharge_code":"insurance_charge","company_surcharge_name":"Insurance Charge","courier_surcharge_code":"insurance_charge","courier_surcharge_name":"\r\nInsurance Charge","level":"level 1","surcharge_id":"7","price_with_ccf":"10.00","carrier_id":"3"},"over_weight_charge":{"original_price":"0.00","surcharge_value":"11.00","operator":"FLAT","price":"11.00","company_surcharge_code":"over_weight_charge","company_surcharge_name":"Over Weight Charge","courier_surcharge_code":"over_weight_charge","courier_surcharge_name":"Over Weight Charge","level":"level 1","surcharge_id":"9","price_with_ccf":"11.00","carrier_id":"3"}},"carrier_price_info":{"price":"183.24","surcharges":"0.00","taxes":0,"grand_total":"183.24"},"customer_price_info":{"price":"188.74","surcharges":"26.00","taxes":"0.00","grand_total":"214.74"}}],"surcharges":{"fuel_surcharge":0,"remote_area_delivery":0,"insurance_charge":0,"over_weight_charge":0},"carrier_info":{"carrier_id":"3","name":"DHL","icon":"assets\/images\/carrier\/dhl.png","code":"DHL","description":"courier information goes here","account_number":"420714888","is_internal":"0"},"service_info":{"code":"express_ww","name":"Express Worldwide (2-4 days)"},"collection_carrier":{"carrier_code":"DHL","account_number":"420714888","is_internal":"0","name":"DHL","icon":"assets\/images\/carrier\/dhl.png","pickup_surcharge":"2.00","collection_date_time":"2018-07-30 09:00","collection_start_at":"09:00","collection_end_at":"17:00","is_regular_pickup":"yes","carrier_id":"3","pickup":"1","surcharges":{"fuel_surcharge":{"original_price":"0.00","surcharge_value":"2.00","operator":"FLAT","price":"2.00","company_surcharge_code":"fuel_surcharge","company_surcharge_name":"Fuel Surcharge","courier_surcharge_code":"fuel_surcharge","courier_surcharge_name":"Fuel Surcharge","level":"level 1","surcharge_id":"5","price_with_ccf":"2.00","carrier_id":"3"},"remote_area_delivery":{"original_price":"0.00","surcharge_value":"3.00","operator":"FLAT","price":"3.00","company_surcharge_code":"remote_area_delivery","company_surcharge_name":"Remote Area Delivery","courier_surcharge_code":"remote_area_delivery","courier_surcharge_name":"Remote Area Delivery","level":"level 1","surcharge_id":"6","price_with_ccf":"3.00","carrier_id":"3"},"insurance_charge":{"original_price":"0.00","surcharge_value":"10.00","operator":"FLAT","price":"10.00","company_surcharge_code":"insurance_charge","company_surcharge_name":"Insurance Charge","courier_surcharge_code":"insurance_charge","courier_surcharge_name":"\r\nInsurance Charge","level":"level 1","surcharge_id":"7","price_with_ccf":"10.00","carrier_id":"3"},"over_weight_charge":{"original_price":"0.00","surcharge_value":"11.00","operator":"FLAT","price":"11.00","company_surcharge_code":"over_weight_charge","company_surcharge_name":"Over Weight Charge","courier_surcharge_code":"over_weight_charge","courier_surcharge_name":"Over Weight Charge","level":"level 1","surcharge_id":"9","price_with_ccf":"11.00","carrier_id":"3"}},"carrier_price_info":{"price":"183.24","surcharges":"0.00","taxes":0,"grand_total":"183.24"},"customer_price_info":{"price":"188.74","surcharges":"26.00","taxes":"0.00","grand_total":"214.74"}}},"reason_for_export":"Purchase","tax_status":"Company - Not VAT Registered","terms_of_trade":"DAD","items":{"1":{"country_of_origin":{"id":"4","short_name":"Algeria","alpha2_code":"DZ","alpha3_code":"DZA","numeric_code":"12","currency_code":"","weight_dutiable_limit":"0","paperless_trade":"0","postal_type":"1","job_type":"0"},"item_value":23,"item_description":"Shirt","item_quantity":7,"item_weight":0.02},"2":{"country_of_origin":{"id":"3","short_name":"Albania","alpha2_code":"AL","alpha3_code":"ALB","numeric_code":"8","currency_code":"","weight_dutiable_limit":"0","paperless_trade":"0","postal_type":"1","job_type":"0"},"item_value":31,"item_description":"Paint","item_quantity":8,"item_weight":0.04},"[object Object]":{"item_description":"Book","country_of_origin":{"id":"5","short_name":"American Samoa","alpha2_code":"AS","alpha3_code":"ASM","numeric_code":"16","currency_code":"","weight_dutiable_limit":"0","paperless_trade":"0","postal_type":"1","job_type":"0"},"item_value":21,"item_quantity":5,"item_weight":0.4}},"service_request_string":"eyJjYXJyaWVycyI6W3sibmFtZSI6IlVLTUFJTCIsImFjY291bnQiOlt7ImNyZWRlbnRpYWxzIjp7InVzZXJuYW1lIjoiZGV2ZWxvcGVyc0BvcmRlcmN1cC5jb20iLCJwYXNzd29yZCI6IkIwNjk4MDciLCJhY2NvdW50X251bWJlciI6IkQ5MTkwMjIifSwic2VydmljZXMiOiIxLDIsMyw0LDUsOSw3IiwicGlja3VwX3NjaGVkdWxlZCI6IjAifV19LHsibmFtZSI6IkRITCIsImFjY291bnQiOlt7ImNyZWRlbnRpYWxzIjp7InVzZXJuYW1lIjoia3ViZXJ1c2luZm9zIiwicGFzc3dvcmQiOiJHZ2ZyQnl0VkR6IiwiYWNjb3VudF9udW1iZXIiOiI0MjA3MTQ4ODgifSwic2VydmljZXMiOiJESEw1V0VPTjEyMDAsREhMNVdFT04wOTAwLGV4cHJlc3NfZG9tZXN0aWMsZXhwcmVzc19kb21lc3RpY18xMixleHByZXNzX2RvbWVzdGljXzksbWVkaWNhbF9leHByZXNzLGV4cHJlc3Nfd3csZXhwcmVzc193d19pbXBvcnQsREhMNVdFSU5URVhQLERITDVXRUlOVEVYUE5ELERITDVXRUlOVEVYUEVVLERITDVXRUlOVEVYUEQsREhMSUVYUDEyMDBELERITElFWFAxMDMwTkQsREhMSUVYUDEwMzBELERITElFWFAwOTAwTkQsREhMSUVYUDA5MDBELERITEVDTyxESExFQ09ELGVjb25vbXlfc2VsZWN0LGV4cHJlc3NfOTAwLGV4cHJlc3NfMTAzMCxleHByZXNzXzEyMDAsREhMSUVYUDEyMDBORCIsInBpY2t1cF9zY2hlZHVsZWQiOiIwIn1dfV0sImZyb20iOnsibmFtZSI6IiIsImNvbXBhbnkiOiIiLCJwaG9uZSI6IiIsInN0cmVldDEiOiJILTE0MCIsInN0cmVldDIiOiI1dGggRmxvb3IiLCJjaXR5IjoiT3hmb3JkIiwic3RhdGUiOiJPeGZvcmRzaGlyZSIsInppcCI6Ik9YMzlSTCIsImNvdW50cnkiOiJHQiIsImNvdW50cnlfbmFtZSI6IlVuaXRlZCBLaW5nZG9tIn0sInRvIjp7Im5hbWUiOiIiLCJjb21wYW55IjoiIiwicGhvbmUiOiIiLCJzdHJlZXQxIjoiOTIgTGFmYXlldHRlIFN0LCBOZXcgWW9yaywgTlkgMTAwMTMsIFVTQSIsInN0cmVldDIiOiIiLCJjaXR5IjoiTmV3IFlvcmsiLCJzdGF0ZSI6IiIsInppcCI6IjEwMDEzIiwiY291bnRyeSI6IlVTIiwiY291bnRyeV9uYW1lIjoiVW5pdGVkIFN0YXRlcyJ9LCJzaGlwX2RhdGUiOiIyMDE4LTA3LTI5IiwiZXh0cmEiOnsiaXNfZG9jdW1lbnQiOiJmYWxzZSIsImN1c3RvbXNfZm9ybV9kZWNsYXJlZF92YWx1ZSI6IjAifSwiY3VycmVuY3kiOiJHQlAiLCJwYWNrYWdlIjpbeyJwYWNrYWdpbmdfdHlwZSI6IkNQIiwid2lkdGgiOjIwLCJsZW5ndGgiOjIyLCJoZWlnaHQiOjIwLCJkaW1lbnNpb25fdW5pdCI6IkNNIiwid2VpZ2h0IjozLCJ3ZWlnaHRfdW5pdCI6IktHIn1dLCJ0cmFuc2l0IjpbeyJ0cmFuc2l0X2Rpc3RhbmNlIjowLCJ0cmFuc2l0X3RpbWUiOjAsIm51bWJlcl9vZl9jb2xsZWN0aW9ucyI6MCwibnVtYmVyX29mX2Ryb3BzIjowLCJ0b3RhbF93YWl0aW5nX3RpbWUiOjB9XSwic3RhdHVzIjoic3VjY2VzcyJ9","service_response_string":"eyJyYXRlIjogeyJESEwiOiBbeyI0MjA3MTQ4ODgiOiBbeyJleHByZXNzX3d3IjogW3sicmF0ZSI6IHsid2VpZ2h0X2NoYXJnZSI6IDE4My4yNCwiZnVlbF9zdXJjaGFyZ2UiOiAwLCJyZW1vdGVfYXJlYV9kZWxpdmVyeSI6IDAsImluc3VyYW5jZV9jaGFyZ2UiOiAwLCJvdmVyX3NpemVkX2NoYXJnZSI6IDAsIm92ZXJfd2VpZ2h0X2NoYXJnZSI6IDB9fV19LCB7ImV4cHJlc3NfZG9tZXN0aWMiOiBbeyJyYXRlIjogeyJ3ZWlnaHRfY2hhcmdlIjogMTgzLjI0LCJmdWVsX3N1cmNoYXJnZSI6IDAsInJlbW90ZV9hcmVhX2RlbGl2ZXJ5IjogMCwiaW5zdXJhbmNlX2NoYXJnZSI6IDAsIm92ZXJfc2l6ZWRfY2hhcmdlIjogMCwib3Zlcl93ZWlnaHRfY2hhcmdlIjogMH19XX0seyJleHByZXNzX2RvbWVzdGljXzEyIjogW3sicmF0ZSI6IHsid2VpZ2h0X2NoYXJnZSI6IDE4OS4yNCwiZnVlbF9zdXJjaGFyZ2UiOiAwLCJyZW1vdGVfYXJlYV9kZWxpdmVyeSI6IDAsImluc3VyYW5jZV9jaGFyZ2UiOiAwLCJvdmVyX3NpemVkX2NoYXJnZSI6IDAsIm92ZXJfd2VpZ2h0X2NoYXJnZSI6IDB9fV19XX1dfX0="}';
 
@@ -238,10 +253,10 @@ final class Coreprime_Dhl extends Carrier {
         $wayBillNo = $label->license_plate_number[0];
 
         foreach ($allData->collection as $coll) {
-            $collection = $coll;
+            $collection = $coll;            
         }                         
         foreach ($allData->delivery as $coll) {
-            $delivery = $coll;
+            $delivery = $coll;            
         }     
 
         $sender  = '<tr><th align="left" style="padding:2px; height:25px;">Sender:</th></tr>';
@@ -253,7 +268,7 @@ final class Coreprime_Dhl extends Carrier {
         $sender .= '<tr><td style="padding:2px; height:25px;">'.$collection->state.'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;">'.$collection->postcode.'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;">'.$collection->country->short_name.'</td></tr>';
-        $sender .= '<tr><td style="padding:2px; height:25px;">'.(isset($collection->email) ? 'testcolletion@gmail.com':'').'</td></tr>';
+        $sender .= '<tr><td style="padding:2px; height:25px;">'.(isset($collection->email) ? $collection->email:'').'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;">Phone Number: '.$collection->phone.'</td></tr>';
         $sender .= '<tr><td style="padding:2px; height:25px;"></td></tr></table></td>';
 
@@ -264,10 +279,10 @@ final class Coreprime_Dhl extends Carrier {
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->address_line1.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->address_line2.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->city.'</td></tr>';
-        $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->state.'</td></tr>';
+        $receiver .= '<tr><td style="padding:2px; height:25px;">'.( isset($delivery->state) ? $delivery->state : '').'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->postcode.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">'.$delivery->country->short_name.'</td></tr>';
-        $receiver .= '<tr><td style="padding:2px; height:25px;">'.(isset($delivery->email) ? 'testdeliver@gmail.com':'').'</td></tr>';
+        $receiver .= '<tr><td style="padding:2px; height:25px;">'.(isset($delivery->email) ? $delivery->email:'').'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;">Phone Number: '.$delivery->phone.'</td></tr>';
         $receiver .= '<tr><td style="padding:2px; height:25px;"></td></table></td></tr></table></td></tr>';
 
@@ -280,8 +295,8 @@ final class Coreprime_Dhl extends Carrier {
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Reason for Export: </th><td align="left" style="padding:2px; height:25px;"> '.$allData->reason_for_export.' </td></tr>';
         $invoice .= '</table></td><td style="width:500px;"><table width="100%" border="1" cellpadding="0" cellspacing="0" style=" font-family: arial; font-size: 14px;">';
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Invoice Number:</th><td align="left" style="padding:2px; height:25px;"></td></tr>';
-        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;"> Sender\'s Reference: </th><td align="left" style="padding:2px; height:25px;"></td></tr>';
-        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Recipient\'s Reference: </th><td align="left" style="padding:2px; height:25px;"></td></tr>';
+        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Sender\'s Reference: </th><td align="left" style="padding:2px; height:25px;">'.( isset($collection->recipient_ref) ? $collection->recipient_ref : '' ).'</td></tr>';
+        $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Recipient\'s Reference: </th><td align="left" style="padding:2px; height:25px;">'.( isset($delivery->sender_ref) ? $delivery->sender_ref : '' ).'</td></tr>';
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Type of Export:</th><td align="left" style="padding:2px; height:25px;"> '.$allData->terms_of_trade.' </td></tr>';
         $invoice .= '<tr><th align="left" style="padding:2px; height:25px;">Tax Id/VAT/EIN#: </th><td align="left" style="padding:2px; height:25px;">'.$allData->tax_status.'</td></tr>';
         $invoice .= '</table></td></tr></table></td></tr>';
@@ -299,7 +314,7 @@ final class Coreprime_Dhl extends Carrier {
             $items .= '<td align="right" style="padding:2px; height:25px;">'.$item->item_weight.' kgs</td><td align="right" style="padding:2px; height:25px;">'.$item->item_value.'</td>';
             $items .= '<td align="right" style="padding:2px; height:25px;">'.($item->item_quantity * $item->item_value).'</td></tr>';
             //Loop end here
-            $tortalW += $item->item_weight;
+            $tortalW += $item->item_quantity * $item->item_weight;
             $totalPrice += $item->item_quantity * $item->item_value;
             $totalQ += $item->item_quantity;
 
@@ -351,10 +366,10 @@ final class Coreprime_Dhl extends Carrier {
         $pdf = new ConcatPdf();
         $pdf->setFiles(array( $labelFilePath, $invoiceName));
         $pdf->concat();
-        $pdf->Output( $label_path . $loadIdentity . '/dhl/' . 'custom-invoice-'.$loadIdentity.'.pdf','F');
+        $pdf->Output( $label_path . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf','F');
         $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
 
-        return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . 'custom-invoice-'.$loadIdentity.'.pdf');
+        return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf');
      
     }
 

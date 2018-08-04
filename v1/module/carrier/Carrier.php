@@ -11,7 +11,7 @@ class Carrier{
 	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){             
 		$carrierObj = null;
 		$response = array();
-		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
+		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);                
 		$deliveryCarrier = $shipmentInfo['carrier_code'];
 		/* foreach($shipmentInfo as $key=>$data){
 			if($data['shipment_service_type']=='P'){
@@ -29,11 +29,18 @@ class Carrier{
 		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($deliveryCarrier));
 
 		$carrierObj = new $coreprimeCarrierClass();
-		$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);                
-                if( $shipmentInfo['status'] == 'success' ) {
-                    return array("status"=>"success","file_path"=>$shipmentInfo['file_path']);
+                
+                if( strtolower($deliveryCarrier) == 'dhl' ) {
+                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
                 } else {
-                    return $shipmentInfo;
+                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
+                }
+                
+                
+                if( $shipmentInfo['status'] == 'success' ) {
+                    return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json']);
+                } else {
+                    return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
                 }		
 		//$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
 		
@@ -92,18 +99,18 @@ class Carrier{
 			$labelArr = array();
 			foreach($labelPdfArr as $file){
 				$file['label_file_pdf'] = explode('/',$file['label_file_pdf']);
-				$file = "C:/xampp/htdocs/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7].'/'.$file['label_file_pdf'][8];
+				$file = "/var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7];
 				array_push($labelArr,$file);
 			}
 			$fileName = uniqid().'.pdf';
 			$pdf = new ConcatPdf();
 			$pdf->setFiles($labelArr);
 			$pdf->concat();
-			$pdf->Output('C:/xampp/htdocs/projects/api/temp/'.$fileName,'F');
+			$pdf->Output('/var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
 		}catch(Exception $e){
 			print_r($e);die;
 		}
-		return array("status"=>"success","file_path"=>"http://localhost/projects/api/temp/".$fileName);
+		return array("status"=>"success","file_path"=>"http://api.instadispatch.com/dev/temp/".$fileName);
 	}
 
 
@@ -156,7 +163,7 @@ class Carrier{
             $this->_setMethodType();
 
             $data_string = json_encode($this->_postParam);
-//echo $data_string;die;
+            //echo $data_string;die;
             $ch = curl_init($this->_getEnvironment()->getApiUrl());
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
@@ -175,5 +182,26 @@ class Carrier{
         }
 
     }
+	
+	/*****start of cancelling shipment from shipment grid*******/
+	public function cancelShipmentByLoadIdentity($param){
+		$obj = new Carrier_Coreprime_Request();
+		$requestArr = array();
+		$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
+		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
+		if($labelInfo[0]['label_json']!=''){
+			$labelArr = json_decode($labelInfo[0]['label_json']);
+            $requestArr['credentials'] = array('username'=>'nikhil.kumar@ordercup.com','password'=>'Password123','authentication_token'=>$labelArr->label->authenticationtoken,
+												/* 'authentication_token_created_at'=>$labelArr->label->authenticationtoken_created_at, */'token'=> 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0','account_number'=>$labelArr->label->accountnumber);
+			$requestArr['carrier'] = $param->carrier;
+			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
+			$requestArr['carrier_cancel_return'] = false;
+			$requestArr['ship_date'] = $param->ship_date; 
+			$cancel = $obj->_postRequest("void",json_encode($requestArr));
+			return $cancel;
+		}
+		
+	}
+	/*****end of cancelling shipment from shipment grid*******/
 }
 ?>

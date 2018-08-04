@@ -113,15 +113,17 @@ final Class Collection{
 
     private
 
-    function _nextCollectionTime($collection_start_at, $collection_date=null){
+    function _nextCollectionTime($collection_start_at, $collection_end_at, $collection_date=null){//print_r($collection_start_at);echo '-----'; print_r($collection_end_at);die;
         $todayStartTimeTimestamp = strtotime($this->today.' '.$collection_start_at);
+		$todayEndTimeTimestamp = strtotime($this->today.' '.$collection_end_at);
 
         $collection_date = ($collection_date!=null) ? $collection_date : $this->collectionDate;
 
         $collectionDateTimestamp = strtotime($collection_date);
 
         $nextCollectionDate = "";
-
+        
+		
         if($this->_isWeekend($collection_date)){
             $nextMonday = date("Y-m-d", strtotime("next monday"));
             $nextCollectionDate = date("Y-m-d H:i", strtotime("$nextMonday $collection_start_at"));
@@ -130,8 +132,7 @@ final Class Collection{
         else{
             $nextDateStamp      = strtotime($collection_date);
             $colletionDateStamp = strtotime($this->collectionDate);
-
-            if($todayStartTimeTimestamp > $collectionDateTimestamp){
+            if(($collectionDateTimestamp >= $todayStartTimeTimestamp) AND ($collectionDateTimestamp <= $todayEndTimeTimestamp)){
                 $nextCollectionDate = date("Y-m-d");
                 $nextCollectionDate = "$nextCollectionDate $collection_start_at";
                 $nextCollectionDate = date("Y-m-d H:i", strtotime($nextCollectionDate));
@@ -142,7 +143,7 @@ final Class Collection{
             }else{
                 $nextCollectionDateTime = date("Y-m-d", strtotime('+1 day', strtotime($collection_date)));
                 $nextCollectionDateTime = $nextCollectionDateTime.' '.$collection_start_at;
-                return $this->_nextCollectionTime($collection_start_at, $nextCollectionDateTime);
+                return $this->_nextCollectionTime($collection_start_at, $collection_end_at, $nextCollectionDateTime);
             }
         }
         return $nextCollectionDate;
@@ -164,6 +165,7 @@ final Class Collection{
             "carrier_code"         => $item["carrier_code"],
             "description"          => $item["description"],
             "carrier_id"           => $item["carrier_id"],
+            "account_id"           => isset($item["account_id"])?$item["account_id"]:$item["carrier_id"],
             "username"             => $item["username"],
             "password"             => $item["password"],
             "internal"             => $item["internal"],
@@ -179,13 +181,17 @@ final Class Collection{
     function _findCourier($list){
         $this->carrierList = array();
         $defaultCollectionAddress = $this->modelObj->getDefaultCollectionAddress($this->customerId);
-
         $this->_findCollectionAddressIsRegularPickup($defaultCollectionAddress);
 
-        foreach($list as $item){
+        foreach($list as $item){            
             //if($item["pickup"]==1 || $this->isRegularPickup){
-
-            $collectionDateTime = $this->_nextCollectionTime($item["collection_start_at"]);
+			//get carrier time for customer
+			$collectionStartTime = $this->modelObj->getCollectionStartTime($defaultCollectionAddress['address_id'],$this->customerId,$item['carrier_code']);
+			//print_r($collectionStartTime);die;
+			if($collectionStartTime=='')
+				$collectionDateTime = $this->_nextCollectionTime($item["collection_start_at"],$item["collection_end_at"]);
+			else
+				$collectionDateTime = $this->_nextCollectionTime($collectionStartTime["collection_start_time"],$collectionStartTime["collection_end_time"]);
 
             $item["is_regular_pickup"]    = $this->isRegularPickup;
             $item["collection_date_time"] = $collectionDateTime;
@@ -252,7 +258,7 @@ final Class Collection{
                     //add pickup surcharge
                     $pickupSurcharge = $internalCarrier["pickup_surcharge"];
                 }
-                $collectionDateTime = $this->_nextCollectionTime($internalCarrier["collection_start_at"]);
+                $collectionDateTime = $this->_nextCollectionTime($internalCarrier["collection_start_at"],$internalCarrier["collection_end_at"]);
 
                 $internalCarrier["pickup_surcharge"] = $pickupSurcharge;
 

@@ -101,6 +101,10 @@ class Booking extends Icargo
             $param["state"]         = (isset($data->state)) ? $data->state : "";
             $param["country"]       = $data->country->short_name;
             $param["iso_code"]      = $data->country->alpha3_code;
+			$param["first_name"]    = (isset($data->name)) ? $data->name : "";
+            $param["last_name"]     = "";
+            $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
+            $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = "";
 
             $param["search_string"] = str_replace(' ','',implode('',$param));;
@@ -405,6 +409,11 @@ class Booking extends Icargo
             $service_data["tax_status"] = $otherDetail['tax_status'];
             $service_data["terms_of_trade"] =  $otherDetail['terms_of_trade'];
 
+            $service_data["label_tracking_number"] = '0';
+            $service_data["label_files_png"] = '';
+            $service_data["label_file_pdf"] =  '';
+            $service_data["label_json"] =  '';
+            
             $service_data["status"] = $booking_status;
                                     
             $service_id = $this->modelObj->saveShipmentService($service_data);
@@ -536,13 +545,13 @@ class Booking extends Icargo
         $price_breakdown["shipment_type"] = $data->rate->shipment_type;
         $price_breakdown["version"]       = $price_version;
         $price_breakdown["api_key"]       = "service";
-        $price_breakdown["price_code"]    = $data->rate->info->courier_service_code;
-        $price_breakdown["ccf_operator"]  = $data->rate->info->operator;
+        $price_breakdown["price_code"]    = isset( $data->rate->info->courier_service_code ) ? $data->rate->info->courier_service_code : '';
+        $price_breakdown["ccf_operator"]  = isset( $data->rate->info->operator ) ? $data->rate->info->operator : '';
         $price_breakdown["ccf_value"]     = $data->rate->info->ccf_value;
         $price_breakdown["ccf_level"]     = $data->rate->info->level;
-        $price_breakdown["baseprice"]     = $data->rate->info->original_price;
+        $price_breakdown["baseprice"]     = isset( $data->rate->info->original_price ) ? $data->rate->info->original_price : '0';
         $price_breakdown["ccf_price"]     = $data->rate->info->price;
-        $price_breakdown["price"]         = $data->rate->info->price_with_ccf;
+        $price_breakdown["price"]         = isset( $data->rate->info->price_with_ccf ) ? $data->rate->info->price_with_ccf : '0';
         $price_breakdown["service_id"]    = $data->rate->info->service_id;
         $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
 
@@ -781,19 +790,20 @@ class Booking extends Icargo
         foreach($carrierLists as $carrierList){
             foreach($carriers as $key => $carrier) {
                 if($carrierList["account_id"]==$carrier["account_id"]){
-                    $carrier["account_number"] = $carrierList["account_number"];
+                    $carrier["account_number"] = $carrierList["account_number"];                    
                     array_push($lists, $carrier);
                 }
             }
-        }
-
-        $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);
+        }        
+        $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);        
         return $lists;
     }
+	
+    protected function _saveLabelInfoByLoadIdentity($labelArr,$loadIdentity){
+            return $this->modelObj->saveLabelDataByLoadIdentity($labelArr,$loadIdentity);
+    }
 
-    protected
-
-    function getCustomerInfo($user_id){
+    protected function getCustomerInfo($user_id){
         return $this->modelObj->getCustomerInfo($user_id);
     }
 
