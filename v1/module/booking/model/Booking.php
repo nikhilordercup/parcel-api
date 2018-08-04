@@ -54,7 +54,7 @@ class Booking_Model_Booking
         $flowType = strtolower($flowType);
         $flowTypeJoin = ($flowType) ? "INNER JOIN `" . DB_PREFIX . "service_flow_type` AS CSFT ON CST.id=CSFT.service_id  " : '';
         $flowTypeCond = ($flowType) ? " AND LOWER(CSFT.flow_type)='$flowType'  " : '';
-        $sql = "SELECT CST.service_code, CST.service_name FROM `" . DB_PREFIX . "company_vs_customer_vs_services` AS CCST "
+        echo $sql = "SELECT CST.service_code, CST.service_name FROM `" . DB_PREFIX . "company_vs_customer_vs_services` AS CCST "
                 . "INNER JOIN `" . DB_PREFIX . "courier_vs_services_vs_company` AS CSCT ON CSCT.service_id=CCST.service_id "
                 . "INNER JOIN `" . DB_PREFIX . "courier_vs_company` AS CCT ON CCST.company_id=CCT.company_id AND CCT.account_number='$account_number' "
                 . "INNER JOIN `" . DB_PREFIX . "courier_vs_services` AS CST ON CST.id=CSCT.service_id "

@@ -74,7 +74,7 @@ final class Nextday extends Booking {
                     }
                 }
             } 
-            print_r($carrier); die;
+            die;
             $collectionIndex = 0;
             $collectionList = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
 
