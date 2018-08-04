@@ -24,9 +24,25 @@ final class Nextday extends Booking {
     private
             function _getCustomerCarrierAccount() {
         $result = array();
-        //print_r($this->_param); 
-        //$customerInfo = $this->modelObj->getCompanyInfo($this->_param->company_id);
-        //print_r($customerInfo); die;
+        //print_r($this->_param);
+        foreach ($this->_param->collection as $collection) {
+            $collectionCountry = $collection->country;
+        }
+        foreach ($this->_param->delivery as $delivery) {
+            $deliveryCountry = $delivery->country;
+        }
+        $customerInfo = $this->modelObj->getCompanyInfo($this->_param->company_id);
+        $homeCountry = strtolower($customerInfo['country']);
+        $flowType = 'Domestic';
+        if($collectionCountry->id == $deliveryCountry->id){
+            $flowType = 'Domestic';
+        } else if($homeCountry == strtolower ($collectionCountry->short_name)) {
+            $flowType = 'Import';
+        } else if($homeCountry == strtolower ($deliveryCountry->short_name)) {
+            $flowType = 'Export';
+        }
+        //echo $flowType;die;
+        
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
         //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if(count($carrier)>0){
@@ -36,14 +52,14 @@ final class Nextday extends Booking {
                 $carrier[$key]["account_id"] = $accountId;
                 
                 foreach($this->_param->parcel as $parceldata){                    
-                    $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code']);
+                    $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code'], $flowType);
                     if(count($checkPackageSpecificService)>0){
                         foreach($checkPackageSpecificService as $serviceData){
                                 $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
                         }
                     } else {
                         //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
-                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"]);
+                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
                         if(count($services)>0)
                         {
                             foreach($services as $service) 
