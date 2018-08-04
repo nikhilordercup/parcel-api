@@ -24,8 +24,9 @@ final class Nextday extends Booking {
     private
             function _getCustomerCarrierAccount() {
         $result = array();
-        //print_r($this->_param); die;
+        //print_r($this->_param); 
         //$customerInfo = $this->modelObj->getCompanyInfo($this->_param->company_id);
+        //print_r($customerInfo); die;
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
         //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if(count($carrier)>0){
@@ -727,7 +728,7 @@ final class Nextday extends Booking {
         $allData = $this->_param;
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();        
-        
+        $this->commitTransaction();
         $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
 		
         if($labelInfo['status']=='success')
@@ -752,9 +753,7 @@ final class Nextday extends Booking {
             $autoPrint = $this->modelObj->getAutoPrintStatusByCustomerId($this->_param->customer_id);
 
             $checkPickupExist = array();            
-            if($saveLabelInfo) {
-                                                
-                $this->commitTransaction();
+            if($saveLabelInfo) {                                                                
 
                 /************For carrier DHL check shipment exist or not (Start from here) *************/                
                 if ( strtolower($carrier_code) == 'dhl' ) {
@@ -772,16 +771,14 @@ final class Nextday extends Booking {
                 Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
                 
                 return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path'],"auto_print"=>$autoPrint['auto_label_print'], 'pickups' => $checkPickupExist, 'carrier_code' => strtolower($carrier_code));
-            } else {
-                $this->rollBackTransaction();   
+            } else {                 
                 return array("status"=>"error","message"=>"Shipment not booked successfully,error while saving label!","file_path"=>"","auto_print"=>"");
             }
-        } else {
-            $this->rollBackTransaction();            
-            /*$deleteBooking = $this->_deleteBooking($loadIdentity);
+        } else {            
+            $deleteBooking = $this->_deleteBooking($loadIdentity);
             if($deleteBooking){
                 return array("status"=>"error","message"=>$labelInfo['message'],"file_path"=>"");
-            }*/
+            }
             return array("status"=>"error","message"=>$labelInfo['message'],"file_path"=>"");
         }        		        
     }

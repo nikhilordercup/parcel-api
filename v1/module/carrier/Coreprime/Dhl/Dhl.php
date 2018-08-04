@@ -173,7 +173,7 @@ final class Coreprime_Dhl extends Carrier {
             'invoice_number' => ''                  // ?
         );
         
-        $response['insurance'] = array('value' => ( $allData->is_insured ? $allData->insurance_amount : 0 ) , 'currency' => $response['currency'], 'insurer' => '');
+        $response['insurance'] = array('value' => ( isset($allData->is_insured) ? $allData->insurance_amount : 0 ) , 'currency' => $response['currency'], 'insurer' => '');
         
         if ($rateDetail) {
             $rateDetail = (array) $rateDetail;
@@ -209,7 +209,7 @@ final class Coreprime_Dhl extends Carrier {
                 $key++;
             }
         } else {
-            $totalValue = ( $allData->is_insured ? $allData->insurance_amount : 0 ) ;
+            $totalValue = ( isset($allData->is_insured) ? $allData->insurance_amount : 0 ) ;
         }
         
         $response['customs'] = array( 
