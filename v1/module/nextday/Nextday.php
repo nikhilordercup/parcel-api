@@ -34,8 +34,7 @@ final class Nextday extends Booking {
         $customerInfo = $this->modelObj->getCompanyInfo($this->_param->company_id);
         $homeCountry = strtolower($customerInfo['country']);
         $flowType = 'Domestic';
-        print_r($collectionCountry);
-        print_r($deliveryCountry);die;
+       
         if($collectionCountry->id == $deliveryCountry->id){
             $flowType = 'Domestic';
         } else if($homeCountry == strtolower($collectionCountry->short_name) && $homeCountry != strtolower($deliveryCountry->short_name)) {
