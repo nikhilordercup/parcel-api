@@ -265,6 +265,7 @@ class Controller extends Icargo{
                 $customerLists[$key]["users"][] = $userLists;
             }
         }
+        print_r($customerLists);
         return $customerLists;
     }
 
