@@ -290,7 +290,8 @@ class Process_Form{
                     }
                     else
                     {
-                        $gridData = $this->getGridDataByTicket($company_id,$warehouse_id,$route_id,$ticket);
+                        $gridData = $this->getGridDataByTicket($shipment_details['company_id'],$shipment_details['warehouse_id'],$route_id,$ticket);
+                        $checkMoreShipmentofthisRouteDriver = $this->model_rest->more_shipment_exist_in_this_route_for_driver_from_operation_count($driver_id, $route_id);
 
                         $currentStage = $this->model_rest->findShipmentCurrentStage($ticket, $driver_id, $route_id);
                         if($currentStage["action_by"]=="controller"){
@@ -299,6 +300,8 @@ class Process_Form{
                                 'success' => true,
                                 'status'  => "success",
                                 'grid_data' =>$gridData,
+                                'left' =>$checkMoreShipmentofthisRouteDriver,
+                                'ticket' =>$ticket,
                                 'timestamp' => microtime(true)
                             );
                         }
@@ -307,6 +310,8 @@ class Process_Form{
                             'success' => true,
                             'status'  => "success",
                             'grid_data' =>$gridData,
+                            'left' =>$checkMoreShipmentofthisRouteDriver,
+                            'ticket' =>$ticket,
                             'timestamp' => microtime(true)
                         ); 
                     }

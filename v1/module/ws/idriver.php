@@ -132,7 +132,7 @@ class Idriver{
     
     private function _save_load_scan_status($params)
     {
-        //   print_r($params);
+           return $params;
     }
     
     private function _save_driver_gps_location($params)

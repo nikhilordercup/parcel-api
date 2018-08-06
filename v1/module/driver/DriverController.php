@@ -35,7 +35,7 @@ class DriverController{
         
         $app->post('/fetchDayRoutes', function() use ($app) { 
             $self = new DriverController($app);
-            $r = json_decode($app->request->getBody());	
+            $r = json_decode($app->request->getBody()); 
             verifyRequiredParams(array('access_token'), $r);
             $data=$self->getDayRoutes( $r->company_id, $r->route_date);
             echoResponse(200, array('result'=>'success','message'=> json_encode($data)));
@@ -43,7 +43,7 @@ class DriverController{
         
         $app->post('/saveUpdatedRoute', function() use ($app) { 
             $self = new DriverController($app);
-            $r = json_decode($app->request->getBody());	
+            $r = json_decode($app->request->getBody()); 
             verifyRequiredParams(array('access_token'), $r);
             $self->saveUpdatedRoute( $r->model);
             echoResponse(200, array('result'=>'success','message'=> "Saved!"));
@@ -85,7 +85,6 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
                 . "WHERE shipment_routed_id IN ("
                 . "SELECT shipment_route_id FROM `".DB_PREFIX."shipment_route` WHERE "
                 . "company_id=$companyId  AND service_date LIKE '$date%')";
-//                . " GROUP BY shipment_routed_id";
         $rec =$this->_db->getAllRecords($sql);
         $shipments=$this->_db->getAllRecords($shipmentSql);
         $result=array();
