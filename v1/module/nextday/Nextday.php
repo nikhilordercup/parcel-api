@@ -24,10 +24,28 @@ final class Nextday extends Booking {
     private
             function _getCustomerCarrierAccount() {
         $result = array();
-
-        //$carrier = $this->modelObj->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id);
+        //print_r($this->_param);
+        foreach ($this->_param->collection as $collection) {
+            $collectionCountry = $collection->country;
+        }
+        foreach ($this->_param->delivery as $delivery) {
+            $deliveryCountry = $delivery->country;
+        }
+        $customerInfo = $this->modelObj->getCompanyInfo($this->_param->company_id);
+        $homeCountry = strtolower($customerInfo['country']);
+        $flowType = 'Domestic';
+       
+        if($collectionCountry->id == $deliveryCountry->id){
+            $flowType = 'Domestic';
+        } else if($homeCountry == strtolower($collectionCountry->short_name) && $homeCountry != strtolower($deliveryCountry->short_name)) {
+            $flowType = 'Export';
+        } else if($homeCountry == strtolower ($deliveryCountry->short_name) && $homeCountry != strtolower($collectionCountry->short_name)) {
+            $flowType = 'Import';
+        }
+        //echo $flowType;die;
+        
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
-
+        //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
                 
@@ -35,14 +53,14 @@ final class Nextday extends Booking {
                 $carrier[$key]["account_id"] = $accountId;
                 
                 foreach($this->_param->parcel as $parceldata){                    
-                    $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code']);
+                    $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code'], $flowType);
                     if(count($checkPackageSpecificService)>0){
                         foreach($checkPackageSpecificService as $serviceData){
                                 $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
                         }
                     } else {
                         //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
-                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"]);
+                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
                         if(count($services)>0)
                         {
                             foreach($services as $service) 
@@ -290,7 +308,7 @@ final class Nextday extends Booking {
 
                                     if (isset($service->surcharges)) {
                                         foreach ($service->surcharges as $surcharge_code => $surcharge_price) {
-                                            if ($collected_item["carrier_code"] != $carrier_code and $surcharge_code == "collection_surcharge") {
+                                            if ($collected_item["carrier_code"] != $carrier_code and $surcharge_code == "collection_surcharge") {                                              
                                                 $surchargeCcf["original_price"] = $collected_item["pickup_surcharge"];
                                                 $surchargeCcf["surcharge_value"] = $collected_item["pickup_surcharge"];
                                                 $surchargeCcf["operator"] = "FLAT";
@@ -304,7 +322,7 @@ final class Nextday extends Booking {
                                                 $surchargeCcf["courier_surcharge_code"] = "collection_surcharge";
                                                 $surchargeCcf["courier_surcharge_name"] = "Collection Surcharge";
                                                 $surchargeCcf["carrier_id"] = $collected_item["carrier_id"];
-                                            } else {
+                                            } else {                                                
                                                 $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$accountNumber]["carrier_id"], $surcharge_price);
                                             }
 
@@ -727,7 +745,7 @@ final class Nextday extends Booking {
         $allData = $this->_param;
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail = ( strtolower($carrier_code) == 'dhl' ) ? $this->_param->service_opted->rate : array();        
-        
+        $this->commitTransaction();
         $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
 		
         if($labelInfo['status']=='success')
@@ -752,9 +770,7 @@ final class Nextday extends Booking {
             $autoPrint = $this->modelObj->getAutoPrintStatusByCustomerId($this->_param->customer_id);
 
             $checkPickupExist = array();            
-            if($saveLabelInfo) {
-                                                
-                $this->commitTransaction();
+            if($saveLabelInfo) {                                                                
 
                 /************For carrier DHL check shipment exist or not (Start from here) *************/                
                 if ( strtolower($carrier_code) == 'dhl' ) {
@@ -772,16 +788,14 @@ final class Nextday extends Booking {
                 Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array("load_identity"=>$loadIdentity,"company_id"=>$this->_param->company_id,"warehouse_id"=>$this->_param->warehouse_id,"customer_id"=>$this->_param->customer_id));
                 
                 return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity","file_path"=>$labelInfo['file_path'],"auto_print"=>$autoPrint['auto_label_print'], 'pickups' => $checkPickupExist, 'carrier_code' => strtolower($carrier_code));
-            } else {
-                $this->rollBackTransaction();   
+            } else {                 
                 return array("status"=>"error","message"=>"Shipment not booked successfully,error while saving label!","file_path"=>"","auto_print"=>"");
             }
-        } else {
-            $this->rollBackTransaction();            
-            /*$deleteBooking = $this->_deleteBooking($loadIdentity);
+        } else {            
+            $deleteBooking = $this->_deleteBooking($loadIdentity);
             if($deleteBooking){
                 return array("status"=>"error","message"=>$labelInfo['message'],"file_path"=>"");
-            }*/
+            }
             return array("status"=>"error","message"=>$labelInfo['message'],"file_path"=>"");
         }        		        
     }
