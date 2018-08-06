@@ -42,7 +42,7 @@ class SubscriptionController {
             $data = $self->subscribePlan($r->company_id);
             echoResponse(200, array('result' => 'success', 'message' => json_encode($data)));
         });
-        $app->post('/getShipmentCount', function() use ($app) {
+        $app->post('/getUsedShipmentCount', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
             verifyRequiredParams(array('access_token'), $r);
