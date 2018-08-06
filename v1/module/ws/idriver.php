@@ -1,5 +1,5 @@
 <?php
-require_once 'auth.php';
+require_once 'Idriver_Auth.php';
 require_once 'process-driver.php';
 require_once 'process-form.php';
 require_once 'optimize-route.php';
@@ -132,7 +132,7 @@ class Idriver{
     
     private function _save_load_scan_status($params)
     {
-        //   print_r($params);
+           return $params;
     }
     
     private function _save_driver_gps_location($params)

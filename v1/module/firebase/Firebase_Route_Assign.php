@@ -1,9 +1,11 @@
 <?php
+//use Kreait\Firebase\Factory;
+//use Kreait\Firebase\ServiceAccount;
 class Firebase_Route_Assign extends Firebase
 {
 	private $_driver_id;
 	private $_shipment_route_id;
-	private $_load_scan_flag= true;
+	private $_load_scan_flag= false;
     private $_route_type= "delivery";
 
     public function __construct($param)
@@ -31,6 +33,14 @@ class Firebase_Route_Assign extends Firebase
         if(isset($param['shipmet_tickets'])){
             $this->fbObj->_shipment_tickets = $param['shipmet_tickets'];
         }
+    }
+
+    private function _getFirebaseCredential(){
+        return $this->_getFbCredential();
+    }
+
+    private function _getFirebaseDbUrl(){
+        return $this->_getFirebaseDb();
     }
     
     private function _setWarehouseId($v)
@@ -68,12 +78,12 @@ class Firebase_Route_Assign extends Firebase
 		return $this->email;
 	}
 	
-    protected function _getDropOfCurrentRoute()
+    private function _getDropOfCurrentRoute()
     {
         return parent::_assignedShipmentOfRoute();
     }
     
-    protected function _get_route_type($input)
+    private function _get_route_type($input)
     {
         foreach($input as $data)
         {
@@ -93,10 +103,6 @@ class Firebase_Route_Assign extends Firebase
         
         $this->_route_type  = $this->_get_route_type($route_data);
         
-        //if($shipment['shipment_service_type']=="P")
-        //    $this->_route_type             = "collection";
-        //$tempData = $this->_shipmentDrops($this->_getDropOfCurrentRoute());
-        
         $tempData = $this->_shipmentDrops($route_data);
         $routeInfo['total_parcel']  = $tempData['total_parcel'];
 		$routeInfo['job_remaining'] = $tempData['job_remaining'];
@@ -114,6 +120,16 @@ class Firebase_Route_Assign extends Firebase
         $driver_data = $this->_getUserById($this->_getDriverId());
         
 		return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
+    }
+
+    private function _assignRoute($data){
+        $fbObj = new Firebase_Api();
+        return $fbObj->save('route-posts/'.$data["uid"], $data);
+    }
+
+    private function _assignToExistingRoute($data){
+        $fbObj = new Firebase_Api();
+        $fbObj->save('route-services/'.$data["uid"], $data);
     }
 	
 	public function getCurrentAssignedRouteData()
@@ -143,11 +159,21 @@ class Firebase_Route_Assign extends Firebase
 
         $notification = new Push_Notification_Index(array("user_id"=>array($this->_getDriverId())));
 
+        $postId = $this->_assignRoute(array(
+            'code'=>'route/assigned',
+            'route_info'=>$routeInfo,
+            'shipment_drops'=>$tempData['shipments_drops'],
+            'uid'=>$this->_getDriverFirebaseId(),
+            'username'=>$driver_data['name'],
+            'warehouse_id'=>$this->_getWarehouseId(),
+            'company_id'=>$this->_getCompanyId()
+        ));
+       
         $notification->sendRouteAssignNotification();
 
+        return $postId;
 
-
-        return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());//,"shipment_tickets"=>parent::_getShipmentTickets()
+        //return array('code'=>'route/assigned','route_info'=>$routeInfo,'shipment_drops'=>$tempData['shipments_drops'],'uid'=>$this->_getDriverFirebaseId(),'username'=>$driver_data['name'],'warehouse_id'=>$this->_getWarehouseId(),'company_id'=>$this->_getCompanyId());
     }
 	
 	private function _shipmentDrops($shipmentDrops)
@@ -253,7 +279,8 @@ class Firebase_Route_Assign extends Firebase
     {   
         $routeData = $this->_getRouteDetailByShipmentRouteId();
         $shipmentData = $this->_getDropOfCurrentRoute();
-        return array("code"=>"shipment/assigned-to-current-route","uid"=>$routeData["uid"],"target_post_id"=>$routeData["firebase_id"],"shipment_route_id"=>$routeData["shipment_route_id"],"shipments"=>$this->_shipmentDrops($shipmentData));
+        $data = array("code"=>"shipment/assigned-to-current-route","uid"=>$routeData["uid"],"target_post_id"=>$routeData["firebase_id"],"shipment_route_id"=>$routeData["shipment_route_id"],"shipments"=>$this->_shipmentDrops($shipmentData));
+        return $this->_assignToExistingRoute($data);
     }
 }
 ?>

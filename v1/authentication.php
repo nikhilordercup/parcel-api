@@ -15,6 +15,7 @@ $app->post('/signUp', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('email','name', 'password','city', 'state'),$r->company);//,'country'
+
     $phone = $r->company->phone;
     $email = $r->company->email;
     $password = $r->company->password;
@@ -113,6 +114,22 @@ $app->post('/signUp', function() use ($app) {
             $obj->createSubscription($chargebee_customer_data);
             // save user id to chargebee_customer_table
             $db->update("chargebee_customer", array("user_id"=>$user),"chargebee_customer_id='$chargebee_customer_data->customer_id'");
+
+            //save user default notification templates
+            $sql = "SELECT * FROM " . DB_PREFIX ."notification_default";
+            $templates = $db->getALLRecordS($sql);
+
+            foreach($templates as $template){
+                $db->save("notification", array(
+                    "company_id" => $user,
+                    "type" => '',
+                    "jobtype" => '',
+                    "trigger_type" => $template["trigger_type"],
+                    "trigger_code" => $template["trigger_code"],
+                    "status" => $template["status"],
+                    "template" => $template["template"]
+                ));
+            }
 
             $response["status"] = "success";
             $response["message"] = "User account created successfully";

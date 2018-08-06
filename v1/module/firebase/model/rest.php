@@ -138,4 +138,17 @@ class Firebase_Model_Rest
         $record = $this->db->getRowRecord($sql);
         return $record;
     }
+
+    public function getFirebaseIdByShipmentRouteId($shipment_route_id)
+    {
+        $sql = "SELECT RT.firebase_id AS firebase_id FROM " . DB_PREFIX . "shipment_route RT WHERE RT.shipment_route_id = $shipment_route_id";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+    }
+
+    public function getJobCountByShipmentRouteId($shipment_route_id){
+        $sql = "SELECT COUNT(1) AS job_count FROM " . DB_PREFIX . "shipment RT WHERE RT.shipment_routed_id = $shipment_route_id AND RT.current_status IN ('O', 'Ca')";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+    }
 }
