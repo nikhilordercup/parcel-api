@@ -88,7 +88,7 @@ $app->post('/signUp', function() use ($app) {
 
             //chargebee associate to trial plan
             $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
-            $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan where plan_id='".$r->company->plan_id."'");
+            $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC LIMIT 1");
 
 
             $chargebee_customer_data = (object) array(
