@@ -47,7 +47,8 @@ class SubscriptionController {
             $r = json_decode($app->request->getBody());
             verifyRequiredParams(array('access_token'), $r);
             $data = $self->getShipmentCounts($r->company_id);
-            echoResponse(200, array('result' => 'success', 'message' => json_encode($data)));
+            $subscription=$self->getPlanInfo($r->company_id);
+            echoResponse(200, array('result' => 'success', 'message' => $data,'subscription'=>$subscription));
         });
 
     }
@@ -111,6 +112,12 @@ class SubscriptionController {
     public function getShipmentCounts($company_id){
         $sql="SELECT instaDispatch_loadGroupTypeCode as shipment_type,COUNT(*) as shipment_count FROM `".DB_PREFIX."shipment`"
                 . " WHERE company_id=$company_id GROUP BY instaDispatch_loadGroupTypeCode";
+        return $this->_db->getAllRecords($sql);
+    }
+    public function getPlanInfo($company_id){
+        $sql="SELECT CS.*, U.id FROM icargo_chargebee_subscription AS CS LEFT JOIN icargo_chargebee_customer AS CC ON 
+CS.chargebee_customer_id = CC.chargebee_customer_id LEFT JOIN icargo_users AS U ON CC.user_id=U.id
+WHERE U.id=$company_id";
         return $this->_db->getAllRecords($sql);
     }
 }
