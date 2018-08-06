@@ -61,7 +61,7 @@ class SubscriptionController {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
             verifyRequiredParams(array('access_token'), $r);
-            $data = $self->getUserInfo($r->access_token,$r->newName);          
+            $data = $self->updateName($r->access_token,$r->newName);          
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
 
