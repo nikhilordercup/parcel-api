@@ -50,6 +50,13 @@ class SubscriptionController {
             $subscription=$self->getPlanInfo($r->company_id);
             echoResponse(200, array('result' => 'success', 'message' => $data,'subscription'=>$subscription));
         });
+        $app->post('/getUserInfo', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->getUserInfo($r->access_token);          
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
 
     }
     public function subscribePlan(){
@@ -115,9 +122,14 @@ class SubscriptionController {
         return $this->_db->getAllRecords($sql);
     }
     public function getPlanInfo($company_id){
-        $sql="SELECT CS.*, U.id FROM icargo_chargebee_subscription AS CS LEFT JOIN icargo_chargebee_customer AS CC ON 
-CS.chargebee_customer_id = CC.chargebee_customer_id LEFT JOIN icargo_users AS U ON CC.user_id=U.id
-WHERE U.id=$company_id";
+        $sql="SELECT CS.*, U.id FROM ".DB_PREFIX."chargebee_subscription AS CS LEFT JOIN ".DB_PREFIX."chargebee_customer AS CC ON 
+                CS.chargebee_customer_id = CC.chargebee_customer_id LEFT JOIN ".DB_PREFIX."users AS U ON CC.user_id=U.id
+                WHERE U.id=$company_id";
         return $this->_db->getAllRecords($sql);
+    }
+    public function getUserInfo($token){
+        $sql="SELECT U.name, U.email, CC.chargebee_customer_id FROM ".DB_PREFIX."users AS U LEFT JOIN ".DB_PREFIX."chargebee_customer AS CC"
+                . " ON U.id= CC.user_id WHERE U.access_token='$token' LIMIT 1";
+        return $this->_db->getOneRecord($sql);
     }
 }
