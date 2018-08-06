@@ -172,5 +172,13 @@ class Module_Addressbook_Addressbook extends Icargo{
         return $response;
     }
 	
+	public
+
+    function getAllDefaultWarehouseAddressBySearchKey($param){
+        $records = Addressbook_Model::_getInstance()->searchAllDefaultWarehouseAddress($param->customer_id,$param->search_postcode);
+        $response = array("status"=>"success","data"=>$records,"origin"=>"local");
+        return $response;
+    } 
+	
 }
 ?>

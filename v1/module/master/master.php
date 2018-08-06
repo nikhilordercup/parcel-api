@@ -115,7 +115,7 @@ class Master extends Icargo{
 	
 	public function getAllCourierServices($param){  
          $data  = $this->_parentObj->db->getAllRecords("
-         SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,L.service_id as service_id
+         SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,L.service_id as service_id,B.account_number as account_number
          FROM ".DB_PREFIX."courier_vs_services_vs_company as L 
          INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
          INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." 
@@ -148,7 +148,7 @@ class Master extends Icargo{
 	
 	public function getAllCourierSurcharge($param){
          $data  = $this->_parentObj->db->getAllRecords("
-         SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator
+         SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator,B.account_number as account_number
          FROM ".DB_PREFIX."courier_vs_surcharge_vs_company as L 
          INNER JOIN ".DB_PREFIX."courier_vs_surcharge AS A ON L.surcharge_id = A.id 
          INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id."

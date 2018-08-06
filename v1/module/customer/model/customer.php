@@ -130,7 +130,7 @@ public function getAllCouriersofCustomerAccount($componyId,$customerId){
 	public function getAllCourierServicesForCustomer($company_id/* ,$courier_id */){
      $record = array();
 	 $sqldata ='L.id,L.service_id,L.courier_id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,
-                L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status';
+                L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,B.account_number as account_number';
       $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX."courier_vs_services_vs_company as L 
 			  INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
               INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id  AND B.company_id = ".$company_id." 
@@ -173,7 +173,7 @@ public function checkServiceExistFromCustomerAccount($service_id,$company_servic
 	public function getAllCourierSurchargeForCustomer($company_id){
      $record = array();
 	 $sqldata ='L.id,L.surcharge_id,L.courier_id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,
-                C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status';
+                C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,B.account_number as account_number';
       $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX."courier_vs_surcharge_vs_company as L 
               INNER JOIN ".DB_PREFIX."courier_vs_surcharge AS A ON L.surcharge_id = A.id 
               INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$company_id." 

@@ -2157,6 +2157,14 @@ $app->post('/getPickupDetail', function() use ($app){
     echoResponse(200, $response);
 });
 
+$app->post('/searchAllDefaultWarehouseAddress', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
+    $obj = new Module_Addressbook_Addressbook($r);
+    $response = $obj->getAllDefaultWarehouseAddressBySearchKey($r);
+    echoResponse(200, $response);
+}); 
+
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
