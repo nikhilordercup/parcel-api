@@ -131,7 +131,7 @@ class SubscriptionController {
         $sql="SELECT U.name, U.email, CC.chargebee_customer_id AS self_id, CCP.chargebee_customer_id as p_id  
                 FROM ".DB_PREFIX."users AS U LEFT JOIN ".DB_PREFIX."chargebee_customer AS CC ON U.id= CC.user_id 
                 LEFT JOIN ".DB_PREFIX."chargebee_customer AS CCP ON U.parent_id=CCP.user_id
-                WHERE U.access_token='$token' LIMIT 1";
+                WHERE U.access_token='$token' ";
         return $this->_db->getOneRecord($sql);
     }
 }
