@@ -635,11 +635,14 @@ class Shipment_Model
 
     function getShipmentDetailsByShipmentTicket($ticket)
         {
-        $record = array();
+        /*$record = array();
         $sqldata = 'R1.shipment_ticket,R1.shipment_service_type,R1.shipment_total_attempt,R1.current_status,R1.is_shipment_routed,R1.shipment_routed_id,R1.is_driver_assigned,R1.is_driver_accept,R1.assigned_driver,R1.assigned_vehicle,R1.last_history_id,R1.distancemiles,R1.estimatedtime,ABT.postcode AS shipment_postcode,ABT.address_line1 AS shipment_address1,ABT.address_line2 AS shipment_address2,R1.shipment_address3';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1 
         INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=R1.address_id 
         WHERE R1.shipment_ticket IN('$ticket')";
+        $record = $this->db->getAllRecords($sql);
+        return $record;*/
+	$sql = "SELECT R1.shipment_ticket,R1.shipment_service_type,R1.shipment_total_attempt,R1.current_status,R1.is_shipment_routed,R1.shipment_routed_id,R1.is_driver_assigned,R1.is_driver_accept,R1.assigned_driver,R1.assigned_vehicle,R1.last_history_id,R1.distancemiles,R1.estimatedtime,R1.shipment_postcode AS shipment_postcode,R1.shipment_address1 AS shipment_address1,R1.shipment_address2 AS shipment_address2,R1.shipment_address3 FROM " . DB_PREFIX . "shipment AS R1 WHERE R1.shipment_ticket IN('$ticket')";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
