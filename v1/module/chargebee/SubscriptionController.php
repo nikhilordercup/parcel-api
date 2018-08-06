@@ -26,7 +26,7 @@ class SubscriptionController {
         $this->_db = new DbHandler();
         $this->_app = $app;
         $this->_requestParams = json_decode($this->_app->request->getBody());
-        ChargeBee_Environment::configure('', '');
+        ChargeBee_Environment::configure("parcel-test", "test_gGnPwVHV3LAzCRzwWQUlrnQfOT8Mrnmcu");
     }
 
     /**
@@ -62,6 +62,46 @@ class SubscriptionController {
             $r = json_decode($app->request->getBody());
             verifyRequiredParams(array('access_token'), $r);
             $data = $self->updateName($r->access_token,$r->newName);          
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
+        $app->post('/updatePassword', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->updatePassword($r->access_token, passwordHash::hash($r->newPassword));          
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
+        
+        $app->post('/updateCardInfo', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $cardInfo=array(
+                "firstName" => $r->firstName, 
+                "number" => $r->number, 
+                "expiryMonth" => $r->expiryMonth, 
+                "expiryYear" => $r->expiryYear, 
+                "cvv" => $r->cvv  
+            );
+            $data=$self->updateCardInfo($token, $cardInfo);
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
+        
+        $app->post('/updateBillingAddress', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $billingAddress=array(
+                    "firstName" => $r->name, 
+                    "line1" => $r->addressOne,
+                    "line2"=>$r->addressTwo,
+                    "company"=>$r->companyName,
+                    "city" => $r->city, 
+                    "state" => $r->state, 
+                    "zip" => $r->zip, 
+                    "country" => $r->country
+            );
+            $data=$self->updateBillingInfo($token, $billingAddress);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
 
@@ -135,7 +175,7 @@ class SubscriptionController {
         return $this->_db->getAllRecords($sql);
     }
     public function getUserInfo($token){
-        $sql="SELECT U.name, U.email, CC.chargebee_customer_id AS self_id, CCP.chargebee_customer_id as p_id  
+        $sql="SELECT U.id, U.name, U.email, CC.chargebee_customer_id AS self_id, CCP.chargebee_customer_id as p_id  
                 FROM ".DB_PREFIX."users AS U LEFT JOIN ".DB_PREFIX."chargebee_customer AS CC ON U.id= CC.user_id 
                 LEFT JOIN ".DB_PREFIX."chargebee_customer AS CCP ON U.parent_id=CCP.user_id
                 WHERE U.access_token='$token' ";
@@ -144,5 +184,61 @@ class SubscriptionController {
     public function updateName($token,$name){
         $sql="UPDATE ".DB_PREFIX."users SET name='$name' WHERE access_token='$token'";
         return $this->_db->updateData($sql);
+    }
+    public function updatePassword($token,$password){
+        $sql="UPDATE ".DB_PREFIX."users SET password='$name' WHERE access_token='$token'";
+        return $this->_db->updateData($sql);
+    }
+    public function updateCardInfo($token,$info){
+        $userInfo=$this->getUserInfo($token);
+        $chargeBeeCustomer=($userInfo['self_id']!=NULL)?$userInfo['self_id']:$userInfo['p_id'];
+        try{
+            $savedCard= ChargeBee_Card::updateCardForCustomer($chargeBeeCustomer, $info);
+            $card=$savedCard->card();
+            $maskedNumber=$card['masked_number'];
+            $cardInfo=array(
+                'user_id'=>$userInfo['id'],
+                'holder_name'=>$card['first_name'],
+                'card_number'=>$maskedNumber,
+                'expiry_month'=>$card['expiry_month'],
+                'expiry_year'=>$card['expiry_year']
+            );
+            $exist=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."user_cards WHERE user_id=".$userInfo['id']);
+            if($exist){
+                $this->_db->update(DB_PREFIX."user_cards", $cardInfo, "user_id=".$userInfo['id']);
+            }else{
+                $this->_db->save(DB_PREFIX."user_cards", $cardInfo);
+            }
+        } catch (Exception $ex) {
+            return array('error'=>TRUE,'error_message'=>$ex->getMessage());
+        }
+    }
+    
+    public function updateBillingInfo($token,$info){
+        $userInfo=$this->getUserInfo($token);
+        $chargeBeeCustomer=($userInfo['self_id']!=NULL)?$userInfo['self_id']:$userInfo['p_id'];
+        try{
+            $savedCard= ChargeBee_Customer::updateBillingInfo($chargeBeeCustomer, $info);
+            $address=$savedCard->address();
+           $billingAddressInfo=array(
+               'user_id'=>$userInfo['id'],
+               'name'=>$address['first_name'],
+               'address_one'=>$address['line1'],
+               'address_two'=>$address['line2'],
+               'city'=>$address['city'],
+               'state'=>$address['state'],
+               'zip'=>$address['zip'],
+               'country'=>$address['country'],
+           );
+           $exist=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."billing_addresses WHERE user_id=".$userInfo['id']);
+            if($exist){                
+                $this->_db->update(DB_PREFIX."billing_addresses", $billingAddressInfo, "user_id=".$userInfo['id']);
+            }else{
+                $this->_db->save(DB_PREFIX."billing_addresses", $billingAddressInfo);
+            }
+           
+        } catch (Exception $ex) {
+            return array('error'=>TRUE,'error_message'=>$ex->getMessage());
+        }
     }
 }
