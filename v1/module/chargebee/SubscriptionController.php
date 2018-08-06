@@ -57,6 +57,13 @@ class SubscriptionController {
             $data = $self->getUserInfo($r->access_token);          
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
+        $app->post('/updateName', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->getUserInfo($r->access_token,$r->newName);          
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
 
     }
     public function subscribePlan(){
@@ -133,5 +140,9 @@ class SubscriptionController {
                 LEFT JOIN ".DB_PREFIX."chargebee_customer AS CCP ON U.parent_id=CCP.user_id
                 WHERE U.access_token='$token' ";
         return $this->_db->getOneRecord($sql);
+    }
+    public function updateName($token,$name){
+        $sql="UPDATE ".DB_PREFIX."users SET name='$name' WHERE access_token='$token'";
+        return $this->_db->updateData($sql);
     }
 }
