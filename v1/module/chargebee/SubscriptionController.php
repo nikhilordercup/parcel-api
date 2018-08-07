@@ -115,7 +115,7 @@ class SubscriptionController {
                 echoResponse(200, array('result' => 'fail', 'message' => $data));
             }
         });
-        
+
         $app->post('/getBillingInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -126,6 +126,14 @@ class SubscriptionController {
             } else {
                 echoResponse(200, array('result' => 'fail', 'message' => $data));
             }
+        });
+
+        $app->post('/getPlanList', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->getPlanList();
+            echoResponse(200, array('result' => 'success', 'message' => $data));
         });
     }
 
@@ -263,7 +271,8 @@ class SubscriptionController {
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
         }
     }
-    public function getBillingInfo($token){
+
+    public function getBillingInfo($token) {
         $userInfo = $this->getUserInfo($token);
         $billingINfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "billing_addresses WHERE user_id=" . $userInfo['id']);
         if ($billingINfo) {
@@ -277,12 +286,12 @@ class SubscriptionController {
         $userInfo = $this->getUserInfo($token);
         $chargeBeeCustomer = ($userInfo['self_id'] != NULL) ? $userInfo['self_id'] : $userInfo['p_id'];
         try {
-            $savedCard = ChargeBee_Customer::updateBillingInfo($chargeBeeCustomer, array('billingAddress'=>$info));
-            $address = $savedCard->customer()->billingAddress;         
+            $savedCard = ChargeBee_Customer::updateBillingInfo($chargeBeeCustomer, array('billingAddress' => $info));
+            $address = $savedCard->customer()->billingAddress;
             $billingAddressInfo = array(
                 'user_id' => $userInfo['id'],
                 'name' => $address->firstName,
-                'company'=>$address->company,
+                'company' => $address->company,
                 'address_one' => $address->line1,
                 'address_two' => $address->line2,
                 'city' => $address->city,
@@ -299,6 +308,15 @@ class SubscriptionController {
         } catch (Exception $ex) {
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
         }
+    }
+
+    public function getPlanList() {
+        $sameDay = $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_type='SAME_DAY'");
+        $lastMile = $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_type='LAST_MILE'");
+        return array(
+            'sameDay' => $sameDay,
+            'lastMile' => $lastMile
+        );
     }
 
 }
