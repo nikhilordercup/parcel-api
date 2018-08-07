@@ -83,7 +83,7 @@ class SubscriptionController {
                 "expiryYear" => $r->expiryYear, 
                 "cvv" => $r->cvv  
             );
-            $data=$self->updateCardInfo($token, $cardInfo);
+            $data=$self->updateCardInfo($r->access_token, $cardInfo);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
         
@@ -101,7 +101,7 @@ class SubscriptionController {
                     "zip" => $r->zip, 
                     "country" => $r->country
             );
-            $data=$self->updateBillingInfo($token, $billingAddress);
+            $data=$self->updateBillingInfo($r->access_token, $billingAddress);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
 
