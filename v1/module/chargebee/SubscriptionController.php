@@ -115,6 +115,18 @@ class SubscriptionController {
                 echoResponse(200, array('result' => 'fail', 'message' => $data));
             }
         });
+        
+        $app->post('/getBillingInfo', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->getBillingInfo($r->access_token);
+            if ($data != NULL) {
+                echoResponse(200, array('result' => 'success', 'message' => $data));
+            } else {
+                echoResponse(200, array('result' => 'fail', 'message' => $data));
+            }
+        });
     }
 
     public function subscribePlan() {
@@ -249,6 +261,15 @@ class SubscriptionController {
             }
         } catch (Exception $ex) {
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
+        }
+    }
+    public function getBillingInfo($token){
+        $userInfo = $this->getUserInfo($token);
+        $billingINfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "billing_addresses WHERE user_id=" . $userInfo['id']);
+        if ($billingINfo) {
+            return $billingINfo;
+        } else {
+            return NULL;
         }
     }
 
