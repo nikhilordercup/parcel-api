@@ -217,7 +217,7 @@ class SubscriptionController {
         return $this->_db->updateData($sql);
     }
 
-    public function getCardInfo() {
+    public function getCardInfo($token) {
         $userInfo = $this->getUserInfo($token);
         $cardInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "user_cards WHERE user_id=" . $userInfo['id']);
         if ($cardInfo) {
