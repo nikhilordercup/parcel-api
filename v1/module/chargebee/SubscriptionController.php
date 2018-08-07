@@ -278,7 +278,7 @@ class SubscriptionController {
         $chargeBeeCustomer = ($userInfo['self_id'] != NULL) ? $userInfo['self_id'] : $userInfo['p_id'];
         try {
             $savedCard = ChargeBee_Customer::updateBillingInfo($chargeBeeCustomer, array('billingAddress'=>$info));
-            $address = $savedCard->address();
+            $address = $savedCard->customer();            print_r($address);exit;
             $billingAddressInfo = array(
                 'user_id' => $userInfo['id'],
                 'name' => $address->firstName,
