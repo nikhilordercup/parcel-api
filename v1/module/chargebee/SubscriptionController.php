@@ -194,7 +194,7 @@ class SubscriptionController {
         $chargeBeeCustomer=($userInfo['self_id']!=NULL)?$userInfo['self_id']:$userInfo['p_id'];
         try{
             $savedCard= ChargeBee_Card::updateCardForCustomer($chargeBeeCustomer, $info);
-            $card=$savedCard->card();
+            $card=(array)$savedCard->card();
             $maskedNumber=$card['masked_number'];
             $cardInfo=array(
                 'user_id'=>$userInfo['id'],
@@ -219,7 +219,7 @@ class SubscriptionController {
         $chargeBeeCustomer=($userInfo['self_id']!=NULL)?$userInfo['self_id']:$userInfo['p_id'];
         try{
             $savedCard= ChargeBee_Customer::updateBillingInfo($chargeBeeCustomer, $info);
-            $address=$savedCard->address();
+            $address=(array)$savedCard->address();
            $billingAddressInfo=array(
                'user_id'=>$userInfo['id'],
                'name'=>$address['first_name'],
