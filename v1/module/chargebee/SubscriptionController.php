@@ -282,6 +282,7 @@ class SubscriptionController {
             $billingAddressInfo = array(
                 'user_id' => $userInfo['id'],
                 'name' => $address->firstName,
+                'company'=>$address->company,
                 'address_one' => $address->line1,
                 'address_two' => $address->line2,
                 'city' => $address->city,
