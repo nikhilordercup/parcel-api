@@ -195,13 +195,13 @@ class SubscriptionController {
         try{
             $savedCard= ChargeBee_Card::updateCardForCustomer($chargeBeeCustomer, $info);
             $card=(array)$savedCard->card();
-            $maskedNumber=$card['masked_number'];
+            $maskedNumber=$card->maskedNumber;
             $cardInfo=array(
                 'user_id'=>$userInfo['id'],
-                'holder_name'=>$card['first_name'],
+                'holder_name'=>$card->firstName,
                 'card_number'=>$maskedNumber,
-                'expiry_month'=>$card['expiry_month'],
-                'expiry_year'=>$card['expiry_year']
+                'expiry_month'=>$card->expiryMonth,
+                'expiry_year'=>$card->expiryYear
             );
             $exist=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."user_cards WHERE user_id=".$userInfo['id']);
             if($exist){
@@ -219,16 +219,16 @@ class SubscriptionController {
         $chargeBeeCustomer=($userInfo['self_id']!=NULL)?$userInfo['self_id']:$userInfo['p_id'];
         try{
             $savedCard= ChargeBee_Customer::updateBillingInfo($chargeBeeCustomer, $info);
-            $address=(array)$savedCard->address();
+            $address=$savedCard->address();
            $billingAddressInfo=array(
                'user_id'=>$userInfo['id'],
-               'name'=>$address['first_name'],
-               'address_one'=>$address['line1'],
-               'address_two'=>$address['line2'],
-               'city'=>$address['city'],
-               'state'=>$address['state'],
-               'zip'=>$address['zip'],
-               'country'=>$address['country'],
+               'name'=>$address->firstName,
+               'address_one'=>$address->line1,
+               'address_two'=>$address->line2,
+               'city'=>$address->city,
+               'state'=>$address->state,
+               'zip'=>$address->zip,
+               'country'=>$address->country,
            );
            $exist=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."billing_addresses WHERE user_id=".$userInfo['id']);
             if($exist){                
