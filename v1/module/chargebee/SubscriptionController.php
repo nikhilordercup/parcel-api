@@ -194,7 +194,7 @@ class SubscriptionController {
         $chargeBeeCustomer=($userInfo['self_id']!=NULL)?$userInfo['self_id']:$userInfo['p_id'];
         try{
             $savedCard= ChargeBee_Card::updateCardForCustomer($chargeBeeCustomer, $info);
-            $card=(array)$savedCard->card();
+            $card=$savedCard->card();
             $maskedNumber=$card->maskedNumber;
             $cardInfo=array(
                 'user_id'=>$userInfo['id'],
