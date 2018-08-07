@@ -203,6 +203,14 @@ class DbHandler {
     public function getAffectedRows(){
 		return $this->conn->affected_rows;
 	}
+	
+	public function deleteData($query){
+		$r = $this->conn->query($query);
+		if(!$r){
+            throw new Exception($this->conn->error.__LINE__);
+		}
+		return $this->conn->affected_rows;
+	}
 }
 
 ?>

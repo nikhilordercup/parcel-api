@@ -122,15 +122,18 @@ class Booking extends Icargo
 
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
 
-            if(!$addressVersion) {
+            if(!$addressVersion["version_id"]) {
                 $param["version_id"] = "version_1";
+				$address_id = $this->modelObj->saveAddress($param);
+				return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
             }
             else{
-                $version = explode("_", $addressVersion);
+                $version = explode("_", $addressVersion['version_id']);
                 $param["version_id"] = "version_".($version[1]+1);
+				return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
             }
-            $address_id = $this->modelObj->saveAddress($param);
-            return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
+            //$address_id = $this->modelObj->saveAddress($param);
+            //return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }

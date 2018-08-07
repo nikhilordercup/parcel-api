@@ -78,11 +78,18 @@ class Booking_Model_Booking
         return $this->_db->getRowRecord($sql);
     }
 
-    public
+    /* public
 
     function getAddressBySearchStringAndCustomerId($customer_id, $search_string){
         $record = $this->_db->getRowRecord("SELECT version_id AS version_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'");
         return $record['version_id'];
+    } */
+	
+	public
+
+    function getAddressBySearchStringAndCustomerId($customer_id, $search_string){
+        $record = $this->_db->getRowRecord("SELECT version_id AS version_id,id as address_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'"); 
+        return $record;
     }
 
     private

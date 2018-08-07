@@ -350,7 +350,7 @@ public function checkCustomerEmailExist($company_email){
 
     /****get address list by customer id*****/         
 	public function getCustomerAddressDataByCustomerId($customerId){
-        $sql = "SELECT UAT.warehouse_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=$customerId where ABT.customer_id = ".$customerId." AND ABT.status=1";
+        $sql = "SELECT UAT.warehouse_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.first_name as name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=$customerId where ABT.customer_id = ".$customerId." AND ABT.status=1";
         $records = $this->db->getAllRecords($sql);
 	    return $records;
 
@@ -455,7 +455,7 @@ public function checkCustomerEmailExist($company_email){
 	} */
 	
 	public function getAddressDataById($param){
-		return $this->db->getRowRecord("SELECT ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.name,ABT.phone,ABT.address_type,ABT.email,ABT.billing_address,ABT.pickup_address,UAT.warehouse_address FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=".$param->customer_id." where ABT.id = ".$param->address_id."");
+		return $this->db->getRowRecord("SELECT ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.first_name as name,ABT.contact_no as phone,ABT.address_type,ABT.contact_email as email,ABT.billing_address,ABT.pickup_address,UAT.warehouse_address,UAT.default_address FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id AND UAT.user_id=".$param->customer_id." where ABT.id = ".$param->address_id."");
 	}
 	
 	public function deleteUserById($param){
@@ -471,18 +471,50 @@ public function checkCustomerEmailExist($company_email){
     }
 	
 	public function editAddress($param){
-        return $this->db->updateData("UPDATE ".DB_PREFIX."address_book SET search_string = '$param->search_string', name='".$param->name."',email='".$param->user_email."',address_type='".$param->address_type."',phone='".$param->phone."',address_line1='".$param->address_1."',address_line2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country."' WHERE id = ".$param->id."");
+        return $this->db->updateData("UPDATE ".DB_PREFIX."address_book SET search_string = '$param->search_string', first_name='".$param->name."',contact_email='".$param->user_email."',address_type='".$param->address_type."',contact_no='".$param->phone."',address_line1='".$param->address_1."',address_line2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country."' WHERE id = ".$param->id."");
     }
 	
-	public function setDefaultAddress($param){	
-	    $this->db->delete("DELETE FROM ".DB_PREFIX."user_address WHERE user_id='".$param->userid."' AND default_address='Y'");
-		$data = array("user_id"=>$param->userid,"address_id"=>$param->id,"default_address"=>"Y");
-		return $this->db->save('user_address', $data);
-       
+	public function setDefaultAddress($param){
+		$addressExist = $this->isExist("user_id='".$param->userid."' AND address_id=".$param->address_list->address_id."","user_address");
+		if($addressExist){
+			 $defaultExist = $this->isExist("user_id='".$param->userid."' AND default_address='Y'","user_address");
+				if(!$defaultExist){
+					return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address = 'Y' WHERE user_id = ".$param->userid." AND address_id=".$param->address_list->address_id."");
+				}else{
+					$removeDefault = $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address = 'N' WHERE user_id = ".$param->userid."");
+					if($removeDefault){
+						return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address = 'Y' WHERE user_id = ".$param->userid." AND address_id=".$param->address_list->address_id."");
+					}
+				}
+					//$removeDefault = $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address = 'N' WHERE user_id = ".$param->userid." AND address_id=".$param->address_list->address_id."");
+					/* if($removeDefault){
+						
+					}
+					$addressExist = $this->isAddressExist("user_id='".$param->userid."' AND address_id=".$param->address_list->address_id."","user_address");
+						if($addressExist){
+							return $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address = 'Y' WHERE user_id = ".$param->userid." AND address_id=".$param->address_list->address_id."");
+						}else{
+							$data = array("user_id"=>$param->userid,"address_id"=>$param->address_list->address_id,"default_address"=>"Y");
+							return $this->db->save('user_address', $data);
+						}
+				}  */
+		}else{
+			$defaultExist = $this->isExist("user_id='".$param->userid."' AND default_address='Y'","user_address");
+			if($defaultExist){
+				$removeDefault = $this->db->updateData("UPDATE ".DB_PREFIX."user_address SET default_address = 'N' WHERE user_id = ".$param->userid."");
+				if($removeDefault){
+					$data = array("user_id"=>$param->userid,"address_id"=>$param->address_list->address_id,"default_address"=>"Y","warehouse_address"=>"Y");
+					return $this->db->save('user_address', $data);
+				}
+			}else{
+				$data = array("user_id"=>$param->userid,"address_id"=>$param->address_list->address_id,"default_address"=>"Y","warehouse_address"=>"Y");
+				return $this->db->save('user_address', $data);
+			}
+		}
 	}
 	
 	public function searchAddressByUserId($param){	
-	    return $this->db->getRowRecord("SELECT  ABT.* FROM  ".DB_PREFIX."address_book ABT INNER JOIN ".DB_PREFIX."user_address AS UAT ON ABT.id=UAT.address_id WHERE UAT.user_id='".$param->user_id."'");
+	    return $this->db->getRowRecord("SELECT  ABT.* FROM  ".DB_PREFIX."address_book ABT INNER JOIN ".DB_PREFIX."user_address AS UAT ON ABT.id=UAT.address_id WHERE UAT.user_id='".$param->user_id."' AND default_address='Y'");
 	}
 	
 	public function checkDefaultUserExist(/*$company_id,*/$customer_id){
@@ -494,6 +526,22 @@ public function checkCustomerEmailExist($company_email){
 		$record = array();
 		$sqldata ='count(1) as exist';
 		$sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "address_book AS t1 WHERE ".$condition."";
+		$record = $this->db->getOneRecord($sql);
+		return $record['exist'];
+   	}
+	
+	public function isExist($condition,$tbl){
+		$record = array();
+		$sqldata ='count(1) as exist';
+		$sql = "SELECT ".$sqldata." FROM ".DB_PREFIX."$tbl AS t1 WHERE ".$condition."";
+		$record = $this->db->getOneRecord($sql);
+		return $record['exist'];
+   	}
+	
+	public function existDefaultAddressForUser($condition){
+		$record = array();
+		$sqldata ='count(1) as exist';
+		$sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "user_address AS t1 WHERE ".$condition."";
 		$record = $this->db->getOneRecord($sql);
 		return $record['exist'];
    	}
