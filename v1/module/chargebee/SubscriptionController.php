@@ -205,9 +205,9 @@ class SubscriptionController {
             );
             $exist=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."user_cards WHERE user_id=".$userInfo['id']);
             if($exist){
-                $this->_db->update("user_cards", $cardInfo, "user_id=".$userInfo['id']);
+                return $this->_db->update("user_cards", $cardInfo, "user_id=".$userInfo['id']);
             }else{
-                $this->_db->save("user_cards", $cardInfo);
+                return $this->_db->save("user_cards", $cardInfo);
             }
         } catch (Exception $ex) {
             return array('error'=>TRUE,'error_message'=>$ex->getMessage());
@@ -232,9 +232,9 @@ class SubscriptionController {
            );
            $exist=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."billing_addresses WHERE user_id=".$userInfo['id']);
             if($exist){                
-                $this->_db->update("billing_addresses", $billingAddressInfo, "user_id=".$userInfo['id']);
+                return $this->_db->update("billing_addresses", $billingAddressInfo, "user_id=".$userInfo['id']);
             }else{
-                $this->_db->save("billing_addresses", $billingAddressInfo);
+                return $this->_db->save("billing_addresses", $billingAddressInfo);
             }
            
         } catch (Exception $ex) {
