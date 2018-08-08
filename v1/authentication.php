@@ -45,7 +45,7 @@ $app->post('/signUp', function() use ($app) {
             'parent_id'=>0
         );
         $user = $db->save("users",$data);
-        $countryInfo=$db->getOneRecord("SELECT * FROM ".DB_PREFIX."countries WHERE sort_name='".$r->company->country."'" );
+        $countryInfo=$db->getOneRecord("SELECT * FROM ".DB_PREFIX."countries WHERE short_name='".$r->company->country."'" );
            
 
         //$user = $db->insertIntoTable($r->company, $column_names, $table_name);
