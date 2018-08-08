@@ -81,9 +81,6 @@ class Module_Chargebee extends Icargo
 			{
 			$data = array(
 				"planId" => $param["plan_id"],
-				"customerId" => $param["customer_id"],
-				"planQuantity" => $param["plan_quantity"], 
-				"planUnitPrice" => $param["plan_unit_price"]*100,
 				"startDate" => $param["start_date"],
 				"trialEnd" => $param["trial_end"]
 				);
@@ -100,7 +97,7 @@ class Module_Chargebee extends Icargo
 				$data["invoice_immediately"] = $param["invoice_immediately"];
 			}
 			
-			$result = ChargeBee_Subscription::create($data);
+			$result = ChargeBee_Subscription::createForCustomer($param["customer_id"],$data);
 			$subscription = $result->subscription()->getValues();
 			$data = array("subscription"=>$subscription);
 			return $data;
