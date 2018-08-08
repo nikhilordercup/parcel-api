@@ -78,19 +78,7 @@ $app->post('/signUp', function() use ($app) {
                     "code"=>str_replace(array(" ","-"),array("_","_"), strtolower($r->company->name)).$user
                 )
             );
-
-            //register user plan
-            //chargebee customer data
-            $chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,"billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,"billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,"billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,"customer_email"=>$r->company->email);
-
-            //chargebee customer registration
-            $obj = new Module_Chargebee($chargebee_customer_data);
-            $customerData = $obj->createCustomer($chargebee_customer_data);
-
-            //chargebee associate to trial plan
-            $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
-            
-            $billingAddress = array(
+             $billingAddress = array(
                 "firstName" => $r->company->contact_name,
                 "line1" => $r->company->address_1,
                 "line2" => $r->company->address_2,
@@ -100,8 +88,24 @@ $app->post('/signUp', function() use ($app) {
                 "zip" => $r->company->postcode,
                 "country" => $countryInfo['alpha2_code']
             );
-            Chargebee_Model_Chargebee::getInstanse()->
-            updateBillingInfo($user, $chargebee_customer_data->customer_id, $billingAddress);
+            //register user plan
+            //chargebee customer data
+            $chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,
+                "billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,
+                "billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,
+                "billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,
+                "customer_email"=>$r->company->email);
+
+            //chargebee customer registration
+            $obj = new Module_Chargebee($chargebee_customer_data);
+            $customerData = $obj->createCustomer($chargebee_customer_data);
+
+            //chargebee associate to trial plan
+            $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
+            
+           
+//            Chargebee_Model_Chargebee::getInstanse()->
+//            updateBillingInfo($user, $chargebee_customer_data->customer_id, $billingAddress);
             
             $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC LIMIT 1");
 
