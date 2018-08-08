@@ -172,8 +172,7 @@ class Module_Chargebee extends Icargo
 			"zip" => $param["billing_zip"],
 			"country" => $param["billing_country"],
 			))
-		);
-	
+		);	
 		$customer = $result->customer();
 		return array("chargebee_customer_id"=>$customer->id,"first_name"=>$customer->firstName,"last_name"=>$customer->lastName,"auto_collection"=>$customer->autoCollection,"net_term_days"=>$customer->netTermDays,"preferred_currency_code"=>$customer->preferredCurrencyCode,"billing_address"=>array("first_name"=>$customer->billingAddress->firstName,"last_name"=>$customer->billingAddress->lastName,"line1"=>$customer->billingAddress->line1,"city"=>$customer->billingAddress->city,"state"=>$customer->billingAddress->state,"country"=>$customer->billingAddress->country,"zip"=>$customer->billingAddress->zip,"validation_status"=>$customer->billingAddress->validationStatus));
 		}
@@ -362,12 +361,11 @@ class Module_Chargebee extends Icargo
 			$data["plan_quantity"] = $subscriptionData["subscription"]["plan_quantity"];
 			$data["plan_unit_price"] = $subscriptionData["subscription"]["plan_unit_price"]/100;
 			$data["status"] = $subscriptionData["subscription"]["status"];
-			
+			$data['allowed_shipment']=$param->shipment_limit;
 			//$data["billing_cycles"] = $subscriptionData["subscription"]["billing_period"];
 			
 			
 			$data["start_date"] = $param->start_date;
-			//$data["trial_end"] = $param->trial_end;
 			unset($data['customer_id']);
 			//print_r($data);die;
 			$id = $this->modelObj->saveSubscription($data);

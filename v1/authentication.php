@@ -78,23 +78,14 @@ $app->post('/signUp', function() use ($app) {
                     "code"=>str_replace(array(" ","-"),array("_","_"), strtolower($r->company->name)).$user
                 )
             );
-             $billingAddress = array(
-                "firstName" => $r->company->contact_name,
-                "line1" => $r->company->address_1,
-                "line2" => $r->company->address_2,
-                "company" => $r->company->name,
-                "city" => $r->company->city,
-                "state" => $r->company->state,
-                "zip" => $r->company->postcode,
-                "country" => $countryInfo['alpha2_code']
-            );
+            $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC LIMIT 1");
             //register user plan
             //chargebee customer data
             $chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,
                 "billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,
                 "billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,
                 "billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,
-                "customer_email"=>$r->company->email,"user_id"=>$user,'phone'=>$r->company->phone);
+                "customer_email"=>$r->company->email,"user_id"=>$user,'phone'=>$r->company->phone,'plan_limit'=>$basic_plan['shipment_limit']);
 
             //chargebee customer registration
             $obj = new Module_Chargebee($chargebee_customer_data);
@@ -107,7 +98,7 @@ $app->post('/signUp', function() use ($app) {
             Chargebee_Model_Chargebee::getInstanse()->
             updateBillingInfo($user, $chargebee_customer_data->customer_id);
             
-            $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC LIMIT 1");
+            
 
 
             $chargebee_customer_data = (object) array(
