@@ -414,7 +414,8 @@ class Module_Chargebee extends Icargo
 				"billing_city"=>$param->billing_city,
 				"billing_state"=>$param->billing_state,
 				"billing_zip"=>$param->billing_zip,
-				"billing_country"=>$param->billing_country
+				"billing_country"=>$param->billing_country,
+                                "user_id"=>$param->user_id
 			);
 
 			$customer_info = $this->_createCustomer($data);
