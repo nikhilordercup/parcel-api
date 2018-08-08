@@ -126,7 +126,7 @@ class Route_Assign
              return array(
                 'status' => true,
                 'message' => 'Requested Route can not Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                //'post_data' => $firebaseObj->getCurrentAssignedRouteData()
             ); 
           }
           else{
@@ -140,12 +140,11 @@ class Route_Assign
               return array(
                 'status' => true,
                 'message' => 'Requested Route can not Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                //'post_data' => $firebaseObj->getCurrentAssignedRouteData()
             );   
            } 
           }     
         }
-        // Assign Route to Driver
 
         foreach($getRouteDetails as $shipdata)
             {
@@ -206,25 +205,13 @@ class Route_Assign
         $samedayshipmentticket = '';
         $timeStamp = strtotime($this->start_time);
         $getRouteDetails = $this->modelObj->getRouteDetails($this->tickets_str, $this->access_token);//$this->_get_route_details();
-        // create routes
-        $createdRoute['route_id'] = $getRouteDetails[0]['route_id'];
-        $createdRoute['custom_route'] = ($getRouteDetails[0]['route_id'] == 0) ? 'Y' : 'N';
-        $createdRoute['route_name'] = $this->route_name;
-        $createdRoute['driver_id'] = $this->driver_id;
-        $createdRoute['assign_start_time'] = date('H:i:s', $timeStamp);
-        $createdRoute['service_date'] = date('Y-m-d H:i:s', $timeStamp);
-        $createdRoute['is_active'] = 'Y';
-        $createdRoute['status'] = '1';
-        $createdRoute['company_id'] = $this->company_id;
-        $createdRoute['warehouse_id'] = $this->warehouse_id;
-        $createdRoute['route_type'] = $getRouteDetails[0]['route_type'];
-        $shipment_routed_id = $this->db->save("shipment_route", $createdRoute);
-        if($createdRoute['route_type']=='SAMEDAY'){
+
+        if($getRouteDetails[0]['route_type']=='SAMEDAY'){
           if(count($getRouteDetails)==1){
              return array(
                 'status' => "error",
                 'message' => 'Requested Route can not assigned to driver.',
-                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
+                //'post_data' => $firebaseObj->getCurrentAssignedRouteData()
             ); 
           }
           else{
@@ -238,11 +225,27 @@ class Route_Assign
               return array(
                 'status' => "error",
                 'message' => 'Requested Route can not assigned to driver.',
-                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
+                //'post_data' => $firebaseObj->getCurrentAssignedRouteData()
             );   
            } 
           }     
         }
+
+
+        // create routes
+        $createdRoute['route_id'] = ($getRouteDetails[0]['route_id'] == "") ? "0" : $getRouteDetails[0]['route_id'];
+        $createdRoute['custom_route'] = ($getRouteDetails[0]['route_id'] == 0) ? 'Y' : 'N';
+        $createdRoute['route_name'] = $this->route_name;
+        $createdRoute['driver_id'] = $this->driver_id;
+        $createdRoute['assign_start_time'] = date('H:i:s', $timeStamp);
+        $createdRoute['service_date'] = date('Y-m-d H:i:s', $timeStamp);
+        $createdRoute['is_active'] = 'Y';
+        $createdRoute['status'] = '1';
+        $createdRoute['company_id'] = $this->company_id;
+        $createdRoute['warehouse_id'] = $this->warehouse_id;
+        $createdRoute['route_type'] = $getRouteDetails[0]['route_type'];
+        $shipment_routed_id = $this->db->save("shipment_route", $createdRoute);
+
         // Assign Route to Driver
         foreach($getRouteDetails as $shipdata)
             {
@@ -312,10 +315,12 @@ class Route_Assign
                 "email" => $this->email,
                 "company_id" => $this->company_id
             ));
+            $postId = $firebaseObj->getCurrentAssignedRouteData();
+            $this->modelObj->saveRouteFirebaseId($shipment_routed_id, $postId);
             return array(
                 'status' => "success",
                 'message' => 'Requested Route has been Assigned to driver.',
-                'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                'post_data' => array()//$firebaseObj->getCurrentAssignedRouteData()
             );
             }
         }

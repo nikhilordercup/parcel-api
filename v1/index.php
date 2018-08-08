@@ -13,16 +13,6 @@ use Firebase\JWT\JWT;
 
 $app = new \Slim\Slim();
 
-/*$corsOptions = array(
-    //"origin" => array('*'),
-    "origin" => array('https://app-tree.co.uk','https://route.instadispatch.com'),
-    //"exposeHeaders" => array("X-My-Custom-Header", "X-Another-Custom-Header"),
-    "maxAge" => 1728000,
-    "allowCredentials" => false,
-    "allowMethods" => array("POST, GET, PUT, PATCH, PATCH, DELETE, HEAD, OPTIONS"),
-    "allowHeaders" => array("X-PINGOTHER, Accept, Content-Type, Pragma, X-Requested-With")
-);*/
-
 // User id from db - Global Variable
 $user_id = NULL;
 require_once 'library.php';
@@ -62,6 +52,8 @@ require_once 'module/shipment/load-assign.php';
 require_once 'module/shipment/view-support.php';
 require_once 'module/shipment/optimize.php';
 require_once 'module/shipment/load-route-details.php';
+require_once 'module/shipment/Shipment_Sameday_Release.php';
+require_once 'module/shipment/Route_Release.php';
 
 require_once 'module/company/company.php';
 require_once 'module/company/setup.php';
@@ -70,10 +62,14 @@ require_once 'module/ws/idriver.php';
 require_once 'module/push_notification/Push_Notification_Index.php';
 
 require_once 'module/firebase/model/rest.php';
-require_once 'module/firebase/firebase.php';
-require_once 'module/firebase/shipment-withdraw-from-route.php';
+require_once 'module/firebase/Firebase.php';
+require_once 'module/firebase/Firebase_Api.php';
+require_once 'module/firebase/Firebase_Shipment_Withdraw_From_Route.php';
+require_once 'module/firebase/Firebase_Shipment_Deliver_From_Route.php';
 require_once 'module/firebase/route-accept.php';
-require_once 'module/firebase/route-assign.php';
+require_once 'module/firebase/Firebase_Route_Assign.php';
+require_once 'module/firebase/Firebase_Withdraw_Route.php';
+
 require_once 'module/firebase/route-release.php';
 
 require_once 'module/chargebee/Chargebee.php';

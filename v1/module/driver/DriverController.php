@@ -35,7 +35,7 @@ class DriverController{
         
         $app->post('/fetchDayRoutes', function() use ($app) { 
             $self = new DriverController($app);
-            $r = json_decode($app->request->getBody());	
+            $r = json_decode($app->request->getBody()); 
             verifyRequiredParams(array('access_token'), $r);
             $data=$self->getDayRoutes( $r->company_id, $r->route_date);
             echoResponse(200, array('result'=>'success','message'=> json_encode($data)));
@@ -43,7 +43,7 @@ class DriverController{
         
         $app->post('/saveUpdatedRoute', function() use ($app) { 
             $self = new DriverController($app);
-            $r = json_decode($app->request->getBody());	
+            $r = json_decode($app->request->getBody()); 
             verifyRequiredParams(array('access_token'), $r);
             $self->saveUpdatedRoute( $r->model);
             echoResponse(200, array('result'=>'success','message'=> "Saved!"));

@@ -7,3 +7,4 @@ config.php
 composer.lock
 /config.php
 /temp/
+parcel-api.userprefs
