@@ -13,3 +13,10 @@ CREATE TABLE IF NOT EXISTS `icargo_user_cards` ( `id` INT NOT NULL AUTO_INCREMEN
 
 
 ALTER TABLE `icargo_chargebee_plan` ADD `plan_type` ENUM('SAME_DAY','LAST_MILE') NOT NULL AFTER `update_date`, ADD `shipment_limit` BIGINT NOT NULL AFTER `plan_type`;
+
+ALTER TABLE `icargo_chargebee_plan` DROP `cahrgebee_subscription_id`;
+
+ALTER TABLE `icargo_chargebee_plan`
+  DROP `controller_count`,
+  DROP `driver_count`,
+  DROP `warehouse_count`;

@@ -45,7 +45,8 @@ $app->post('/signUp', function() use ($app) {
             'parent_id'=>0
         );
         $user = $db->save("users",$data);
-
+        $countryInfo=$db->getOneRecord("SELECT * FROM ".DB_PREFIX."countries WHERE sort_name='".$r->company->country."'" );
+           
 
         //$user = $db->insertIntoTable($r->company, $column_names, $table_name);
         if ($user != NULL) {
@@ -88,6 +89,20 @@ $app->post('/signUp', function() use ($app) {
 
             //chargebee associate to trial plan
             $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
+            
+            $billingAddress = array(
+                "firstName" => $r->company->contact_name,
+                "line1" => $r->company->address_1,
+                "line2" => $r->company->address_2,
+                "company" => $r->company->name,
+                "city" => $r->company->city,
+                "state" => $r->company->state,
+                "zip" => $r->company->postcode,
+                "country" => $countryInfo['alpha2_code']
+            );
+            Chargebee_Model_Chargebee::getInstanse()->
+            updateBillingInfo($user, $chargebee_customer_data->customer_id, $billingAddress);
+            
             $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC LIMIT 1");
 
 
@@ -137,4 +152,4 @@ $app->post('/listAllPlanForCustomerRegistration', function() use ($app){
     $countryData = $db->getAllRecords("SELECT * FROM " . DB_PREFIX ."countries");
     echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
 });
-?>
+

@@ -26,7 +26,7 @@ class SubscriptionController {
         $this->_db = new DbHandler();
         $this->_app = $app;
         $this->_requestParams = json_decode($this->_app->request->getBody());
-        ChargeBee_Environment::configure("parcel-test", "test_gGnPwVHV3LAzCRzwWQUlrnQfOT8Mrnmcu");
+        ChargeBee_Environment::configure("instadispatch-test", "gw_Izy9TGCR02JHpjMx8");
     }
 
     /**
@@ -135,7 +135,7 @@ class SubscriptionController {
             $data = $self->getPlanList();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-        
+
         $app->post('/getSubscriptionInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -143,83 +143,18 @@ class SubscriptionController {
             $data = $self->getSubscriptionInfo($r->company_id);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-    }
-
-    public function subscribePlan() {
-        
-    }
-
-    public function upgradePlan() {
-        
-    }
-
-    public function extendTrial() {
-        
-    }
-
-    public function isSameDayAllowed() {
-        
-    }
-
-    public function isNextDayAllowed() {
-        
-    }
-
-    public function requestCustomPlan() {
-        
-    }
-
-    public function paymentHistory() {
-        
-    }
+    }    
 
     public function getSubscriptionInfo($company_id) {
-         $sql = "SELECT CS.*, U.id, P.plan_type FROM " . DB_PREFIX . "chargebee_subscription AS CS "
-                 . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
-                CS.chargebee_customer_id = CC.chargebee_customer_id ".
-                "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id ".
-                 "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id ".
+        $sql = "SELECT CS.*, U.id, P.plan_type FROM " . DB_PREFIX . "chargebee_subscription AS CS "
+                . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
+                CS.chargebee_customer_id = CC.chargebee_customer_id " .
+                "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
+                "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
                 " WHERE U.id=$company_id";
         return $this->_db->getAllRecords($sql);
     }
-
-    public function addChargebeeUser($userInfo) {
-        $user = ChargeBee_Customer::create($userInfo);
-        if ($user) {
-            $user->customer();
-            //Save user info in local
-        }
-    }
-
-    public function createSubscription($plan, $user) {
-        $result = ChargeBee_Subscription::create($plan);
-        if ($result) {
-            $subscriptionInf = $result->subscription();
-            //Save this info in database
-        }
-    }
-
-    public function createCustomPriceSubscription($info) {
-        $result = ChargeBee_Subscription::create($info);
-        if ($result) {
-            $subscriptionInfo = $result->subscription();
-        }
-    }
-
-    public function modifySubscriptionInf($id, $info) {
-        $result = ChargeBee_Subscription::update($id, $info);
-        if ($result) {
-            $updatedInfo = $result->subscription();
-        }
-    }
-
-    public function addUpdateCardInfo($customerId, $info) {
-        $result = ChargeBee_Card::updateCardForCustomer($customerId, $info);
-        if ($result) {
-            $cardInfo = $result->card();
-        }
-    }
-
+    
     public function getShipmentCounts($company_id) {
         $sql = "SELECT instaDispatch_loadGroupTypeCode as shipment_type,COUNT(*) as shipment_count FROM `" . DB_PREFIX . "shipment`"
                 . " WHERE company_id=$company_id GROUP BY instaDispatch_loadGroupTypeCode";
@@ -331,6 +266,53 @@ class SubscriptionController {
             'sameDay' => $sameDay,
             'lastMile' => $lastMile
         );
+    }
+
+    public function createNewSubscription($data) {
+        $planInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_id='" . $r->plan_id . "'");
+        $customer = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_customer WHERE user_id='" . $r->company_id . "'");
+        $exist = $this->_db->getOneRecord("SELECT CS.* FROM " . DB_PREFIX . "chargebee_subscription AS CS "
+                . "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id "
+                . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON CS.chargebee_customer_id=CC.chargebee_customer_id "
+                . " WHERE CC.user_id='" . $r->company_id . "' AND P.plan_type='" . $r->plan_type . "'");
+
+
+        if ($exist) {
+            ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id));
+            $subscriptonUpdate = array(
+                'plan_id' => $r->plan_id,
+                'allowed_shipment' => $planInfo['shipment_limit']
+            );
+        } else {
+            $chargeBeeData = array(
+                'planId' => $planInfo['plan_id'],
+                'startDate' => time(),
+                'trialEnd' => strtotime("+" . $planInfo['trial_period'] . " " . $planInfo['trial_period_unit'], time())
+            );
+            
+            $subscriptionData=array(
+                'plan_id', 
+                'chargebee_subscription_id', 
+                'chargebee_customer_id',
+                'plan_quantity',
+                'plan_unit_price',
+                'start_date',
+                'trial_end',
+                'next_billing_date', 
+                'billing_cycles', 
+                'auto_collection', 
+                'terms_to_charge', 
+                'invoice_notes', 
+                'invoice_immediately', 
+                'prorata', 
+                'status', 
+                'payment_status', 
+                'payment_counter',
+                'create_date', 
+                'update_date', 
+                'allowed_shipment'
+            );
+        }
     }
 
 }
