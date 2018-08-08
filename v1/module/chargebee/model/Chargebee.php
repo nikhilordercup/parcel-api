@@ -136,9 +136,9 @@ class Chargebee_Model_Chargebee {
         return $record;
     }
 
-    public function updateBillingInfo($userId, $chargeBeeId, $info) {
+    public function updateBillingInfo($userId, $chargeBeeId) {
         try {
-            $savedCard = ChargeBee_Customer::updateBillingInfo($chargeBeeId, array('billingAddress' => $info));
+            $savedCard = ChargeBee_Customer::retrieve($chargeBeeId);
             $address = $savedCard->customer()->billingAddress;
             $billingAddressInfo = array(
                 'user_id' => $userId,

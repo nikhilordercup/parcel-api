@@ -104,8 +104,8 @@ $app->post('/signUp', function() use ($app) {
             $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
             
            
-//            Chargebee_Model_Chargebee::getInstanse()->
-//            updateBillingInfo($user, $chargebee_customer_data->customer_id, $billingAddress);
+            Chargebee_Model_Chargebee::getInstanse()->
+            updateBillingInfo($user, $chargebee_customer_data->customer_id);
             
             $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC LIMIT 1");
 

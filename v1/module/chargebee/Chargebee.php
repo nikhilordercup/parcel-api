@@ -156,19 +156,7 @@ class Module_Chargebee extends Icargo
 	private
 	
 	function _createCustomer($param)
-		{    print_r(array(
-			"firstName" => $param["first_name"],
-			"lastName" => $param["last_name"],
-			"email" => $param["email"],
-			"billingAddress" => array(
-			"firstName" => $param["billing_first_name"],
-			"lastName" => $param["billing_last_name"],
-			"line1" => $param["billing_line1"],
-			"city" => $param["billing_city"],
-			"state" => $param["billing_state"],
-			"zip" => $param["billing_zip"],
-			"country" => $param["billing_country"],
-			)));exit;
+		{   
 		$result = ChargeBee_Customer::create(array(
 			"firstName" => $param["first_name"],
 			"lastName" => $param["last_name"],
