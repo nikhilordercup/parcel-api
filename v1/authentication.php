@@ -78,7 +78,7 @@ $app->post('/signUp', function() use ($app) {
                     "code"=>str_replace(array(" ","-"),array("_","_"), strtolower($r->company->name)).$user
                 )
             );
-            $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC LIMIT 1");
+            $basic_plan = $db->getOneRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC ");
             //register user plan
             //chargebee customer data
             $chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,
