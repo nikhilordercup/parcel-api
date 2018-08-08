@@ -75,13 +75,13 @@ class Pickup extends Icargo
             'postal_code'           => $data->pickup_postcode,
             'address_type'          => $data->address_type,
             'package_quantity'      => $data->package_quantity,
-            'package_type'          => $data->package_type,
-            'is_overweight'         => $data->is_overweight,
+            'package_type'          => isset($data->package_type) ? $data->package_type : 'Package' ,
+            'is_overweight'         => isset($data->is_overweight) ? $data->is_overweight : 'Y' ,
             'package_location'      => $data->package_location,
             'pickup_date'           => $data->pickup_date->value,
             'earliest_pickup_time'  => $data->readyTime,
             'latest_pickup_time'    => $data->closeTime,
-            'pickup_reference'      => $data->pickup_reference,
+            'pickup_reference'      => isset($data->pickup_reference) ? $data->pickup_reference : '',
             'instruction_todriver'  => $data->special_instruction,
             'search_string'         => $searchString
         );
@@ -131,7 +131,7 @@ class Pickup extends Icargo
         $pickupRequest['carrier'] = 'dhl';
         $pickupRequest['services'] = "";
         $pickupRequest['address'] = array(
-            "location_type" => $pickupData['address_type'],
+            "location_type" => ($pickupData['address_type'] == 'Business') ? 'B' : 'R',
             "package_location" => $pickupData['package_location'],
             "company" => $pickupData['company_name'],
             "street1" => $pickupData['address_line1'],
@@ -169,8 +169,8 @@ class Pickup extends Icargo
         $credentialData = array();
         //$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($carrierId);
 
-        $credentialInfo["username"] = "CIMGBTest";
-        $credentialInfo["password"] = "DLUntOcJma";
+        $credentialInfo["username"] = "kuberusinfos";
+        $credentialInfo["password"] = "GgfrBytVDz";
         $credentialInfo["third_party_account_number"] = "";
         $credentialInfo["account_number"] = "420714888";
         $credentialInfo["token"] = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0";
@@ -200,9 +200,9 @@ class Pickup extends Icargo
             $param["search_string"] = str_replace(' ','',implode('',$param));
 
             $param["company_name"]  = $data->company_name;        
-            $param["name"]          = $data->name;
-            $param["email"]         = $data->email;
-            $param["phone"]         = $data->phone;
+            $param["first_name"]          = $data->name;
+            $param["contact_email"]         = $data->email;
+            $param["contact_no"]         = $data->phone;
             $param["country_id"]    = $data->country->id;
             $param["customer_id"]   = $customer_id;                        
             $param["billing_address"] = "N";            
@@ -213,7 +213,7 @@ class Pickup extends Icargo
                 $param["version_id"] = "version_1";
             }
             else{
-                $version = explode("_", $addressVersion);
+                $version = explode("_", $addressVersion['version_id']);
                 $param["version_id"] = "version_".($version[1]+1);
             }
             if($address_id) {                

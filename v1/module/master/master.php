@@ -128,7 +128,7 @@ class Master extends Icargo{
 		   foreach($flowtype as $flowType){
 			    $data[$key]['flow_type'][] = $flowType['flow_type'];
 		   }
-       }
+       }              
       return  $data;  
     } 	
 	/* public function getAllCourierSurcharge($param){
