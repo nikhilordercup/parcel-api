@@ -26,7 +26,7 @@ class SubscriptionController {
         $this->_db = new DbHandler();
         $this->_app = $app;
         $this->_requestParams = json_decode($this->_app->request->getBody());
-        ChargeBee_Environment::configure("instadispatch-test", "gw_Izy9TGCR02JHpjMx8");
+        ChargeBee_Environment::configure("instadispatch-test", "test_SXcdH4OWVOcd91fCcuYr2UYKhYnFJPfEFZ6");
     }
 
     /**

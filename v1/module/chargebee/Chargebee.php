@@ -20,7 +20,7 @@ class Module_Chargebee extends Icargo
 	
 	function _chargeAPiInvironment()
 		{
-		ChargeBee_Environment::configure("instadispatch-test", "gw_Izy9TGCR02JHpjMx8");
+		ChargeBee_Environment::configure("instadispatch-test", "test_SXcdH4OWVOcd91fCcuYr2UYKhYnFJPfEFZ6");
                 
 		}
 	
