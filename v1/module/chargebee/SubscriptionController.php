@@ -151,13 +151,16 @@ class SubscriptionController {
                 CS.chargebee_customer_id = CC.chargebee_customer_id " .
                 "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
                 "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
-                " WHERE U.id=$company_id";
+                " WHERE U.id=$company_id AND CS.status IN ('in_trial','active')";
         return $this->_db->getAllRecords($sql);
     }
     
     public function getShipmentCounts($company_id) {
+        $date=date('Y-m-');
         $sql = "SELECT instaDispatch_loadGroupTypeCode as shipment_type,COUNT(*) as shipment_count FROM `" . DB_PREFIX . "shipment`"
-                . " WHERE company_id=$company_id GROUP BY instaDispatch_loadGroupTypeCode";
+                . " WHERE company_id=$company_id "
+                . " AND shipment_create_date LIKE '$date%' "
+                . "GROUP BY instaDispatch_loadGroupTypeCode";
         return $this->_db->getAllRecords($sql);
     }
 
