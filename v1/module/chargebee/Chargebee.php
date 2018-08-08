@@ -423,7 +423,7 @@ class Module_Chargebee extends Icargo
 			$customer_info = $this->_createCustomer($data);
 			
 			$data["chargebee_customer_id"] = $customer_info['chargebee_customer_id'];
-
+                        unset($data['phone'],$data['company']);
 			$this->modelObj->saveCustomer($data);
 			$response = array("status"=>"success","message"=>"Customer created successfully","customer_info"=>$customer_info);
 			return $response;
