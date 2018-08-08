@@ -94,7 +94,7 @@ $app->post('/signUp', function() use ($app) {
                 "billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,
                 "billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,
                 "billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,
-                "customer_email"=>$r->company->email,"user_id"=>$user);
+                "customer_email"=>$r->company->email,"user_id"=>$user,'phone'=>$r->company->phone);
 
             //chargebee customer registration
             $obj = new Module_Chargebee($chargebee_customer_data);

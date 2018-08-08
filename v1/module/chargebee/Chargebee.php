@@ -161,6 +161,9 @@ class Module_Chargebee extends Icargo
 			"billingAddress" => array(
 			"firstName" => $param["billing_first_name"],
 			"lastName" => $param["billing_last_name"],
+                            "company"=>$param["company"],
+                            "phone"=>$param["phone"],
+                            "email"=>$param["email"],
 			"line1" => $param["billing_line1"],
 			"city" => $param["billing_city"],
 			"state" => $param["billing_state"],
@@ -412,7 +415,9 @@ class Module_Chargebee extends Icargo
 				"billing_state"=>$param->billing_state,
 				"billing_zip"=>$param->billing_zip,
 				"billing_country"=>$param->billing_country,
-                                "user_id"=>$param->user_id
+                                "user_id"=>$param->user_id,
+                                "company"=>$param->first_name,
+                                "phone"=>$param->phone,
 			);
 
 			$customer_info = $this->_createCustomer($data);
