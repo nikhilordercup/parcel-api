@@ -372,6 +372,7 @@ class Module_Chargebee extends Icargo
 			return $response = array("status"=>"success","message"=>"Subscription created successfully");
 			}
 			catch(Exception $e){
+                            exit($e->getMessage());exit;
 				return array("status"=>"error","message"=>$e->getMessage());
 			}
 		}
