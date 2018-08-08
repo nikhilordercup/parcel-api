@@ -158,6 +158,7 @@ class Chargebee_Model_Chargebee {
                 return $this->_db->save("billing_addresses", $billingAddressInfo);
             }
         } catch (Exception $ex) {
+            exit($ex->getMessage());
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
         }
     }
