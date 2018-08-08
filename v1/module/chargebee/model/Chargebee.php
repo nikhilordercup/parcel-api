@@ -151,11 +151,11 @@ class Chargebee_Model_Chargebee {
                 'zip' => $address->zip,
                 'country' => $address->country,
             );
-            $exist = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "billing_addresses WHERE user_id=" . $userInfo['id']);
+            $exist = $this->_db()->getOneRecord("SELECT * FROM " . DB_PREFIX . "billing_addresses WHERE user_id=" . $userInfo['id']);
             if ($exist) {
-                return $this->_db->update("billing_addresses", $billingAddressInfo, "user_id=" . $userInfo['id']);
+                return $this->_db()->update("billing_addresses", $billingAddressInfo, "user_id=" . $userInfo['id']);
             } else {
-                return $this->_db->save("billing_addresses", $billingAddressInfo);
+                return $this->_db()->save("billing_addresses", $billingAddressInfo);
             }
         } catch (Exception $ex) {
             exit($ex->getMessage());
