@@ -109,6 +109,7 @@ $app->post('/signUp', function() use ($app) {
                 "start_date"=>date("Y-m-d"),
                 //"trial_end"=>$r->company->state,
                 "billing_cycles"=>$basic_plan["billing_cycle"],
+                'plan_limit'=>$basic_plan['shipment_limit']
             );
 
             if(strtolower($basic_plan["trial_period_unit"])=="month"){

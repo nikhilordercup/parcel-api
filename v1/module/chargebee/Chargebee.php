@@ -361,7 +361,7 @@ class Module_Chargebee extends Icargo
 			$data["plan_quantity"] = $subscriptionData["subscription"]["plan_quantity"];
 			$data["plan_unit_price"] = $subscriptionData["subscription"]["plan_unit_price"]/100;
 			$data["status"] = $subscriptionData["subscription"]["status"];
-			$data['allowed_shipment']=$param->shipment_limit;
+			$data['allowed_shipment']=$param->plan_limit;
 			//$data["billing_cycles"] = $subscriptionData["subscription"]["billing_period"];
 			
 			
