@@ -1433,14 +1433,23 @@ class shipment extends Library{
         $postcode = $this->postcodeObj->validate($address["postcode"]);
        
         if($postcode){
+			if(isset($address["type"])){
+				$address_type = ($address["type"] == 'no') ? 'Business' : 'Residential' ;
+			}else{
+				$address_type = "";
+			}
             $address["postcode"] = $postcode;
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
             $data["address_line2"] = (isset($address["address_line2"])) ? addslashes($address["address_line2"]) : "";
 			
 			$data["first_name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
-			$data["phone"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
-			$data["email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
+			//$data["phone"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
+			//$data["email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
+			
+			//$data["name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
+			$data["contact_no"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
+			$data["contact_email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
             
             $data["postcode"] = addslashes($address["postcode"]);
             $data["city"] = (isset($address["city"])) ? addslashes($address["city"]) : "";
@@ -1458,7 +1467,7 @@ class shipment extends Library{
             $data["customer_id"] = $address["customer_id"];
             
             $data["is_warehouse"] = (isset($address["is_warehouse"])) ? $address["is_warehouse"] : "N";
-            $data["address_type"] = (isset($address["type"])) ? $address["type"] : "";//address_type
+            $data["address_type"] = $address_type;//(isset($address["type"])) ? $address["type"] : "";//address_type
             
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
 
