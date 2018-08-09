@@ -301,7 +301,7 @@ class SubscriptionController {
         }
          $subscriptionData=array(
                 'plan_id'=>$r->plan_id, 
-                'chargebee_subscription_id', 
+                'chargebee_subscription_id'=>$result->id, 
                 'chargebee_customer_id'=>$customer['chargebee_customer_id'],
                 'plan_quantity'=>1,
                 'plan_unit_price'=>$planInfo['price'],
