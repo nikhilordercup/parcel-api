@@ -162,7 +162,7 @@ class SubscriptionController {
         
         $app->post('/paymentFailHook', function() use ($app) {
             $self = new SubscriptionController($app);
-            verifyRequiredParams(array('access_token'), $r);
+            $r = json_decode($app->request->getBody());
             $data = $self->paymentFailHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
