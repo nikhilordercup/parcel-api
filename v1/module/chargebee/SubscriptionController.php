@@ -143,6 +143,14 @@ class SubscriptionController {
             $data = $self->getSubscriptionInfo($r->company_id);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
+        
+        $app->post('/updateSubscriptionInfo', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->createNewSubscription($r);
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
     }    
 
     public function getSubscriptionInfo($company_id) {
@@ -273,50 +281,49 @@ class SubscriptionController {
         );
     }
 
-    public function createNewSubscription($data) {
+    public function createNewSubscription($r) {
+        try{
         $planInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_id='" . $r->plan_id . "'");
         $customer = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_customer WHERE user_id='" . $r->company_id . "'");
         $exist = $this->_db->getOneRecord("SELECT CS.* FROM " . DB_PREFIX . "chargebee_subscription AS CS "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON CS.chargebee_customer_id=CC.chargebee_customer_id "
-                . " WHERE CC.user_id='" . $r->company_id . "' AND P.plan_type='" . $r->plan_type . "'");
-
+                . " WHERE CC.user_id='" . $r->company_id . "' AND P.plan_type='" . $r->plan_type . "' "
+                . " AND CS.status IN ('in_trial','active')");
 
         if ($exist) {
-            ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id));
-            $subscriptonUpdate = array(
-                'plan_id' => $r->plan_id,
-                'allowed_shipment' => $planInfo['shipment_limit']
-            );
+            $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id));
+            $result = $result->subscription();
+            $this->_db->update("chargebee_subscription", array('status'=>'updated'), " id=".$exist['id'] );
         } else {
-            $chargeBeeData = array(
-                'planId' => $planInfo['plan_id'],
-                'startDate' => time(),
-                'trialEnd' => strtotime("+" . $planInfo['trial_period'] . " " . $planInfo['trial_period_unit'], time())
-            );
-            
-            $subscriptionData=array(
-                'plan_id', 
+            $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id));
+            $result = $result->subscription();
+        }
+         $subscriptionData=array(
+                'plan_id'=>$r->plan_id, 
                 'chargebee_subscription_id', 
-                'chargebee_customer_id',
-                'plan_quantity',
-                'plan_unit_price',
-                'start_date',
-                'trial_end',
-                'next_billing_date', 
-                'billing_cycles', 
-                'auto_collection', 
-                'terms_to_charge', 
-                'invoice_notes', 
-                'invoice_immediately', 
-                'prorata', 
-                'status', 
-                'payment_status', 
-                'payment_counter',
-                'create_date', 
-                'update_date', 
-                'allowed_shipment'
+                'chargebee_customer_id'=>$customer['chargebee_customer_id'],
+                'plan_quantity'=>1,
+                'plan_unit_price'=>$planInfo['price'],
+                'start_date'=>$result['start_date'],
+                'trial_end'=>$result['trial_end'],
+                'next_billing_date'=>date('Y-m-d H:i:s', strtotime($result['next_billing_at'])), 
+                'billing_cycles'=>0, 
+                'auto_collection'=>FALSE, 
+                'terms_to_charge'=>0, 
+                'invoice_notes'=>'', 
+                'invoice_immediately'=>'', 
+                'prorata'=>'', 
+                'status'=>$result['status'], 
+                'payment_status'=>'', 
+                'payment_counter'=>0,
+                'create_date'=>date('Y-m-d H:i:s'), 
+                'update_date'=>'0000-00-00 00:00:00', 
+                'allowed_shipment'=>$planInfo['shipment_limit']
             );
+            return $this->_db->save('chargebee_subscription', $subscriptionData);
+        } catch (Exception $ex){
+            return array('error'=>TRUE,'message'=>$ex->getMessage());
         }
     }
 
