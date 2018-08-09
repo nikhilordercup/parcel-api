@@ -336,7 +336,7 @@ class SubscriptionController {
     }
     
     public function getPurchaseHistory($company_id){
-        $sql = "SELECT CS.*, U.id, P.* FROM " . DB_PREFIX . "chargebee_subscription AS CS "
+        $sql = "SELECT CS.*, U.id, P.plan_name, P.price FROM " . DB_PREFIX . "chargebee_subscription AS CS "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
                 CS.chargebee_customer_id = CC.chargebee_customer_id " .
                 "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
