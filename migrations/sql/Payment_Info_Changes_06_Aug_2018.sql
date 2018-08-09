@@ -20,3 +20,6 @@ ALTER TABLE `icargo_chargebee_plan`
   DROP `controller_count`,
   DROP `driver_count`,
   DROP `warehouse_count`;
+
+
+CREATE TABLE `icargo_payment_failure` ( `id` BIGINT NOT NULL AUTO_INCREMENT , `subscription_id` VARCHAR(250) NOT NULL , `customer_id` VARCHAR(250) NOT NULL , `payment_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`)) ENGINE = InnoDB;

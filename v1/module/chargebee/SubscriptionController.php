@@ -162,7 +162,6 @@ class SubscriptionController {
         
         $app->post('/paymentFailHook', function() use ($app) {
             $self = new SubscriptionController($app);
-            $r = json_decode($app->request->getBody());
             verifyRequiredParams(array('access_token'), $r);
             $data = $self->paymentFailHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
@@ -354,7 +353,20 @@ class SubscriptionController {
     }
     
     public function paymentFailHook(){
+        $content = file_get_contents('php://input');
+        try{
+        $event = ChargeBee_Event::deserialize($content);
+        $subscription=$event->content()->subscription();
+        $customer=$event->content()->customer();
+        $data=array(
+          'subscription_id'=>$subscription->id,
+            'customer_id'=>$customer->id
+        );
+        $this->_db->save('payment_failure', $data);
         echo "success";exit;
+        } catch (Exception $ex){
+            exit($ex->getMessage());
+        }
     }
 
 }
