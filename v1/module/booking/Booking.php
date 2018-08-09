@@ -94,6 +94,12 @@ class Booking extends Icargo
         $data = (object)$data;        
         $postcode = ($data->country->alpha3_code == 'GBR') ? ( $this->postcodeObj->validate($data->postcode) ) : true;
         if($postcode) {
+			if(isset($data->address_type)){
+				$address_type = ($data->address_type == 'No') ? 'Business' : 'Residential' ;
+			}else{
+				$address_type = "";
+			}
+			$addressType =
             $param["postcode"]      = $data->postcode;
             $param["address_line1"] = (isset($data->address_line1)) ? $data->address_line1 : "";
             $param["address_line2"] = (isset($data->address_line2)) ? $data->address_line2 : "";
@@ -101,7 +107,7 @@ class Booking extends Icargo
             $param["state"]         = (isset($data->state)) ? $data->state : "";
             $param["country"]       = $data->country->short_name;
             $param["iso_code"]      = $data->country->alpha3_code;
-			$param["first_name"]    = (isset($data->name)) ? $data->name : "";
+            $param["first_name"]    = (isset($data->name)) ? $data->name : "";
             $param["last_name"]     = "";
             $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
@@ -116,7 +122,7 @@ class Booking extends Icargo
             $param["is_default_address"] = "N";
             $param["customer_id"]   = $customer_id;
             $param["is_warehouse"]  = "N";
-            $param["address_type"]  = "";
+            $param["address_type"]  = $address_type;
             $param["billing_address"] = "N";
             $param["billing_address"] = "N";
 

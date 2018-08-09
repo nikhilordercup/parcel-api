@@ -333,8 +333,8 @@ $app->post('/resolveDropError', function() use ($app) {
 $app->post('/getRouteDetail', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('route_type','route_id','email','access_token','company'),$r);
-	$obj = new loadRouteDetails(array('route_type'=>$r->route_type,'route_id'=>$r->route_id,'company_id'=>$r->company,'email'=>$r->email,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
+	verifyRequiredParams(array('route_type','route_id','email','access_token','company_id'),$r);
+	$obj = new loadRouteDetails(array('route_type'=>$r->route_type,'route_id'=>$r->route_id,'company_id'=>$r->company_id,'email'=>$r->email,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id));
 	$records = $obj->loadRouteShipmentsDetails();
     echoResponse(200, $records);
 });
@@ -976,7 +976,7 @@ $app->post('/configuration/update-forms', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','access_token'),$r);
     $obj = new FormConfiguration();
-    $response=$obj->updateFormConfiguration($r->company_id,json_encode($r->config_data),json_encode($r->extra_data));
+    $response=$obj->updateFormConfiguration($r->company_id,$r->extra_data,$r->form_config);
     echoResponse(200, $response);
 });
 $app->post('/configuration/fetch-forms', function() use($app){
@@ -2164,6 +2164,22 @@ $app->post('/searchAllDefaultWarehouseAddress', function() use ($app) {
     $response = $obj->getAllDefaultWarehouseAddressBySearchKey($r);
     echoResponse(200, $response);
 }); 
+
+$app->post('/releaseShipmentFromSameday', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','shipment_route_id','warehouse_id'),$r);
+    $obj = new Shipment_Sameday_Release(array("email"=>$r->email, "access_token"=>$r->access_token));
+    $response = $obj->releaseShipments($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/withdrawAssignedRoute', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','shipment_route_id'),$r);
+    $obj = new Route_Release(array("email"=>$r->email, "access_token"=>$r->access_token));
+    $response = $obj->routeReleaseFromDriver($r);
+    echoResponse(200, $response);
+});
 
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
