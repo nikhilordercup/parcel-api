@@ -159,6 +159,14 @@ class SubscriptionController {
             $data = $self->getPurchaseHistory($r->company_id);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
+        
+        $app->post('/paymentFailHook', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->paymentFailHook();
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
     }    
 
     public function getSubscriptionInfo($company_id) {
@@ -343,6 +351,10 @@ class SubscriptionController {
                 "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
                 " WHERE U.id=$company_id ";
         return $this->_db->getAllRecords($sql);
+    }
+    
+    public function paymentFailHook(){
+        echo "success";exit;
     }
 
 }
