@@ -73,7 +73,7 @@ class Pickup extends Icargo
             'state'                 => $data->pickup_state,
             'country'               => $data->pickup_country->alpha3_code,
             'postal_code'           => $data->pickup_postcode,
-            'address_type'          => $data->address_type,
+            'address_type'          => ($data->address_type == 'Business') ? 'B' : 'R',
             'package_quantity'      => $data->package_quantity,
             'package_type'          => isset($data->package_type) ? $data->package_type : 'Package' ,
             'is_overweight'         => isset($data->is_overweight) ? $data->is_overweight : 'Y' ,
