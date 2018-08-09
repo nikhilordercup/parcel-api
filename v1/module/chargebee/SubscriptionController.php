@@ -307,7 +307,7 @@ class SubscriptionController {
                 'plan_unit_price'=>$planInfo['price'],
                 'start_date'=>date('Y-m-d H:i:s',$result->startedAt),
                 'trial_end'=>date('Y-m-d H:i:s',$result->trialEnd),
-                'next_billing_date'=>date('Y-m-d H:i:s', strtotime($result->nextBillingAt)), 
+                'next_billing_date'=>date('Y-m-d H:i:s', $result->nextBillingAt), 
                 'billing_cycles'=>0, 
                 'auto_collection'=>FALSE, 
                 'terms_to_charge'=>0, 
