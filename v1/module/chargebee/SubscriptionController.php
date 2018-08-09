@@ -363,6 +363,11 @@ class SubscriptionController {
             'customer_id'=>$customer->id
         );
         $this->_db->save('payment_failure', $data);
+        $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
+                . "WHERE chargebee_subscription_id ='".$subscription->id."' ORDER BY id DESC ");
+        if($subscriptionRow){
+            $this->_db->update("chargebee_subscription", array('status'=>'payment_failed'),"id=".$subscription['id']);
+        }
         echo "success";exit;
         } catch (Exception $ex){
             exit($ex->getMessage());
