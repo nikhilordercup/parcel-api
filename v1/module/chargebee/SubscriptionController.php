@@ -151,6 +151,14 @@ class SubscriptionController {
             $data = $self->createNewSubscription($r);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
+        
+        $app->post('/getPurchaseHistory', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $r = json_decode($app->request->getBody());
+            verifyRequiredParams(array('access_token'), $r);
+            $data = $self->getPurchaseHistory($r->company_id);
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
     }    
 
     public function getSubscriptionInfo($company_id) {
@@ -325,6 +333,16 @@ class SubscriptionController {
         } catch (Exception $ex){
             return array('error'=>TRUE,'message'=>$ex->getMessage());
         }
+    }
+    
+    public function getPurchaseHistory($company_id){
+        $sql = "SELECT CS.*, U.id, P.* FROM " . DB_PREFIX . "chargebee_subscription AS CS "
+                . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
+                CS.chargebee_customer_id = CC.chargebee_customer_id " .
+                "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
+                "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
+                " WHERE U.id=$company_id ";
+        return $this->_db->getAllRecords($sql);
     }
 
 }
