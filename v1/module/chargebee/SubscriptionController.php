@@ -170,6 +170,12 @@ class SubscriptionController {
             $data = $self->trialEndHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
+        
+        $app->post('/paymentHook', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $data = $self->paymentHook();
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
     }    
 
     public function getSubscriptionInfo($company_id) {
@@ -400,5 +406,27 @@ class SubscriptionController {
             exit($ex->getMessage());
         }
     }
-
+    
+       public function paymentHook(){
+        $content = file_get_contents('php://input');
+        try{
+        $event = ChargeBee_Event::deserialize($content);
+        $subscription=$event->content()->subscription();
+        $customer=$event->content()->customer();
+        $data=array(
+          'subscription_id'=>$subscription->id,
+            'customer_id'=>$customer->id
+        );
+        $this->_db->save('payment_failure', $data);
+        $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
+                . "WHERE chargebee_subscription_id ='".$subscription->id."' ORDER BY id DESC ");
+        if($subscriptionRow){
+            $this->_db->update("chargebee_subscription", array('status'=>'active'),"id=".$subscription['id']);
+        }
+        echo "success";exit;
+        } catch (Exception $ex){
+            exit($ex->getMessage());
+        }
+    }
+    
 }
