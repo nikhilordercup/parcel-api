@@ -311,11 +311,11 @@ class SubscriptionController {
                 . " AND CS.status IN ('in_trial','active')");
 
         if ($exist) {
-            $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>time()));
+            $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>strtotime('tomorrow')));
             $result = $result->subscription();
             $this->_db->update("chargebee_subscription", array('status'=>'updated'), " id=".$exist['id'] );
         } else {
-            $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id,'trialEnd'=>time()));
+            $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id,'trialEnd'=>strtotime('tomorrow')));
             $result = $result->subscription();
         }
          $subscriptionData=array(

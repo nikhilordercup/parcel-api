@@ -112,9 +112,9 @@ $app->post('/signUp', function() use ($app) {
                 "billing_cycles"=>$basic_plan["billing_cycle"],
                 'plan_limit'=>$basic_plan['shipment_limit']
             );
-
+              $basic_plan["trial_period_unit"]='days';
             if(strtolower($basic_plan["trial_period_unit"])=="month"){
-                $trial_period = 30*$basic_plan["trial_period"]*0;
+                $trial_period = 30*$basic_plan["trial_period"];
                 $chargebee_customer_data->trial_end = date('Y-m-d', strtotime("+$trial_period days"));
             }
             else if(strtolower($basic_plan["trial_period_unit"])=="days"){
