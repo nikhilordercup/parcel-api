@@ -145,21 +145,22 @@ class Module_Coreprime_Api extends Icargo
         //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
         $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id, $param->company_id);
 
-
         $carriers =  array();
         if(count($carrier)>0){
             foreach($carrier as $carrierData){
-                $service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_id']);
+				if($carrierData['is_self']=='YES'){
+					$service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_id']);
 
-                if(count($service)>0){
-                    $tempservice = array();
-                    foreach($service as $key=>$valData){
-                        $tempservice[] = $valData['service_code'];
-                    }
-                    $carriers[$carrierData['code']][] =  array('credentials'=>array('username'=>'','password'=>'','account_number'=>$carrierData['account_number']),'services'=>implode(',',$tempservice));
-                }else{
-                    return array("status" => "error", "message" => "Service Not configured or disabled for this customer");
-                }
+					if(count($service)>0){
+						$tempservice = array();
+						foreach($service as $key=>$valData){
+							$tempservice[] = $valData['service_code'];
+						}
+						$carriers[$carrierData['code']][] =  array('credentials'=>array('username'=>'','password'=>'','account_number'=>$carrierData['account_number']),'services'=>implode(',',$tempservice));
+					}else{
+						return array("status" => "error", "message" => "Service Not configured or disabled for this customer");
+					}
+				}
             }
         }else{
             return array("status" => "error", "message" => "Carrier Not configured or disabled for this customer");

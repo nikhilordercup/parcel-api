@@ -61,6 +61,7 @@ final class Nextday extends Booking {
                     } else {
                         //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
                         $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
+						//print_r($services);die;
                         if(count($services)>0)
                         {
                             foreach($services as $service) 
@@ -78,7 +79,6 @@ final class Nextday extends Booking {
             
             $collectionIndex = 0;
             $collectionList = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
-
             if (count($collectionList) > 0) {
                 foreach ($collectionList as $item) {
 					if(strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])){
@@ -469,7 +469,6 @@ final class Nextday extends Booking {
             //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
             //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
             $this->_setPostRequest();
-
             if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
 		//print_r($requestStr);die;
