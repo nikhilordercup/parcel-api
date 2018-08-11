@@ -9,10 +9,9 @@ define('DB_NAME', 'icargo_n');
 define('DB_PREFIX', 'icargo_');
 define('LABEL_URL', '');*/
 
-define('DB_USERNAME','icargoN'); 
-define('DB_PASSWORD', 'icargoN');
+define('DB_USERNAME','icargo_dev'); 
+define('DB_PASSWORD', 'icargodev');
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'icargoN');
+define('DB_NAME', 'icargo_dev');
 define('DB_PREFIX', 'icargo_');
 define('LABEL_URL', '/dev/');
-?>
