@@ -162,8 +162,12 @@ class SubscriptionController {
         
         $app->post('/paymentFailHook', function() use ($app) {
             $self = new SubscriptionController($app);
-            $r = json_decode($app->request->getBody());
             $data = $self->paymentFailHook();
+            echoResponse(200, array('result' => 'success', 'message' => $data));
+        });
+        $app->post('/trialEndHook', function() use ($app) {
+            $self = new SubscriptionController($app);
+            $data = $self->trialEndHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
     }    
@@ -307,11 +311,11 @@ class SubscriptionController {
                 . " AND CS.status IN ('in_trial','active')");
 
         if ($exist) {
-            $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id));
+            $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>time()));
             $result = $result->subscription();
             $this->_db->update("chargebee_subscription", array('status'=>'updated'), " id=".$exist['id'] );
         } else {
-            $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id));
+            $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id,'trialEnd'=>time()));
             $result = $result->subscription();
         }
          $subscriptionData=array(
@@ -367,6 +371,29 @@ class SubscriptionController {
                 . "WHERE chargebee_subscription_id ='".$subscription->id."' ORDER BY id DESC ");
         if($subscriptionRow){
             $this->_db->update("chargebee_subscription", array('status'=>'payment_failed'),"id=".$subscription['id']);
+        }
+        echo "success";exit;
+        } catch (Exception $ex){
+            exit($ex->getMessage());
+        }
+    }
+    
+    
+    public function trialEndHook(){
+        $content = file_get_contents('php://input');
+        try{
+        $event = ChargeBee_Event::deserialize($content);
+        $subscription=$event->content()->subscription();
+        $customer=$event->content()->customer();
+        $data=array(
+          'subscription_id'=>$subscription->id,
+            'customer_id'=>$customer->id
+        );
+        $this->_db->save('payment_failure', $data);
+        $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
+                . "WHERE chargebee_subscription_id ='".$subscription->id."' ORDER BY id DESC ");
+        if($subscriptionRow){
+            $this->_db->update("chargebee_subscription", array('status'=>'active'),"id=".$subscription['id']);
         }
         echo "success";exit;
         } catch (Exception $ex){
