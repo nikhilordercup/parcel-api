@@ -2181,6 +2181,13 @@ $app->post('/withdrawAssignedRoute', function() use ($app){
     echoResponse(200, $response);
 });
 
+$app->post('/deleteFbNode', function() use ($app){
+    $obj = new Firebase_Api();
+
+    $obj->delete('webservice/PSsKN9GPrrVkcgL2KRVVlSC2wn23');
+});
+
+
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);

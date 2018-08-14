@@ -12,6 +12,7 @@ require '../vendor/autoload.php';
 use Firebase\JWT\JWT;
 
 $app = new \Slim\Slim();
+$app->config('debug', true);
 
 // User id from db - Global Variable
 $user_id = NULL;
