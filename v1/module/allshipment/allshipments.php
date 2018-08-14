@@ -200,7 +200,7 @@ class allShipments extends Icargo
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
 							$labelArr = json_decode($pickupData['label_json']);
-							if(is_array($labelArr) && count($labelArr)>0)
+							if(is_object($labelArr) && count($labelArr)>0)
 								$collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
 							else
 								$collectionReference = "";
