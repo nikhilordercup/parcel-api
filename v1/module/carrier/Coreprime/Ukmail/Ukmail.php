@@ -60,7 +60,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 			$img->setImageFormat('pdf');
 			$pdf = $img->writeImages($label_path.$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',true);
 			unset($labelArr->label->base_encode);
-			return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_tracking_number"=>$labelArr->label->tracking_number,"label_files_png"=>implode(',',$label_images),"label_file_pdf"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_json"=>json_encode($labelArr));
+			return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://api.instadispatch.com/live/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_tracking_number"=>$labelArr->label->tracking_number,"label_files_png"=>implode(',',$label_images),"label_file_pdf"=>"http://api.instadispatch.com/live/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_json"=>json_encode($labelArr));
 			
 		}else{
 			return array("status"=>"error","message"=>$labelArr->error);
@@ -125,7 +125,19 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 		$credentialData = array();
 		//$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
 		
-		$credentialInfo["username"] = "nikhil.kumar@ordercup.com";
+		$credentialInfo["username"] = "info@pedalandpost.co.uk";
+		$credentialInfo["password"] = "casi0advent";
+		$credentialInfo["authentication_token"] = "";
+		$credentialInfo["authentication_token_created_at"] = "";
+		$credentialInfo["token"] ="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImRldmVsb3BlcnNAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Njk5MzU0N30.cpm3XYPcLlwb0njGDIf8LGVYPJ2xJnS32y_DiBjSCGI";
+		$credentialInfo["account_number"] ="K906430"; 
+		$credentialInfo["master_carrier_account_number"] = "";
+        $credentialInfo["latest_time"] = "17:00:00";
+		$credentialInfo["earliest_time"]="14:00:00";
+		$credentialInfo["carrier_account_type"] = array("1");
+		
+		
+		/* $credentialInfo["username"] = "nikhil.kumar@ordercup.com";
 		$credentialInfo["password"] = "Password123";
 		$credentialInfo["authentication_token"] = "";
 		$credentialInfo["authentication_token_created_at"] = "";
@@ -134,7 +146,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 		$credentialInfo["master_carrier_account_number"] = "";
         $credentialInfo["latest_time"] = "17:00:00";
 		$credentialInfo["earliest_time"]="14:00:00";
-		$credentialInfo["carrier_account_type"] = array("1");
+		$credentialInfo["carrier_account_type"] = array("1"); */
 
         /* $credentialInfo["account_number"] = $carrierAccountNumber;
 		$credentialInfo["master_carrier_account_number"] = "";

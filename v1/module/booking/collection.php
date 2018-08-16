@@ -277,7 +277,6 @@ final Class Collection{
         $city = (isset($address["city"])) ? $address["city"] : "";
         $zip = (isset($address["zip"])) ? $address["zip"] : "";
         $country_name = (isset($address["country_name"])) ? $address["country_name"] : "";
-
         $address = strtolower(preg_replace('/[\s]+/mu', '', $street1.$city.$zip.$country_name));
         return $address;
     }

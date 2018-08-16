@@ -95,22 +95,30 @@ class Carrier{
 	}
 	
 	public function mergePdf($labelPdfArr){
-		try{
-			$labelArr = array();
-			foreach($labelPdfArr as $file){
-				$file['label_file_pdf'] = explode('/',$file['label_file_pdf']);
-				$file = "/var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7];
-				array_push($labelArr,$file);
-			}
-			$fileName = uniqid().'.pdf';
-			$pdf = new ConcatPdf();
-			$pdf->setFiles($labelArr);
-			$pdf->concat();
-			$pdf->Output('/var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
-		}catch(Exception $e){
-			print_r($e);die;
-		}
-		return array("status"=>"success","file_path"=>"http://api.instadispatch.com/dev/temp/".$fileName);
+            try{
+                $labelArr = array();       
+                //print_r($labelPdfArr); die;
+                $rootPath = dirname(dirname(dirname(dirname(__FILE__)))); 
+                $labelPath = $rootPath. '/label/'; 
+                foreach($labelPdfArr as $file){				                                
+                        $loadIdentity = $file['load_identity'];
+                        $carrierCode = strtolower($file['carrier_code']);
+                        $pathArr = explode('/',$file['label_file_pdf']);                    
+                        //$file = "/var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7];
+                        $filePath = $labelPath.$loadIdentity.'/'.$carrierCode.'/'.$pathArr[ count($pathArr) - 1];
+                        array_push($labelArr,$filePath);
+                } 
+                $fileName = uniqid().'.pdf';
+                $pdf = new ConcatPdf();
+                $pdf->setFiles($labelArr);
+                $pdf->concat();
+                //$pdf->Output('/var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
+                $pdf->Output($rootPath.'/temp/'.$fileName,'F');
+            } catch(Exception $e) {
+                print_r($e);die;
+            }
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            return array("status"=>"success","file_path" => $fileUrl."/temp/".$fileName);
 	}
 
 

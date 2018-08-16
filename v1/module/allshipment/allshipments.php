@@ -200,7 +200,7 @@ class allShipments extends Icargo
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
 							$labelArr = json_decode($pickupData['label_json']);
-							if(count($labelArr)>0)
+							if(is_object($labelArr) && count($labelArr)>0)
 								$collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
 							else
 								$collectionReference = "";
@@ -1787,21 +1787,29 @@ class allShipments extends Icargo
 	}
 	
 	public function cancelShipmentByLoadIdentity($param){
-        $carrierObj = new Carrier();
-		$cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
-		$cancelShipment = json_decode($cancelShipment);
-		if(isset($cancelShipment->void_consignment)){
-			//update shipment status as cancel in shipment service table
-			$updateStatus = $this->modelObj->editContent("shipment_service",array("status"=>"cancel"),"load_identity='".$param->load_identity."'");
-			if($updateStatus)
-				return array("status"=>"success","message"=>"Shipment cancelled successfully");
-			else
-				return array("status"=>"error","message"=>"Error while cancellation,please try again");
-			
-		}else{
-			return array("status"=>"error","message"=>$cancelShipment->error);
-		}
+            $carrierObj = new Carrier();
+            $carrier_code = $param->carrier_code;
+            if(strtolower($carrier_code) == 'dhl') {
+                return $this->_updateShipmentCancel($param);    
+            } else {                
+                $cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
+                $cancelShipment = json_decode($cancelShipment);
+                if(isset($cancelShipment->void_consignment)){
+                    return $this->_updateShipmentCancel($param);    
+                }else{
+                    return array("status"=>"error","message"=>$cancelShipment->error);
+                }
+            }
 	}
+        
+        private function _updateShipmentCancel($param) {
+            //update shipment status as cancel in shipment service table
+            $updateStatus = $this->modelObj->editContent("shipment_service",array("status"=>"cancel"),"load_identity='".$param->load_identity."'");
+            if($updateStatus)
+                return array("status"=>"success","message"=>"Shipment cancelled successfully");
+            else
+                return array("status"=>"error","message"=>"Error while cancellation,please try again");
+        }
 
 }
 ?>

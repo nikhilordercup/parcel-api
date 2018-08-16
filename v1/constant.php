@@ -1,3 +1,3 @@
 <?php
-define('ENV','dev');//dev //live
+define('ENV','live');//dev //live
 ?>

@@ -1,4 +1,7 @@
 <?php
+
+ini_set('date.timezone', 'Europe/London');
+
 require_once 'constant.php';
 require_once '../Credentials.php';
 require_once 'dbHandler.php';
