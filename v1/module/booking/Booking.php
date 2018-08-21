@@ -783,9 +783,8 @@ class Booking extends Icargo
 
     function getCustomerCarrierAccount($company_id, $customer_id, $collection_postcode, $collection_date){
         $carrierAccount = array();
-        $carriers = $this->modelObj->getCompanyCarrier($company_id);
 
-        //
+        $carriers = $this->modelObj->getCompanyCarrier($company_id);
 
 
         foreach($carriers as $carrier){
@@ -795,6 +794,7 @@ class Booking extends Icargo
         $carrierAccount = implode(',', $carrierAccount);
 
         $carrierLists = $this->modelObj->getCustomerCarrierAccountByAccountId($company_id, $customer_id, $carrierAccount);
+
         $lists = array();
         foreach($carrierLists as $carrierList){
             foreach($carriers as $key => $carrier) {
@@ -803,7 +803,7 @@ class Booking extends Icargo
                     array_push($lists, $carrier);
                 }
             }
-        }        
+        } 
         $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);   
         return $lists;
     }

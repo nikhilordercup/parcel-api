@@ -1133,10 +1133,129 @@ class View_Support extends Icargo{
         $firebase_data = $firebaseObj->withdrawShipmentFromRoute();
 		return array("firebase_data"=>$firebase_data,"firebase_post_id"=>$route_data['firebase_id']);
 	}*/
+
+    private
+
+    function _findCollectionShipmentStatusByLoadIdentity($load_identity){
+        $allCollectionShipmentCount = $this->modelObj->findAllCollectionShipmentCountByLoadIdentity($load_identity);
+
+        $allCollectedShipmentCount = $this->modelObj->findCollectedShipmentCountByLoadIdentity($load_identity);
+
+        $allCardedShipmentCount = $this->modelObj->findCardedCollectedShipmentCountByLoadIdentity($load_identity);
+
+        $notCollectedCount = $this->modelObj->findNotCollectedShipmentCountByLoadIdentity($load_identity);
+
+        if($allCollectionShipmentCount > 1){
+            if($allCollectedShipmentCount > 0 and $allCollectedShipmentCount<$allCollectionShipmentCount){
+                //partly collected
+                return array("tracking_code"=>"PARTLYCOLLECTED", "actions"=>"partly collected");
+            }
+
+            if($allCollectedShipmentCount > 0 and $allCollectedShipmentCount==$allCollectionShipmentCount){
+                //collected
+                return array("tracking_code"=>"COLLECTIONSUCCESS", "actions"=>"collected");
+            }
+        }
+        elseif($allCollectionShipmentCount == 1){
+            if($allCollectedShipmentCount > 0){
+                //collected
+                return array("tracking_code"=>"COLLECTIONSUCCESS", "actions"=>"collected");
+            }
+
+            if($allCollectedShipmentCount==0 and $allCardedShipmentCount>0){
+                //collection carded
+                return array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"collection carded");
+            }
+        }
+        elseif($notCollectedCount==$allCollectionShipmentCount){
+            //awaiting collection
+            return array("tracking_code"=>"COLLECTIONAWAITED", "actions"=>"collection awaited");
+        }else{
+            return array();
+        }
+    }
+
+    private 
+
+    function _findDeliveryShipmentStatusByLoadIdentity($load_identity){
+        $allDeliveryShipmentCount = $this->modelObj->findAllDeliveryShipmentCountByLoadIdentity($load_identity);
+
+        $allDeliveredShipmentCount = $this->modelObj->findDeliveredShipmentCountByLoadIdentity($load_identity);
+
+        $allCardedShipmentCount = $this->modelObj->findCardedDeliveryShipmentCountByLoadIdentity($load_identity);
+
+        $notDeliveredCount = $this->modelObj->findNotDeliveredShipmentCountByLoadIdentity($load_identity);
+
+        if($allDeliveryShipmentCount > 1){
+            if($allDeliveredShipmentCount > 0 and $allDeliveredShipmentCount<$allDeliveryShipmentCount){
+                //partly collected
+                return array("tracking_code"=>"PARTLYDELIVERED", "actions"=>"partly delivered");
+            }
+
+            if($allDeliveredShipmentCount > 0 and $allDeliveredShipmentCount==$allDeliveryShipmentCount){
+                //collected
+                return array("tracking_code"=>"DELIVERYSUCCESS", "actions"=>"delivered");
+            }
+        }
+        elseif($allDeliveryShipmentCount == 1){
+            if($allDeliveredShipmentCount > 0){
+                //delivered
+                return array("tracking_code"=>"DELIVERYSUCCESS", "actions"=>"delivered");
+            }
+
+            if($allDeliveredShipmentCount==0 and $allCardedShipmentCount>0){
+                //delivery carded
+                return array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"delivered carded");
+            }
+        }
+        elseif($notDeliveredCount==$allDeliveryShipmentCount){
+            //awaiting collection
+            return array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery");
+        }else{
+            return array();
+        }
+    }
+
+    private
+
+    function _findTrackingStatus($load_identity, $shipment_type){
+        if($shipment_type=='VENDOR'){
+            return $this->_findDeliveryShipmentStatusByLoadIdentity($load_identity);
+        }
+        elseif($shipment_type=='SAME'){
+            return $this->_findCollectionShipmentStatusByLoadIdentity($load_identity);
+        }
+    }
+
+    private 
+
+    function saveTrackingStatus($tickets){
+        //check any collection left
+        $ticketStr = implode("','", explode(",", $tickets));
+
+        $loadIdentity = $this->modelObj->findAssignedLoadIdentityByShipmentTicket($ticketStr);
+
+        $temp = array();
+
+        foreach($loadIdentity as $item)
+            $temp[$item["load_identity"]] = $item;
+        
+
+        $temp = array_values($temp);
+
+        foreach($temp as $item){
+            $status = $this->_findTrackingStatus($item["load_identity"], strtoupper($item["load_type"]));
+               
+            if(count($status)>0){
+                $common_obj->addShipmentlifeHistory($item["shipment_ticket"], $status["actions"], $item["driver_id"], $item["shipment_route_id"], $item["company_id"], $item["warehouse_id"], $status["tracking_code"], 'controller');
+            }
+        }
+    }
 	
     public function cardedbycontrollerAction(){
 		$company_id 		= $this->company_id;
 		$ticketids 			= '"' .$this->shipment_ticket. '"';
+  
 		$comments 			= $this->comment;
 		$nextdate 			= $this->next_date;
         $firebasedata       = array();
@@ -1192,8 +1311,8 @@ class View_Support extends Icargo{
 			$actions     = "Return in warehouse after carded by controller";
 			$actionsCode = 'RETURNINWAREHOUSE';
 			$this->_add_shipment_life_history($eachTicket, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
-			
-			$releseShipment                           = array();
+
+            $releseShipment                           = array();
 			$releseShipment['shipment_total_attempt'] = $eachShipmentDetails['shipment_total_attempt'] + 1;
             if ($eachShipmentDetails['instaDispatch_loadGroupTypeCode'] == 'Vendor') {
                 $attempt = $this->shipmentAttemptConf['regularattemptconf'];
@@ -1214,7 +1333,7 @@ class View_Support extends Icargo{
                 $releseShipment['current_status'] = 'Ca';
             }
 			if($releseShipment['current_status']!='Ca'){
-				 $releseShipment['icargo_execution_order']       = '0';
+				$releseShipment['icargo_execution_order']       = '0';
 				$releseShipment['is_driverpickupfromwarehouse'] = 'NO';
 				$releseShipment['driver_pickuptime']            = '1970-01-01 00:00:00';
 				$releseShipment['driver_comment']               = '0';
@@ -1224,13 +1343,12 @@ class View_Support extends Icargo{
 				$releseShipment['is_driver_assigned']     = '0';
 				$releseShipment['is_driver_accept']       = 'Pending';
 				$releseShipment['assigned_driver']        = '0';
-			
 			}
            
             $releseShipment['last_history_id']              = $historyid;
             $condition                                      = "shipment_ticket = '" . $tickets . "'";
             $status                                         = $this->modelObj->editContent("shipment", $releseShipment, $condition);
-            if ($releseShipment['current_status'] == 'Rit') {
+            if($releseShipment['current_status'] == 'Rit') {
               $actions     = "Maximum Attempt achieved, Move to Return Shipment";
 			  $actionsCode = 'MAXATTEMPTSREACHED';
 			  $this->_add_shipment_life_history($eachTicket	, $actions, $driverid, $shipment_route_id, $actionsCode,$company_id );
@@ -1239,6 +1357,9 @@ class View_Support extends Icargo{
             $driverShipment['is_driveraction_complete'] = 'Y';
             $status     = $this->modelObj->editContent("driver_shipment", $driverShipment, $condition);    
         }
+
+        $this->saveTrackingStatus($getAllTicket);
+
 		$checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $shipment_route_id);
         if ($checkMoreShipmentofthisRouteDriver == 0) {
 			 $condition = "shipment_route_id = '" . $shipment_route_id . "' AND driver_id = '" . $driverid . "'";

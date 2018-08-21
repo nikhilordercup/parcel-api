@@ -294,6 +294,7 @@ class Process_Route
         }
         return $this->_reject_shipment(implode("','", $shipment_ticket), $this->driver_id, $this->shipment_route_id);
     }
+
     private function _start_route()
     {   
         //set all active route to pause of driver
@@ -309,9 +310,14 @@ class Process_Route
             //save addShipmentlifeHistory
             $common_obj = new Common();
             $shipmentsData = $this->model_rest->get_available_shipment_for_service_by_shipment_route_id($this->shipment_route_id);
+            $allTickets = array();
             foreach($shipmentsData as $item){
+                array_push($allTickets,$item["shipment_ticket"]); 
                 $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route started', $this->driver_id, $this->shipment_route_id, $this->company_id,$item["warehouse_id"], "ROUTESTART", 'driver');
             }
+
+            Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>implode("," ,$allTickets), "user_type"=>"Driver"));
+      
             Consignee_Notification::_getInstance()->sendRouteStartNotification(array("shipment_route_id"=>$this->shipment_route_id,"company_id"=>$this->company_id,"driver_id"=>$this->driver_id,"trigger_code"=>"agentStarted"));
 
             $this->code = "ROUTE-STARTED";

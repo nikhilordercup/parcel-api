@@ -22,9 +22,8 @@ final class Nextday extends Booking {
     }
 
     private
-            function _getCustomerCarrierAccount() {
+    function _getCustomerCarrierAccount() {
         $result = array();
-        //print_r($this->_param);
         foreach ($this->_param->collection as $collection) {
             $collectionCountry = $collection->country;
         }
@@ -42,10 +41,10 @@ final class Nextday extends Booking {
         } else if($homeCountry == strtolower ($deliveryCountry->short_name) && $homeCountry != strtolower($collectionCountry->short_name)) {
             $flowType = 'Import';
         }
-        //echo $flowType;die;
-        
+
+
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
-        //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
+
         if(count($carrier)>0){
             foreach($carrier as $key => $item) {
                 
@@ -61,7 +60,7 @@ final class Nextday extends Booking {
                     } else {
                         //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
                         $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
-						//print_r($services);die;
+
                         if(count($services)>0)
                         {
                             foreach($services as $service) 
@@ -76,9 +75,10 @@ final class Nextday extends Booking {
                     }
                 }
             } 
-            
+
             $collectionIndex = 0;
             $collectionList = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
+           
             if (count($collectionList) > 0) {
                 foreach ($collectionList as $item) {
 					if(strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])){
@@ -394,7 +394,7 @@ final class Nextday extends Booking {
 
     private
 
-    function _setPostRequest(){//print_r($this->_param);die;
+    function _setPostRequest(){
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
 
@@ -457,36 +457,30 @@ final class Nextday extends Booking {
             return $accountStatus;
         }
         //find distance matrix
+
         $key = 0;
         $destinations = array();
         $this->collection_postcode = $this->_param->collection->$key->postcode;
+       
+        $this->_setPostRequest();
 
-        //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
-        //foreach($this->_param->delivery as $item)
-        //    array_push($destinations, implode(",", (array) $item->geo_position));
-        //$distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
-        //if($distanceMatrix->status=="success"){
-            //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
-            //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
-            $this->_setPostRequest();
-            if($this->data["status"]=="success"){
-                $requestStr = json_encode($this->data);
-		//print_r($requestStr);die;
-                $responseStr = $this->_postRequest($requestStr);
-                $response = json_decode($responseStr);
-                $response = $this->_getCarrierInfo($response->rate);
-                
-                if(isset($response->status) and $response->status="error"){
-                    return array("status"=>"error", "message"=>$response->message);
-                }
-                return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
-            }else {
-                return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
+        if($this->data["status"]=="success"){
+            $requestStr = json_encode($this->data);
+	
+            $responseStr = $this->_postRequest($requestStr);
+            $response = json_decode($responseStr);
+            $response = $this->_getCarrierInfo($response->rate);
+            
+            if(isset($response->status) and $response->status="error"){
+                return array("status"=>"error", "message"=>$response->message);
+            }
+            return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
+        }else {
+            return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
         }
     }
 
     public function saveBookingBKP(){
-        //print_r($this->_param->service_opted->collection_carrier);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if ($accountStatus["status"] == "error") {
             return $accountStatus;
@@ -580,17 +574,13 @@ final class Nextday extends Booking {
         }
         $this->commitTransaction();
         // call label generation method
-        //print_r(array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity"));die;
 
         return array("status" => "success", "message" => "Shipment booked successful. Shipment ticket $loadIdentity");
     }
 
     public function saveBooking() {
 
-        //print_r($this->_param); die;	
-
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
-        //print_r($this->_param->service_opted->collection_carrier);die;
 
         if ($accountStatus["status"] == "error") {
             return $accountStatus;
@@ -749,7 +739,6 @@ final class Nextday extends Booking {
 		
         if($labelInfo['status']=='success')
         {
-            //print_r($labelInfo); die;
             
             /*************save label data in db****************************************/            
             $labelData = array(

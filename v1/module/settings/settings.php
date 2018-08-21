@@ -5,6 +5,7 @@ class Settings extends Icargo{
 	private $_user_id;
     private $_copany_id = null;
 	protected $_parentObj;   
+    
 	private function _setUserId($v){
 		$this->_user_id = $v;
 	}
@@ -16,7 +17,9 @@ class Settings extends Icargo{
            $this->_copany_id =  $data->company_id;
         }
 		$this->_parentObj = parent::__construct(array("email"=>$data->email, "access_token"=>$data->access_token));
-        $this->modelObj  = Settings_Model::getInstanse();  
+        $this->modelObj  = Settings_Model::getInstanse(); 
+
+         $this->db = new DbHandler(); 
 	}
 	
     public function getAllSettingRowData(){
@@ -52,8 +55,20 @@ class Settings extends Icargo{
           return $data;  
 	}
     public function getAllShipmentsStatus(){
-         $data =  $this->modelObj->getAllShipmentsStatus();
-          return $data; 
+         $items =  $this->modelObj->getAllShipmentsStatus();
+
+         foreach($items as $key=>$item){
+            $trackingInternalCode = $this->modelObj->findTrackingCodeByShipmentCode($item["code"]);
+            $temp = array();
+            foreach($trackingInternalCode as $code)
+                array_push($temp, $code["tracking_code"]);
+            
+            $items[$key]["tracking_internal_code"] = $temp;
+         }
+
+         $trackingCode =  $this->modelObj->getAllShipmentTrackingCode();
+
+         return array("shipment_status"=>$items,"tracking_code"=>$trackingCode); 
 	}
     public function getAllInvoiceShipmentStatus(){
        $data =  $this->modelObj->getAllInvoiceShipmentStatus();
@@ -88,21 +103,27 @@ class Settings extends Icargo{
       return $response; 
     }
     public function updateInternalTracking($param){
-          $param = json_decode(json_encode($param),1);
-          if(count($param['data'])>0){
-            $editstatus =  $this->modelObj->editContent("shipments_master",array('tracking_internal_code'=>$param['data']['val']),"id = '".$param['data']['id']."'");
-            if($editstatus){
+        $error = false;
+        $this->db->startTransaction();
+        $this->modelObj->deleteShipmentTrackingCodeByShipmentCode($param->code);
+
+        foreach($param->selectedTrackingCode as $trackingCode){
+            $lastId = $this->modelObj->saveShipmentTrackingCode($param->code, $trackingCode);
+            if($lastId==0){
+                $this->db->rollBackTransaction();
+                $error = true;
+                break;
+            }
+        }
+        if(!$error){
+            $this->db->commitTransaction();
             $response["status"] = "success";
-			$response["message"] = "Your action perform successfully"; 
-            }else{
-            $response["status"] = "error";
-			$response["message"] = "Failed to update our action. Please try again"; 
-           }
+            $response["message"] = "Your action perform successfully"; 
         }else{
             $response["status"] = "error";
-			$response["message"] = "Failed to update our action. Please try again";     
-          }
-      return $response; 
+            $response["message"] = "Failed to update our action. Please try again"; 
+        }
+        return $response; 
     }
     public function getAllCarrier(){
          $data =  $this->modelObj->getAllCarrier($this->_copany_id);

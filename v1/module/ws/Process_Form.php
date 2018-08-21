@@ -367,14 +367,16 @@ class Process_Form
             "aaData" => $data
         );
     }
+
     public function process()
-    {
+    {   
         $data               = array();
         $driver_data        = $this->_get_driver_by_id();
         $this->driver_name  = $driver_data['name'];
         $company_warehouse  = $this->_get_driver_company_warehouse();
         $this->company_id   = $company_warehouse['company_id'];
         $this->warehouse_id = $company_warehouse['warehouse_id'];
+
         if ($this->loadActionCode == 'processdriversuccessaction') {
             $pod_data = array(
                 'contact' => $this->contact_name,
@@ -402,7 +404,11 @@ class Process_Form
                     $internalActionCode = "DELIVERYSUCCESS";
                 }
                 $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');
+
+                Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver"));
+
                 $this->_add_driver_tacking();
+
                 if($data["left"]==0){
                     $actions            = "Route completed";
                     $internalActionCode = "ROUTECOMPLETED";
@@ -412,7 +418,8 @@ class Process_Form
                     "shipment_ticket" => $this->shipment_ticket,
                     "company_id" => $this->company_id,
                     "warehouse_id" => $this->warehouse_id,
-                    "trigger_code" => "successful"
+                    "trigger_code" => "successful",
+                    "shipment_type" => $shipmentData["instaDispatch_loadGroupTypeCode"]
                 ));
             }
         } else if ($this->loadActionCode == 'processdriverfailaction') {
@@ -428,14 +435,18 @@ class Process_Form
                     $actions            = "Delivery failed";
                     $internalActionCode = "DELIVERYFAILED";
                 }
+
+                Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver"));
+
                 $this->_add_driver_tacking();
-                $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');
+
                 Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
                     "service_message" => $this->service_message,
                     "shipment_ticket" => $this->shipment_ticket,
                     "company_id" => $this->company_id,
                     "warehouse_id" => $this->warehouse_id,
-                    "trigger_code" => "failed"
+                    "trigger_code" => "failed",
+                    "shipment_type" => $shipmentData["instaDispatch_loadGroupTypeCode"]
                 ));
             }
         }
