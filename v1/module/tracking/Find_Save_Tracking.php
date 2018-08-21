@@ -241,6 +241,12 @@ class Find_Save_Tracking{
                 $this->_saveTrackingStatus(array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"delivered carded"));
                 return array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"delivered carded");
             }
+
+            if($allDeliveredShipmentCount == 0){
+                //out for delivery
+                $this->_saveTrackingStatus(array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery"));
+                return array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery");
+            }
         }
         elseif($notDeliveredCount==0){
             //out for delivery

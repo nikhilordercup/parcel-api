@@ -167,7 +167,7 @@ class Tracking_Model_Index
 
     function saveTrackingcode($data)
         {
-        return $this->_db->update("shipment_service", array("tracking_code"=>$data["code"]), "load_identity='".$data["load_identity"]."'");
+        return $this->_db->update("shipment_service", array("tracking_code"=>$data["code"],"status"=>$data["code"]), "load_identity='".$data["load_identity"]."'");
         }
 
     public
