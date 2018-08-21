@@ -22,7 +22,6 @@ class Find_Save_Tracking{
 
     function _findAllTrackingCode($load_identity){
         $allTrackingCode = $this->modelObj->findAllTrackingCode($load_identity);
-        print_r($allTrackingCode);die;
         return $allTrackingCode;
     }
      
@@ -173,7 +172,7 @@ class Find_Save_Tracking{
 
             if($allCollectedShipmentCount==0 and $allCardedShipmentCount>0){
                 //collection carded
-                echo 123;
+                
                 $this->_saveTrackingStatus(array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"collection carded"));
                 return array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"collection carded");
             }
@@ -268,7 +267,7 @@ class Find_Save_Tracking{
 
     public 
 
-    function saveTrackingStatus($param){echo '209';echo json_encode($param);
+    function saveTrackingStatus($param){
         //check any collection left
         $this->shipmentTickets = explode(",", $param["ticket_str"]);
 
@@ -279,21 +278,21 @@ class Find_Save_Tracking{
         $loadIdentity = $this->modelObj->findAssignedLoadIdentityByShipmentTicket($ticketStr);
 
         $temp = array();
-        foreach($loadIdentity as $shipment){
-            $temp[$shipment["instaDispatch_loadIdentity"]]["warehouse_id"]  = $shipment["warehouse_id"];
-            $temp[$shipment["instaDispatch_loadIdentity"]]["load_identity"] = $shipment["load_identity"];
-            $temp[$shipment["instaDispatch_loadIdentity"]]["load_type"] = $shipment["load_type"];
+        foreach($loadIdentity as $shipment){  
+            $temp[$shipment["load_identity"]]["warehouse_id"]  = $shipment["warehouse_id"];
+            $temp[$shipment["load_identity"]]["load_identity"] = $shipment["load_identity"];
+            $temp[$shipment["load_identity"]]["load_type"] = $shipment["load_type"];
 
-            $temp[$shipment["instaDispatch_loadIdentity"]]["company_id"] = $shipment["company_id"];
-            $temp[$shipment["instaDispatch_loadIdentity"]]["warehouse_id"] = $shipment["warehouse_id"];
-            $temp[$shipment["instaDispatch_loadIdentity"]]["shipment_route_id"] = $shipment["shipment_route_id"];
-            $temp[$shipment["instaDispatch_loadIdentity"]]["driver_id"] = $shipment["assigned_driver"];
+            $temp[$shipment["load_identity"]]["company_id"] = $shipment["company_id"];
+            $temp[$shipment["load_identity"]]["warehouse_id"] = $shipment["warehouse_id"];
+            $temp[$shipment["load_identity"]]["shipment_route_id"] = $shipment["shipment_route_id"];
+            $temp[$shipment["load_identity"]]["driver_id"] = $shipment["assigned_driver"];
 
-            $temp[$shipment["instaDispatch_loadIdentity"]]["shipment_info"][] = array(
+            $temp[$shipment["load_identity"]]["shipment_info"][] = array(
                 "shipment_type"   => $shipment["load_type"],
                 "shipment_ticket" => $shipment["shipment_ticket"],
-                "current_status"  => $shipment["current_status"],
-                "service_type"    => ($shipment["shipment_service_type"]=='P') ? 'collection' : 'delivery'
+                "current_status"  => $shipment["current_status"]
+                //"service_type"    => ($shipment["shipment_service_type"]=='P') ? 'collection' : 'delivery'
             );
         }
         $temp = array_values($temp);
@@ -337,8 +336,8 @@ class Find_Save_Tracking{
             $temp[$shipment["load_identity"]]["shipment_info"][] = array(
                 "shipment_type"   => $shipment["load_type"],
                 "shipment_ticket" => $shipment["shipment_ticket"],
-                "current_status"  => $shipment["current_status"],
-                "service_type"    => ($shipment["shipment_service_type"]=='P') ? 'collection' : 'delivery'
+                "current_status"  => $shipment["current_status"]//,
+                //"service_type"    => ($shipment["shipment_service_type"]=='P') ? 'collection' : 'delivery'
             );
         }
         $temp = array_values($temp);

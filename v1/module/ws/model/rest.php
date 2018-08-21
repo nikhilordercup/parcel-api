@@ -1,13 +1,15 @@
 <?php
 class Ws_Model_Rest
 {
-    private static $_db = NULL;
+    private $_db = NULL;
+	private static $_dbObj = NULL;
     public function __construct()
     {
-        if($this->_db==NULL){
-            $this->_db = new DbHandler();
+        if(self::$_dbObj==NULL){
+            self::$_dbObj = new DbHandler();
         }
-        return $this->_db;
+		$this->_db = self::$_dbObj;
+        return $this->_db; 
     }
     
     public function save($table, $data)

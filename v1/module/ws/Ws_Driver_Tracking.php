@@ -41,7 +41,7 @@ class Ws_Driver_Tracking
     public function __set($property, $value){
         if(property_exists($this, $property)){
             $this->$property = $value;
-            return this;
+            return $this; 
         }else{
             throw new Exception('Can\'t set property ' . $property);
         }
