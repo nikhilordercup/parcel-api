@@ -385,25 +385,27 @@ final class Coreprime_Dhl extends Carrier {
     public function getServiceInfo($loadIdentity) {
         $serviceInfo = $this->modelObj->getServiceDataByLoadIdentity($loadIdentity);
         return $serviceInfo;
-    }
-
-    public function getCredentialInfo($carrierAccountNumber, $loadIdentity) {
+    }    
+    
+    public function getCredentialInfo($carrierAccountNumber, $loadIdentity)
+    {
         $credentialData = array();
-        //$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
+        $credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
 
-        $credentialInfo["username"] = "kuberusinfos";
-        $credentialInfo["password"] = "GgfrBytVDz";
-        $credentialInfo["third_party_account_number"] = "";
-        $credentialInfo["account_number"] = "420714888";
-        $credentialInfo["token"] = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0";
+        $credentialInfo["username"] = $credentialData["username"];
+        $credentialInfo["password"] = $credentialData["password"];
+        $credentialInfo["authentication_token"] = $credentialData["authentication_token"];
+        $credentialInfo["authentication_token_created_at"] = $credentialData["authentication_token_created_at"];
+        $credentialInfo["token"] = $credentialData["token"];
+        $credentialInfo["account_number"] = $carrierAccountNumber; 
+        $credentialInfo["master_carrier_account_number"] = "";
+        $credentialInfo["latest_time"] = "17:00:00";
+        $credentialInfo["earliest_time"]="14:00:00";
+        $credentialInfo["carrier_account_type"] = array("1");    
 
-        /* $credentialInfo["account_number"] = $carrierAccountNumber;
-          $credentialInfo["master_carrier_account_number"] = "";
-          $credentialInfo["latest_time"] = "";
-          $credentialInfo["earliest_time"] = "";
-          $credentialInfo["carrier_account_type"] = array("1"); */
         return $credentialInfo;
     }
+	
 
     private function validate($data) {
         $error = array();
