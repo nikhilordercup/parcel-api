@@ -710,7 +710,9 @@ final class Nextday extends Booking
             );
             
             $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id, "pending", $otherDetail);
-            
+
+            $this->_saveInfoReceived($loadIdentity);
+
             if ($serviceStatus["status"] == "error") {
                 $this->rollBackTransaction();
                 return $serviceStatus;

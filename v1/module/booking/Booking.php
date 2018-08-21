@@ -366,6 +366,12 @@ class Booking extends Icargo
 
     protected
 
+    function _saveInfoReceived($load_identity){
+        return $this->modelObj->saveInfoReceived($load_identity);
+    }
+
+    protected
+
     function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail){       
 		
         $service_data = array();

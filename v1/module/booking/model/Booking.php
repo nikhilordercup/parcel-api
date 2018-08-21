@@ -445,5 +445,12 @@ class Booking_Model_Booking
     public function getCompanyInfo($companyId) {
         return $this->_db->getRowRecord("SELECT IU.* FROM " . DB_PREFIX . "users AS IU WHERE IU.id='$companyId'");
     }
+
+    public
+
+    function saveInfoReceived($load_identity){
+        $id = $this->_db->save("shipment_tracking", array("load_identity"=>$load_identity, "code"=>"INFO_RECEIVED"));
+        return $id;
+    }
 }
 ?>
