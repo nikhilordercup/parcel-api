@@ -199,8 +199,14 @@ class Carrier{
 		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
 		if($labelInfo[0]['label_json']!=''){
 			$labelArr = json_decode($labelInfo[0]['label_json']);
+<<<<<<< HEAD
+			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
+            $requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,
+												/* 'authentication_token_created_at'=>$labelArr->label->authenticationtoken_created_at, */'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
+=======
             $requestArr['credentials'] = array('username'=>'nikhil.kumar@ordercup.com','password'=>'Password123','authentication_token'=>$labelArr->label->authenticationtoken,
 												/* 'authentication_token_created_at'=>$labelArr->label->authenticationtoken_created_at, */'token'=> 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImRldmVsb3BlcnNAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Njk5MzU0N30.cpm3XYPcLlwb0njGDIf8LGVYPJ2xJnS32y_DiBjSCGI','account_number'=>$labelArr->label->accountnumber);
+>>>>>>> beb058e407b0eb33207b0f9cd88c9f7169078371
 			$requestArr['carrier'] = $param->carrier;
 			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
 			$requestArr['carrier_cancel_return'] = false;
