@@ -220,7 +220,12 @@
 
             $origin = urlencode($param['origin']);
             $destinations = urlencode(implode("|",$param['destinations']));
-            $departure_time = $param["departure_time"];
+			$dateTimeZone = new DateTimeZone("Europe/London"); 
+			$dateTime = new DateTime(date("Y-m-d H:i:s",$param["departure_time"]), $dateTimeZone);
+			$timeOffset = $dateTimeZone->getOffset($dateTime); // New time since epoch according to timezone 
+			$newTime = time() + $timeOffset; 
+			$departure_time = strtotime(date("Y-m-d H:i:s",$newTime));
+            //$departure_time = $param["departure_time"];
 
             $api_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&key=$key";
             //$api_url = "http://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&sensor=false";

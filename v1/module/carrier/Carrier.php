@@ -95,22 +95,30 @@ class Carrier{
 	}
 	
 	public function mergePdf($labelPdfArr){
-		try{
-			$labelArr = array();
-			foreach($labelPdfArr as $file){
-				$file['label_file_pdf'] = explode('/',$file['label_file_pdf']);
-				$file = "/var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7];
-				array_push($labelArr,$file);
-			}
-			$fileName = uniqid().'.pdf';
-			$pdf = new ConcatPdf();
-			$pdf->setFiles($labelArr);
-			$pdf->concat();
-			$pdf->Output('/var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
-		}catch(Exception $e){
-			print_r($e);die;
-		}
-		return array("status"=>"success","file_path"=>"http://api.instadispatch.com/dev/temp/".$fileName);
+            try{
+                $labelArr = array();       
+                //print_r($labelPdfArr); die;
+                $rootPath = dirname(dirname(dirname(dirname(__FILE__)))); 
+                $labelPath = $rootPath. '/label/'; 
+                foreach($labelPdfArr as $file){				                                
+                        $loadIdentity = $file['load_identity'];
+                        $carrierCode = strtolower($file['carrier_code']);
+                        $pathArr = explode('/',$file['label_file_pdf']);                    
+                        //$file = "/var/www/html/public_html/icargo/api/".$file['label_file_pdf'][3].'/'.$file['label_file_pdf'][4].'/'.$file['label_file_pdf'][5].'/'.$file['label_file_pdf'][6].'/'.$file['label_file_pdf'][7];
+                        $filePath = $labelPath.$loadIdentity.'/'.$carrierCode.'/'.$pathArr[ count($pathArr) - 1];
+                        array_push($labelArr,$filePath);
+                } 
+                $fileName = uniqid().'.pdf';
+                $pdf = new ConcatPdf();
+                $pdf->setFiles($labelArr);
+                $pdf->concat();
+                //$pdf->Output('/var/www/html/public_html/icargo/api/dev/temp/'.$fileName,'F');
+                $pdf->Output($rootPath.'/temp/'.$fileName,'F');
+            } catch(Exception $e) {
+                print_r($e);die;
+            }
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            return array("status"=>"success","file_path" => $fileUrl."/temp/".$fileName);
 	}
 
 
@@ -191,12 +199,15 @@ class Carrier{
 		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
 		if($labelInfo[0]['label_json']!=''){
 			$labelArr = json_decode($labelInfo[0]['label_json']);
-            $requestArr['credentials'] = array('username'=>'nikhil.kumar@ordercup.com','password'=>'Password123','authentication_token'=>$labelArr->label->authenticationtoken,
-												/* 'authentication_token_created_at'=>$labelArr->label->authenticationtoken_created_at, */'token'=> 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0','account_number'=>$labelArr->label->accountnumber);
+                        
+			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
+            $requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,
+												/* 'authentication_token_created_at'=>$labelArr->label->authenticationtoken_created_at, */'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
+
 			$requestArr['carrier'] = $param->carrier;
 			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
 			$requestArr['carrier_cancel_return'] = false;
-			$requestArr['ship_date'] = $param->ship_date; 
+			$requestArr['ship_date'] = $param->ship_date;		 	
 			$cancel = $obj->_postRequest("void",json_encode($requestArr));
 			return $cancel;
 		}

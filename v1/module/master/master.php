@@ -113,23 +113,28 @@ class Master extends Icargo{
       return  $data;  
     } */
 	
-	public function getAllCourierServices($param){  
-         $data  = $this->_parentObj->db->getAllRecords("
-         SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,L.service_id as service_id,B.account_number as account_number
-         FROM ".DB_PREFIX."courier_vs_services_vs_company as L 
-         INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
-         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." 
-         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id."");//AND  L.courier_id = ".$param->viewid."  //AND B.account_number = '".$param->account_number."'
-       foreach( $data as $key=>$val){
-           $data[$key]['action'] = 'editServiceAccount';
-           $data[$key]['actioncode'] = 'INNER';
-           $data[$key]['status'] = ($val['status']==1)?true:false;
-		   $flowtype = $this->_parentObj->db->getAllRecords("SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = ".$val['service_id']." ");
-		   foreach($flowtype as $flowType){
-			    $data[$key]['flow_type'][] = $flowType['flow_type'];
-		   }
-       }
-      return  $data;  
+    public function getAllCourierServices($param)
+    {  
+        $sql = "SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,
+            L.company_service_name as custom_service_name,L.status,L.service_id as service_id,B.account_number as account_number
+            FROM ".DB_PREFIX."courier_vs_services_vs_company as L 
+            INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id 
+            INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." 
+            INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id."
+            AND L.courier_id in (SELECT id FROM icargo_courier_vs_company WHERE company_id= ".$this->_company_id." AND status=1)";
+        
+        $data  = $this->_parentObj->db->getAllRecords($sql);
+        foreach( $data as $key=>$val)
+        {
+            $data[$key]['action'] = 'editServiceAccount';
+            $data[$key]['actioncode'] = 'INNER';
+            $data[$key]['status'] = ($val['status']==1)?true:false;
+            $flowtype = $this->_parentObj->db->getAllRecords("SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = ".$val['service_id']." ");
+            foreach($flowtype as $flowType){
+                     $data[$key]['flow_type'][] = $flowType['flow_type'];
+            }
+        }              
+       return  $data;  
     } 	
 	/* public function getAllCourierSurcharge($param){
          $data  = $this->_parentObj->db->getAllRecords("

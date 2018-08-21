@@ -1482,7 +1482,7 @@ class shipment extends Library{
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
-    }
+    } 
 
     private
     

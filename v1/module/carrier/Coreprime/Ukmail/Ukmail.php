@@ -60,7 +60,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 			$img->setImageFormat('pdf');
 			$pdf = $img->writeImages($label_path.$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',true);
 			unset($labelArr->label->base_encode);
-			return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_tracking_number"=>$labelArr->label->tracking_number,"label_files_png"=>implode(',',$label_images),"label_file_pdf"=>"http://api.instadispatch.com/dev/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_json"=>json_encode($labelArr));
+			return array("status"=>"success","message"=>"label generated successfully","file_path"=>"http://api.instadispatch.com/live/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_tracking_number"=>$labelArr->label->tracking_number,"label_files_png"=>implode(',',$label_images),"label_file_pdf"=>"http://api.instadispatch.com/live/label/".$loadIdentity.'/ukmail/'.$loadIdentity.'.pdf',"label_json"=>json_encode($labelArr));
 			
 		}else{
 			return array("status"=>"error","message"=>$labelArr->error);
@@ -123,24 +123,30 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */{
 	
 	public function getCredentialInfo($carrierAccountNumber, $loadIdentity){
 		$credentialData = array();
-		//$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
+		$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
 		
-		$credentialInfo["username"] = "nikhil.kumar@ordercup.com";
-		$credentialInfo["password"] = "Password123";
-		$credentialInfo["authentication_token"] = "";
-		$credentialInfo["authentication_token_created_at"] = "";
-		$credentialInfo["token"] ="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6InNtYXJnZXNoQGdtYWlsLmNvbSIsImlzcyI6Ik9yZGVyQ3VwIG9yIGh0dHBzOi8vd3d3Lm9yZGVyY3VwLmNvbS8iLCJpYXQiOjE1MDI4MjQ3NTJ9.qGTEGgThFE4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0";
-		$credentialInfo["account_number"] ="K906430"; 
+		$credentialInfo["username"] = $credentialData["username"];
+		$credentialInfo["password"] = $credentialData["password"];
+		$credentialInfo["authentication_token"] = $credentialData["authentication_token"];
+		$credentialInfo["authentication_token_created_at"] = $credentialData["authentication_token_created_at"];
+		$credentialInfo["token"] = $credentialData["token"];
+		$credentialInfo["account_number"] = $carrierAccountNumber; 
 		$credentialInfo["master_carrier_account_number"] = "";
         $credentialInfo["latest_time"] = "17:00:00";
 		$credentialInfo["earliest_time"]="14:00:00";
 		$credentialInfo["carrier_account_type"] = array("1");
-
-        /* $credentialInfo["account_number"] = $carrierAccountNumber;
+		
+		/* $credentialInfo["username"] = "info@pedalandpost.co.uk";
+		$credentialInfo["password"] = "x65we30pg";//"casi0advent";
+		$credentialInfo["authentication_token"] = "";
+		$credentialInfo["authentication_token_created_at"] = "";
+		$credentialInfo["token"] ="";
+		$credentialInfo["account_number"] = "D052411";//"K906430"; 
 		$credentialInfo["master_carrier_account_number"] = "";
-		$credentialInfo["latest_time"] = "";
-		$credentialInfo["earliest_time"] = "";
+        $credentialInfo["latest_time"] = "17:00:00";
+		$credentialInfo["earliest_time"]="14:00:00";
 		$credentialInfo["carrier_account_type"] = array("1"); */
+
 		return $credentialInfo;
 	}
 	

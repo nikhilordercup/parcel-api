@@ -134,26 +134,7 @@ class Process_Form{
         $trackid              = $this->model_rest->save("api_driver_tracking", $data);
         return $trackid;
     }
-
-    private function get_client_ip() {
-        $ipaddress = '';
-        if (isset($_SERVER['HTTP_CLIENT_IP']))
-            $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-        else if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        else if(isset($_SERVER['HTTP_X_FORWARDED']))
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-        else if(isset($_SERVER['HTTP_FORWARDED_FOR']))
-            $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-        else if(isset($_SERVER['HTTP_FORWARDED']))
-            $ipaddress = $_SERVER['HTTP_FORWARDED'];
-        else if(isset($_SERVER['REMOTE_ADDR']))
-            $ipaddress = $_SERVER['REMOTE_ADDR'];
-        else
-            $ipaddress = 'UNKNOWN';
-        return $ipaddress;
-    }
-    
+	
     private function _delivered_shipment($ticket, $driver_id, $route_id, $driver_name, $pod_data, $latitude, $longitude, $service_msg)
     {   // script for grid update
 
@@ -220,15 +201,11 @@ class Process_Form{
 					
                         $condition2         = "shipment_route_id = '" . $shipment_details['shipment_routed_id'] . "' AND driver_id = '" . $shipment_details['assigned_driver'] . "'  AND shipment_ticket = '" . $ticket . "' AND shipment_accepted = 'YES' ";
 
-                        $serverData = $_SERVER;
-                        $serverData["CLIENT_IP"] = $this->get_client_ip();
-
                         $status2            = $this->model_rest->update("driver_shipment", array(
                             'shipment_status' => 'D',
                             'is_driveraction_complete' => 'Y',
                             'service_date' => date("Y-m-d"),
-                            'service_time' => date("H:m:s"),
-                            'server_string' => json_encode($serverData)
+                            'service_time' => date("H:m:s")
                         ), $condition2);
                         // check all Delivery completed than release to Driver			
                     
