@@ -199,12 +199,15 @@ class allShipments extends Icargo
                     $data['action'] = 'nextday';
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
-							$labelArr = json_decode($pickupData['label_json']);
-							if(is_object($labelArr) && count($labelArr)>0)
-								$collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
-							else
-								$collectionReference = "";
-							//}
+                            $labelArr = json_decode($pickupData['label_json']);
+
+
+                            if(is_object($labelArr) && count($labelArr)>0){
+                                    $collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
+                            }else{
+                                    $collectionReference = "";
+                            }
+
                             $data['customer']    = $pickupData['shipment_customer_name'];
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
