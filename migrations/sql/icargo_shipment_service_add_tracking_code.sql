@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipment_service` ADD `tracking_code` VARCHAR(45) NULL DEFAULT NULL AFTER `status`;
