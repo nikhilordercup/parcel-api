@@ -2152,6 +2152,15 @@ $app->post('/withdrawAssignedRoute', function() use ($app){
     echoResponse(200, $response);
 });
 
+$app->post('/updateTrackingStatus', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Route_Release(array("email"=>$r->email, "access_token"=>$r->access_token));
+    $response = $obj->routeReleaseFromDriver($r);
+    echoResponse(200, $response);
+});
+
+
 $app->post('/test', function() use ($app){
     //$r = json_decode($app->request->getBody(), true);
     //verifyRequiredParams(array('load_identity'),$r);

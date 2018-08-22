@@ -101,8 +101,11 @@ class Find_Save_Tracking{
             if($allCollectedShipmentCount > 0){
                 //collected
                 //if load type is SAME then we have to check 
+
+
                 if($this->load_type=='SAME'){
                     $codeCount = $this->_findTrackingCodeCountByLoadTypeAndTrackingCode("COLLECTIONSUCCESS", $this->load_identity);
+
                     if($codeCount==0)
                         $this->_saveTrackingStatus(array("tracking_code"=>"COLLECTIONSUCCESS", "actions"=>"collected"));
                 }
@@ -230,6 +233,7 @@ class Find_Save_Tracking{
             }
         }
         elseif($allDeliveryShipmentCount == 1){
+            
             if($allDeliveredShipmentCount > 0){
                 //delivered
                 $this->_saveTrackingStatus(array("tracking_code"=>"DELIVERYSUCCESS", "actions"=>"delivered"));

@@ -86,15 +86,15 @@ class Settings extends Icargo{
       return $response; 
     }
     public function updateShipmentTracking($param){
-          $param = json_decode(json_encode($param),1);
-          if(count($param['data'])>0){
-            $editstatus =  $this->modelObj->editContent("shipments_master",array('is_used_for_tracking'=>$param['data']['val']),"id = '".$param['data']['id']."'");
+          //$param = json_decode(json_encode($param),1);
+          if(count($param)>0){
+            $editstatus =  $this->modelObj->editContent("shipments_master",array('is_used_for_tracking'=>$param->tracking_status),"code = '".$param->code."'");
             if($editstatus){
-            $response["status"] = "success";
-			$response["message"] = "Your action perform successfully"; 
+                $response["status"] = "success";
+    			$response["message"] = "Your action perform successfully"; 
             }else{
-            $response["status"] = "error";
-			$response["message"] = "Failed to update our action. Please try again"; 
+                $response["status"] = "error";
+    			$response["message"] = "Failed to update our action. Please try again"; 
            }
         }else{
             $response["status"] = "error";

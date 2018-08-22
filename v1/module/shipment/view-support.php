@@ -1359,13 +1359,14 @@ class View_Support extends Icargo{
         }
 
         $this->saveTrackingStatus($getAllTicket);
+        Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>"", "user_type"=>"Controller"));
 
 		$checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $shipment_route_id);
         if ($checkMoreShipmentofthisRouteDriver == 0) {
 			 $condition = "shipment_route_id = '" . $shipment_route_id . "' AND driver_id = '" . $driverid . "'";
 			 $status    = $this->modelObj->editContent("shipment_route", array('is_active' => 'N','is_pause'=>'0'), $condition);
 		}
-       
+        
         $fbData = $firebaseObj->withdrawShipments($firebaseData);
 
         if($fbData["jobCount"]==0){
@@ -1406,7 +1407,7 @@ class View_Support extends Icargo{
 				$statusdata = $this->deliveredShipment('"'.$ticket.'"', $driverid, $shipment_route_id, $driverUsername, $podData, $lattitude, $longitude, $servicedate, $servicetime,$company_id,'controller');
 				array_push($statusarr, $statusdata);
 			}
-			         
+			Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>"", "user_type"=>"Controller"));        
 			$fbStatus = $firebaseObj->DeliverShipments($fbData);
             if($fbStatus["jobCount"]==0){
                 $completeRouteObj = new Route_Complete(array('shipment_route_id'=>$shipment_route_id,'company_id'=>$this->company_id,'email'=>$this->primary_email,'access_token'=>$this->access_token));

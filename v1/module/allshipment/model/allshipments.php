@@ -614,5 +614,10 @@ SELECT  S.warehouse_id as warehouse_id,
 		$records = $this->db->getAllRecords("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity IN ('$load_identity')");
 		return $records;
 	} 
+
+    public function getCurrentTrackingStatusByLoadIdentity($load_identity){ 
+        return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SMT.name AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON SMT.code=SST.tracking_code WHERE load_identity = '$load_identity'");
+        //return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SST.tracking_code AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST WHERE SST.load_identity = '$load_identity'");
+    }
   }
 ?>

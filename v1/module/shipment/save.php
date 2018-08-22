@@ -1394,7 +1394,7 @@ class shipment extends Library{
             //$_data["chargable_value"] = 0.00;
             $_data["invoice_reference"] ='';
            // $_data["json_data"] = $data_string;
-
+            $_data["status"] ='INFO_RECEIVED';   
             $service_id = $this->db->save("shipment_service", $_data);
         }
         return $service_id;

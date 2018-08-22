@@ -376,7 +376,7 @@ class Process_Form
         $company_warehouse  = $this->_get_driver_company_warehouse();
         $this->company_id   = $company_warehouse['company_id'];
         $this->warehouse_id = $company_warehouse['warehouse_id'];
-        Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver"));die;
+
         if ($this->loadActionCode == 'processdriversuccessaction') {
             $pod_data = array(
                 'contact' => $this->contact_name,
