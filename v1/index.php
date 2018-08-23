@@ -15,6 +15,7 @@ require '../vendor/autoload.php';
 use Firebase\JWT\JWT;
 
 $app = new \Slim\Slim();
+$app->config('debug', true);
 
 // User id from db - Global Variable
 $user_id = NULL;
@@ -135,6 +136,9 @@ require_once 'pod_signature.php';//no need to keep separate file to save image. 
 require_once 'module/package/Module_Package_Index.php';
 
 require_once 'module/booking/collection.php';
+require_once 'module/tracking/Tracking_Index.php';
+require_once 'module/tracking/Find_Save_Tracking.php';
+
 
 //Country file included
 require_once 'module/country/model/country.php';

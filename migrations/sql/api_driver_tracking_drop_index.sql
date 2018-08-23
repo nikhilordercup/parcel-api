@@ -1,0 +1,1 @@
+ALTER TABLE icargo_api_driver_tracking DROP INDEX route_id;
