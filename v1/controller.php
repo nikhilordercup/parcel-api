@@ -41,13 +41,14 @@ $app->post('/getControllerWarehouseData', function() use ($app) {
  
 });
 
-$app->post('/getWarehouseList', function() use ($app) {
-    $response = array();
-    $r = json_decode($app->request->getBody());
-	$obj = new Controller($r);
-	$response["warehouse_list"] = $obj->getWarehouseListByComapnyId($r);
-	echoResponse(200, $response);
-});
+//This route was creating problem due to duplicate route in driver.php 
+//$app->post('/getWarehouseList', function() use ($app) {
+//    $response = array();
+//    $r = json_decode($app->request->getBody());
+//	$obj = new Controller($r);
+//	$response["warehouse_list"] = $obj->getWarehouseListByComapnyId($r);
+//	echoResponse(200, $response);
+//});
 
 $app->post('/getWarehouseListByControllerId', function() use ($app) {
     $response = array();

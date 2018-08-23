@@ -783,7 +783,7 @@ class Booking extends Icargo
     function getCustomerCarrierAccount($company_id, $customer_id, $collection_postcode, $collection_date){
         $carrierAccount = array();
         $carriers = $this->modelObj->getCompanyCarrier($company_id);
-
+        //print_r($carriers);exit;
         //
 
 
@@ -792,9 +792,9 @@ class Booking extends Icargo
         }
 
         $carrierAccount = implode(',', $carrierAccount);
-
+        
         $carrierLists = $this->modelObj->getCustomerCarrierAccountByAccountId($company_id, $customer_id, $carrierAccount);
-
+        
         $lists = array();
         foreach($carrierLists as $carrierList){
             foreach($carriers as $key => $carrier) {
@@ -803,8 +803,9 @@ class Booking extends Icargo
                     array_push($lists, $carrier);
                 }
             }
-        }        
+        }
         $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);        
+        
         return $lists;
     }
 	
@@ -821,5 +822,100 @@ class Booking extends Icargo
     function getUserInfo($user_id){
         return $this->modelObj->getUserInfo($user_id);
     }
+    public function filterCarrierServiceProviderData(){
+        $this->easyPostData=[];        
+        foreach($this->data['carriers'] as $k=>$d){
+            if(trim($d['provider_name'])=='Easy Post'){
+                $this->easyPostData[]=$d;
+                unset($this->data['carriers'][$k]);
+            }
+            
+        }
+        return $this;
+    }
+    public function fetchEasyPostPrice(){//        
+        $easyPostController=new EasypostController;
+        $toAddress=[
+            "name"    => $this->data['to']['name'],
+            "street1" => $this->data['to']['street1'],
+            "street2" => $this->data['to']['street2'],
+            "company" => $this->data['to']['company'],
+            "city"    => $this->data['to']['city'],
+            "state"   => $this->data['to']['state'],
+            "zip"     => $this->data['to']['zip'],
+            "phone"   => $this->data['to']['phone'],
+            "country" => $this->data['to']['country']
+        ];
+        $fromAddress=[
+            "name"    => $this->data['from']['name'],
+            "street1" => $this->data['from']['street1'],
+            "street2" => $this->data['from']['street2'],
+            "company" => $this->data['from']['company'],
+            "city"    => $this->data['from']['city'],
+            "state"   => $this->data['from']['state'],
+            "zip"     => $this->data['from']['zip'],
+            "phone"   => $this->data['from']['phone'],
+            "country" => $this->data['from']['country']
+        ];
+        $accounts=[];
+        foreach($this->easyPostData as $epd){
+            foreach ($epd['account'] as $c){
+                array_push($accounts, $c['credentials']['easypost_account_id']);
+            }
+        } 
+//       
+        $rates=$easyPostController
+                ->trimArray($toAddress)
+                ->trimArray($fromAddress)
+                ->getShipmentRates($toAddress,$fromAddress,$this->data['package'],$accounts);
+        $priceArray=[];
+        foreach ($rates as $r){
+           // print_r($r->__toArray());
+            $rate=[
+              "rate"=>[
+                           "weight_charge"=>$r['rate'],
+                           "fuel_surcharge"=>0.0,
+                           "remote_area_delivery"=>0.0,
+                           "insurance_charge"=>0.0,
+                           "over_sized_charge"=>0.0,
+                           "over_weight_charge"=>0.0
+                        ]  
+            ];
+            $carrierName=$this->getCarrierNameMapping($r['carrier']);
+            $carrierAccountId=$this->getCarrierAccountId($carrierName);
+            
+            $priceArray['rate'][$carrierName]
+                    [0][$carrierAccountId]
+                    [][$r['service']][]=$rate;
+        }
+        return $priceArray;
+    }
+    private function getCarrierNameMapping($name){
+        $carrierList=[
+            'DHL',
+            'UKMAIL'
+        ];
+        foreach ($carrierList as $c){
+            if(stristr($name,$c)){
+                return $c;
+            }
+        }
+        return $name;
+        
+    }
+    private function getCarrierAccountId($name){
+        foreach($this->easyPostData as $c){
+            if($c['name']==$name){
+                return $c['account'][0]['credentials']['account_number'];
+            }
+        }
+    }
+    protected function toCamelCase($string){
+        $str= explode('_', $string);
+        $final="";
+        foreach($str as $s){
+            $final .= ucfirst($s);
+        }
+        return $final;
+    }
 }
-?>

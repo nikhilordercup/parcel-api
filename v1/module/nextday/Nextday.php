@@ -45,12 +45,14 @@ final class Nextday extends Booking {
         //echo $flowType;die;
         
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
-        //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
-        if(count($carrier)>0){
+        //print_r($carrier);exit;   
+//if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
+        if(count($carrier)>0){            
             foreach($carrier as $key => $item) {
                 
                 $accountId = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
                 $carrier[$key]["account_id"] = $accountId;
+                $carrier[$key]["provider_name"] = $item['provider_name'];
                 
                 foreach($this->_param->parcel as $parceldata){                    
                     $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id,$parceldata->package_code,$item['carrier_code'], $flowType);
@@ -59,8 +61,10 @@ final class Nextday extends Booking {
                                 $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
                         }
                     } else {
+                        
                         //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
                         $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
+                        
                         if(count($services)>0)
                         {
                             foreach($services as $service) 
@@ -78,7 +82,6 @@ final class Nextday extends Booking {
             
             $collectionIndex = 0;
             $collectionList = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
-
             if (count($collectionList) > 0) {
                 foreach ($collectionList as $item) {
 					if(strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])){
@@ -96,12 +99,14 @@ final class Nextday extends Booking {
 
                         array_push($result, array(
                             "name" => $item["carrier_code"],
+                            "provider_name"=>$item["provider_name"],
                             "account" => array(
                                 array(
                                     "credentials" => array(
                                         "username" => $item["username"],
                                         "password" => $item["password"],
-                                        "account_number" => $item["account_number"]
+                                        "account_number" => $item["account_number"],
+                                        "easypost_account_id"=>$item["easypost_account_id"]
                                     ),
                                     "services" => implode(",", $serviceItems),
                                     "pickup_scheduled" => $isRegularPickup
@@ -249,14 +254,15 @@ final class Nextday extends Booking {
 
     /*     * **********DHL Service list (Start from Here) ********* */
 
-    private function getDhlServiceList($carrier_code, $lists) {        
+    private function getDhlServiceList($carrier_code, $lists) {  
+//        print_r($this->carrierList);exit;
         foreach ($lists as $key1 => $list) {
             foreach ($list as $accountNumber => $items) {
                 foreach ($items as $key3 => $item) {
                     foreach ($item as $service_code => $services) {
                         //calculate service ccf
                         if (!isset($services[0]->rate->error)) {
-
+                             
                             $ratePrice = $services[0]->rate->weight_charge;
                             $accountId = isset($this->carrierList[$accountNumber]["account_id"]) ? $this->carrierList[$accountNumber]["account_id"] : $this->carrierList[$accountNumber]["carrier_id"];
                             $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $ratePrice, $accountId, $this->_param->customer_id, $this->_param->company_id); //$services[0]->rate                            
@@ -361,6 +367,7 @@ final class Nextday extends Booking {
                                     "account_number" => $this->carrierList[$accountNumber]["account_number"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
                                 );
+                                //$service=
                                 $service->service_info = array(
                                     "code" => $this->carrierList[$accountNumber]["services"][$service_code]["service_code"],
                                     "name" => $this->carrierList[$accountNumber]["services"][$service_code]["service_name"]
@@ -397,7 +404,6 @@ final class Nextday extends Booking {
     function _setPostRequest(){//print_r($this->_param);die;
         $this->data = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
-
         if ($carrierLists["status"] == "success") {
             $key = 0;
             $isDocument = '';
@@ -461,27 +467,40 @@ final class Nextday extends Booking {
         $destinations = array();
         $this->collection_postcode = $this->_param->collection->$key->postcode;
 
-        //$origin = implode(",", (array)$this->_param->collection->$key->geo_position);
-        //foreach($this->_param->delivery as $item)
-        //    array_push($destinations, implode(",", (array) $item->geo_position));
-        //$distanceMatrix = $this->_getDistanceMatrix($origin, $destinations, strtotime($this->_param->collection_date));
-        //if($distanceMatrix->status=="success"){
-            //$this->distanceMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->distance;
-            //$this->durationMatrixInfo = $distanceMatrix->data->rows[0]->elements[0]->duration;
-            $this->_setPostRequest();
-
-            if($this->data["status"]=="success"){
+       
+            $this->_setPostRequest();           // print_r($this->data);exit;                  
+            $easyPostRate=$this->filterCarrierServiceProviderData()
+                    ->fetchEasyPostPrice();
+            
+            if($this->data["status"]=="success" ){                            
                 $requestStr = json_encode($this->data);
-		//print_r($requestStr);die;
-                $responseStr = $this->_postRequest($requestStr);
+		$responseStr = $this->_postRequest($requestStr);
+                
+                if(!isset($response->rate)){
+                    $responseStr= json_encode($easyPostRate);
+                }else{
+                    if(isset($easyPostRate['rate'])){
+                    $response->rate= array_merge((array)$response->rate,$easyPostRate['rate']);
+                    $requestStr= json_encode($response);
+                    }
+                }
                 $response = json_decode($responseStr);
                 $response = $this->_getCarrierInfo($response->rate);
                 
-                if(isset($response->status) and $response->status="error"){
-                    return array("status"=>"error", "message"=>$response->message);
-                }
+//               if(!isset($response->rate)){
+//                    $responseStr= json_encode($easyPostRate);
+//                }else{
+//                    if(isset($easyPostRate['rate'])){
+//                    $response->rate= array_merge((array)$response->rate,$easyPostRate['rate']);
+//                    $requestStr= json_encode($response);
+//                    }
+                    if(isset($response->status) and $response->status="error"){
+                        return array("status"=>"error", "message"=>$response->message);
+                    }
+//                }
+               // $response= json_decode($requestStr);
                 return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
-            }else {
+            }else { 
                 return array("status"=>"error", "message"=>"Coreprime api error. Insufficient data.");
         }
     }
@@ -822,5 +841,3 @@ final class Nextday extends Booking {
         return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
     }
 }
-
-?>

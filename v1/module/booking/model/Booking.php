@@ -178,7 +178,15 @@ class Booking_Model_Booking
     public
 
     function getInternalCarrier($company_id){
-        $sql = "SELECT CT.description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.account_number, CCT.pickup, CCT.pickup_surcharge, CCT.collection_start_at, CCT.collection_end_at, CCT.is_internal AS internal, CCT.username, CCT.password FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id=CT.id WHERE CCT.company_id='$company_id' AND CCT.status='1'";
+        $sql = "SELECT CT.description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code,"
+                . " CCT.account_number, CCT.pickup, CCT.pickup_surcharge, CCT.collection_start_at, "
+                . "CCT.collection_end_at, CCT.is_internal AS internal, CCT.username,"
+                . " CCT.password, PS.provider_name,CCT.easypost_account_id "
+                . "FROM " . DB_PREFIX . "courier_vs_company AS CCT "
+                . "INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id=CT.id "
+                . "LEFT JOIN " . DB_PREFIX . "carrier_providers AS CP ON CT.id=CP.carrier_id "
+                . " LEFT JOIN " . DB_PREFIX . "provider_services AS PS ON CP.provider_id = PS.id "
+                . "WHERE CCT.company_id='$company_id' AND CCT.status='1' AND CP.status=1";
         return $this->_db->getRowRecord($sql);
     }
 
@@ -285,13 +293,24 @@ class Booking_Model_Booking
     public
 
     function getCompanyCarrier($company_id){
-        $sql = "SELECT CT.description as description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' AND CCT.is_internal='0'";
+        $sql = "SELECT CT.description as description, CT.icon AS icon, CT.id AS carrier_id, CT.name, "
+                . "CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, "
+                . "CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, "
+                . "collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, "
+                . "CCT.id AS account_id, PS.provider_name, CCT.easypost_account_id "
+                . "FROM " . DB_PREFIX . "courier_vs_company AS CCT "
+                . "INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id "
+                . " LEFT JOIN " . DB_PREFIX . "carrier_providers AS CP ON CT.id=CP.carrier_id"
+                . " LEFT JOIN " . DB_PREFIX . "provider_services AS PS ON CP.provider_id = PS.id "
+                . "WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' AND "
+                . "CCT.is_internal='0' AND CP.status=1";
         return $this->_db->getAllRecords($sql);
     }
 
     public
 
     function getCustomerCarrierAccountByAccountId($company_id, $customer_id, $carrier_acccount){
+        if($carrier_acccount=="")return [];
         $sql = "SELECT CCCT.company_courier_account_id AS account_id, CCCT.courier_id AS carrier_id, CCCT.account_number FROM  `icargo_courier_vs_company_vs_customer` AS CCCT WHERE CCCT.customer_id='$customer_id' AND CCCT.company_id = '$company_id' AND CCCT.status = 1 AND CCCT.company_courier_account_id IN($carrier_acccount)";
         return $this->_db->getAllRecords($sql);
     }

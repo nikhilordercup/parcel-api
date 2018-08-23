@@ -60,7 +60,7 @@ final Class Collection{
         $this->collectionDateTimestamp = strtotime($collection_date);
 
         $this->collectionDate    = date("Y-m-d H:i", $this->collectionDateTimestamp);
-
+        
         $this->_getCollectionAddressString();
 
         $this->_findList();
@@ -82,18 +82,19 @@ final Class Collection{
         $this->collectionDate    = date("Y-m-d H:i", $this->collectionDateTimestamp);
 
         $this->_getCollectionAddressString();
-
+        
         $this->_findCourier($this->carriers);
-
+        
         $result = array();
         if(count($this->carrierList)>0){
             foreach($this->carrierList as $item){
                 array_push($result, $item);
             }
-
+            
             $this->_findInternalCourier();
             array_push($result, $this->internalCarrier);
         }
+        
         return $result;
     }
 
@@ -154,7 +155,7 @@ final Class Collection{
     function _prepareCollectionList($item){
         $collectionStartTimeStamp = strtotime($item["collection_start_at"]);
         $collectionEndTimeStamp   = strtotime($item["collection_end_at"]);
-
+        
         return array(
             "collection_date_time" => $item["collection_date_time"],
             "collection_start_at"  => date("H:i", $collectionStartTimeStamp),
@@ -172,7 +173,9 @@ final Class Collection{
             "services"             => (isset($item["services"])) ? $item["services"] : array(),
             "pickup"               => $item["pickup"],
             "icon"                 => $item["icon"],
-            "name"                 => $item["name"]
+            "name"                 => $item["name"],
+            "provider_name"        => $item['provider_name'],
+            "easypost_account_id"  => $item["easypost_account_id"]
         );
     }
 
@@ -196,7 +199,7 @@ final Class Collection{
             $item["is_regular_pickup"]    = $this->isRegularPickup;
             $item["collection_date_time"] = $collectionDateTime;
             $collectionList = $this->_prepareCollectionList($item);
-
+            
             if($item["pickup"]==1 || $this->isRegularPickup=="yes"){
                 //collected by carrier itself
                 $collectionList["collected_by"][] = array(
@@ -211,7 +214,8 @@ final Class Collection{
                     "collection_end_at"    => $collectionList["collection_end_at"],
                     "is_regular_pickup"    => $this->isRegularPickup,
                     "carrier_id"           => $collectionList["carrier_id"],
-                    "pickup"               => $collectionList["pickup"]
+                    "pickup"               => $collectionList["pickup"],
+                    'provider_name'       => $collectionList["provider_name"]
                 );
             }
                 //else{
@@ -228,7 +232,8 @@ final Class Collection{
                     "collection_end_at"    => $this->internalCarrier["collection_end_at"],
                     "is_regular_pickup"    => $this->isRegularPickup,
                     "carrier_id"           => $this->internalCarrier["carrier_id"],
-                    "pickup"               => $this->internalCarrier["pickup"]
+                    "pickup"               => $this->internalCarrier["pickup"],
+                    "provider_name"        => isset($this->internalCarrier["pickup"])?$this->internalCarrier["pickup"]:""
                 );
             }
             //}
@@ -243,6 +248,7 @@ final Class Collection{
 
     function _findInternalCourier(){
         $internalCarrier = $this->_getInternalCarrier();
+        
         if(count($internalCarrier)>0){
             //step 1
             if(count($this->_findInOperationalArea())>0){
@@ -310,10 +316,11 @@ final Class Collection{
     function _findInOperationalArea(){
         if(isset($this->collectionAddress["zip"])){
             $operationalArea = $this->modelObj->getCourierOperationalArea($this->companyId);
-
+            
             $needle = $this->collectionAddress["zip"];
-
+              
             $data = $this->findInOperationalArea($operationalArea, $needle);
+            
             return $operationalArea[$data];
         }
     }
@@ -321,7 +328,7 @@ final Class Collection{
     private
 
     function _getInternalCarrier(){
-        $internalCarrier = $this->modelObj->getInternalCarrier($this->companyId);
+        $internalCarrier = $this->modelObj->getInternalCarrier($this->companyId);        
         if(count($internalCarrier)>0){
             $this->pickupSurcharge   = $internalCarrier["pickup_surcharge"];
             $this->collectionStartAt = $internalCarrier["collection_start_at"];

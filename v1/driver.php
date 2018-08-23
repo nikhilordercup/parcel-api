@@ -82,14 +82,14 @@ $app->post('/getDriverControllerData', function() use ($app) {
  
 });
 
-
-$app->post('/getWarehouseList', function() use ($app) {
-    $response = array();
-    $r = json_decode($app->request->getBody());
-	$obj = new Driver($r);
-	$response["warehouse_list"] = $obj->getWarehouseListByComapnyId($r);
-	echoResponse(200, $response);
-});
+//Duplicate route in route.php
+//$app->post('/getWarehouseList', function() use ($app) {
+//    $response = array();
+//    $r = json_decode($app->request->getBody());
+//	$obj = new Driver($r);
+//	$response["warehouse_list"] = $obj->getWarehouseListByComapnyId($r);
+//	echoResponse(200, $response);
+//});
 
 $app->post('/getDriverData', function() use ($app) {
     $response = array();

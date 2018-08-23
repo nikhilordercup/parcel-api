@@ -1010,64 +1010,66 @@ if(!isset($res['config_data']))
     echoResponse(200, $res);
 });
 
-$app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
-    $response = array();
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('email','access_token','service_date'),$r);
-    $obj = new Module_Google_Api($r);
-    $response = $obj->getGeolocationAndDistanceMatrix($r);
-    echoResponse(200, $response);
-});
 
-$app->post('/getAvailableServices', function() use($app){
-    $response = array();
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('email','access_token','transit_distance','transit_time','number_of_collections','number_of_drops','total_waiting_time','service_date'),$r);
-    $obj = new Module_Coreprime_Api($r);
-    $response = $obj->getAllServices($r);
-    echoResponse(200, $response);
-});
+//Duplicate Route in api.php
+//$app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
+//    $response = array();
+//    $r = json_decode($app->request->getBody());
+//    verifyRequiredParams(array('email','access_token','service_date'),$r);
+//    $obj = new Module_Google_Api($r);
+//    $response = $obj->getGeolocationAndDistanceMatrix($r);
+//    echoResponse(200, $response);
+//});
+//
+//$app->post('/getAvailableServices', function() use($app){
+//    $response = array();
+//    $r = json_decode($app->request->getBody());
+//    verifyRequiredParams(array('email','access_token','transit_distance','transit_time','number_of_collections','number_of_drops','total_waiting_time','service_date'),$r);
+//    $obj = new Module_Coreprime_Api($r);
+//    $response = $obj->getAllServices($r);
+//    echoResponse(200, $response);
+//});
 
-$app->post('/searchAddress', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
-    $obj = new Module_Addressbook_Addressbook($r);
-    $response = $obj->getAllAddresses($r);
-    echoResponse(200, $response);
-});
+//$app->post('/searchAddress', function() use($app){
+//    $r = json_decode($app->request->getBody());
+//    verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
+//    $obj = new Module_Addressbook_Addressbook($r);
+//    $response = $obj->getAllAddresses($r);
+//    echoResponse(200, $response);
+//});
+//
+//$app->post('/searchAddressById', function() use($app){
+//    $r = json_decode($app->request->getBody());
+//    verifyRequiredParams(array('access_token','email','customer_id','id','address_origin'),$r);
+//    $obj = new Module_Addressbook_Addressbook($r);
+//    $response = $obj->searchAddressById($r);
+//    echoResponse(200, $response);
+//});
+//
+//$app->post('/bookShipment', function() use($app){
+//    $r = json_decode($app->request->getBody());
+//    verifyRequiredParams(array('service_date','transit_time','transit_distance','email','access_token','company_id','customer_id'),$r);
+//    $obj = new shipment();
+//    $response = $obj->bookSameDayShipment($r);
+//    echoResponse(200, $response);
+//});
 
-$app->post('/searchAddressById', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','email','customer_id','id','address_origin'),$r);
-    $obj = new Module_Addressbook_Addressbook($r);
-    $response = $obj->searchAddressById($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/bookShipment', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('service_date','transit_time','transit_distance','email','access_token','company_id','customer_id'),$r);
-    $obj = new shipment();
-    $response = $obj->bookSameDayShipment($r);
-    echoResponse(200, $response);
-});
-
-
-$app->post('/getSamedayShipmentByCustomerId', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','email','customer_id'),$r);
-    //$obj = new shipment();
-    //$response = $obj->bookSameDayShipment($r);
-    //echoResponse(200, $response);
-});
-
-$app->post('/searchCustomer', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','company_id','email','keywords','warehouse_id'),$r);
-    $obj = new Controller($r);
-    $response = $obj->getCustomerByControllerId($r);
-    echoResponse(200, $response);
-});
+//
+//$app->post('/getSamedayShipmentByCustomerId', function() use($app){
+//    $r = json_decode($app->request->getBody());
+//    verifyRequiredParams(array('access_token','email','customer_id'),$r);
+//    //$obj = new shipment();
+//    //$response = $obj->bookSameDayShipment($r);
+//    //echoResponse(200, $response);
+//});
+//
+//$app->post('/searchCustomer', function() use($app){
+//    $r = json_decode($app->request->getBody());
+//    verifyRequiredParams(array('access_token','company_id','email','keywords','warehouse_id'),$r);
+//    $obj = new Controller($r);
+//    $response = $obj->getCustomerByControllerId($r);
+//    echoResponse(200, $response);
+//});
 
 $app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
     $response = array();

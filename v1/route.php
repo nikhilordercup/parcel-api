@@ -22,34 +22,34 @@ $app->Post('/getRouteCompanyData', function() use ($app) {
     echoResponse(200, $response);
 });
 
-
-$app->post('/getControllerList', function() use ($app) {
-    $response = array();
-    $r = json_decode($app->request->getBody());
-	$obj = new Route($r);
-    if($r->user_code!='controller'){
-		$response["controller_list"] = $obj->getControllerDataByWarehouseId($r);
-	}else{
-		$response["controller_list"] = $obj->getUserDataByUserId($r);
-	}
-	
-	echoResponse(200, $response);  
-});
-
-$app->post('/getWarehouseListByUserId', function() use ($app) {
-    $response = array();
-    $r = json_decode($app->request->getBody());
-	$obj = new Route($r);
-	if($r->user_code=='super_admin'){
-		$response["warehouse_list"] = $obj->getAllActiveWarehouse();
-	}else if($r->user_code=='company'){
-		$response["warehouse_list"] = $obj->getActiveWareHouseListByCompanyId(array("company_id"=>$r->user_id));
-	}else{
-		$response["warehouse_list"] = $obj->getWarehouseListByUserId($r);
-	}
-	echoResponse(200, $response);
- 
-});
+//Duplicate Route in grid.php
+//$app->post('/getControllerList', function() use ($app) {
+//    $response = array();
+//    $r = json_decode($app->request->getBody());
+//	$obj = new Route($r);
+//    if($r->user_code!='controller'){
+//		$response["controller_list"] = $obj->getControllerDataByWarehouseId($r);
+//	}else{
+//		$response["controller_list"] = $obj->getUserDataByUserId($r);
+//	}
+//	
+//	echoResponse(200, $response);  
+//});
+//Duplicat Route in driver.php
+//$app->post('/getWarehouseListByUserId', function() use ($app) {
+//    $response = array();
+//    $r = json_decode($app->request->getBody());
+//	$obj = new Route($r);
+//	if($r->user_code=='super_admin'){
+//		$response["warehouse_list"] = $obj->getAllActiveWarehouse();
+//	}else if($r->user_code=='company'){
+//		$response["warehouse_list"] = $obj->getActiveWareHouseListByCompanyId(array("company_id"=>$r->user_id));
+//	}else{
+//		$response["warehouse_list"] = $obj->getWarehouseListByUserId($r);
+//	}
+//	echoResponse(200, $response);
+// 
+//});
 
 $app->post('/getRouteWarehouseData', function() use ($app) {
     $response = array();

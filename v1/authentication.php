@@ -158,11 +158,11 @@ $app->post('/signUp', function() use ($app) {
         echoResponse(201, $response);
     }
 });
-
-$app->post('/listAllPlanForCustomerRegistration', function() use ($app){
-    $db = new DbHandler();
-    $planData = $db->getAllRecords("SELECT plan_id,plan_name FROM " . DB_PREFIX ."chargebee_plan WHERE status='active'");
-    $countryData = $db->getAllRecords("SELECT * FROM " . DB_PREFIX ."countries");
-    echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
-});
+//Duplicate route in api.php
+//$app->post('/listAllPlanForCustomerRegistration', function() use ($app){
+//    $db = new DbHandler();
+//    $planData = $db->getAllRecords("SELECT plan_id,plan_name FROM " . DB_PREFIX ."chargebee_plan WHERE status='active'");
+//    $countryData = $db->getAllRecords("SELECT * FROM " . DB_PREFIX ."countries");
+//    echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
+//});
 
