@@ -364,7 +364,7 @@ class interactiveFind extends postcodeanywhere {
 		foreach ($oXML->Rows->Row as $item) {
 			$aData[] = array('id' => (float) $item->attributes()->Id, 'street' => (string) $item->attributes()->StreetAddress, 'place' => (string) $item->attributes()->Place);
 		}
-
+        print_r($aData);
 		$this->setData($aData);
 		return true;
 	}
