@@ -34,7 +34,7 @@ class Customer_Model {
     
    public function getCustomerDataByCompanyId($company_id){
      $record = array();
-	 $sqldata ='t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token,CI.ccf,t1.status';
+	 $sqldata ='t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token,CI.ccf,t1.status,CI.accountnumber';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS t1
 			 INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
@@ -174,7 +174,7 @@ public function getCustomerPersonalDetails($company_id,$company_customer_id){
      $record = array();
 	 $sqldata ='t1.id,t1.name,t1.email,t1.password,t1.phone,t1.address_1,t1.address_2,t1.city,t1.postcode,t1.state,
                 t1.country,t1.status,CI.ccf_operator_service,CI.ccf_operator_surcharge,CI.ccf,CI.surcharge,CI.customer_type,
-                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base';
+                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.available_credit as availablebalance,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base,CI.tax_exempt';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS t1
 			 INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
@@ -491,5 +491,23 @@ public function checkCustomerEmailExist($company_email){
 
         return $this->db->updateData($sql);
     }
+    public function getCustomerAllTransactionData($customerId){
+        $sql = "SELECT *  FROM ".DB_PREFIX."accountbalancehistory as ABT  where ABT.customer_id = ".$customerId."";
+        $records = $this->db->getAllRecords($sql);
+	    return $records;
+    }
+    public function getCustomerAllAuthorizationData($customerId){
+        $sql = "SELECT *  FROM ".DB_PREFIX."customer_tokens as ABT  where ABT.customer_id = ".$customerId."";
+        $records = $this->db->getAllRecords($sql);
+	    return $records;
+    }
+    
+    public function editAuthorizationStatus($param){
+        return $this->db->updateData("UPDATE ".DB_PREFIX."customer_tokens SET status = '$param->status' WHERE token_id = ".$param->descid." AND customer_id = ".$param->customer_id."");
+    }
+    public function editAuthorization($param){
+        return $this->db->updateData("UPDATE ".DB_PREFIX."customer_tokens SET title = '$param->title',description = '$param->description',url = '$param->url' WHERE token_id = '$param->descid'");
+    }
+
 }
 ?>

@@ -276,6 +276,12 @@ final class Nextday extends Booking
         if($accountStatus["status"]=="error"){
             return $accountStatus;
         }
+        
+        $available_credit = $this->_getCustomerAccountBalence($this->_param->customer_id,0.00);
+        //if($available_credit["status"]=="error"){
+            //return $available_credit;
+        //}
+        
         //find distance matrix
         $key = 0;
         $destinations = array();
@@ -300,13 +306,12 @@ final class Nextday extends Booking
                 $responseStr = $this->_postRequest($requestStr);
 
                 $response = json_decode($responseStr);
-
                 $response = $this->_getCarrierInfo($response->rate);
 
                 if(isset($response->status) and $response->status="error"){
                     return array("status"=>"error", "message"=>$response->message);
                 }
-                return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)));
+                return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>base64_encode($requestStr),"service_response_string"=>base64_encode($responseStr), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)),"availiable_balence" => $available_credit['available_credit']);
             }else {
                 return array("status"=>"error", "message"=>$this->data["message"]);
             }
@@ -317,15 +322,20 @@ final class Nextday extends Booking
 
     public
 
-    function saveBooking(){
+    function saveBooking(){  //echo $this->_param->service_request_string;die;
         //print_r($this->_param->service_opted->collection_carrier);die;
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if($accountStatus["status"]=="error"){
             return $accountStatus;
         }
-
+        $bookingShipPrice = $this->_param->service_opted->collection_carrier->customer_price_info->grand_total;
+        $available_credit = $this->_getCustomerAccountBalence($this->_param->customer_id,$bookingShipPrice);
+        if($available_credit["status"]=="error"){
+            return $available_credit;
+        }
+        
         $company_code = $this->_getCompanyCode($this->_param->company_id);
-
+        $serviceId    = $this->_param->service_opted->rate->info->service_id;
         $customerWarehouseId = $this->getCustomerWarehouseIdByCustomerId($this->_param->company_id, $this->_param->customer_id);
 
         $this->_param->service_opted->rate->shipment_type = "Next";
@@ -373,13 +383,21 @@ final class Nextday extends Booking
 
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
 
-            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending");
+            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id,"pending",$serviceId);
 
             if($serviceStatus["status"]=="error"){
                 $this->rollBackTransaction();
                 return $serviceStatus;
             }
+            
+            $paymentStatus = $this->_manageAccounts($serviceStatus["service_id"], $loadIdentity, $this->_param->customer_id,$this->_param->company_id);
 
+            if($paymentStatus["status"]=="error"){
+                $this->rollBackTransaction();
+                return $paymentStatus;
+            }
+            
+            
             $collectedBy = $this->_param->service_opted->collection_carrier;
             $collectedBy->service_id = $serviceStatus["service_id"];
 
@@ -439,5 +457,6 @@ final class Nextday extends Booking
         // call label generation method
         return array("status"=>"success","message"=>"Shipment booked successful. Shipment ticket $loadIdentity");
     }
+    
 }
 ?>

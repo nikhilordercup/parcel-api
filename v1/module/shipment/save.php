@@ -1314,10 +1314,12 @@ class shipment extends Library{
         }
         $data_string = json_encode($param);
         $_data["carrier"]                   = $param->otherinfo['courier_id'];
+        $_data["accountkey"]                = $param->otherinfo['accountkey'];
         $_data["courier_commission_type"]   = $param->otherinfo['operator'];
         $_data["courier_commission"]        = $param->otherinfo['ccf_value'];
         $_data["courier_commission_value"]  = $param->otherinfo['price'];
         $_data["base_price"]                = $param->otherinfo['original_price'];
+        $_data["booked_service_id"]         = $param->otherinfo['service_id'];
         $_data["total_price"]               = $_data["base_price"]  + $_data["courier_commission_value"];
         unset($param->surchargesinfo);
         unset($param->otherinfo);
@@ -1380,7 +1382,7 @@ class shipment extends Library{
         }
          
         foreach($param as $column=>$item)
-            $_data[$column] = $item;
+        $_data[$column] = $item;
         if(isset($_data["charge_from_base"])){
               if($_data["charge_from_base"]==""){
             $_data["charge_from_base"] = 0;
@@ -1390,8 +1392,11 @@ class shipment extends Library{
             //$_data["chargable_value"] = 0.00;
             $_data["invoice_reference"] ='';
            // $_data["json_data"] = $data_string;
-
-            $service_id = $this->db->save("shipment_service", $_data);
+            
+                $customerData = $this->getBookedCustomerInfo($_data['customer_id']); 
+                $_data['customer_type']        = $customerData['customer_type'];
+               
+             $service_id = $this->db->save("shipment_service", $_data);
         }
         return $service_id;
     }
@@ -1589,30 +1594,27 @@ class shipment extends Library{
         
     function bookSameDayShipment($data)
     {   
-       
+        //check balance history
         $carrier_id = $data->service_detail->otherinfo->courier_id;
-
         //check customer is enable or not  shipment_instruction
         $customerStatus = $this->db->getRowRecord("SELECT status FROM ".DB_PREFIX."users WHERE id = '$data->customer_id' AND status=1");
-
         $carrierCode = $this->db->getRowRecord("SELECT code AS carrier_code FROM ".DB_PREFIX."courier WHERE id = '$carrier_id'");
-
         $carrierCode = $carrierCode["carrier_code"];
-
         if($customerStatus){
-            if(!isset($data->collection_address))
-                {
+            if(!isset($data->collection_address)){
                 return array("status"=>"error", "message"=>"Shipment collection address is mandatory", "data"=>$data);
-                }
-            if(!isset($data->delivery_address))
-                {
+            }
+            if(!isset($data->delivery_address)){
                 return array("status"=>"error", "message"=>"Shipment delivery address is mandatory", "data"=>$data);
-                }
-            if(!isset($data->service_detail))
-                {
+            }
+            if(!isset($data->service_detail)){
                 return array("status"=>"error", "message"=>"Shipment service is mandatory", "data"=>$data);
-                }
-           
+            }
+            $bookingShipPrice = $data->service_detail->total_price;
+            $available_credit = $this->_getCustomerAccountBalence($data->customer_id,$bookingShipPrice);
+            if($available_credit["status"]=="error"){
+                return array("status"=>"error", "message"=>"You don't have sufficient balance", "data"=>$data);;
+            }
             $shipmentData = array();
             $service_id = false;
             $shipmentId = 0;
@@ -1625,31 +1627,22 @@ class shipment extends Library{
             $loadIdentity = "";
             $counter = 1;
             $this->db->startTransaction();
-
             //save collection shipment detail
             foreach($data->collection_address as $shipment_data){
                 $shipment_data->special_instruction = (isset($shipment_data->special_instruction)) ? $shipment_data->special_instruction : "";
                 $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Collection","jobTypeCode"=>"COLL","shipment_service_type"=>"P","icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction, "carrier_code"=>$carrierCode));
-                
                 $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
-
                 if($shipmentStatus["status"]=="success"){
-                    
                     $loadIdentity = $shipmentStatus["load_identity"];
-                   
                     //find load identity
                     //$loadIdentity = $this->_getShipmentLoadIdentity($shipmentId);
-                    
                     //find version number of shipment price
                     $priceVersionNo = $this->_findPriceNextVersionNo($loadIdentity);
-                   
                     $shipmentService = $data->service_detail;
-                    
                     $shipmentService->price_version = $priceVersionNo;
                     //$shipmentService->shipment_id = $shipmentId;
                     $shipmentService->customer_id = $data->customer_id;
                     //$shipmentService->courier_commission_type = $courier_commission_type;
-                   
                     $shipmentService->transit_distance = $data->transit_distance;
                     $shipmentService->transit_time = $data->transit_time;
                     $shipmentService->transit_time_text = $data->transit_time_text;
@@ -1661,16 +1654,15 @@ class shipment extends Library{
                     //save shipment price breakdown
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"version"=>$priceVersionNo));
                     //save shipment price detail
-                   
+                    // add Price\
                     $service_id = $this->_saveShipmentService($shipmentService);
-                     
+                    $paymentStatus = $this->_manageAccounts($service_id, $loadIdentity, $data->customer_id,$this->company_id);
                     ++$counter;
                 }
                 elseif($shipmentStatus["status"]=="error"){
                     return $shipmentStatus;
                 }
             }
-           
             foreach($data->delivery_address as $shipment_data){
                 $shipment_data->parent_id = $shipmentId;
                 $shipment_data->special_instruction = (isset($shipment_data->special_instruction)) ? $shipment_data->special_instruction : "";
@@ -1697,20 +1689,95 @@ class shipment extends Library{
                     unset($shipmentService->message);
                     //save shipment price detail
                     $service_id = $this->_saveShipmentService($shipmentService);
+                    
+                    $paymentStatus = $this->_manageAccounts($service_id,$loadIdentity,$data->customer_id,$this->company_id);
+                    // add Price
+                    
+                    
+                    
                 }elseif($shipmentStatus["status"]=="error"){
                     return $shipmentStatus;
                 }
                 $counter++;
             }
             $this->db->commitTransaction();
-
             //email to customer
             Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
-
             return array("status"=>"success", "message"=>"Shipment booked successfully. Booking reference no $loadIdentity");
-        }else{
+        }
+        else{
             return array("status"=>"error", "message"=>"Customer account disabled.");
         }
     }
+    
+    protected
+    function _manageAccounts($priceServiceid,$load_identity, $customer_id,$company_id){
+          $priceData = $this->getBookedShipmentsPrice($priceServiceid,$customer_id);
+          if(isset($priceData["grand_total"])){
+                 $creditbalanceData = array();
+                 $creditbalanceData['customer_id']          = $customer_id;
+                 $creditbalanceData['customer_type']        = $priceData['customer_type'];
+                 $creditbalanceData['company_id']           = $company_id;
+                 $creditbalanceData['payment_type']         = 'DEBIT';
+                 $creditbalanceData['pre_balance']          = $priceData["available_credit"];
+                 $creditbalanceData['amount']               = $priceData["grand_total"];
+                 $creditbalanceData['balance']              = $priceData["available_credit"] - $priceData["grand_total"];
+                 $creditbalanceData['create_date']          = date("Y-m-d");
+                 $creditbalanceData['payment_reference']    = $load_identity;
+                 $creditbalanceData['payment_desc']         = 'BOOK A SHIPMENT';
+                 $creditbalanceData['payment_for']          = 'BOOKSHIP';
+                 $addHistory = $this->saveAccountHistory($creditbalanceData);
+                  if($addHistory>0){
+                      $condition = "user_id = '".$customer_id."'";
+                      $updateStatus = $this->editAccountBalance(array('available_credit'=>$creditbalanceData['balance']),$condition); 
+                      if($updateStatus){
+                          return array("status"=>"success", "message"=>"Price Update save");
+                      }
+                  }
+        }
+        return array("status"=>"error", "message"=>"shipment service not saved");
+    }
+    
+         public
+
+    function getCustomerAccountBalence($customer_id){
+        $sql = "SELECT available_credit FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customer_id'";
+        return $this->db->getRowRecord($sql);
+    }
+    function getBookedShipmentsPrice($priceServiceid,$customerId){
+        $sql = "SELECT S.grand_total,C.customer_type,C.available_credit FROM " . DB_PREFIX . "shipment_service as S
+                INNER JOIN " . DB_PREFIX . "customer_info as C on S.customer_id = C.user_id
+                WHERE S.id = '$priceServiceid' AND C.user_id = '$customerId'";
+        return $this->db->getRowRecord($sql);
+    } 
+    public
+
+    function saveAccountHistory($data){
+        $his_id = $this->db->save("accountbalancehistory", $data);
+        return $his_id;
+    }
+    
+  public
+
+    function editAccountBalance($data,$condition){
+        $status = $this->db->update("customer_info", $data,$condition);
+        return $status;
+    }
+    
+    
+    public
+
+    function _getCustomerAccountBalence($customer_id,$bookShipPrice){
+        $available_credit = $this->getCustomerAccountBalence($customer_id);
+        if(($available_credit["available_credit"] <= 0  ) || ($available_credit["available_credit"] < $bookShipPrice) ){
+            return array("status"=>"error", "message"=>"you don't have sufficient balance,your current balance is ".$available_credit["available_credit"]." .","available_credit"=>$available_credit['available_credit']);
+        }
+        return array("status"=>"success", "message"=>"sufficient balance.","available_credit"=>$available_credit['available_credit']);
+    }
+      public function getBookedCustomerInfo($customerId){
+        $sql = "SELECT C.customer_type,C.available_credit FROM " . DB_PREFIX . "customer_info as C
+                WHERE  C.user_id = '$customerId'";
+        return $this->db->getRowRecord($sql);
+    }   
 } 
 ?>

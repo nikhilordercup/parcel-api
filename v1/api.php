@@ -1,4 +1,4 @@
-<?php
+<?php 
 /*
 * logout api is used to clear the user access token
 */
@@ -1019,15 +1019,6 @@ $app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
     echoResponse(200, $response);
 });
 
-$app->post('/getAvailableServices', function() use($app){
-    $response = array();
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('email','access_token','transit_distance','transit_time','number_of_collections','number_of_drops','total_waiting_time','service_date'),$r);
-    $obj = new Module_Coreprime_Api($r);
-    $response = $obj->getAllServices($r);
-    echoResponse(200, $response);
-});
-
 $app->post('/searchAddress', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
@@ -1134,21 +1125,20 @@ $app->post('/test', function() use($app){
     echoResponse(200, $response);
 });
 
-$app->post('/getAllCustomerData', function() use ($app) {
+$app->post('/getAllCustomerData', function() use ($app) { 
     $r = json_decode($app->request->getBody());
 	$obj = new Customer($r);
-	if(isset($r->user_code) && $r->user_code == 'super_admin'){
+	if(isset($r->user_code) && $r->user_code == 'super_admin'){ 
 		$response["customer_data"] = $obj->getAllCustomerData($r);
 	}
-	else{
+	else{ 
 		$response["customer_data"] = $obj->getCustomerDataByCompanyId($r);
 	}
         
         $obj = new Common();
         $countryData = $obj->countryList();
-        $response["countryData"] = $countryData;	
-        
-	echoResponse(200, $response);
+        $response["countryData"] = $countryData;
+	     echoResponse(200, $response);
 });
 $app->post('/getAllMasterRowData', function() use ($app) {
     $r = json_decode($app->request->getBody());
@@ -1978,6 +1968,157 @@ $app->post('/saveRoutePostId', function() use ($app) {
     $response = $obj->saveRoutePostId($data);
     echoResponse(200, $response);
 });
+$app->post('/getCustomerAllTransactionData', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
+	$response = $obj->getCustomerAllTransactionData($r);
+	echoResponse(200, $response);
+});
+$app->post('/unholdJob', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->unholdJob($r);
+    echoResponse(200, $response);
+});
+$app->post('/holdJob', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->holdJob($r);
+    echoResponse(200, $response);
+});
+$app->post('/getlogo', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getlogo($r);
+    echoResponse(200, $response);
+});
+$app->post('/recurringShipmentDetails', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getRecurringShipmentDetails($r);
+	echoResponse(200, $records);
+});
+$app->post('/recurringJob', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->bookRecurringJob($r);
+	echoResponse(200, $records);
+});
 
+$app->post('/getRecurringJobs', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getRecurringJobs($r);
+	echoResponse(200, $records);
+});
+$app->post('/editRecurringjobStatus', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id','descid'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->editRecurringjobStatus($r);
+	echoResponse(200, $records);
+});
+$app->post('/deleteRecurringjobStatus', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id','descid','jobref'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->deleteRecurringjobStatus($r);
+	echoResponse(200, $records);
+});
 
+$app->post('/recurringJobDetails', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','job_identity'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->recurringJobDetails($r);
+	echoResponse(200, $records);
+});
+$app->post('/updateRecurringJob', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->updateRecurringJob($r);
+	echoResponse(200, $records);
+});
+$app->post('/getAllRecurringBreakdown', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id','job_reference'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getAllRecurringBreakdown($r);
+	echoResponse(200, $records);
+});
+$app->post('/checkEligibleForCancel', function() use ($app) { 
+	$response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->checkEligibleForCancel($r);
+    echoResponse(200, $response);
+});
+$app->post('/cancelJob', function() use ($app) { 
+	$response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->cancelJob($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAuthorizationData', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','warehouse_id','customer_id'),$r);
+	$response = $obj->getAuthorizationData($r);
+	echoResponse(200, $response);
+});
+$app->post('/editAuthorizationStatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','descid','customer_id','status'),$r);
+	$response = $obj->editAuthorizationStatus($r);
+	echoResponse(200, $response);
+});
+$app->post('/editAuth', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','descid','title','url','description'),$r);
+	$response = $obj->editAuthorization($r);
+	echoResponse(200, $response);
+});
+$app->post('/addAuth', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','title','customer_id','url','description'),$r);
+	$response = $obj->addAuthorization($r);
+	echoResponse(200, $response);
+});
+$app->post('/payinvoices', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->payinvoices($r);
+    echoResponse(200, $response);
+}); 
+$app->post('/loadPostpaidCustomer', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->loadPostpaidCustomer($r->company_id);
+    echoResponse(200, $response);
+});
+    
 ?>

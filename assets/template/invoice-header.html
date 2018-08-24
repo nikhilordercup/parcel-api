@@ -1,0 +1,128 @@
+<style type="text/css">
+.container {
+	width: 1170px;
+	margin: 10px auto;
+}
+.container h3 {
+            font-size: 20px;
+            text-align: left;
+            margin: 0 0 15px;
+            font-weight:2px;
+}  
+table.invoicedetails {
+    min-width: 390px;
+    border-collapse: collapse;
+}
+.invoicedetails tr td, .consignment-details table tr th, .consignment-details table tr td {
+	border: 1px solid #000!important;
+	padding: 5px;
+}
+.consignment-details table tr th, .consignment-details table tr td {
+	padding: 7px;
+	font-size: 12px;
+	text-align: left;
+}
+table.invoice-details {
+	border: 1px solid #000;
+	padding: 5px;
+	min-width: 100%;
+}
+table.invoice-details td, .table-border td {
+	padding: 5px;
+}
+table.consignment-details tr td, table.consignment-details tr th {
+	border: 1px solid #000;
+	padding: 5px;
+	font-size: 9px;
+	text-align: left;
+}
+.table-border {
+	border: 1px solid #000!important;
+	width: 100%;
+	padding: 5px;
+}
+table {
+	
+	margin-bottom: 10px;
+	border-collapse: collapse;
+}
+table.consignment-details {
+    margin: 10px 0px 20px 0px;
+    min-width:1170px;
+}
+</style>
+<table class="container">
+<tr>
+    <td rowspan="2" class="table-border" style="vertical-align:top;padding:10px; width: 390px;"><table>
+        <tr>
+          <td>__customername__</td>
+        </tr>
+        <tr>
+          <td>__customeraddress1__</td>
+        </tr>
+        <tr>
+          <td>__customeraddress2__</td>
+        </tr>
+        <tr>
+          <td>__customercity__, __customercountry__</td>
+        </tr>
+        <tr>
+          <td>__customerstate__</td>
+        </tr>
+        <tr>
+          <td>__customerpostcode__</td>
+        </tr>
+        <tr>
+          <td>__customername__</td>
+        </tr>
+      </table>
+    </td>
+    <td  rowspan="2" class="midsection" style="text-align:center;padding:10px; width: 390px;">
+    <img src="__company_logo__" />
+    </td>
+    <td  style="vertical-align:top;width: 390px; padding:5px;">
+        <table style="margin:0px;">
+        <tr>
+         <td style="padding:5px;">
+         <table>
+          <tr>
+          <td style="padding:5px;">__company_name__</td>
+          <td>Registration No :__customeraccount__</td>
+        </tr>
+        <tr>
+          <td style="padding:5px;">__company_address1__</td>
+          <td>__company_address2__</td>
+        </tr>
+        <tr>
+          <td style="padding:5px;">__company_postcode__, __company_county__ </td>
+          <td>__company_city__</td>
+        </tr>
+         </table>
+         </td>
+        </tr>
+        <tr>
+        <td style="padding:5px 5px 0px 5px;">
+         <table class="invoicedetails" style="margin-bottom:0px !important;">
+        <tr>
+          <td style="width: 190px;" >Invoice</td>
+          <td style="width: 210px;">__customerinvoiceref__</td>
+        </tr>
+        <tr>
+          <td >Invoice date</td>
+          <td>__customerinvoicedate__</td>
+        </tr>
+        <tr>
+          <td > Due date </td>
+          <td>__customerinvoiceduedate__</td>
+        </tr>
+        <tr>
+          <td >Account</td>
+          <td>__customeraccount__</td>
+        </tr>
+      </table>
+        </td>
+        </tr>
+      </table>
+       </td>
+        </tr>
+      </table>

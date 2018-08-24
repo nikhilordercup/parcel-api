@@ -160,6 +160,9 @@ class allShipments extends Icargo
                             $data['amount']             = $pickupData['shipment_customer_price'];
                             $data['booked_by']          = $pickupData['booked_by'];
                             $data['isInvoiced']         = $pickupData['isInvoiced'];
+                            $data['is_hold']            = $pickupData['is_hold'];
+                            $data['is_recurring']       = $pickupData['is_recurring'];
+                            $data['recurring']          = $pickupData['booked_by_recurring'];      
                             $data['show']               = 'y';
                             $data['collectionpostcode'] = $pickupData['shipment_postcode'];
                             $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
@@ -204,6 +207,9 @@ class allShipments extends Icargo
                             $data['amount']      = $pickupData['shipment_customer_price'];
                             $data['booked_by']   = $pickupData['booked_by'];
                             $data['isInvoiced']  = $pickupData['isInvoiced'];
+                            $data['is_hold']     = $pickupData['is_hold'];
+                            $data['is_recurring'] = $pickupData['is_recurring'];
+                            $data['recurring']   = $pickupData['booked_by_recurring'];
                             $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             //$data['pickup_date'] = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
@@ -303,6 +309,7 @@ class allShipments extends Icargo
             $basicInfo['carriertotal']     = $shipmentsInfoData[0]['carriertotalprice'];
 
             $basicInfo['customerinvoicereference'] = $shipmentsInfoData[0]['customerinvoicereference'];
+            
             $basicInfo['bookingtype']              = $shipmentsInfoData[0]['bookingtype'];
             $basicInfo['customer_desc']            = $shipmentsInfoData[0]['customer_desc'];
             $basicInfo['customerreference']        = $shipmentsInfoData[0]['customerreference'];
@@ -685,331 +692,6 @@ class allShipments extends Icargo
     }
 
 
-    public function updateCarrierPrice__old($param)
-    {
-        $param                 = json_decode(json_encode($param), 1);
-        $getLastPriceVersion   = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
-        $priceVersion          = $getLastPriceVersion['price_version'];
-        $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsWithVersion($param['job_identity'], $priceVersion);
-        $isInvoiced            = $getLastPriceVersion['isInvoiced'];
-        $customerId            = $getLastPriceVersion['customer_id'];
-        $carrierId             = $getLastPriceVersion['carrier'];
-        //$shipId    = $getLastPriceVersion['shipment_id'];
-        $oldGrandTotal         = $getLastPriceVersion['grand_total'];
-        $records               = array();
-
-        foreach ($getLastPriceBreakdown as $key => $val) {
-            if (array_key_exists($val['id'], $param['data'])) {
-                if ($param['applypriceoncustomer'] == 'YES') {
-                    $val['show_for']          = 'B';
-                    $data                     = $this->calculateNewPrice($val, $param['data'][$val['id']]);
-                    $val['ccf_price']         = $data['ccf_price'];
-                    $val['baseprice']         = $data['baseprice'];
-                    $val['price']             = $data['price'];
-                    $val['version']           = $priceVersion + 1;
-                    $val['apply_to_customer'] = 'YES';
-                    $val['version_reason']    = 'CARRIER_PRICE_UPDATE';
-                    $val['inputjson']         = json_encode($param);
-                    unset($val['id']);
-                    $records[] = $val;
-                } elseif ($param['applypriceoncustomer'] == 'NO') {
-                    $val['baseprice']         = $param['data'][$val['id']];
-                    $val['version']           = $priceVersion + 1;
-                    $val['version_reason']    = 'CARRIER_PRICE_UPDATE';
-                    $val['inputjson']         = json_encode($param);
-                    $val['apply_to_customer'] = 'NO';
-                    unset($val['id']);
-                    $records[] = $val;
-                } else {
-                    //
-                }
-            } else {
-                $val['version'] = $priceVersion + 1;
-                unset($val['id']);
-                $val['version_reason'] = 'CARRIER_PRICE_UPDATE';
-                $val['inputjson']      = json_encode($param);
-                $records[]             = $val;
-            }
-        }
-        if (isset($param['data']['newsurcharges']) and count($param['data']['newsurcharges']) > 0) {
-            foreach ($param['data']['newsurcharges'] as $key => $surchargeId) {
-                $surcharge_code = $this->modelObj->getSurchargeCodeBySurchargeId($surchargeId, $param['company_id']);
-                $price          = $param['data']['newsurchargesprice'][$key];
-                if ($param['applypriceoncustomer'] == 'NO') {
-                    $tempdata                      = array();
-                    $tempdata['price_code']        = $surcharge_code;
-                    $tempdata['price']             = $price;
-                    $tempdata['load_identity']     = $getLastPriceVersion['load_identity'];
-                    //$tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
-                    $tempdata['shipment_type']     = '';
-                    $tempdata['version']           = $priceVersion + 1;
-                    $tempdata['api_key']           = 'surcharges';
-                    $tempdata['ccf_operator']      = 'FLAT';
-                    $tempdata['ccf_value']         = '0';
-                    $tempdata['ccf_level']         = 'level 0';
-                    $tempdata['baseprice']         = $price;
-                    $tempdata['ccf_price']         = '0.00';
-                    $tempdata['surcharge_id']      = $surchargeId;
-                    $tempdata['service_id']        = '0';
-                    $tempdata['apply_to_customer'] = 'NO';
-                    $tempdata['show_for']          = 'CA';
-                    $tempdata['version_reason']    = 'CARRIER_PRICE_UPDATE';
-                    $tempdata['inputjson']         = json_encode($param);
-                    $records[]                     = $tempdata;
-                } elseif ($param['applypriceoncustomer'] == 'YES') {
-                    $surchargeCcf = $this->modelObj->getCcfOfCarrierSurcharge($surchargeId, $param['company_id'], $customerId, $carrierId);
-                    if ($surchargeCcf) {
-                        if (isset($surchargeCcf["customer_carrier_surcharge_ccf"]) and $surchargeCcf["customer_carrier_surcharge_ccf"] > 0 and $surchargeCcf["customer_carrier_surcharge_operator"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $surchargeCcf["customer_carrier_surcharge_ccf"], $surchargeCcf["customer_carrier_surcharge_operator"], $surchargeCcf["company_surcharge_code"], $surchargeCcf["company_surcharge_name"], $surchargeCcf["courier_surcharge_code"], $surchargeCcf["courier_surcharge_name"], "level 1", $surchargeCcf["surcharge_id"]);
-                        } elseif (isset($surchargeCcf["customer_carrier_surcharge"]) and $surchargeCcf["customer_carrier_surcharge"] > 0 and $surchargeCcf["customer_carrier_operator"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $surchargeCcf["customer_carrier_surcharge"], $surchargeCcf["customer_carrier_operator"], $surchargeCcf["company_surcharge_code"], $surchargeCcf["company_surcharge_name"], $surchargeCcf["courier_surcharge_code"], $surchargeCcf["courier_surcharge_name"], "level 2", $surchargeCcf["surcharge_id"]);
-                        } elseif (isset($surchargeCcf["customer_surcharge"]) and $surchargeCcf["customer_surcharge"] > 0 and $surchargeCcf["customer_operator"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $surchargeCcf["customer_surcharge"], $surchargeCcf["customer_operator"], $surchargeCcf["company_surcharge_code"], $surchargeCcf["company_surcharge_name"], $surchargeCcf["courier_surcharge_code"], $surchargeCcf["courier_surcharge_name"], "level 3", $surchargeCcf["surcharge_id"]);
-                        } elseif (isset($surchargeCcf["company_carrier_surcharge_ccf"]) and $surchargeCcf["company_carrier_surcharge_ccf"] > 0 and $surchargeCcf["company_carrier_surcharge_operator"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $surchargeCcf["company_carrier_surcharge_ccf"], $surchargeCcf["company_carrier_surcharge_operator"], $surchargeCcf["company_surcharge_code"], $surchargeCcf["company_surcharge_name"], $surchargeCcf["courier_surcharge_code"], $surchargeCcf["courier_surcharge_name"], "level 4", $surchargeCcf["surcharge_id"]);
-                        } elseif (isset($surchargeCcf["company_carrier_ccf"]) and $surchargeCcf["company_carrier_operator"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $surchargeCcf["company_carrier_ccf"], $surchargeCcf["company_carrier_operator"], $surchargeCcf["company_surcharge_code"], $surchargeCcf["company_surcharge_name"], $surchargeCcf["courier_surcharge_code"], $surchargeCcf["courier_surcharge_name"], "level 5", $surchargeCcf["surcharge_id"]);
-                        }
-                    } else {
-                        $customerCcf = $this->modelObj->getSurchargeOfCarrier($customerId, $param['company_id'], $carrierId);
-                        if (isset($customerCcf["customer_surcharge_value"]) and $customerCcf["customer_surcharge_value"] > 0 and $customerCcf["company_ccf_operator_surcharge"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $customerCcf["customer_surcharge_value"], $customerCcf["company_ccf_operator_surcharge"], $surcharge_code, $surcharge_code, $surcharge_code, $surcharge_code, "level 2", $surchargeId);
-                        } elseif (isset($customerCcf["customer_surcharge"]) and $customerCcf["customer_surcharge"] > 0 and $customerCcf["customer_operator"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $customerCcf["customer_surcharge"], $customerCcf["customer_operator"], $surcharge_code, $surcharge_code, $surcharge_code, $surcharge_code, "level 3", $surchargeId);
-                        } elseif (isset($customerCcf["company_carrier_ccf"]) and $customerCcf["company_carrier_operator"] != 'NONE') {
-                            $surcharge_ccf_price = $this->_calculateSurcharge($price, $customerCcf["company_carrier_ccf"], $customerCcf["company_carrier_operator"], $surcharge_code, $surcharge_code, $surcharge_code, $surcharge_code, "level 5", $surchargeId);
-                        }
-                    }
-                    $tempdata                      = array();
-                    $tempdata['price_code']        = $surcharge_ccf_price['company_surcharge_code'];
-                    $tempdata['price']             = $surcharge_ccf_price['price'] + $price;
-                    $tempdata['load_identity']     = $getLastPriceVersion['load_identity'];
-                    // $tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
-                    $tempdata['shipment_type']     = '';
-                    $tempdata['version']           = $priceVersion + 1;
-                    $tempdata['api_key']           = 'surcharges';
-                    $tempdata['ccf_operator']      = $surcharge_ccf_price['operator'];
-                    $tempdata['ccf_value']         = $surcharge_ccf_price['surcharge_value'];
-                    $tempdata['ccf_level']         = $surcharge_ccf_price['level'];
-                    $tempdata['baseprice']         = $price;
-                    $tempdata['ccf_price']         = $surcharge_ccf_price['price'];
-                    $tempdata['surcharge_id']      = $surcharge_ccf_price['surcharge_id'];
-                    $tempdata['service_id']        = '0';
-                    $tempdata['apply_to_customer'] = 'YES';
-                    $tempdata['show_for']          = 'B';
-                    $tempdata['version_reason']    = 'CARRIER_PRICE_UPDATE';
-                    $tempdata['inputjson']         = json_encode($param);
-                    $records[]                     = $tempdata;
-                } else {
-                    //
-                }
-            }
-        }
-        if ($param['applypriceoncustomer'] == 'YES') {
-            $temp                                  = array();
-            $temp['price_update_applyto_customer'] = 'YES';
-            $temp['version_reason']                = 'CARRIER_PRICE_UPDATE';
-            $temp['price_version']                 = $priceVersion + 1;
-            $temp['surcharges']                    = 0;
-            $temp['taxes']                         = 0;
-            $temp['total_price']                   = 0;
-            $taxPrice                              = $this->getTaxPrice($records);
-            foreach ($records as $key => $data) {
-                if ($data['api_key'] == 'service') {
-                    $temp['base_price']               = $data['baseprice'];
-                    $temp['courier_commission_value'] = $data['ccf_price'];
-                    $temp['total_price']              = $data['price'];
-                } elseif ($data['api_key'] == 'taxes') {
-                    $data['price']     = $taxPrice['tax_amt'];
-                    $data['baseprice'] = $taxPrice['base_price'];
-                    $data['ccf_price'] = $taxPrice['tax_amt'];
-                    $temp['taxes']     = $data['price'];
-                } else {
-                    if ($data['apply_to_customer'] != 'NO') {
-                        $temp['surcharges'] += $data['price'];
-                    }
-
-                }
-                $adddata = $this->modelObj->addContent('shipment_price', $data);
-            }
-            if ($adddata) {
-                $temp['grand_total'] = $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
-                if ($isInvoiced == 'YES') {
-                    if ($temp['grand_total'] != $oldGrandTotal) {
-                        $voucherHistoryid                  = $this->modelObj->getVoucherHistory($param['job_identity']);
-                        $voucherdata                       = array();
-                        $voucherdata['voucher_type']       = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
-                        $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
-                        $voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
-                        //$voucherdata['shipment_id']  = $shipId;
-                        $voucherdata['shipment_reference'] = $param['job_identity'];
-                        $voucherdata['create_date']        = date('Y-m-d');
-                        $voucherdata['created_by']         = $param['user'];
-                        $voucherdata['history_id']         = $voucherHistoryid;
-                        $voucherdata['is_invoiced']        = 'NO';
-                        $voucherdata['status']             = '1';
-                        $voucherdata['company_id']         = $param['company_id'];
-                        $voucherdata['customer_id']        = $customerId;
-                        $voucherdata['invoice_reference']  = '';
-                        $voucherdata['is_Paid']            = 'UNPAID';
-                        $adddata                           = $this->modelObj->addContent('vouchers', $voucherdata);
-                    }
-                }
-                $temp['price_update_applyto_customer'] = 'YES';
-                $temp['version_reason']                = 'CARRIER_PRICE_UPDATE';
-                $temp['price_version']                 = $priceVersion + 1;
-                $condition                             = "load_identity = '" . $param['job_identity'] . "'";
-                $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
-            }
-        } elseif ($param['applypriceoncustomer'] == 'NO') {
-            foreach ($records as $data) {
-                $adddata = $this->modelObj->addContent('shipment_price', $data);
-            }
-            if ($adddata) {
-                $temp                                  = array();
-                $temp['price_update_applyto_customer'] = 'NO';
-                $temp['version_reason']                = 'CARRIER_PRICE_UPDATE';
-                $temp['price_version']                 = $priceVersion + 1;
-                $condition                             = "load_identity = '" . $param['job_identity'] . "'";
-                $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
-            }
-        } else {
-        }
-        if ($status) {
-            return array(
-                'status' => 'success',
-                'message' => 'data updated successfully',
-                'data' => array(
-                    'identity' => $param['job_identity'],
-                    'job_type' => $param['job_type']
-                )
-            );
-        }
-    }
-    public function updateCustomerPrice__old($param)
-    {
-        $param                 = json_decode(json_encode($param), 1);
-        $getLastPriceVersion   = $this->modelObj->getShipmentPriceDetails($param['job_identity']);
-        $priceVersion          = $getLastPriceVersion['price_version'];
-        $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsWithVersionOfCustomer($param['job_identity'], $priceVersion);
-        $isInvoiced            = $getLastPriceVersion['isInvoiced'];
-        $customerId            = $getLastPriceVersion['customer_id'];
-        $carrierId             = $getLastPriceVersion['carrier'];
-        //$shipId    = $getLastPriceVersion['shipment_id'];
-        $oldGrandTotal         = $getLastPriceVersion['grand_total'];
-        $records               = array();
-        foreach ($getLastPriceBreakdown as $key => $val) {
-            if (array_key_exists($val['id'], $param['data'])) {
-                $val['show_for']       = 'B';
-                $updatedPrice          = $param['data'][$val['id']];
-                $val['ccf_value']      = ($updatedPrice - $val['price'] < 0) ? ($updatedPrice - $val['baseprice']) : ($updatedPrice - $val['baseprice']);
-                $val['ccf_price']      = $val['ccf_value'];
-                $val['price']          = $val['baseprice'] + $val['ccf_price'];
-                $val['ccf_operator']   = 'FLAT';
-                $val['ccf_level']      = 'level 0';
-                $val['version']        = $priceVersion + 1;
-                $val['version_reason'] = 'CUSTOMER_PRICE_UPDATE';
-                $val['inputjson']      = json_encode($param);
-                unset($val['id']);
-                $records[] = $val;
-            } else {
-                $val['version'] = $priceVersion + 1;
-                unset($val['id']);
-                $val['version_reason'] = 'CUSTOMER_PRICE_UPDATE';
-                $val['inputjson']      = json_encode($param);
-                $records[]             = $val;
-            }
-        }
-        if (isset($param['data']['newsurcharges']) and count($param['data']['newsurcharges']) > 0) {
-            foreach ($param['data']['newsurcharges'] as $key => $surchargeId) {
-                $surcharge_code                = $this->modelObj->getSurchargeCodeBySurchargeId($surchargeId, $param['company_id']);
-                $price                         = $param['data']['newsurchargesprice'][$key];
-                $tempdata                      = array();
-                $tempdata['price_code']        = $surcharge_code;
-                $tempdata['price']             = $price;
-                $tempdata['load_identity']     = $getLastPriceVersion['load_identity'];
-                //$tempdata['shipment_id'] = $getLastPriceVersion['shipment_id'];
-                $tempdata['shipment_type']     = '';
-                $tempdata['version']           = $priceVersion + 1;
-                $tempdata['api_key']           = 'surcharges';
-                $tempdata['ccf_operator']      = 'FLAT';
-                $tempdata['ccf_value']         = $price;
-                $tempdata['ccf_level']         = 'level 0';
-                $tempdata['baseprice']         = '0';
-                $tempdata['ccf_price']         = $price;
-                $tempdata['surcharge_id']      = $surchargeId;
-                $tempdata['service_id']        = '0';
-                $tempdata['apply_to_customer'] = 'NO';
-                $tempdata['version_reason']    = 'CUSTOMER_PRICE_UPDATE';
-                $tempdata['inputjson']         = json_encode($param);
-                $tempdata['show_for']          = 'C';
-                $records[]                     = $tempdata;
-
-            }
-        }
-        $temp                = array();
-        $temp['surcharges']  = 0;
-        $temp['total_price'] = 0;
-        $temp['taxes']       = 0;
-        $taxPrice            = $this->getTaxPrice($records);
-        foreach ($records as $data) {
-            if ($data['api_key'] == 'service') {
-                $temp['base_price']               = $data['baseprice'];
-                $temp['courier_commission_value'] = $data['ccf_price'];
-                $temp['courier_commission_type']  = $data['ccf_operator'];
-                $temp['courier_commission']       = $data['ccf_value'];
-                $temp['total_price']              = $data['price'];
-            } elseif ($data['api_key'] == 'taxes') {
-                $data['price']     = $taxPrice['tax_amt'];
-                $data['baseprice'] = $taxPrice['base_price'];
-                $data['ccf_price'] = $taxPrice['tax_amt'];
-                $temp['taxes']     = $data['price'];
-            } else {
-                $temp['surcharges'] += $data['price'];
-            }
-            $adddata = $this->modelObj->addContent('shipment_price', $data);
-        }
-        if ($adddata) {
-            $temp['grand_total'] = $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
-            if ($isInvoiced == 'YES') {
-                if ($temp['grand_total'] != $oldGrandTotal) {
-                    $voucherHistoryid                  = $this->modelObj->getVoucherHistory($param['job_identity']);
-                    $voucherdata                       = array();
-                    $voucherdata['voucher_type']       = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
-                    $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
-                    $voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
-                    //$voucherdata['shipment_id']  = $shipId;
-                    $voucherdata['shipment_reference'] = $param['job_identity'];
-                    $voucherdata['create_date']        = date('Y-m-d');
-                    $voucherdata['created_by']         = $param['user'];
-                    $voucherdata['history_id']         = $voucherHistoryid;
-                    $voucherdata['is_invoiced']        = 'NO';
-                    $voucherdata['status']             = '1';
-                    $voucherdata['company_id']         = $param['company_id'];
-                    $voucherdata['customer_id']        = $customerId;
-                    $voucherdata['invoice_reference']  = '';
-                    $voucherdata['is_Paid']            = 'UNPAID';
-                    $adddata                           = $this->modelObj->addContent('vouchers', $voucherdata);
-                }
-            }
-            $temp['price_update_applyto_customer'] = 'YES';
-            $temp['version_reason']                = 'CUSTOMER_PRICE_UPDATE';
-            $temp['price_version']                 = $priceVersion + 1;
-            $condition                             = "load_identity = '" . $param['job_identity'] . "'";
-            $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
-        }
-        if ($status) {
-            return array(
-                'status' => 'success',
-                'message' => 'data updated successfully',
-                'data' => array(
-                    'identity' => $param['job_identity'],
-                    'job_type' => $param['job_type']
-                )
-            );
-        }
-    }
-
     public function updateCarrierPrice($param)
     {
         $param                 = json_decode(json_encode($param), 1);
@@ -1139,6 +821,7 @@ class allShipments extends Icargo
             $temp['surcharges']                    = 0;
             $temp['taxes']                         = 0;
             $temp['total_price']                   = 0;
+            $newPriceComponent      = array(); 
             $taxPrice                              = $this->getTaxPrice($records);
             foreach ($records as $key => $data) {
                 if ($data['api_key'] == 'service') {
@@ -1156,6 +839,7 @@ class allShipments extends Icargo
                     }
 
                 }
+                $newPriceComponent[] = $data;
                 $adddata = $this->modelObj->addContent('shipment_price', $data);
             }
             if ($adddata) {
@@ -1164,10 +848,12 @@ class allShipments extends Icargo
                     if ($temp['grand_total'] != $oldGrandTotal) {
                         $voucherHistoryid                  = $this->modelObj->getVoucherHistory($param['job_identity']);
                         $voucherdata                       = array();
+                        $voucherdata                       = $this->getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown);
                         $voucherdata['voucher_type']       = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
                         $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
-                        $voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
+                        //$voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
                         //$voucherdata['shipment_id']  = $shipId;
+                        $voucherdata['amount']             = ($temp['grand_total'] - $oldGrandTotal);
                         $voucherdata['shipment_reference'] = $param['job_identity'];
                         $voucherdata['create_date']        = date('Y-m-d');
                         $voucherdata['created_by']         = $param['user'];
@@ -1186,11 +872,32 @@ class allShipments extends Icargo
                 $temp['price_version']                 = $priceVersion + 1;
                 $condition                             = "load_identity = '" . $param['job_identity'] . "'";
                 $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
-            }
-        } elseif ($param['applypriceoncustomer'] == 'NO') {
+                
+                if ($temp['grand_total'] != $oldGrandTotal) {
+                   $dataarr = array();
+                   $dataarr['payment_type']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
+                   $dataarr['amount']                   = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) :
+                                                          ($oldGrandTotal - $temp['grand_total']);
+                   $dataarr['customer_id']              = $customerId;
+                   $dataarr['company_id']               = $param['company_id'];
+                if ($isInvoiced == 'YES') {
+                    $dataarr['payment_reference']        = $voucherdata['voucher_reference'];
+                    $dataarr['payment_desc']             = 'Voucher Apply against '.$param['job_identity'];
+                    $dataarr['payment_for']              = 'VOUCHER';
+                }else{
+                    $dataarr['payment_reference']        = $param['job_identity'];
+                    $dataarr['payment_desc']             = 'UPADTE SHIPMENT PRICE';
+                    $dataarr['payment_for']              = 'PRICECHANGE';   
+                }
+                $accountUpdatestatus =  $this->manageAccount($dataarr);
+                }
+           }
+        } 
+        elseif ($param['applypriceoncustomer'] == 'NO') {
             $temp['surcharges']  = 0;
             $temp['total_price'] = 0;
             $temp['taxes']       = 0;
+            
             $taxPrice            = $this->getTaxPrice($records);
             foreach ($records as $data) {
                 if ($data['api_key'] == 'service') {
@@ -1297,7 +1004,7 @@ class allShipments extends Icargo
         $temp['total_price'] = 0;
         $temp['taxes']       = 0;
         $taxPrice            = $this->getTaxPrice($records);
-
+        $newPriceComponent      = array(); 
         foreach ($records as $data) {
             if ($data['api_key'] == 'service') {
                 $temp['base_price']               = $data['baseprice'];
@@ -1313,7 +1020,7 @@ class allShipments extends Icargo
             } else {
                 $temp['surcharges'] += $data['price'];
             }
-            //print_r($data);die;
+            $newPriceComponent[] = $data;
             $adddata = $this->modelObj->addContent('shipment_price', $data);
         }
         if ($adddata) {
@@ -1322,10 +1029,10 @@ class allShipments extends Icargo
                 if ($temp['grand_total'] != $oldGrandTotal) {
                     $voucherHistoryid                  = $this->modelObj->getVoucherHistory($param['job_identity']);
                     $voucherdata                       = array();
+                    $voucherdata                       = $this->getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown);
                     $voucherdata['voucher_type']       = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
                     $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
-                    $voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
-                    //$voucherdata['shipment_id']  = $shipId;
+                    $voucherdata['total']              = $temp['grand_total'] - $oldGrandTotal;
                     $voucherdata['shipment_reference'] = $param['job_identity'];
                     $voucherdata['create_date']        = date('Y-m-d');
                     $voucherdata['created_by']         = $param['user'];
@@ -1344,6 +1051,26 @@ class allShipments extends Icargo
             $temp['price_version']                 = $priceVersion + 1;
             $condition                             = "load_identity = '" . $param['job_identity'] . "'";
             $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
+            /* manage account*/
+            if ($temp['grand_total'] != $oldGrandTotal) {
+                   $dataarr = array();
+                   $dataarr['payment_type']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
+                   $dataarr['amount']                   = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) :
+                                                          ($oldGrandTotal - $temp['grand_total']);
+                   $dataarr['customer_id']              = $customerId;
+                   $dataarr['company_id']               = $param['company_id'];  
+                 if ($isInvoiced == 'YES') {
+                    $dataarr['payment_reference']        = $voucherdata['voucher_reference'];
+                    $dataarr['payment_desc']             = 'Voucher Apply against '.$param['job_identity'];
+                    $dataarr['payment_for']              = 'VOUCHER';
+                   }else{
+                    $dataarr['payment_reference']        = $param['job_identity'];
+                    $dataarr['payment_desc']             = 'UPADTE SHIPMENT PRICE';
+                    $dataarr['payment_for']              = 'PRICECHANGE';   
+                   }
+                $accountUpdatestatus =  $this->manageAccount($dataarr);
+          }
+                
         }
         if ($status) {
             return array(
@@ -1434,7 +1161,7 @@ class allShipments extends Icargo
             $temp['recipient'] = $dataVal['contact_person'];
             $temp['comment']   = $dataVal['comment'];
             $temp['download']  = ($dataVal['pod_name'] == 'signature') ? 'true' : 'false';
-            $temp['action']    = $dataVal['value'];
+            $temp['action']     = str_replace('http','https',$dataVal['value']);
             $temp['ticket']    = $dataVal['shipment_ticket'];
             $retrundata[]      = $temp;
         }
@@ -1526,11 +1253,7 @@ class allShipments extends Icargo
         }
     }
 
-    public function cancelJob($param)
-    {
-        print_r($param);
-        die;
-    }
+   
 
     public function shipmentdetailsAction____()
     {
@@ -1719,5 +1442,386 @@ class allShipments extends Icargo
         $data = $this->modelObj->getAllCarrier($param->company_id);
         return $data;
     }
+
+    
+public function createVoucher($voucherdata){ 
+    $returnArray = array('status'=>'fail');
+    $voucherHistoryid                  = $this->modelObj->getVoucherHistory($voucherdata['job_identity']);
+    $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($voucherdata['company_id']);
+    $voucherdata['shipment_reference'] = $voucherdata['job_identity'];
+    $voucherdata['create_date']        = date('Y-m-d');
+    $voucherdata['history_id']         = $voucherHistoryid;
+    $voucherdata['is_invoiced']        = 'NO';
+    $voucherdata['status']             = '1';
+    $voucherdata['invoice_reference']  = '';
+    $voucherdata['is_Paid']            = 'UNPAID';
+    unset($voucherdata['job_identity']);
+    $status = $this->modelObj->addContent('vouchers', $voucherdata);
+    if($status){
+        $returnArray['status'] = 'success';
+        $returnArray['voucherRef'] = $voucherdata['shipment_reference'];
+    }
+  return $returnArray;
+}    
+    
+   
+public function manageAccount($creditbalanceData){
+                $getCustomerdetails =  $this->modelObj->getCustomerInfo($creditbalanceData['customer_id']);
+                $creditbalanceData['customer_type']        = $getCustomerdetails['customer_type'];
+                $creditbalanceData['pre_balance']          = $getCustomerdetails["available_credit"];
+                if($creditbalanceData['payment_type']=='CREDIT'){
+                    $creditbalanceData['balance']              = $getCustomerdetails["available_credit"] + $creditbalanceData["amount"];
+                }else{
+                   $creditbalanceData['balance']              = $getCustomerdetails["available_credit"] - $creditbalanceData["amount"]; 
+                }
+                $creditbalanceData['create_date']          = date("Y-m-d");
+                $addHistory = $this->modelObj->addContent('accountbalancehistory', $creditbalanceData);
+                  if($addHistory>0){
+                      $condition = "user_id = '".$creditbalanceData['customer_id']."'";
+                      $updateStatus    = $this->modelObj->editContent("customer_info", array('available_credit'=>$creditbalanceData['balance']), $condition);
+                      if($updateStatus){
+                          return array("status"=>"success", "message"=>"Price Update save");
+                      }
+        }
+    }
+    
+    
+public function holdJob($param){   $loadidentity =  '"'.implode('","',$param->job_identity).'"';
+        if(is_array($param->job_identity) && count($param->job_identity)>0){
+                $condition   = "load_identity  IN(" . $loadidentity . ")";
+                $status      = $this->modelObj->editContent("shipment_service", array('is_hold'=>'YES'), $condition);
+             }
+        if($status){
+                return array("status"=>"success", "message"=>"Action perform successfully");
+        }
+    }
+    
+public function unholdJob($param){  $loadidentity =  '"'.implode('","',$param->job_identity).'"';
+      if(is_array($param->job_identity) && count($param->job_identity)>0){
+                 $condition   = "load_identity  IN(" . $loadidentity . ")";
+                $status      = $this->modelObj->editContent("shipment_service", array('is_hold'=>'NO'), $condition);
+      }
+    if($status){
+                return array("status"=>"success", "message"=>"Action perform successfully");
+        }
+    }
+ 
+public function getlogo($param){   
+    return $this->modelObj->getCompanylogo($param->company_id);
+}
+public function getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown){   
+    $oldData = array('service'=>0,'surcharges'=>0,'fual_surcharge'=>0,'tax'=>0);
+    $newData = array('service'=>0,'surcharges'=>0,'fual_surcharge'=>0,'tax'=>0);
+    if(is_array($getLastPriceBreakdown)  and count($getLastPriceBreakdown)>0){
+         foreach($getLastPriceBreakdown  as $key=>$data){
+           //$oldData['total'] += $data['price'];
+           if($data['api_key'] == 'service') {
+                $oldData['service']  = $data['price'];
+            }elseif ($data['api_key'] == 'taxes') {
+                $oldData['tax']  = $data['price'];
+            }else {
+                if ($data['price_code'] == 'fual_surcharge') {
+                    $oldData['fual_surcharge']  += $data['price'];
+                }else{
+                    $oldData['surcharges'] += $data['price'];
+                }
+            }
+        }
+         foreach($newPriceComponent  as $key=>$data){
+           //$newData['total'] += $data['price'];
+           if($data['api_key'] == 'service') {
+                $newData['service']     = $data['price'];
+            }elseif ($data['api_key'] == 'taxes') {
+                $newData['tax']         = $data['price'];
+            }else {
+                if ($data['price_code'] == 'fual_surcharge') {
+                    $newData['fual_surcharge']  += $data['price'];
+                }else{
+                    $newData['surcharges'] += $data['price'];
+                }
+            }
+        }
+    }
+   return array(
+                'base_amount'=>number_format(($newData['service'] - $oldData['service']),2),
+                'surcharge_total'=>number_format(($newData['surcharges'] - $oldData['surcharges']),2),
+                'fual_surcharge'=>number_format(($newData['fual_surcharge'] - $oldData['fual_surcharge']),2),
+                'tax'=>number_format(($newData['tax'] - $oldData['tax']),2)
+         );
+    }   
+    
+public function getRecurringShipmentDetails($param){
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+        $shipmentsInfoData     = $this->modelObj->getRecurringShipmentDetails($loadidentity);
+        $basicInfo = array();
+        $basicInfo['totaldrop']            = count($shipmentsInfoData);
+        $basicInfo['customer']             = $shipmentsInfoData[0]['customer'];
+        $basicInfo['customer_id']          = $shipmentsInfoData[0]['customer_id'];
+        $basicInfo['company_id']           = $shipmentsInfoData[0]['company_id'];
+        $basicInfo['company_carrier_id']   = $shipmentsInfoData[0]['company_carrier_id'];
+        $basicInfo['company_service_id']   = $shipmentsInfoData[0]['service'];
+        $basicInfo['service']              = $shipmentsInfoData[0]['service'];
+        $basicInfo['chargeableunit']       = $shipmentsInfoData[0]['chargeableunit'];
+        $basicInfo['user']                 = $shipmentsInfoData[0]['user'];
+        $basicInfo['carriername']          = $shipmentsInfoData[0]['carriername'];
+        $basicInfo['reference']            = $shipmentsInfoData[0]['reference'];
+        $basicInfo['customertotal']        = $shipmentsInfoData[0]['customertotalprice'];
+        $basicInfo['carriertotal']         = $shipmentsInfoData[0]['carriertotalprice'];
+        $basicInfo['bookingtype']          = $shipmentsInfoData[0]['job_type'];
+        $basicInfo['customer_desc']        = $shipmentsInfoData[0]['customer_desc'];
+        $basicInfo['customerreference']    = $shipmentsInfoData[0]['customerreference'];
+        $basicInfo['transittime']          = $shipmentsInfoData[0]['transittime'];
+        $basicInfo['chargeablevalue']      = $shipmentsInfoData[0]['chargeablevalue'];
+        $basicInfo['recurringdata']        = '';
+            foreach ($shipmentsInfoData as $key => $val) {
+                if ($val['shipment_type'] == 'P') {
+                    $basicInfo['collectioncustomername']     = $val['customername'];
+                    $basicInfo['collectioncustomeraddress1'] = $val['address_line1'];
+                    $basicInfo['collectioncustomeraddress2'] = $val['address_line2'];
+                    $basicInfo['collectioncustomeremail']    = $val['customeremail'];
+                    $basicInfo['collectioncustomerphone']    = $val['customerphone'];
+                    $basicInfo['collectioncustomercountry']  = $val['country'];
+                    $basicInfo['collectioncustomercity']     = $val['city'];
+                    $basicInfo['collectioncustomerpostcode'] = $val['postcode'];
+                    $basicInfo['collectioncustomerstate']    = $val['state'];
+                } else {
+                    $data                             = array();
+                    $data['deliverycustomername']     = $val['customername'];
+                    $data['deliverycustomeraddress1'] = $val['address_line1'];
+                    $data['deliverycustomeraddress2'] = $val['address_line2'];
+                    $data['deliverycustomeremail']    = $val['customeremail'];
+                    $data['deliverycustomerphone']    = $val['customerphone'];
+                    $data['deliverycustomercountry']  = $val['country'];
+                    $data['deliverycustomercity']     = $val['city'];
+                    $data['deliverycustomerpostcode'] = $val['postcode'];
+                    $data['deliverycustomerstate']    = $val['state'];
+                    $basicInfo['deliveryaddress'][]   = $data;
+                }
+            }
+       // return array("status"=>"success", "message"=>"Action perform successfully");
+        return $basicInfo;
+     }    
+    
+public function bookRecurringJob($param){ 
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+        $company_id   = $param->company_id;
+        $job_type     = $param->job_type;
+        $load_identity  = $param->job_identity[0];
+        $shipmentsInfoData     = $this->modelObj->getRecurringDetails($loadidentity);
+        $recurringInfo = array();
+        $recurringInfo['load_identity']        = $load_identity;
+        $recurringInfo['company_id']           = $company_id;
+        $recurringInfo['load_type']            = $job_type;
+        $recurringInfo['customer_id']          = $shipmentsInfoData[0]['customer_id'];
+        $recurringInfo['company_carrier_id']   = $shipmentsInfoData[0]['company_carrier_id'];
+        $recurringInfo['company_service_id']   = $shipmentsInfoData[0]['company_service_id'];
+        $recurringInfo['recurring_type']       = $param->paramdata->recurringtype;
+        foreach($param->paramdata->alldata as $recurrval){ 
+          $recurringInfo['recurring_month_date'] = isset($recurrval->recurringDayDate)?$recurrval->recurringDayDate:'00';  
+          $recurringInfo['recurring_date']       = isset($recurrval->recurringDate)?$recurrval->recurringDate:'1970-01-01';
+          $recurringInfo['recurring_day']        = isset($recurrval->recurringDay)?$recurrval->recurringDay:'NONE';
+          $recurringInfo['recurring_time']       = isset($recurrval->recurringTime)?$recurrval->recurringTime:'00:00:00';
+          $status = $this->modelObj->addContent("recurring_jobs",$recurringInfo);
+        } 
+        if($status){
+         $condition   = "load_identity  = '$load_identity'";
+         $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'YES'), $condition);
+          return array("status"=>"success", "message"=>"Recurring Job added successfully");
+        }else{
+            return array("status"=>"error", "message"=>"Recurring Job not added");
+        }
+    }  
+public function getRecurringJobs($param){ 
+        $company_id         = $param->company_id;
+        $recurringInfoData  = $this->modelObj->getRecurringJobsByCompanyId($company_id);
+        foreach($recurringInfoData as $key=>$val){
+            $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;   
+        }
+         return $recurringInfoData;
+  }
+    
+public function editRecurringjobStatus($param){ 
+        $company_id         = $param->company_id;
+        $recurringJob_id    = $param->descid;
+        $statusData         = $param->status; 
+        $condition   = "job_id  = '$recurringJob_id' AND company_id = '$company_id'";
+        $status      = $this->modelObj->editContent("recurring_jobs", array('status'=>$statusData), $condition);
+        if($status){
+          return array("status"=>"success", "message"=>"Requested action performed successfully.");
+        }else{
+            return array("status"=>"error", "message"=>"Requested action not performed.");
+        }
+  }
+public function deleteRecurringjobStatus($param){ 
+        $company_id         = $param->company_id;
+        $recurringJob_id    = $param->descid;
+        $recurringJobref    = $param->jobref;
+        //$recDetails         = $this->modelObj->getRecurringJobDetail($recurringJobref);
+        $status      = $this->modelObj->deleteContent("DELETE from icargo_recurring_jobs where load_identity  = '$recurringJobref' AND company_id = '$company_id'");
+        if($status){
+         // if(count($recDetails)==1){
+           $innercondition   = "load_identity  = '$recurringJobref'";
+           $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'NO'), $innercondition); 
+         // }
+          return array("status"=>"success", "message"=>"Requested action performed successfully.");
+        }else{
+            return array("status"=>"error", "message"=>"Requested action not performed.");
+        }
+  } 
+    
+public function recurringJobDetails($param){ 
+        $company_id         = $param->company_id;
+        $recurringJobref    = $param->job_identity;
+        $recDetails         = $this->modelObj->getRecurringJobDetail($recurringJobref);
+        foreach($recDetails as $key=>$val){
+            $recDetails[$val['recurring_type']][] = array('recurring_day'=>$val['recurring_day'],'recurring_time'=>date('H:i',strtotime($val['recurring_time'])),'recurring_month_date'=>$val['recurring_month_date'],'recurring_date'=>date('m/d/Y',strtotime($val['recurring_date'])));
+            unset($recDetails[$key]);
+        }
+    return $recDetails;
+  }    
+
+public function updateRecurringJob($param){ 
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+        $company_id   = $param->company_id;
+        $job_type     = $param->job_type;
+        $load_identity  = $param->job_identity[0];
+        $status         = $this->modelObj->deleteContent("DELETE from icargo_recurring_jobs where load_identity  = '$loadidentity' AND company_id = '$company_id'");
+        $condition   = "load_identity  = '$load_identity'";
+        $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'YES'), $condition);
+        if(count($param->paramdata->alldata)>0){
+        $shipmentsInfoData     = $this->modelObj->getRecurringDetails($loadidentity);
+        $recurringInfo = array();
+        $recurringInfo['load_identity']        = $load_identity;
+        $recurringInfo['company_id']           = $company_id;
+        $recurringInfo['load_type']            = $job_type;
+        $recurringInfo['customer_id']          = $shipmentsInfoData[0]['customer_id'];
+        $recurringInfo['company_carrier_id']   = $shipmentsInfoData[0]['company_carrier_id'];
+        $recurringInfo['company_service_id']   = $shipmentsInfoData[0]['company_service_id'];
+        $recurringInfo['recurring_type']       = $param->paramdata->recurringtype;
+        foreach($param->paramdata->alldata as $recurrval){ 
+          $recurringInfo['recurring_month_date'] = isset($recurrval->recurringDayDate)?$recurrval->recurringDayDate:'00';  
+          $recurringInfo['recurring_date']       = isset($recurrval->recurringDate)?$recurrval->recurringDate:'1970-01-01';
+          $recurringInfo['recurring_day']        = isset($recurrval->recurringDay)?$recurrval->recurringDay:'NONE';
+          $recurringInfo['recurring_time']       = isset($recurrval->recurringTime)?$recurrval->recurringTime:'00:00:00';
+          $status = $this->modelObj->addContent("recurring_jobs",$recurringInfo);
+        } 
+        if($status){
+         $condition   = "load_identity  = '$load_identity'";
+         $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'YES'), $condition);
+          return array("status"=>"success", "message"=>"Recurring Job updated successfully");
+        }else{
+            return array("status"=>"error", "message"=>"Recurring Job not updated");
+          }
+        }else{
+           return array("status"=>"success", "message"=>"all Recurring Job deleted successfully");  
+        }
+    }
+public function getAllRecurringBreakdown($param){ 
+        $company_id         = $param->company_id;
+        $job_reference      = $param->job_reference;
+        $recurringInfoData  = $this->modelObj->getRecurringJobsBreakDown($company_id,$job_reference);
+        foreach($recurringInfoData as $key=>$val){
+            $recurringInfoData[$key]['recurring_date'] = ($val['recurring_date']=='1970-01-01')?'':$val['recurring_date'];   
+            $recurringInfoData[$key]['recurring_day'] = ($val['recurring_day']=='NONE')?'':$val['recurring_day'];   
+            $recurringInfoData[$key]['recurring_month_date'] = ($val['recurring_month_date']=='00')?'':$val['recurring_month_date'];   
+            $recurringInfoData[$key]['recurring_time'] = ($val['recurring_time']=='00:00:00')?'':$val['recurring_time'];   
+            $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;   
+        }
+         return $recurringInfoData;
+  }
+public function checkEligibleForCancel($param){
+      $eligiblearray = $this->getEligibleStatusForCanceljob();
+      $returnData = array('success'=>array(),'fail'=>array(),'cancel'=>array());
+    if(is_array($param->job_identity) && count($param->job_identity)>0){
+          foreach($param->job_identity as $valdata){
+              $currentLoadStatus = $this->modelObj->getLoadDetail($valdata);
+              if($currentLoadStatus['status']  != 'cancel'){
+                  $currentLoadStatus = $currentLoadStatus['current_status'];
+                  $currentLoadStatus = 'A';
+                  if(in_array($currentLoadStatus,$eligiblearray)){
+                      $returnData['success'][] = $valdata; 
+                  }else{
+                      $returnData['fail'][] = $valdata; 
+                  } 
+              }else{
+                    $returnData['cancel'][] = $valdata; 
+              }
+           }
+      }else{
+          return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
+      }
+    
+    if(count($returnData['fail'])>0){
+        return  array("status"=>"fail", "message"=>implode(',',$returnData['fail'])."not eligible for cancellation,Please remove these from your selection before process");   
+    }elseif(count($returnData['success'])>0){
+      return  array("status"=>"success", "data"=>$returnData['success'],"message"=>implode(',',$returnData['success'])." eligible for cancellation"); 
+    }else{
+       return  array("status"=>"fail","message"=>implode(',',$returnData['cancel'])." already cancelled");    
+    }
+ }    
+public function getEligibleStatusForCanceljob(){
+     return array('A','B','C','D','E');
+ }    
+public function cancelJob($param){
+        $returnData = array();
+        $company_id         = $param->company_id;
+        $userId             = $param->user; 
+        if(is_array($param->job_identity) && count($param->job_identity)>0){
+          foreach($param->job_identity as $valdata){
+           $loadDetail = $this->modelObj->getLoadDetail($valdata); 
+           $voucherUpdate = $this->manageVoucherAndAccount($loadDetail,$loadDetail['grand_total'],'CREDIT',$company_id,$userId); 
+           if($voucherUpdate['status']=='success'){
+              if(isset($loadDetail['cancelation_charge']) and $loadDetail['cancelation_charge'] > 0){
+               $this->manageVoucherAndAccount($loadDetail,$loadDetail['cancelation_charge'],'DEBIT',$company_id,$userId);        
+              } 
+                $returnData       = $param->job_identity;
+                $condition        = "load_identity = '" . $valdata . "'";
+                $status1          = $this->modelObj->editContent("shipment_service", array('status'=>'cancel'), $condition);
+                $condition        = "instaDispatch_loadIdentity = '" . $valdata . "'";
+                $status2          = $this->modelObj->editContent("shipment", array('current_status'=>'Cancel'), $condition);
+           }   
+          }
+        }else{
+          return   array("status"=>"fail", "message"=>"Please pass valid cancel identity"); 
+        }
+    return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
+}     
+public function manageVoucherAndAccount($loadDetail,$amount,$payemntType,$companyId,$userId){
+   $voucherRef = '';
+   $getCustomerdetails  =  $this->modelObj->getCustomerInfo($loadDetail['customer_id']);
+   $customer_type       = $getCustomerdetails['customer_type'];
+    if($loadDetail['isInvoiced']=='YES' && $customer_type == 'POSTPAID'){
+        $voucherdata = array();
+        $voucherdata['job_identity'] = $loadDetail['load_identity'];
+        $voucherdata['voucher_type'] = $payemntType;
+        $voucherdata['company_id']   = $companyId;
+        $voucherdata['total']        = $amount;
+        $voucherdata['created_by']   = $userId;
+        $voucherdata['customer_id']  = $loadDetail['customer_id'];
+        $voucherStatus  = $this->createVoucher($voucherdata);
+        if($voucherStatus['status']=='success'){
+          $voucherRef =   $voucherStatus['voucherRef'];
+        }
+    }
+    $dataarr = array();
+    $dataarr['payment_type']             = $payemntType;
+    $dataarr['amount']                   = $amount;
+    $dataarr['customer_id']              = $loadDetail['customer_id'];;
+    $dataarr['company_id']               = $companyId;  
+    if($loadDetail['isInvoiced']=='YES'  && $customer_type == 'POSTPAID'){
+          $dataarr['payment_reference']  = $voucherRef;
+          $dataarr['payment_desc']       = 'Voucher Apply against '.$loadDetail['load_identity'].' cancel job';
+          $dataarr['payment_for']        = 'VOUCHER';
+    }else{
+          $dataarr['payment_reference']  = $loadDetail['load_identity'];
+          $dataarr['payment_desc']       = 'CANCEL SHIPMENT';
+          $dataarr['payment_for']        = 'CANCELSHIP';   
+    }
+    $accountUpdatestatus =  $this->manageAccount($dataarr);
+    return $accountUpdatestatus;
+}  
+    
+    
+   
 }
 ?>

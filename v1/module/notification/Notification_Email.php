@@ -17,7 +17,7 @@ Class Notification_Email{
 
     public
 
-    function sendMail($param){
+    function sendMail($param,$is_attachemt=null,$attachemt_physical_path=null){
         try {
             $mail = new PHPMailer(true);
             $mail->CharSet = "UTF-8";
@@ -47,7 +47,9 @@ Class Notification_Email{
             //$mail->addReplyTo('info@example.com', 'Information');
             //$mail->addCC('cc@example.com');
             //$mail->addBCC('bcc@example.com');
-
+            if($is_attachemt){
+                $mail->addAttachment($attachemt_physical_path);         // Add attachments
+            }
             //Attachments
             //$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
             //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name

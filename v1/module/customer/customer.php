@@ -19,7 +19,6 @@ class Customer extends Icargo{
 	}
 	
 	
-    
     public function saveCustomer($param){ 
          $data = array(); 
          $exist = $this->modelObj->checkCustomerEmailExist($param->customer->customer_email);
@@ -66,24 +65,27 @@ class Customer extends Icargo{
                 $customerinfo['accountnumber'] = $this->generateCustomerAccount($param->companyname,$customer_id);
                 $customerinfo['vatnumber']    = isset($param->customer->vatnumber)?$param->customer->vatnumber:'';
                 $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
-                $customerinfo['available_credit'] = $customerinfo['creditlimit'];
+                $customerinfo['available_credit'] = ($param->customer->type=='POSTPAID')?$customerinfo['creditlimit']:$param->customer->availablebalance;
                 $customerinfo['invoicecycle'] = $param->customer->invoicecycle;
                 $customerinfo['charge_from_base'] = $param->customer->charge_from_base;
-                $this->modelObj->addContent('customer_info',$customerinfo);
+                $customerinfo['tax_exempt'] = $param->customer->tax_exempt;
              
-             if($customerinfo['customer_type']=='POSTPAID'){
+                 
+                $this->modelObj->addContent('customer_info',$customerinfo);
+            //if($customerinfo['customer_type']=='POSTPAID'){
                  $creditbalanceData = array();
                  $creditbalanceData['customer_id'] = $customer_id;
-                 $creditbalanceData['customer_type'] = 'POSTPAID';
+                 $creditbalanceData['customer_type'] = $customerinfo['customer_type'];
                  $creditbalanceData['company_id'] = $param->company_id;
                  $creditbalanceData['payment_type'] = 'CREDIT';
                  $creditbalanceData['amount'] = $customerinfo['available_credit'];
                  $creditbalanceData['balance'] = $customerinfo['available_credit'];
                  $creditbalanceData['create_date'] = date("Y-m-d");
-                 $creditbalanceData['payment_reference'] = 'CustomerSignupRecharge';
+                 $creditbalanceData['payment_reference'] = NULL;
                  $creditbalanceData['payment_desc'] = 'Customer Registration Credit Balance';
-                 $this->modelObj->addContent('creditbalance_history',$creditbalanceData);
-            }
+                 $creditbalanceData['payment_for'] = 'RECHARGE';
+                 $this->modelObj->addContent('accountbalancehistory',$creditbalanceData);
+            //}
              if(key_exists('customerpickup',$param) && is_object($param->customerpickup)){ 
                  $param->customerpickup->customer_id = $customer_id;
                  $this->saveCarrierCustomerPickupInfo($param->customerpickup);
@@ -127,8 +129,7 @@ class Customer extends Icargo{
         $data =  $this->modelObj->getAllCustomerData();
          foreach($data as $key=>$val){
           $data[$key]['status'] = ($val['status']==1)?true:false;
-          $data[$key]['action'] = 'customerdetail';
-             
+          $data[$key]['action'] = 'customerdetail';    
         }
        return $data;
     }
@@ -138,6 +139,7 @@ class Customer extends Icargo{
          foreach($data as $key=>$val){
           $data[$key]['status'] = ($val['status']==1)?true:false;
           $data[$key]['action'] = 'customerdetail';
+          //$infoStatus    = $this->modelObj->editContent("customer_info",array('webapi_token'=>encodeJwtData(array('customer'=>$val['accountnumber']))), "user_id = '" . $val['id'] . "'"); 
         }
        return $data;
         
@@ -557,10 +559,11 @@ class Customer extends Icargo{
       $data['customer']['vatnumber'] = $customerpersonaldata['vatnumber'];
       $data['customer']['creditlimit'] = (float)$customerpersonaldata['creditlimit'];
       $data['customer']['available_credit'] = $data['customer']['creditlimit'];
+      $data['customer']['availablebalance'] = (float)$customerpersonaldata['availablebalance'];
       $data['customer']['invoicecycle'] = (int)$customerpersonaldata['invoicecycle'];
       $data['customer']['type'] = $customerpersonaldata['customer_type'];
       $data['customer']['charge_from_base'] = $customerpersonaldata['charge_from_base'];
-      
+      $data['customer']['tax_exempt'] = $customerpersonaldata['tax_exempt'];
      $data['customerbilling']['name'] = $customerbillingdata['name'];
      $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
      $data['customerbilling']['address_2'] = $customerbillingdata['address_line2'];
@@ -696,7 +699,9 @@ class Customer extends Icargo{
             $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
             $customerinfo['invoicecycle'] = isset($param->customer->invoicecycle)?$param->customer->invoicecycle:0;
             $customerinfo['charge_from_base'] = isset($param->customer->charge_from_base)?$param->customer->charge_from_base:'YES';
-              $condition = "user_id = '" . $param->customer_id . "'"; 
+            $customerinfo['tax_exempt'] = isset($param->customer->tax_exempt)?$param->customer->tax_exempt:'YES';  
+              
+            $condition = "user_id = '" . $param->customer_id . "'"; 
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);  
               
             if($customerinfoStatus){
@@ -935,7 +940,6 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         return $result;
 	}
 
-	
 	public function getUserAddressDataByUserId($param){  
         $data =  $this->modelObj->getUserAddressDataByUserId($param);
 		$defaulAddressId = $this->modelObj->getUserDefaultAddressId($param);
@@ -1132,5 +1136,77 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
             return array("status"=>"error","message"=>"Warehouse not updated");
         }
     }
+    public function getCustomerAllTransactionData($param){  
+        $data =  $this->modelObj->getCustomerAllTransactionData($param->customer_id);
+        $result = array();
+        foreach($data as $item){
+            $temp = array();
+            $temp['date'] = date('d-m-Y',strtotime($item['create_date']));
+            $temp['credit'] = ($item['payment_type']=='CREDIT')?$item['amount']:'';
+            $temp['debit']  = ($item['payment_type']=='DEBIT')?$item['amount']:'';
+            $temp['amount'] = $item['balance'];  
+            $temp['reference'] = $item['payment_reference'];  
+            $temp['description'] = $item['payment_desc'];  
+            $temp['payment_for'] = $item['payment_for'];  
+            array_push($result, $temp);
+        }
+        return $result;
+	}
+    
+    public function getAuthorizationData($param){  
+        $data =  $this->modelObj->getCustomerAllAuthorizationData($param->customer_id);
+        foreach($data as $key=>$item){
+            $data[$key]['status'] =  ($item['status']==1)?true:false;
+            $data[$key]['actioncode'] =  'Authorization';
+        }
+        return $data;
+	}
+    public function editAuthorizationStatus($param){
+		$response = array();
+		$data =  $this->modelObj->editAuthorizationStatus($param);
+		if ($data!= NULL) {
+			$response["status"] = "success";
+			$response["message"] = "updated successfully";  
+		}else{
+			$response["status"] = "error";
+			$response["message"] = "Failed to update. Please try again";
+		}
+        return $response;
+	}
+    public function editAuthorization($param){
+		$response = array();
+		$data =  $this->modelObj->editAuthorization($param);
+		if ($data!= NULL) {
+			$response["status"] = "success";
+			$response["message"] = "updated successfully";  
+		}else{
+			$response["status"] = "error";
+			$response["message"] = "Failed to update. Please try again";
+		}
+        return $response;
+	}
+   public function addAuthorization($param){
+        $temp = array();
+        $temp['title'] = $param->title;
+        $temp['description'] = $param->description;
+        $temp['url'] = $param->url;
+        $temp['token'] = '';
+        $temp['customer_id'] = $param->customer_id;
+        $tokenId = $this->modelObj->addContent('customer_tokens',$temp);
+        if($tokenId){
+           $token  =  encodeJwtData(array("identity"=>$tokenId,"email"=>$param->email,"iss"=>"icargo","iat"=>1493968811));
+           $status =  $this->modelObj->editContent("customer_tokens",array("token"=>$token),"token_id =  $tokenId");
+           if($status){
+             $response["status"] = "success";
+			 $response["message"] = "Created successfully";    
+           }
+        }else{
+            $response["status"] = "error";
+			$response["message"] = "Failed to create. Please try again";
+        }
+        return $response;
+	 } 
+    
+    
 }
 ?>

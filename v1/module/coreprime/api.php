@@ -36,7 +36,7 @@ class Module_Coreprime_Api extends Icargo
         return $server_output;
     }
     private
-    function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse)
+    function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse,$is_tax_exempt)
     {
         if (is_array($input)) {
             $temparray = array();
@@ -53,7 +53,7 @@ class Module_Coreprime_Api extends Icargo
                                             unset($input["rate"][$carriercode][$service_key][$accountkey]);
                                         }
                                     }
-                                    else{
+                                    else{ 
                                         $total_surcharge = 0;
                                         $base_price = 0;
                                         $total_price = 0;
@@ -61,7 +61,8 @@ class Module_Coreprime_Api extends Icargo
                                         $carrier = $this->modelObj->getCarrierIdByCode($company_id,$customer_id,$accountkey);
                                         $res = $this->_calculateSamedayServiceccf($servicecode,$item['rate'],$carrier['id'],$customer_id,$company_id);
                                         $res['service_options'] = $item['service_options'];
-                                        $res['taxes'] = $item['taxes'];
+                                        //$res['taxes'] = $item['taxes'];
+                                        $res['taxes'] = ($is_tax_exempt)?array():$item['taxes'];
                                         $res['info']['accountkey'] = $accountkey;
                                         $res['ccf_surcharges'] = new StdClass();
                                         $res['ccf_surcharges']->alldata = array();
@@ -79,6 +80,7 @@ class Module_Coreprime_Api extends Icargo
 
                                         $price_without_tax = number_format($total_surcharge + $base_price,2,'.','');
                                         $customer_tax_amt = 0;
+                                        //print_r($res);die;
                                         if(isset($res['taxes'])){
                                             $temparray["rate"][$carriercode][$key]["taxes"] = $res['taxes'];
                                             $total_tax_val  = isset($res['taxes']['tax_percentage'])?$res['taxes']['tax_percentage']:0;
@@ -122,16 +124,25 @@ class Module_Coreprime_Api extends Icargo
     public
     function getAllServices($param)
     {
+        
+        $available_credit = $this->_getCustomerAccountBalence($param->customer_id);
+       // if($available_credit["status"]=="error"){
+            //return $available_credit;
+        //}
+        
+        
         $response_filter_type = "min";
         $param->customer_id = $param->customer_id;
         $transit_distance = $param->transit_distance;
         $transit_time = $param->transit_time;
         $chargefromBase = $this->modelObj->getCustomerChargeFromBase($param->customer_id);
+        $isTaxExempt    = $this->modelObj->getTaxExemptStatus($param->customer_id);
         $waypointCount = 0;
         if (isset($param->waypoint_lists)) {
             $waypointCount = count($param->waypoint_lists);
         }
         $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
+        $is_tax_exempt = ($isTaxExempt['tax_exempt']=='YES')?true:false;//  true;
         if (!isset($param->from_postcode)) {
             $error["from_postcode"] = "Collection postcode is mandatory";
         }
@@ -142,10 +153,8 @@ class Module_Coreprime_Api extends Icargo
             $transit_distance += $param->warehouse_to_collection_point_distance;
             $transit_time += $param->warehouse_to_collection_point_time;
         }
-        //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
+        
         $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id, $param->company_id);
-
-
         $carriers =  array();
         if(count($carrier)>0){
             foreach($carrier as $carrierData){
@@ -164,7 +173,7 @@ class Module_Coreprime_Api extends Icargo
         }else{
             return array("status" => "error", "message" => "Carrier Not configured or disabled for this customer");
         }
-
+        
         $post_data = [];
         /*$post_data["credentials"] = array(
             "account_number" => $carrier['account_number'],
@@ -199,8 +208,8 @@ class Module_Coreprime_Api extends Icargo
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
-        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse);
-        return array("status" => "success","rate"=>$data);
+        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
+        return array("status" => "success","rate"=>$data,"availiable_balence" => $available_credit['available_credit']);
     }
 
     private function _filterApiResponsewithAllowedServicesforCustomer($input, $customer_id, $company_id, $courier_id)
@@ -247,5 +256,16 @@ class Module_Coreprime_Api extends Icargo
         return $tempdatasurcharge;
 
     }
+    
+    private
+
+    function _getCustomerAccountBalence($customer_id){
+        $available_credit = $this->modelObj->getCustomerAccountBalence($customer_id);
+        if($available_credit["available_credit"] <= 0){
+            return array("status"=>"error", "message"=>"you don't have sufficient balance,your current balance is ".$available_credit["available_credit"]." .","available_credit"=>$available_credit['available_credit']);
+        }
+        return array("status"=>"success", "message"=>"sufficient balance.","available_credit"=>$available_credit['available_credit']);
+    }
+    
 }
 ?>

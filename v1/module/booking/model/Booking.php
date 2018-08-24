@@ -265,7 +265,7 @@ class Booking_Model_Booking
     public
 
     function getCompanyCarrier($company_id){
-        $sql = "SELECT CT.description as description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' AND CCT.is_internal='0'";
+        $sql = "SELECT CT.description as description, CT.icon AS icon, CCT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' AND CCT.is_internal='0'";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -275,5 +275,42 @@ class Booking_Model_Booking
         $sql = "SELECT CCCT.company_courier_account_id AS account_id, CCCT.courier_id AS carrier_id, CCCT.account_number FROM  `icargo_courier_vs_company_vs_customer` AS CCCT WHERE CCCT.customer_id='$customer_id' AND CCCT.company_id = '$company_id' AND CCCT.status = 1 AND CCCT.company_courier_account_id IN($carrier_acccount)";
         return $this->_db->getAllRecords($sql);
     }
+     public
+
+    function getCustomerAccountBalence($customer_id){
+        $sql = "SELECT available_credit FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customer_id'";
+        return $this->_db->getRowRecord($sql);
+    }
+    function getBookedShipmentsPrice($priceServiceid,$customerId){
+        $sql = "SELECT S.grand_total,C.customer_type,C.available_credit FROM " . DB_PREFIX . "shipment_service as S
+                INNER JOIN " . DB_PREFIX . "customer_info as C on S.customer_id = C.user_id
+                WHERE S.id = '$priceServiceid' AND C.user_id = '$customerId'";
+        return $this->_db->getRowRecord($sql);
+    } 
+    public
+
+    function saveAccountHistory($data){
+        $his_id = $this->_db->save("accountbalancehistory", $data);
+        return $his_id;
+    }
+    
+  public
+
+    function editAccountBalance($data,$condition){
+        $status = $this->_db->update("customer_info", $data,$condition);
+        return $status;
+    }  
+  public
+    function getCarrierCode($carrier_id){
+        $sql = "SELECT code AS carrier_code  FROM " . DB_PREFIX . "courier WHERE id = '$carrier_id'";
+        return $this->_db->getRowRecord($sql);
+    }
+    
+ public
+
+    function getBookedShipmentsCustomerInfo($customer_id){
+        $sql = "SELECT customer_type FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customer_id'";
+        return $this->_db->getRowRecord($sql);
+    }    
 }
 ?>
