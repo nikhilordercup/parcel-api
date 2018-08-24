@@ -399,7 +399,7 @@ class Master extends Icargo{
     public function saveData($data){ 
         
        $img = file_get_contents('"'.$data->icon[0]->lfDataUrl.'"');
-        print_r($img);die;
+        
         $uploads_dir =  dirname(dirname(dirname(dirname(__DIR__)))).'/assets/images/carrier';
         $filename = $data->icon[0]->lfFileName;
         //echo $uploads_dir.'/'.$filename;die;

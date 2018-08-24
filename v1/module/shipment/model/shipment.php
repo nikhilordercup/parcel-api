@@ -794,5 +794,73 @@ class Shipment_Model
         $record = $this->db->getRowRecord($sql);
         return $record;
         }
+
+    public
+
+    function findAssignedLoadIdentityByShipmentTicket($shipment_ticket)
+        {
+        $record = array();
+        $sql = "SELECT instaDispatch_loadIdentity AS load_identity, instaDispatch_loadGroupTypeCode AS load_type, shipment_ticket AS shipment_ticket, assigned_driver AS assigned_driver, shipment_routed_id AS shipment_route_id, company_id AS company_id, warehouse_id AS warehouse_id FROM " . DB_PREFIX . "shipment WHERE shipment_ticket IN('$shipment_ticket')";/*assigned_driver > 0 AND */
+        $records = $this->db->getAllRecords($sql);
+        return $records;
+        }
+
+    public
+
+    function findNotCollectedShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='P'";
+        return $this->db->getOneRecord($sql);
+    }
+
+    public
+
+    function findCardedCollectedShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='Ca' AND shipment_service_type='P'";
+        return $this->db->getOneRecord($sql);
+    }
+
+    public
+
+    function findCollectedShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='D' AND shipment_service_type='P'";
+        return $this->db->getOneRecord($sql);
+    }
+
+    public
+
+    function findAllCollectionShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND shipment_service_type='P'";
+        return $this->db->getOneRecord($sql);
+    }
+
+
+
+    public
+
+    function findNotDeliveredShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='D'";
+        return $this->db->getOneRecord($sql);
+    }
+
+    public
+
+    function findCardedDeliveryShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='Ca' AND shipment_service_type='D'";
+        return $this->db->getOneRecord($sql);
+    }
+
+    public
+
+    function findDeliveredShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='D' AND shipment_service_type='D'";
+        return $this->db->getOneRecord($sql);
+    }
+
+    public
+
+    function findAllDeliveryShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND shipment_service_type='D'";
+        return $this->db->getOneRecord($sql);
+    }
 }
 ?>

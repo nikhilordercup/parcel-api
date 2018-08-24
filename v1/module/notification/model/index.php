@@ -1,17 +1,11 @@
 <?php
 class Notification_Model_Index
 {
-    public static $db = NULL;
-
     public
 
     function __construct()
     {
-        if(self::$db==NULL)
-        {
-            self::$db  = new DbHandler();
-        }
-        $this->_db = self::$db;
+        $this->_db  = new DbHandler();
     }
 
     public
@@ -170,6 +164,20 @@ class Notification_Model_Index
         $sql = "SELECT * FROM `".DB_PREFIX."quote_service` WHERE quote_number ='$quotation_number'";
         return $this->_db->getRowRecord($sql);
     }
+
+    /*public
+
+    function findNotCollectedShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='P'";
+        return $this->_db->getOneRecord($sql);
+    }
+
+    public
+
+    function findNotDeliveredShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='D'";
+        return $this->_db->getOneRecord($sql);
+    }*/
 
     public function startTransaction() {
         $this->_db->startTransaction();

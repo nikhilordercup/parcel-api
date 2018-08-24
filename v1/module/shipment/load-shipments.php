@@ -1191,6 +1191,9 @@ class loadShipment extends Library
                 $firebaseObj = new Firebase_Route_Assign(array("driver_id"=>$this->driver_id,"route_id"=>$shipment_routed_id,"warehouse_id"=>$this->warehouse_id,"email"=>$this->email,"company_id"=>$this->company_id));
                 $postId = $firebaseObj->getCurrentAssignedRouteData();
                 $this->db->update('shipment_route',array("firebase_id"=>$postId), "shipment_route_id='$shipment_routed_id'");
+
+                //save tracking history
+                Find_Save_Tracking::_getInstance()->saveRouteTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "user_type"=>"Controller"));
                 return array(
                     'status' => "success",
                     'message' => 'Requested Route has been Assigned to driver'
