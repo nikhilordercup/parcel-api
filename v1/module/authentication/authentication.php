@@ -183,7 +183,8 @@ class Authentication{
 	
 	private function _getUserCollectionAddress($customer_id){
 		$data = $this->db->getRowRecord("SELECT * FROM ".DB_PREFIX."user_address where user_id=".$customer_id." AND default_address='Y'");
-		$user_address = $this->db->getRowRecord("SELECT AT.customer_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email FROM " . DB_PREFIX . "address_book AS AT WHERE AT.id='".$data['address_id']."'");
+		//$user_address = $this->db->getRowRecord("SELECT AT.customer_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email FROM " . DB_PREFIX . "address_book AS AT WHERE AT.id='".$data['address_id']."'");
+		$user_address = $this->db->getRowRecord("SELECT AT.customer_id AS user_id, AT.address_line1, AT.address_line2, AT.postcode, AT.city, AT.country, AT.latitude, AT.longitude, AT.state, AT.company_name, AT.company_name,AT.name,AT.phone,AT.email, AT.iso_code, CO.alpha2_code, CO.alpha3_code FROM " . DB_PREFIX . "address_book AS AT INNER JOIN ".DB_PREFIX."countries AS CO ON CO.id=AT.country_id WHERE AT.id='".$data['address_id']."'");
 		return $user_address;
 	}
 }

@@ -441,7 +441,7 @@ final class Nextday extends Booking {
 
            if(isset($this->_param->is_insured)) {
 			   if($this->_param->is_insured==true) 
-				$this->data["insurance"] = array("value" => $this->_param->insurance_amount,"currency" => $this->_param->collection->$key->country->currency_code);
+				$this->data["insurance"] = array("value" => (float)$this->_param->insurance_amount,"currency" => $this->_param->collection->$key->country->currency_code);
 		   }
             $this->data["status"] = "success";
         } else {
@@ -471,7 +471,7 @@ final class Nextday extends Booking {
             $this->_setPostRequest();
             if($this->data["status"]=="success"){
                 $requestStr = json_encode($this->data);
-	  //print_r($requestStr);die;
+                //print_r($requestStr);die;
                 $responseStr = $this->_postRequest($requestStr);
                 $response = json_decode($responseStr);
                 $response = $this->_getCarrierInfo($response->rate);
