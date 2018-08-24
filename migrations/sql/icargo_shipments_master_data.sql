@@ -1,0 +1,29 @@
+/*
+-- Query: SELECT * FROM icargo_v4.icargo_shipments_master
+LIMIT 0, 1000
+
+-- Date: 2018-08-21 20:00
+*/
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (2,'Undefined','UNDEFINED','UNDEFINED',1,'INFO','NO','NO','CARDED');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (3,'On Hold','COLLECTION_ON_HOLD','ON_HOLD',1,'INFO','NO','NO','NOTRECEIVEDINWAREHOUSE');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (4,'Waiting for Acceptance','UNAPPROVED','UNAPPROVED',1,'INFO','NO','YES','ASSIGNTODRIVER');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (5,'Awaiting Collection','ASSIGNED','ASSIGNED',1,'INFO','NO','YES','ASSIGNTODRIVER,ACCEPTBYDRIVER,ROUTESTART');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (6,'On Transit','TRANSIT','TRANSIT',1,'INFO','NO','NO','DRIVERACCEPTED');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (7,'On Return Path','RETURNING','RETURNING',1,'INFO','NO','NO','');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (8,'Late Delivery','LATE_DELIVERY','LATE_DELIVERY',1,'INFO','NO','NO',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (9,'Delivered','DELIVERED','DELIVERED',1,'INFO','NO','YES','DELIVEREDBYDRIVER');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (10,'Cancelled','CANCELLED','CANCELLED',1,'INFO','NO','NO','COLLECTIONSUCCESS');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (11,'Attention Required','ATTENTION','ATTENTION',1,'INFO','NO','NO',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (12,'Partly Delivered','PART_DELIVERY','PART_DELIVERY',1,'INFO','NO','YES',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (13,'Delayed ','DELAYED','DELAYED',1,'INFO','NO','NO',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (14,'Out for Delivery','OUT_FOR_DELIVERY','OUT_FOR_DELIVERY',1,'INFO','NO','YES','ROUTESTART');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (15,'Collected','COLLECTED','COLLECTED',1,'INFO','NO','YES','COLLECTIONSUCCESS');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (16,'Intervene Requested','AGENT_ATTENTION','AGENT_ATTENTION',1,'INFO','NO','NO',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (17,'At Delivery Location','AT_DELIVERY_LOCATION','AT_DELIVERY_LOCATION',1,'INFO','NO','NO','');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (18,'Delivery Attempted','DELIVERY_ATTEMPTED','ATTEMPTED',1,'INFO','NO','YES','CARDED');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (19,'Invoice Disputed','DISPUTED','DISPUTED',1,'INFO','NO','NO','');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (20,'Out for Delivery(Shortage)','DELIVERYSHORTAGE','DELIVERYSHORTAGE',1,'INFO','NO','YES','ROUTESTART');
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (21,'Collection Attempted','COLLECTION_ATTEMPTED','COLLECTION_ATTEMPTED',1,'INFO','NO','YES',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (22,'Partly Collected','PART_COLLECTED','PART_COLLECTED',1,'INFO','NO','YES',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (23,'On Hold','DELIVERY_ON_HOLD','DELIVERY_ON_HOLD',1,'INFO','NO','YES',NULL);
+INSERT INTO `icargo_shipments_master` (`id`,`name`,`code`,`icon`,`status`,`description`,`is_used_for_invoice`,`is_used_for_tracking`,`tracking_internal_code`) VALUES (24,'Scanned In Warehouse','WAREHOUSE_SCAN','WAREHOUSE_SCAN',1,NULL,'NO','YES',NULL);

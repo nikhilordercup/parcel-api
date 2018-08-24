@@ -184,10 +184,9 @@ final Class Collection{
         $this->_findCollectionAddressIsRegularPickup($defaultCollectionAddress);
 
         foreach($list as $item){            
-            //if($item["pickup"]==1 || $this->isRegularPickup){
-			//get carrier time for customer
+            //get carrier time for customer
 			$collectionStartTime = $this->modelObj->getCollectionStartTime($defaultCollectionAddress['address_id'],$this->customerId,$item['carrier_code']);
-			//print_r($collectionStartTime);die;
+
 			if($collectionStartTime=='')
 				$collectionDateTime = $this->_nextCollectionTime($item["collection_start_at"],$item["collection_end_at"]);
 			else
@@ -235,6 +234,7 @@ final Class Collection{
 
             $this->collectionList[] = $collectionList;
             //}
+
             $this->carrierList[$item["account_number"]] = $item;
         }
     }

@@ -1,14 +1,16 @@
 <?php
-
+require_once 'dbConnect.php';
 class DbHandler {
 
-    private $conn;
+    private static $_db = NULL;
 
     function __construct() {
-        require_once 'dbConnect.php';
+        if(self::$_db==NULL){
+            self::$_db = new dbConnect();
+        }
         // opening db connection
-        $db = new dbConnect();
-        $this->conn = $db->connect();
+        //$db = new dbConnect();
+        $this->conn = self::$_db->connect();
     }
     /**
      * Start transaction

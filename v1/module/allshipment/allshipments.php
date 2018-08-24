@@ -52,7 +52,8 @@ class allShipments extends Icargo
 
 
 
-        $html2 .= (isset($param->data->shipment_status) && ($param->data->shipment_status != 'select')) ? ' AND  S.current_status = "' . $param->data->shipment_status[0] . '"' : '';
+        $html .= (isset($param->data->shipment_status) && ($param->data->shipment_status != 'select')) ? ' AND  S.tracking_code = "' . $param->data->shipment_status . '"' : '';
+
         $html2 .= (isset($param->data->postcode) && ($param->data->postcode != '')) ? ' AND S.shipment_postcode LIKE "%' . $param->data->postcode . '%"' : '';
 
         $html2 .= (isset($param->data->pickup_date) && ($param->data->pickup_date != '')) ? ' AND S.shipment_required_service_date =  "' . $param->data->pickup_date . '" AND S.shipment_service_type = "P"' : '';
@@ -133,8 +134,13 @@ class allShipments extends Icargo
         return $shipmentsPrepareData;
     }
 
+    private function _getCurrentTrackingStatusByLoadIdentity($load_identity){
+        $currentTrackingStatus = $this->modelObj->getCurrentTrackingStatusByLoadIdentity($load_identity);
+        return $currentTrackingStatus["code_translation"]; 
+    }
+
     private function _prepareShipments($shipmentsData)
-    {//print_r($shipmentsData);die;
+    {
         $dataArray  = array();
         $returndata = array();
         foreach ($shipmentsData as $key => $val) {
@@ -144,6 +150,7 @@ class allShipments extends Icargo
             foreach ($dataArray as $innerkey => $innerval) {
                 $data                 = array();
                 $data['job_identity'] = $innerkey;
+                $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
                 $data['job_type']     = key($innerval);
                 $shipmentstatus       = array();
                 $data['delivery']     = $innerkey;
@@ -183,7 +190,7 @@ class allShipments extends Icargo
                             $shipmentstatus[] = $deliveryData['current_status'];
                         }
                     }
-                    $arrd = array_unique($shipmentstatus);
+                    /*$arrd = array_unique($shipmentstatus);
                     if (count($arrd) > 1) {
                         $data['shipment_status'] = 'Not Completed';
                     } elseif (count($arrd) == 1) {
@@ -192,7 +199,7 @@ class allShipments extends Icargo
                         } else {
                             $data['shipment_status'] = 'Not Completed';
                         }
-                    }
+                    }*/
                     $returndata[] = $data;
                 }
                 if (key($innerval) == 'NEXT') {
@@ -236,7 +243,7 @@ class allShipments extends Icargo
                         krsort($deliveryPostcode);
                         $data['delivery'] = end($deliveryPostcode);
                     }
-                    $arrd = array_unique($shipmentstatus);
+                    /*$arrd = array_unique($shipmentstatus);
                     if (count($arrd) > 1) {
                         $data['shipment_status'] = 'Not Completed';
                     } elseif (count($arrd) == 1) {
@@ -245,7 +252,7 @@ class allShipments extends Icargo
                         } else {
                             $data['shipment_status'] = 'Not Completed';
                         }
-                    }
+                    }*/
                     $returndata[] = $data;
                 }
             }
