@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Ws_Driver_TrackingTests" file="/Library/WebServer/Documents/parcel-api/v1/module/ws/Tests/Ws_Driver_TrackingTests.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000240">
+    <testcase name="testSaveTracking" class="Ws_Driver_TrackingTests" classname="Ws_Driver_TrackingTests" file="/Library/WebServer/Documents/parcel-api/v1/module/ws/Tests/Ws_Driver_TrackingTests.php" line="26" assertions="1" time="0.000240"/>
+  </testsuite>
+</testsuites>

@@ -3,7 +3,7 @@
 
         public static $_obj = NULL;
 
-        public $google_api_key = "AIzaSyBIh4rhpvo0WBRWUEvzZLUI5ikWa_OyuPE";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
+        public $google_api_key = "AIzaSyDF739R0sANnxcYUcDrv7mrprlT1EGo1Vs";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
 
         public static function _getInstance(){
             if(self::$_obj==NULL){
@@ -220,11 +220,15 @@
 
             $origin = urlencode($param['origin']);
             $destinations = urlencode(implode("|",$param['destinations']));
-            $departure_time = $param["departure_time"];
+			$dateTimeZone = new DateTimeZone("Europe/London"); 
+			$dateTime = new DateTime(date("Y-m-d H:i:s",$param["departure_time"]), $dateTimeZone);
+			$timeOffset = $dateTimeZone->getOffset($dateTime); // New time since epoch according to timezone 
+			$newTime = time() + $timeOffset; 
+			$departure_time = strtotime(date("Y-m-d H:i:s",$newTime));
+            //$departure_time = $param["departure_time"];
 
-            //$api_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&key=$key";
-            $api_url = "http://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&sensor=false";
-
+            $api_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&key=$key";
+            //$api_url = "http://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&sensor=false";
             try{
                 $curl_handle=curl_init();
                 curl_setopt($curl_handle, CURLOPT_URL,$api_url);

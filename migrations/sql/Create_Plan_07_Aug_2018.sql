@@ -1,0 +1,10 @@
+TRUNCATE TABLE icargo_chargebee_plan;
+INSERT INTO `icargo_chargebee_plan` (`id`, `plan_id`, `plan_name`, `invoice_name`, `invoice_notes`, `description`, `price`, `currency_code`, `period`, `period_unit`, `trial_period`, `trial_period_unit`, `free_quantity`, `status`, `billing_cycle`, `create_date`, `update_date`, `plan_type`, `shipment_limit`) VALUES
+(1, 'last-mile-starter-plan', 'STARTER PLAN', 'STARTER PLAN', 'Test Invoice', 'Test Description', 100.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2017-11-22 07:04:05', '1970-01-01 00:00:00', 'LAST_MILE', 1000),
+(2, 'last-mile-standard-plan', 'STANDARD PLAN', 'STANDARD PLAN', 'test', 'Icargo invoice description', 250.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2017-11-22 09:03:46', '1970-01-01 00:00:00', 'LAST_MILE', 3000),
+(3, 'last-mile-premium-plan', 'PREMIUM PLAN', 'PREMIUM PLAN', '', NULL, 500.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2018-08-07 13:12:17', '1970-01-01 00:00:00', 'LAST_MILE', 10000),
+(4, 'last-mile-enterprise-plan', 'ENTERPRISE PLAN', 'ENTERPRISE PLAN', '', NULL, 750.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2018-08-07 13:12:17', '1970-01-01 00:00:00', 'LAST_MILE', 20000),
+(5, 'same-day-starter-plan', 'STARTER PLAN', 'STARTER PLAN', 'Test Invoice', 'Test Description', 100.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2017-11-22 07:04:05', '1970-01-01 00:00:00', 'SAME_DAY', 1000),
+(6, 'same-day-standard-plan', 'STANDARD PLAN', 'STANDARD PLAN', 'test', 'Icargo invoice description', 250.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2017-11-22 09:03:46', '1970-01-01 00:00:00', 'SAME_DAY', 3000),
+(7, 'same-day-premium-plan', 'PREMIUM PLAN', 'PREMIUM PLAN', '', NULL, 500.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2018-08-07 13:12:17', '1970-01-01 00:00:00', 'SAME_DAY', 10000),
+(8, 'same-day-enterprise-plan', 'ENTERPRISE PLAN', 'ENTERPRISE PLAN', '', NULL, 750.00, 'GBP', 1, 'month', 1, 'month', 0, 'active', '1', '2018-08-07 13:12:17', '1970-01-01 00:00:00', 'SAME_DAY', 20000);

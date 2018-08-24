@@ -1126,9 +1126,6 @@ class loadShipment extends Library
     }
     public function sameDayDriverAssign($data)
     {
-        require_once dirname(dirname(__FILE__))."/firebase/route-assign.php";
-        require_once dirname(dirname(__FILE__))."/firebase/model/rest.php";
-        
         $common_obj = new Common();
         $shipment_tickets    = explode(',', $this->shipment_ticket);
         $vehicleIdofDriver = $this->_get_driver_data_by_id($this->driver_id);
@@ -1139,18 +1136,19 @@ class loadShipment extends Library
 			$assign_date = date('Y-m-d',$timestamp);
             // Create a Route
             $insertData = array(
-                'route_id' => '0',
+                'route_id'          => '0',
                 'custom_route'      => 'Y',
-                'route_name'        => $this->route_name,//'custom_1.' . rand(1, 50),
+                'route_name'        => $this->route_name,
                 'driver_id'         => $this->driver_id,
                 'create_date'       => date("Y-m-d"),
-                'assign_start_time' => date("h:i:s", $timestamp),//str_replace(' ', '', $this->assign_time . ':00'),
+                'assign_start_time' => date("h:i:s", $timestamp),
                 'is_active'         => 'Y',
                 'is_optimized'      => 'NO',
                 'optimized_type'    => 'N',
                 'status'            => '1',
                 'company_id'        => $this->company_id,
-                'warehouse_id'      => $this->warehouse_id
+                'warehouse_id'      => $this->warehouse_id,
+                'service_date'      => date('Y-m-d H:i:s', $timestamp)
             );
             
             $shipment_routed_id    = $this->db->save('shipment_route', $insertData);
@@ -1191,11 +1189,14 @@ class loadShipment extends Library
             }
             if($historyOfShip) {
                 $firebaseObj = new Firebase_Route_Assign(array("driver_id"=>$this->driver_id,"route_id"=>$shipment_routed_id,"warehouse_id"=>$this->warehouse_id,"email"=>$this->email,"company_id"=>$this->company_id));
-                
+                $postId = $firebaseObj->getCurrentAssignedRouteData();
+                $this->db->update('shipment_route',array("firebase_id"=>$postId), "shipment_route_id='$shipment_routed_id'");
+
+                //save tracking history
+                Find_Save_Tracking::_getInstance()->saveRouteTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "user_type"=>"Controller"));
                 return array(
-                    'status' => true,
-                    'message' => 'Requested Route has been Assigned to driver',
-                    'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                    'status' => "success",
+                    'message' => 'Requested Route has been Assigned to driver'
                 );
             }
         }

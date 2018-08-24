@@ -134,7 +134,7 @@ class Process_Form{
         $trackid              = $this->model_rest->save("api_driver_tracking", $data);
         return $trackid;
     }
-    
+	
     private function _delivered_shipment($ticket, $driver_id, $route_id, $driver_name, $pod_data, $latitude, $longitude, $service_msg)
     {   // script for grid update
 
@@ -144,17 +144,10 @@ class Process_Form{
         if (($ticket != '') && ($driver_id != '') && ($route_id != ''))
         {
             
-            //$shipmentExist = $this->dbmodelObj->getShipmentDetailsByTicketAcceptedExist($ticket, $driverid, $routeid);
-            //if ($shipmentExist == 1) {
 
-                $checkDriverAcceptinwarehouse = $this->model_rest->check_shipment_accepted_by_driver_by_ticket($ticket, $driver_id, $route_id);
-              
-                if ($checkDriverAcceptinwarehouse['exist'] == 1)
-                { 
+                
                     $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
-                     
-                    $shipment_details['current_status'] = "O"; //only for testing. after testing remove the line;
-                   
+
                     if($shipment_details!=null and $shipment_details['current_status']!='D')
                     {
                         if(isset($pod_data["pod"]) and !empty($pod_data["pod"]))
@@ -166,11 +159,11 @@ class Process_Form{
                                 "shipment_ticket" => $ticket,
                                 "driver_id" => $driver_id,
                                 "pod_name" => "signature",
-                                "contact_person" => $shipment_details["shipment_customer_name"],
-                                "latitude" => $shipment_details["shipment_latitude"],
-                                "longitude" => $shipment_details["shipment_longitude"],
+                                "contact_person" => $pod_data["contact_person"],
+                                "latitude" => $pod_data["latitude"],
+                                "longitude" => $pod_data["longitude"],
                                 "value" => $podPath,
-                                "comment" => $this->text
+                                "comment" => $pod_data["comment"]
                             ));
                         }
                        
@@ -186,12 +179,12 @@ class Process_Form{
                                 'is_driverpickupfromwarehouse' => 'YES',
                                 'driver_pickuptime' => date("Y-m-d H:m:s")
                             ), $condition);
-                           $condition          = "instaDispatch_docketNumber = '" . $shipment_details['instaDispatch_docketNumber'] . "' AND shipment_service_type = 'D'";
+                           $condition          = "instaDispatch_docketNumber = '" . $shipment_details['instaDispatch_loadIdentity'] . "' AND shipment_service_type = 'D'";
                                  $status             = $this->model_rest->update("shipment", array(
                                 'is_driverpickupfromwarehouse' => 'YES',
-                                'driver_pickuptime' => date("Y-m-d H:m:s")
+                                'driver_pickuptime' => date("Y-m-d H:m:s"),
+                                'action_by' => 'driver'
                             ), $condition);
-
                         }
                         else
                         {
@@ -201,12 +194,13 @@ class Process_Form{
                                 'actual_given_service_date' => date("Y-m-d"),
                                 'actual_given_service_time' => date("H:m:s"),
                                 'current_status' => 'D',
-                                'driver_comment' => $service_msg
+                                'driver_comment' => $service_msg,
+                                'action_by' => 'driver'
                             ), $condition);
                         }
 					
                         $condition2         = "shipment_route_id = '" . $shipment_details['shipment_routed_id'] . "' AND driver_id = '" . $shipment_details['assigned_driver'] . "'  AND shipment_ticket = '" . $ticket . "' AND shipment_accepted = 'YES' ";
-                        
+
                         $status2            = $this->model_rest->update("driver_shipment", array(
                             'shipment_status' => 'D',
                             'is_driveraction_complete' => 'Y',
@@ -266,28 +260,39 @@ class Process_Form{
                                 'firebase_data'=>$firebasedata,
                                 'grid_data' =>$gridData,
                                 'left' =>$checkMoreShipmentofthisRouteDriver,
-                                'ticket' =>$ticket
+                                'ticket' =>$ticket,
+                                'timestamp' => microtime(true)
                             );
                         }
                     }
                     else
                     {
-                       return array(
+                        $gridData = $this->getGridDataByTicket($shipment_details['company_id'],$shipment_details['warehouse_id'],$route_id,$ticket);
+                        $checkMoreShipmentofthisRouteDriver = $this->model_rest->more_shipment_exist_in_this_route_for_driver_from_operation_count($driver_id, $route_id);
+
+                        $currentStage = $this->model_rest->findShipmentCurrentStage($ticket, $driver_id, $route_id);
+                        if($currentStage["action_by"]=="controller"){
+                            return array(
+                                'message' => "Shipment($ticket) Already Processed By Controller",
+                                'success' => true,
+                                'status'  => "success",
+                                'grid_data' =>$gridData,
+                                'left' =>$checkMoreShipmentofthisRouteDriver,
+                                'ticket' =>$ticket,
+                                'timestamp' => microtime(true)
+                            );
+                        }
+                        return array(
                             'message' => 'Shipment already delivered',
-                            'success' => false,
-                            'status'  => "error"
+                            'success' => true,
+                            'status'  => "success",
+                            'grid_data' =>$gridData,
+                            'left' =>$checkMoreShipmentofthisRouteDriver,
+                            'ticket' =>$ticket,
+                            'timestamp' => microtime(true)
                         ); 
                     }
-                    
-                } 
-            else 
-            {
-                return array(
-                    'message' => 'Shipment was not received by driver from warehouse',
-                    'success' => false,
-                    'status'  => "error"
-                );
-            }
+            
         } 
         else 
         {
@@ -302,6 +307,7 @@ class Process_Form{
     private function _carded_shipment($ticket, $driver_id, $route_id, $comment, $status)
     {    
         $shipmentExist = $this->model_rest->shipment_exist_by_ticket_driver($ticket, $driver_id, $route_id);
+
         if ($shipmentExist['exist'] == 1)
         {
             $getshipmentDetails = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
@@ -312,7 +318,8 @@ class Process_Form{
                 'actual_given_service_date' => date("Y-m-d"),
                 'actual_given_service_time' => date("H:m:s"),
                 'current_status' => $status,
-                'driver_comment' => $comment
+                'driver_comment' => $comment,
+                'action_by' => 'driver'
             ), $condition);
             
             $condition2 = "shipment_route_id = '" . $getshipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $getshipmentDetails['assigned_driver'] . "'  AND shipment_ticket = '" . $ticket . "' AND shipment_accepted = 'YES' ";
@@ -342,11 +349,18 @@ class Process_Form{
             }
         }
         else{
+            $currentStage = $this->model_rest->findShipmentCurrentStage($ticket, $driver_id, $route_id);
+            if($currentStage["action_by"]=="controller"){
+                return array(
+                    'message' => "Shipment($ticket) Already Processed By Controller",
+                    'success' => true,
+                    'status'  => "success"
+                );
+            }
             return array(
                 'message' => "Sync error : Shipment($ticket) Not Found",
                 'success' => false,
-                'status'  => "error",
-                'test'    => $shipmentExist
+                'status'  => "error"
             );
         }
     }
@@ -504,21 +518,25 @@ class Process_Form{
         if($this->loadActionCode == 'processdriversuccessaction')
         {
             $pod_data  = array(
-            'contact' => $this->contact_name,
-            'comment' => $this->text,
-            'pod' => $this->sign
+                'contact' => $this->contact_name,
+                'comment' => $this->text,
+                'pod' => $this->sign,
+                'contact_person' => $this->contact_name,
+                'latitude' => $this->latitude,
+                'longitude' => $this->longitude
             );
 
             $this->_add_driver_tacking();
 
             $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $pod_data, $this->latitude , $this->longitude, $this->service_message);
-
+           
            
             Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array("shipment_ticket"=>$this->shipment_ticket,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"trigger_code"=>"successful"));
 
          
             if($data["status"]=="success"){
                 $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
+               
                 $common_obj = new Common();
                 if($shipmentData["shipment_service_type"]=="P"){
                     $actions = "Collection successful";

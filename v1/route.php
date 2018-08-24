@@ -153,5 +153,3 @@ $app->post('/resolvePostcode', function () use ($app){
     $r=new Route($r);
     $r->resolvePostcode($shipmentId,$postCode);
 });
-
-?>

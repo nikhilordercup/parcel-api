@@ -1,4 +1,7 @@
 <?php
+
+ini_set('date.timezone', 'Europe/London');
+
 require_once 'constant.php';
 require_once '../Credentials.php';
 require_once 'dbHandler.php';
@@ -11,16 +14,7 @@ require '../vendor/autoload.php';
 use Firebase\JWT\JWT;
 
 $app = new \Slim\Slim();
-
-/*$corsOptions = array(
-    //"origin" => array('*'),
-    "origin" => array('https://app-tree.co.uk','https://route.instadispatch.com'),
-    //"exposeHeaders" => array("X-My-Custom-Header", "X-Another-Custom-Header"),
-    "maxAge" => 1728000,
-    "allowCredentials" => false,
-    "allowMethods" => array("POST, GET, PUT, PATCH, PATCH, DELETE, HEAD, OPTIONS"),
-    "allowHeaders" => array("X-PINGOTHER, Accept, Content-Type, Pragma, X-Requested-With")
-);*/
+$app->config('debug', true);
 
 // User id from db - Global Variable
 $user_id = NULL;
@@ -37,11 +31,20 @@ require_once 'vehicle.php';
 //validate and beautify postcode
 require_once 'postcode.php';
 
+
+require_once 'module/configuration/GridConfiguration.php';
+require_once 'module/configuration/CustomFilterConfiguration.php';
+require_once 'module/driver/DriverController.php';
+require_once './module/chargebee/SubscriptionController.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
 require_once 'dev.test.php';
+require_once('../vendor/setasign/fpdf/fpdf.php');
+require_once('../vendor/setasign/fpdi/src/autoload.php');
+require_once 'module/fpdf/ConcatPdf.php';
 
+//require_once('../vendor/dompdf/autoload.inc.php');
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
 
@@ -53,6 +56,8 @@ require_once 'module/shipment/load-assign.php';
 require_once 'module/shipment/view-support.php';
 require_once 'module/shipment/optimize.php';
 require_once 'module/shipment/load-route-details.php';
+require_once 'module/shipment/Shipment_Sameday_Release.php';
+require_once 'module/shipment/Route_Release.php';
 
 require_once 'module/company/company.php';
 require_once 'module/company/setup.php';
@@ -61,10 +66,14 @@ require_once 'module/ws/idriver.php';
 require_once 'module/push_notification/Push_Notification_Index.php';
 
 require_once 'module/firebase/model/rest.php';
-require_once 'module/firebase/firebase.php';
-require_once 'module/firebase/shipment-withdraw-from-route.php';
+require_once 'module/firebase/Firebase.php';
+require_once 'module/firebase/Firebase_Api.php';
+require_once 'module/firebase/Firebase_Shipment_Withdraw_From_Route.php';
+require_once 'module/firebase/Firebase_Shipment_Deliver_From_Route.php';
 require_once 'module/firebase/route-accept.php';
-require_once 'module/firebase/route-assign.php';
+require_once 'module/firebase/Firebase_Route_Assign.php';
+require_once 'module/firebase/Firebase_Withdraw_Route.php';
+
 require_once 'module/firebase/route-release.php';
 
 require_once 'module/chargebee/Chargebee.php';
@@ -112,8 +121,11 @@ require_once 'module/booking/Shipment.php';
 require_once 'module/booking/Booking.php';
 
 require_once 'module/carrier/Carrier.php';
-require_once 'module/carrier/Ukmail.php';
+require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
+require_once 'module/carrier/Coreprime/Dhl/Dhl.php';
 require_once 'module/nextday/Nextday.php';
+require_once 'module/pickup/Pickup.php';
+
 require_once 'module/allshipment/allshipments.php';
 require_once 'module/allshipment/model/allshipments.php';
 
@@ -124,7 +136,16 @@ require_once 'pod_signature.php';//no need to keep separate file to save image. 
 require_once 'module/package/Module_Package_Index.php';
 
 require_once 'module/booking/collection.php';
+require_once 'module/tracking/Tracking_Index.php';
+require_once 'module/tracking/Find_Save_Tracking.php';
 
+
+//Country file included
+require_once 'module/country/model/country.php';
+
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 /**
  * Verifying required params posted or not
@@ -239,4 +260,3 @@ function rootPath(){
 }
 
 $app->run();
-?>

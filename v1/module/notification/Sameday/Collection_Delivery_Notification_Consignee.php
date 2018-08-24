@@ -116,10 +116,9 @@ class Collection_Delivery_Notification_Consignee
         if($nextShipmentTickets){
             $recepientEmail = $this->_getModelInstance()->getRecepientEmailByShipmentTicket(implode("','", $nextShipmentTickets));
             array_push($nextRecipientNameAndEmail, array("name"=>$recepientEmail["customer_name"],"email"=>$recepientEmail["customer_email"],"shipment_ticket"=>$recepientEmail["shipment_ticket"]));
-        
             foreach($notificationData as $item){
                 if($item["trigger_type"]=="email"){
-                    if($temp_trigger_code=="successful") {
+                    if($temp_trigger_code) {
                         //send mail to next execution order only delivery shipment
                         $subject_msg = $this->headerMsg;//
                         if($nextRecipientNameAndEmail){

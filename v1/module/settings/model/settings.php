@@ -19,7 +19,7 @@ class Settings_Model {
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "shipments_master AS t1";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;   
-    }
+   }
     
     public function getAllInvoiceStatus(){
          $record = array();
@@ -28,13 +28,13 @@ class Settings_Model {
          $record = $this->db->getAllRecords($sql);
          return  $record;  
 	 }
-     public function getAllShipmentsStatus(){
+    public function getAllShipmentsStatus(){
          $record = array();
          $sqldata ='t1.*';
          $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "shipments_master AS t1";
-         $record = $this->db->getAllRecords($sql);
-         return  $record;  
-	 }
+         $records = $this->db->getAllRecords($sql);
+         return  $records;  
+	}
     public function getAllCarrier($companyid){
          $record = array();
          $sqldata ='t1.courier_id as id,t2.name';
@@ -43,10 +43,29 @@ class Settings_Model {
                 WHERE t1.company_id = '$companyid'";
          $record = $this->db->getAllRecords($sql);
          return  $record;  
-	 }
-    
-    
-    
-    
+	}
+    public function getAllShipmentTrackingCode(){
+         $record = array();
+         $sql = "SELECT tracking_id, tracking_code FROM " . DB_PREFIX . "tracking_code AS t1 ORDER BY tracking_code";
+         $records = $this->db->getAllRecords($sql);
+         return  $records;  
+     }
+     public function deleteShipmentTrackingCodeByShipmentCode($shipment_code){
+        $sql = "DELETE FROM " . DB_PREFIX . "shipment_tracking_code WHERE shipment_code = '$shipment_code'";
+        return $this->db->delete($sql);
+     }
+
+     public function saveShipmentTrackingCode($code, $tracking_code){
+        return $this->db->save("shipment_tracking_code", array(
+            "tracking_code"=>$tracking_code,
+            "shipment_code"=>$code
+        ));
+     }
+
+     public function findTrackingCodeByShipmentCode($code){
+        $sql = "SELECT tracking_code FROM " . DB_PREFIX . "shipment_tracking_code AS T1 WHERE T1.shipment_code='$code'";
+        $records = $this->db->getAllRecords($sql);
+        return  $records;  
+     }
   }
 ?>

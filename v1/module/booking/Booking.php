@@ -3,7 +3,7 @@ class Booking extends Icargo
 {
     private $_environment = array(
         "live" =>  array(
-            "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Im1hcmdlc2guc29uYXdhbmVAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Mzk2ODgxMX0.EJc4SVQXIwZibVuXFxkTo8UjKvH8S9gWyuFn9bsi63g",
+            "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImRldmVsb3BlcnNAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Njk5MzU0N30.cpm3XYPcLlwb0njGDIf8LGVYPJ2xJnS32y_DiBjSCGI",
             "access_url" => "http://occore.ordercup.com/api/v1/rate"
         ),
         "stagging" =>  array(
@@ -16,8 +16,9 @@ class Booking extends Icargo
 
     function __construct($data){
         $this->_parentObj = parent::__construct(array("email" => $data["email"], "access_token" => $data["access_token"]));
-
-        $this->apiConn = "stagging";
+		$this->apiConn = "stagging";
+		if(ENV=='live')
+			$this->apiConn = "live";
 
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];
@@ -91,9 +92,15 @@ class Booking extends Icargo
     protected
 
     function _saveAddressData($data, $customer_id){
-        $data = (object)$data;
-        $postcode = $this->postcodeObj->validate($data->postcode);
+        $data = (object)$data;        
+        $postcode = ($data->country->alpha3_code == 'GBR') ? ( $this->postcodeObj->validate($data->postcode) ) : true;
         if($postcode) {
+			if(isset($data->address_type)){
+				$address_type = ($data->address_type == 'No') ? 'Business' : 'Residential' ;
+			}else{
+				$address_type = "";
+			}
+			$addressType =
             $param["postcode"]      = $data->postcode;
             $param["address_line1"] = (isset($data->address_line1)) ? $data->address_line1 : "";
             $param["address_line2"] = (isset($data->address_line2)) ? $data->address_line2 : "";
@@ -101,6 +108,10 @@ class Booking extends Icargo
             $param["state"]         = (isset($data->state)) ? $data->state : "";
             $param["country"]       = $data->country->short_name;
             $param["iso_code"]      = $data->country->alpha3_code;
+            $param["first_name"]    = (isset($data->name)) ? $data->name : "";
+            $param["last_name"]     = "";
+            $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
+            $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = "";
 
             $param["search_string"] = str_replace(' ','',implode('',$param));;
@@ -112,21 +123,24 @@ class Booking extends Icargo
             $param["is_default_address"] = "N";
             $param["customer_id"]   = $customer_id;
             $param["is_warehouse"]  = "N";
-            $param["address_type"]  = "";
+            $param["address_type"]  = $address_type;
             $param["billing_address"] = "N";
             $param["billing_address"] = "N";
 
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
 
-            if(!$addressVersion) {
+            if(!$addressVersion["version_id"]) {
                 $param["version_id"] = "version_1";
+				$address_id = $this->modelObj->saveAddress($param);
+				return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
             }
             else{
-                $version = explode("_", $addressVersion);
+                $version = explode("_", $addressVersion['version_id']);
                 $param["version_id"] = "version_".($version[1]+1);
+				return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
             }
-            $address_id = $this->modelObj->saveAddress($param);
-            return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
+            //$address_id = $this->modelObj->saveAddress($param);
+            //return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
@@ -153,7 +167,7 @@ class Booking extends Icargo
             $data['shipment_customer_country'] = $addressInfo->country;
             $data['shipment_instruction'] = (isset($param2->pickup_instruction)) ? $param2->pickup_instruction : "";
             $data['shipment_country_code'] = $param2->country->alpha3_code;
-
+                                    
             //customer info
             $data['shipment_customer_name']    = (isset($param2->name)) ? $param2->name : "";
             $data['shipment_customer_email']   = (isset($param2->email)) ? $param2->email : "";
@@ -164,7 +178,7 @@ class Booking extends Icargo
             $data['shipment_total_volume']     = 0;//$param["weight"];
             $data['shipment_statusName']       = "Un Attainded";
             $data['shipment_shouldBookIn']     = "false";
-            $data['shipment_companyName']      = "";
+            $data['shipment_companyName']      = (isset($param2->company_name)) ? $param2->company_name : "";
             $data['distancemiles']             = "0.00";
             $data['estimatedtime']             = "00:00:00";
             /**/
@@ -231,9 +245,16 @@ class Booking extends Icargo
             $data['shipment_executionOrder'] = $execution_order;
 
             $data['customer_id'] = $param1->customer_id;
-
-            $data['search_string'] = "";
-
+	    
+	    $data['search_string'] = "";
+	    
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
+            $sStr["postcode"]      = $addressInfo->postcode;
+            $sStr["address_line1"] = $addressInfo->address_line1;
+            $sStr["iso_code"]      = $param2->country->alpha3_code;            
+            $data['search_string'] = str_replace(' ','',implode('',$sStr));             
+            /********Search string used for pickups (DHL, FEDEX etc) ***********/
+            
             $data['shipment_assigned_service_date'] = "1970-01-01" ;
             $data['shipment_assigned_service_time'] = "00:00:00" ;
             $data["booked_by"] =  $param1->booked_by;
@@ -256,49 +277,6 @@ class Booking extends Icargo
             }
         }else{
             return array('status'=>"error",'message'=>'Configuration not found');
-        }
-    }
-
-    protected
-
-    function _saveParcelOLD($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type){
-        $parcel = (object)$parcel;
-        $parcelTicketNumber = $this->modelObj->generateParcelTicketNumber($company_id);
-        $parcelData = array();
-        $parcelData['shipment_id'] = $shipment_id;
-
-        $parcelData['instaDispatch_Identity'] = $shipment_ticket ;
-        $parcelData['instaDispatch_pieceIdentity'] = $shipment_ticket;
-        $parcelData['instaDispatch_jobIdentity'] = $shipment_ticket;
-        $parcelData['instaDispatch_loadIdentity'] = $shipment_ticket;
-        $parcelData['shipment_ticket'] = $shipment_ticket;
-
-        $parcelData['package']       = $parcel->package_code;
-        $parcelData['parcel_ticket'] = $parcelTicketNumber;
-        $parcelData['parcel_weight'] = $parcel->weight;
-        $parcelData['parcel_height'] = $parcel->height;
-        $parcelData['parcel_length'] = $parcel->length;
-        $parcelData['parcel_width']  = $parcel->width;
-        //$parcelData["quantity"]      = $parcel->quantity;
-        $parcelData['parcel_type']   = $parcel_type;//($valuedata['purposeTypeName'] == 'Collection') ? 'P' : 'D';
-
-        $parcelData['dataof'] = $company_code;
-        $parcelData['status'] = '1';
-        /* add some new data for same day*/
-        $parcelData['docketNumber'] = $shipment_ticket;
-        $parcelData['customerReference'] = "";
-        $parcelData['objectIdentity'] = $shipment_ticket;
-        $parcelData['availabilityTypeId'] = 0;
-        $parcelData['availabilityTypeCode'] = "UNKN";
-        $parcelData['company_id'] = $company_id;
-        $parcelData['warehouse_id'] = $warehouse_id;
-
-        $parcel_id = $this->modelObj->saveParcel($parcelData);
-
-        if($parcel_id){
-            return array("status"=>"success", "parcel_id"=>$parcel_id);
-        }else{
-            return array("status"=>"error", "message"=>"Parcel not saved");
         }
     }
 
@@ -347,8 +325,14 @@ class Booking extends Icargo
 
     protected
 
-    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status,$serviceId){
+    function _saveInfoReceived($load_identity){
+        return $this->modelObj->saveInfoReceived($load_identity);
+    }
 
+    protected
+
+    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail,$serviceId){       
+		
         $service_data = array();
 
         $price_version = $this->modelObj->findPriceNextVersionNo($load_identity);
@@ -357,6 +341,12 @@ class Booking extends Icargo
         $surchargeAndTaxValue = $this->_savePriceBreakdown($serviceOpted, $surcharges, $load_identity, $price_version);
 
         if($surchargeAndTaxValue["status"]=="success"){
+            
+            $service_data["label_tracking_number"] = 0;
+            $service_data["label_files_png"] = 0;
+            $service_data["label_file_pdf"] = 0;
+            $service_data["is_label_printed"] = 0;
+            
             $service_data["service_name"] = $serviceOpted->service_info->name;
             $service_data["rate_type"] = $serviceOpted->rate->rate_type;
             $service_data["currency"] = $serviceOpted->rate->currency;
@@ -388,10 +378,19 @@ class Booking extends Icargo
             $service_data["invoice_reference"] = "";
             $service_data["service_request_string"] = $this->serviceRequestString;
             $service_data["service_response_string"] = $this->serviceResponseString;
-
             
-            $customerData = $this->getBookedShipmentsCustomerInfo($customer_id); 
-            $service_data['customer_type'] = $customerData['customer_type'];
+            $customerData = $this->getBookedShipmentsCustomerInfo($customer_id);
+	    $service_data['customer_type'] = $customerData['customer_type']; 
+	    
+	    $service_data["is_insured"] = ($otherDetail['is_insured'] == true) ? 1 : 0;;
+            $service_data["reason_for_export"] = $otherDetail['reason_for_export'];
+            $service_data["tax_status"] = $otherDetail['tax_status'];
+            $service_data["terms_of_trade"] =  $otherDetail['terms_of_trade'];
+
+            $service_data["label_tracking_number"] = '0';
+            $service_data["label_files_png"] = '';
+            $service_data["label_file_pdf"] =  '';
+            $service_data["label_json"] =  '';
             
             $service_data["status"] = $booking_status;
             $service_data[" booked_service_id"] = $serviceId;
@@ -402,6 +401,26 @@ class Booking extends Icargo
             return array("status"=>"error", "message"=>"shipment service not saved");
         }
         return $surchargeAndTaxValue;
+    }
+    protected function _saveShipmentItems($item, $load_identity, $customer_id, $booking_status){
+        
+        $items_data = array();
+        $date = date('Y-m-d H:i:s');            
+        $items_data["load_identity"] = $load_identity;
+        $items_data["item_description"] = $item->item_description;
+        $items_data["item_quantity"] = $item->item_quantity;
+        $items_data["country_of_origin"] = $item->country_of_origin->alpha2_code;
+        $items_data["item_value"] = $item->item_value;
+        $items_data["item_weight"] = $item->item_weight;
+        $items_data["created"] = $date;
+        $items_data["updated"] = $date;
+        $items_data["status"] = $booking_status;            
+        
+        $item_id = $this->modelObj->saveItemService($items_data);
+        if($item_id>0){
+            return array("status"=>"success", "message"=>"shipment item saved", "item_id"=>$item_id);
+        }        
+        return array("status"=>"error", "message"=>"shipment item not saved");        
     }
 
     private
@@ -504,13 +523,13 @@ class Booking extends Icargo
         $price_breakdown["shipment_type"] = $data->rate->shipment_type;
         $price_breakdown["version"]       = $price_version;
         $price_breakdown["api_key"]       = "service";
-        $price_breakdown["price_code"]    = $data->rate->info->courier_service_code;
-        $price_breakdown["ccf_operator"]  = $data->rate->info->operator;
+        $price_breakdown["price_code"]    = isset( $data->rate->info->courier_service_code ) ? $data->rate->info->courier_service_code : '';
+        $price_breakdown["ccf_operator"]  = isset( $data->rate->info->operator ) ? $data->rate->info->operator : '';
         $price_breakdown["ccf_value"]     = $data->rate->info->ccf_value;
         $price_breakdown["ccf_level"]     = $data->rate->info->level;
-        $price_breakdown["baseprice"]     = $data->rate->info->original_price;
+        $price_breakdown["baseprice"]     = isset( $data->rate->info->original_price ) ? $data->rate->info->original_price : '0';
         $price_breakdown["ccf_price"]     = $data->rate->info->price;
-        $price_breakdown["price"]         = $data->rate->info->price_with_ccf;
+        $price_breakdown["price"]         = isset( $data->rate->info->price_with_ccf ) ? $data->rate->info->price_with_ccf : '0';
         $price_breakdown["service_id"]    = $data->rate->info->service_id;
         $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
 
@@ -660,17 +679,19 @@ class Booking extends Icargo
     protected
 
     function _postRequest($data_string){
-
+        //echo $data_string; die;
+        
+        //return '{"rate": {"UKMAIL":[{"D919022":[{"3":[{"rate":{"flow_type":"Domestic","price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"flow_type":"Domestic","price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"5":[{"rate":{"flow_type":"Domestic","price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"2":[{"rate":{"flow_type":"Domestic","price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"4":[{"rate":{"flow_type":"Domestic","price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]},{"1":[{"rate":{"flow_type":"Domestic","price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"15:32:00:PM","last_pickup_time":"16:32:00:PM"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]}]}],"PNP":[{"21232123":[{"one_hour":[{"rate":{"flow_type":"Domestic","price":4.38,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":0.876,"tax_percentage":20.0}}]},{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":3.38,"rate_type":"Drop Rate","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"drop_service","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"service_times":{"last_booking_time":"16:05:00:PM","last_pickup_time":"17:00:00:PM"},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":0.676,"tax_percentage":20.0}}]},{"asap":[{"rate":{"flow_type":"Domestic","price":5.88,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":1.176,"tax_percentage":20.0}}]}]}]}, {"DHL": [{"420714888": [{"express_ww": [{"rate": {"weight_charge": 183.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]}, {"express_domestic": [{"rate": {"weight_charge": 183.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]},{"express_domestic_12": [{"rate": {"weight_charge": 189.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]}]}]}}';
+        
         //$server_output = '{"status":"success","message":"Rate found","data":{"UKMAIL":[{"D919022":[{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":null},"weight":{"weight":9999,"unit":null},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"2","name":"Testing 2"}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":1.025,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"4","name":"Testing 4"}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":2.525,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"5","name":"Testing 5"}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":1.525,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"3","name":"Testing 3"}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":1.325,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"9","name":"Testing 9"}}]},{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0},"taxes":{"total_tax":0.525,"tax_percentage":10},"carrier_info":{"carrier_id":"2","name":"ukmail","icon":"assets/images/carrier/dhl.png","description":"courier information goes here","code":"UKMAIL"},"service_info":{"code":"1","name":"Testing 1"}}]}]}]},"service_time":"11:20","service_date":"21/May/2018"}';
         //return json_decode($server_output);
 
-      //  return '{"rate":{"UKMAIL":[{"D919022":[{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]}]}]}}';
-
+        //return '{"rate":{"UKMAIL":[{"D919022":[{"2":[{"rate":{"price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"3":[{"rate":{"price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"5":[{"rate":{"price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"1":[{"rate":{"price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"4":[{"rate":{"price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]}]}],"DHL": [{"420714888": [{"express_domestic": [{"rate": {"weight_charge": 183.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]},{"express_domestic_12": [{"rate": {"weight_charge": 189.24,"fuel_surcharge": 0,"remote_area_delivery": 0,"insurance_charge": 0,"over_sized_charge": 0,"over_weight_charge": 0}}]}]}]}}';
+              
         //$data_string = json_encode($data);
 
-       // return '{"rate":{"UKMAIL":[{"D919022":[{"3":[{"rate":{"flow_type":"Domestic","price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"flow_type":"Domestic","price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"5":[{"rate":{"flow_type":"Domestic","price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"2":[{"rate":{"flow_type":"Domestic","price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"4":[{"rate":{"flow_type":"Domestic","price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]},{"1":[{"rate":{"flow_type":"Domestic","price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"15:32:00:PM","last_pickup_time":"16:32:00:PM"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]}]}],"PNP":[{"21232123":[{"one_hour":[{"rate":{"flow_type":"Domestic","price":4.38,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":0.876,"tax_percentage":20.0}}]},{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":3.38,"rate_type":"Drop Rate","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"drop_service","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"service_times":{"last_booking_time":"16:05:00:PM","last_pickup_time":"17:00:00:PM"},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":0.676,"tax_percentage":20.0}}]},{"asap":[{"rate":{"flow_type":"Domestic","price":5.88,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":1.176,"tax_percentage":20.0}}]}]}]}}';
-        
-        //return '{"rate":{"PNP":[{"21232123":[{"asap":[{"rate":{"flow_type":"Domestic","price":1.08,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0,"collection_surcharge":0},"taxes":{"total_tax":0.176,"tax_percentage":10.0}}]}]}]}}';
+        //return '{"rate":{"UKMAIL":[{"D919022":[{"3":[{"rate":{"flow_type":"Domestic","price":"15.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.525,"tax_percentage":10.0}}]},{"9":[{"rate":{"flow_type":"Domestic","price":"13.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.325,"tax_percentage":10.0}}]},{"5":[{"rate":{"flow_type":"Domestic","price":"25.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":2.525,"tax_percentage":10.0}}]},{"2":[{"rate":{"flow_type":"Domestic","price":"9.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.925,"tax_percentage":10.0}}]},{"4":[{"rate":{"flow_type":"Domestic","price":"10.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":1.025,"tax_percentage":10.0}}]},{"1":[{"rate":{"flow_type":"Domestic","price":"5.25","rate_type":"Weight","act_number":"D919022","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"/icons/original/missing.png","max_delivery_time":null},"service_times":{"last_booking_time":"15:32:00:PM","last_pickup_time":"16:32:00:PM"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.525,"tax_percentage":10.0}}]}]}],"PNP":[{"21232123":[{"one_hour":[{"rate":{"flow_type":"Domestic","price":4.38,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":0.876,"tax_percentage":20.0}}]},{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":3.38,"rate_type":"Drop Rate","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"drop_service","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"service_times":{"last_booking_time":"16:05:00:PM","last_pickup_time":"17:00:00:PM"},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":0.676,"tax_percentage":20.0}}]},{"asap":[{"rate":{"flow_type":"Domestic","price":5.88,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":-2.0,"collection_surcharge":0},"taxes":{"total_tax":1.176,"tax_percentage":20.0}}]}]}]}}';
+
         $ch = curl_init($this->access_url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
@@ -730,9 +751,8 @@ class Booking extends Icargo
 
     function getCustomerCarrierAccount($company_id, $customer_id, $collection_postcode, $collection_date){
         $carrierAccount = array();
-        $carriers = $this->modelObj->getCompanyCarrier($company_id);
 
-        //
+        $carriers = $this->modelObj->getCompanyCarrier($company_id);
 
 
         foreach($carriers as $carrier){
@@ -747,15 +767,29 @@ class Booking extends Icargo
         foreach($carrierLists as $carrierList){
             foreach($carriers as $key => $carrier) {
                 if($carrierList["account_id"]==$carrier["account_id"]){
-                    $carrier["account_number"] = $carrierList["account_number"];
+                    $carrier["account_number"] = $carrierList["account_number"];                    
                     array_push($lists, $carrier);
                 }
             }
-        }
-
-        $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);
+        } 
+        $lists = Collection::_getInstance()->getCarrierAccountList($lists, array("zip"=>$collection_postcode),$customer_id,$company_id, $collection_date);   
         return $lists;
     }
+	
+    protected function _saveLabelInfoByLoadIdentity($labelArr,$loadIdentity){
+            return $this->modelObj->saveLabelDataByLoadIdentity($labelArr,$loadIdentity);
+    }
+
+    protected function getCustomerInfo($user_id){
+        return $this->modelObj->getCustomerInfo($user_id);
+    }
+
+    protected
+
+    function getUserInfo($user_id){
+        return $this->modelObj->getUserInfo($user_id);
+    }
+    
     protected
 
     function _getCustomerAccountBalence($customer_id,$bookShipPrice){
@@ -801,6 +835,5 @@ class Booking extends Icargo
     function _getCarrierCode($carrier_id){
        return $this->modelObj->getCarrierCode($carrier_id);
     }
-    
 }
 ?>

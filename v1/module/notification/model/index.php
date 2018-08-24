@@ -1,17 +1,11 @@
 <?php
 class Notification_Model_Index
 {
-    public static $db = NULL;
-
     public
 
     function __construct()
     {
-        if(self::$db==NULL)
-        {
-            self::$db  = new DbHandler();
-        }
-        $this->_db = self::$db;
+        $this->_db  = new DbHandler();
     }
 
     public
@@ -171,6 +165,22 @@ class Notification_Model_Index
         return $this->_db->getRowRecord($sql);
     }
 
+
+    /*public
+
+    function findNotCollectedShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='P'";
+        return $this->_db->getOneRecord($sql);
+    }
+
+    public
+
+    function findNotDeliveredShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='D'";
+        return $this->_db->getOneRecord($sql);
+    }*/
+
+
     public function startTransaction() {
         $this->_db->startTransaction();
     }
@@ -182,7 +192,7 @@ class Notification_Model_Index
     public function rollBackTransaction() {
         $this->_db->rollBackTransaction();
     }
-    
+    /* get Invoice data*/
     public function getInvoiceData($invoiceID){
         $sql = "SELECT I.*,COM.name as company_name,COM.email as company_email,CUS.email as customer_email,CUS.name as customer_name  FROM `".DB_PREFIX."invoices` as I
                 LEFT JOIN `".DB_PREFIX."users` as CUS on (CUS.id = I.customer_id AND CUS.user_level = 5)
