@@ -5,7 +5,7 @@
  * Date: 14/06/18
  * Time: 3:49 PM
  */
-//declare(strict_types=1);
+declare(strict_types=1);
 
 require_once "model/rest.php";
 class Ws_Driver_Tracking
@@ -55,7 +55,7 @@ class Ws_Driver_Tracking
         }
     }
 
-    public function saveDriverTracking(){
+    public function saveDriverTracking() : string{
         //try{
             $status = $this->model_rest->saveDriverTracking(array(
                 "driver_id"     => $this->__get("driver_id"),
