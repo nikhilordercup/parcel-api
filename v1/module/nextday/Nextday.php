@@ -501,9 +501,6 @@ final class Nextday extends Booking
             }
        }
 
-
-    public
-
    public function saveBooking()
     {
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);

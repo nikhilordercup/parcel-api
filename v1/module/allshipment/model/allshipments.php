@@ -1,4 +1,4 @@
-<?php 
+<?php
 class AllShipment_Model
     {
     public static $_modelObj = NULL;
@@ -744,4 +744,3 @@ SELECT  S.warehouse_id as warehouse_id,
       }
   }           
 ?>
-           

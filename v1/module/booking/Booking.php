@@ -280,6 +280,7 @@ class Booking extends Icargo
         }
     }
 
+    
     protected
 
     function _saveParcel($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type,$loadidentity){

@@ -19,6 +19,7 @@ class Customer extends Icargo{
 	}
 	
 	
+    
     public function saveCustomer($param){ 
          $data = array(); 
          $exist = $this->modelObj->checkCustomerEmailExist($param->customer->customer_email);
@@ -129,7 +130,8 @@ class Customer extends Icargo{
         $data =  $this->modelObj->getAllCustomerData();
          foreach($data as $key=>$val){
           $data[$key]['status'] = ($val['status']==1)?true:false;
-          $data[$key]['action'] = 'customerdetail';    
+          $data[$key]['action'] = 'customerdetail';
+             
         }
        return $data;
     }
@@ -702,12 +704,14 @@ class Customer extends Icargo{
             $customerinfo['auto_label_print'] = isset($param->customer->auto_label_print)?$param->customer->auto_label_print:'YES';
             $condition = "user_id = '" . $param->customer_id . "'"; 
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);  
+              
             if($customerinfoStatus){
             if(key_exists('customerpickup',$param) && is_object($param->customerpickup)){ 
                  $param->customerpickup->customer_id = $param->customer_id;
                  $this->editCustomerPickupDetails($param->customerpickup);
              }
              if(key_exists('customerbilling',$param) && is_object($param->customerbilling)){ 
+                 
                   $param->customerbilling->customer_id = $param->customer_id;
                  $this->editCustomerBillingDetails($param->customerbilling);
              }
@@ -720,11 +724,14 @@ class Customer extends Icargo{
           }
         }
     
+    
+    
  public function editCustomerPickupDetails($param){  
       $libObj = new Library();
      if($param->postcode!=''){
         $shipment_geo_location =  $libObj->get_lat_long_by_postcode($param->postcode);
       }
+     
       $addressBook = array();
       $addressBook['name']          = isset($param->name)?$param->name:'';
       $addressBook['address_line1'] = isset($param->address_1)?$param->address_1:''; 
@@ -933,6 +940,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         return $result;
 	}
 
+	
 	public function getUserAddressDataByUserId($param){  
         $data =  $this->modelObj->getUserAddressDataByUserId($param);
 		$defaulAddressId = $this->modelObj->getUserDefaultAddressId($param);
@@ -1142,8 +1150,8 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
             return array("status"=>"error","message"=>"Warehouse not updated");
         }
     }
-    
-    public function setCustomerWarehouse($param){
+	
+	public function setCustomerWarehouse($param){
 	    try{
             $this->modelObj->startTransaction();
             if($param->status==1){

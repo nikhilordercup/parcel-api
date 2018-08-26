@@ -1015,7 +1015,10 @@ $app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('email','access_token','service_date'),$r);
     $obj = new Module_Google_Api($r);
-    $response = $obj->getGeolocationAndDistanceMatrix($r);
+    try{$response = $obj->getGeolocationAndDistanceMatrix($r);}
+    catch(Exception $e){
+        $response = array('status'=>'error','message'=>'distance matrix error');
+    }
     echoResponse(200, $response);
 });
 

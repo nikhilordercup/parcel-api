@@ -177,6 +177,7 @@ class allShipments extends Icargo
                             $data['pickup_date']        = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
 							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
 							$data['cancel_status']      = $pickupData['cancel_status'];
+                            $data['collection_reference'] = "";
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -714,7 +715,6 @@ class allShipments extends Icargo
         return $return;
     }
 
-
     public function updateCarrierPrice($param)
     {
         $param                 = json_decode(json_encode($param), 1);
@@ -895,8 +895,7 @@ class allShipments extends Icargo
                 $temp['price_version']                 = $priceVersion + 1;
                 $condition                             = "load_identity = '" . $param['job_identity'] . "'";
                 $status                                = $this->modelObj->editContent("shipment_service", $temp, $condition);
-                
-                if ($temp['grand_total'] != $oldGrandTotal) {
+		 if ($temp['grand_total'] != $oldGrandTotal) {
                    $dataarr = array();
                    $dataarr['payment_type']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
                    $dataarr['amount']                   = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) :
@@ -911,12 +910,11 @@ class allShipments extends Icargo
                     $dataarr['payment_reference']        = $param['job_identity'];
                     $dataarr['payment_desc']             = 'UPADTE SHIPMENT PRICE';
                     $dataarr['payment_for']              = 'PRICECHANGE';   
-                }
+    		 }
                 $accountUpdatestatus =  $this->manageAccount($dataarr);
                 }
-           }
-        } 
-        elseif ($param['applypriceoncustomer'] == 'NO') {
+            }
+        } elseif ($param['applypriceoncustomer'] == 'NO') {
             $temp['surcharges']  = 0;
             $temp['total_price'] = 0;
             $temp['taxes']       = 0;
@@ -1276,6 +1274,8 @@ class allShipments extends Icargo
         }
     }
 
+   
+
     public function getAllowedAllShipmentsStatus($param)
     {
         $data = $this->modelObj->getAllowedAllShipmentsStatus($param->company_id);
@@ -1286,7 +1286,6 @@ class allShipments extends Icargo
         $data = $this->modelObj->getAllowedAllServices($param->company_id);
         return $data;
     }
-
 
     public function getTaxPrice($records)
     {
@@ -1423,7 +1422,7 @@ class allShipments extends Icargo
         }
     
        
-public function createVoucher($voucherdata){ 
+    public function createVoucher($voucherdata){ 
     $returnArray = array('status'=>'fail');
     $voucherHistoryid                  = $this->modelObj->getVoucherHistory($voucherdata['job_identity']);
     $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($voucherdata['company_id']);
@@ -1444,7 +1443,7 @@ public function createVoucher($voucherdata){
 }    
     
    
-public function manageAccount($creditbalanceData){
+    public function manageAccount($creditbalanceData){
                 $getCustomerdetails =  $this->modelObj->getCustomerInfo($creditbalanceData['customer_id']);
                 $creditbalanceData['customer_type']        = $getCustomerdetails['customer_type'];
                 $creditbalanceData['pre_balance']          = $getCustomerdetails["available_credit"];
@@ -1464,8 +1463,8 @@ public function manageAccount($creditbalanceData){
         }
     }
     
-    
-public function holdJob($param){   $loadidentity =  '"'.implode('","',$param->job_identity).'"';
+
+    public function holdJob($param){   $loadidentity =  '"'.implode('","',$param->job_identity).'"';
         if(is_array($param->job_identity) && count($param->job_identity)>0){
                 $condition   = "load_identity  IN(" . $loadidentity . ")";
                 $status      = $this->modelObj->editContent("shipment_service", array('is_hold'=>'YES'), $condition);
@@ -1474,8 +1473,7 @@ public function holdJob($param){   $loadidentity =  '"'.implode('","',$param->jo
                 return array("status"=>"success", "message"=>"Action perform successfully");
         }
     }
-    
-public function unholdJob($param){  $loadidentity =  '"'.implode('","',$param->job_identity).'"';
+    public function unholdJob($param){  $loadidentity =  '"'.implode('","',$param->job_identity).'"';
       if(is_array($param->job_identity) && count($param->job_identity)>0){
                  $condition   = "load_identity  IN(" . $loadidentity . ")";
                 $status      = $this->modelObj->editContent("shipment_service", array('is_hold'=>'NO'), $condition);
@@ -1484,11 +1482,10 @@ public function unholdJob($param){  $loadidentity =  '"'.implode('","',$param->j
                 return array("status"=>"success", "message"=>"Action perform successfully");
         }
     }
- 
-public function getlogo($param){   
+    public function getlogo($param){   
     return $this->modelObj->getCompanylogo($param->company_id);
 }
-public function getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown){   
+    public function getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown){   
     $oldData = array('service'=>0,'surcharges'=>0,'fual_surcharge'=>0,'tax'=>0);
     $newData = array('service'=>0,'surcharges'=>0,'fual_surcharge'=>0,'tax'=>0);
     if(is_array($getLastPriceBreakdown)  and count($getLastPriceBreakdown)>0){
@@ -1528,8 +1525,7 @@ public function getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown){
                 'tax'=>number_format(($newData['tax'] - $oldData['tax']),2)
          );
     }   
-    
-public function getRecurringShipmentDetails($param){
+    public function getRecurringShipmentDetails($param){
         $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
         $shipmentsInfoData     = $this->modelObj->getRecurringShipmentDetails($loadidentity);
         $basicInfo = array();
@@ -1580,8 +1576,7 @@ public function getRecurringShipmentDetails($param){
        // return array("status"=>"success", "message"=>"Action perform successfully");
         return $basicInfo;
      }    
-    
-public function bookRecurringJob($param){ 
+    public function bookRecurringJob($param){ 
         $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
         $company_id   = $param->company_id;
         $job_type     = $param->job_type;
@@ -1610,7 +1605,7 @@ public function bookRecurringJob($param){
             return array("status"=>"error", "message"=>"Recurring Job not added");
         }
     }  
-public function getRecurringJobs($param){ 
+    public function getRecurringJobs($param){ 
         $company_id         = $param->company_id;
         $recurringInfoData  = $this->modelObj->getRecurringJobsByCompanyId($company_id);
         foreach($recurringInfoData as $key=>$val){
@@ -1618,8 +1613,7 @@ public function getRecurringJobs($param){
         }
          return $recurringInfoData;
   }
-    
-public function editRecurringjobStatus($param){ 
+    public function editRecurringjobStatus($param){ 
         $company_id         = $param->company_id;
         $recurringJob_id    = $param->descid;
         $statusData         = $param->status; 
@@ -1631,7 +1625,7 @@ public function editRecurringjobStatus($param){
             return array("status"=>"error", "message"=>"Requested action not performed.");
         }
   }
-public function deleteRecurringjobStatus($param){ 
+    public function deleteRecurringjobStatus($param){ 
         $company_id         = $param->company_id;
         $recurringJob_id    = $param->descid;
         $recurringJobref    = $param->jobref;
@@ -1647,8 +1641,7 @@ public function deleteRecurringjobStatus($param){
             return array("status"=>"error", "message"=>"Requested action not performed.");
         }
   } 
-    
-public function recurringJobDetails($param){ 
+    public function recurringJobDetails($param){ 
         $company_id         = $param->company_id;
         $recurringJobref    = $param->job_identity;
         $recDetails         = $this->modelObj->getRecurringJobDetail($recurringJobref);
@@ -1658,8 +1651,7 @@ public function recurringJobDetails($param){
         }
     return $recDetails;
   }    
-
-public function updateRecurringJob($param){ 
+    public function updateRecurringJob($param){ 
         $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
         $company_id   = $param->company_id;
         $job_type     = $param->job_type;
@@ -1695,7 +1687,7 @@ public function updateRecurringJob($param){
            return array("status"=>"success", "message"=>"all Recurring Job deleted successfully");  
         }
     }
-public function getAllRecurringBreakdown($param){ 
+    public function getAllRecurringBreakdown($param){ 
         $company_id         = $param->company_id;
         $job_reference      = $param->job_reference;
         $recurringInfoData  = $this->modelObj->getRecurringJobsBreakDown($company_id,$job_reference);
@@ -1708,7 +1700,7 @@ public function getAllRecurringBreakdown($param){
         }
          return $recurringInfoData;
   }
-public function checkEligibleForCancel($param){
+    public function checkEligibleForCancel($param){
       $eligiblearray = $this->getEligibleStatusForCanceljob();
       $returnData = array('success'=>array(),'fail'=>array(),'cancel'=>array());
     if(is_array($param->job_identity) && count($param->job_identity)>0){
@@ -1738,10 +1730,10 @@ public function checkEligibleForCancel($param){
        return  array("status"=>"fail","message"=>implode(',',$returnData['cancel'])." already cancelled");    
     }
  }    
-public function getEligibleStatusForCanceljob(){
+    public function getEligibleStatusForCanceljob(){
      return array('A','B','C','D','E');
  }    
-public function cancelJob($param){
+    public function cancelJob($param){
         $returnData = array();
         $company_id         = $param->company_id;
         $userId             = $param->user; 
@@ -1765,7 +1757,7 @@ public function cancelJob($param){
         }
     return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
 }     
-public function manageVoucherAndAccount($loadDetail,$amount,$payemntType,$companyId,$userId){
+    public function manageVoucherAndAccount($loadDetail,$amount,$payemntType,$companyId,$userId){
    $voucherRef = '';
    $getCustomerdetails  =  $this->modelObj->getCustomerInfo($loadDetail['customer_id']);
    $customer_type       = $getCustomerdetails['customer_type'];

@@ -580,8 +580,8 @@ public function checkCustomerEmailExist($company_email){
 
         return $this->db->updateData($sql);
     }
-
-    public function getAddressBySearchStr($param){
+	
+	public function getAddressBySearchStr($param){
 		$records = array();
 		$param->search_str = str_replace(' ','',$param->search_str);
 		$sql = "SELECT UAT.default_address AS warehouse_address, ABT.id,ABT.address_line1,ABT.address_line2,ABT.postcode,ABT.city,ABT.state,ABT.country,ABT.address_type,ABT.name,ABT.company_name FROM ".DB_PREFIX."address_book as ABT LEFT JOIN `".DB_PREFIX."user_address` AS UAT ON ABT.id = UAT.address_id where ABT.customer_id = ".$param->customer_id." AND ABT.status=1 AND search_string LIKE '%".$param->search_str."%'";

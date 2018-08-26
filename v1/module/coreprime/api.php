@@ -145,7 +145,9 @@ class Module_Coreprime_Api extends Icargo
             $transit_distance += $param->warehouse_to_collection_point_distance;
             $transit_time += $param->warehouse_to_collection_point_time;
         }
+        //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
         $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id, $param->company_id);
+
         $carriers =  array();
         if(count($carrier)>0){
             foreach($carrier as $carrierData){

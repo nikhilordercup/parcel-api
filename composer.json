@@ -1,10 +1,10 @@
 {
-  "autoload": {
+"autoload": {
     "psr-4": {
       "v1\\": "v1"
     }
   },
-  "require": {
+	"require": {
     "slim/slim": "2.*",
 		"phpmailer/phpmailer": "^6.0",
 		"chargebee/chargebee-php": "*",
@@ -13,7 +13,7 @@
 		"setasign/fpdi": "^2.0",
 		"sngrl/php-firebase-cloud-messaging": "dev-master",
         "dompdf/dompdf": "^0.8.2",
-		"kreait/firebase-php": "^4.0",
         "mpdf/mpdf": "^6.1",
+		"kreait/firebase-php": "^4.0"
 	}
 }
