@@ -51,7 +51,6 @@ CHANGE COLUMN `fual_surcharge` `fual_surcharge` DECIMAL(10,2) NOT NULL DEFAULT '
 CHANGE COLUMN `total` `total` DECIMAL(10,2) NOT NULL DEFAULT '0.00' ,
 CHANGE COLUMN `tax` `tax` DECIMAL(10,2) NOT NULL DEFAULT '0.00' ;
 
-
 ALTER TABLE `icargo_invoices` 
 ADD COLUMN `voucher_data` TEXT NULL DEFAULT NULL AFTER `invoice_status`;
 
