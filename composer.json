@@ -8,6 +8,7 @@
 		"setasign/fpdi": "^2.0",
 		"sngrl/php-firebase-cloud-messaging": "dev-master",
                 "dompdf/dompdf": "^0.8.2",
-		"kreait/firebase-php": "^4.0"
+		"kreait/firebase-php": "^4.0",
+	    	"mpdf/mpdf": "^6.1"
 	}
 }
