@@ -20,7 +20,8 @@ class Module_Chargebee extends Icargo
 	
 	function _chargeAPiInvironment()
 		{
-		ChargeBee_Environment::configure("parcel-test", "test_gGnPwVHV3LAzCRzwWQUlrnQfOT8Mrnmcu");
+		ChargeBee_Environment::configure("instadispatch-test", "test_SXcdH4OWVOcd91fCcuYr2UYKhYnFJPfEFZ6");
+                
 		}
 	
 	private
@@ -80,9 +81,6 @@ class Module_Chargebee extends Icargo
 			{
 			$data = array(
 				"planId" => $param["plan_id"],
-				"customerId" => $param["customer_id"],
-				"planQuantity" => $param["plan_quantity"], 
-				"planUnitPrice" => $param["plan_unit_price"]*100,
 				"startDate" => $param["start_date"],
 				"trialEnd" => $param["trial_end"]
 				);
@@ -99,7 +97,7 @@ class Module_Chargebee extends Icargo
 				$data["invoice_immediately"] = $param["invoice_immediately"];
 			}
 			
-			$result = ChargeBee_Subscription::create($data);
+			$result = ChargeBee_Subscription::createForCustomer($param["customer_id"],$data);
 			$subscription = $result->subscription()->getValues();
 			$data = array("subscription"=>$subscription);
 			return $data;
@@ -155,22 +153,26 @@ class Module_Chargebee extends Icargo
 	private
 	
 	function _createCustomer($param)
-		{
+		{   
 		$result = ChargeBee_Customer::create(array(
 			"firstName" => $param["first_name"],
 			"lastName" => $param["last_name"],
 			"email" => $param["email"],
+                        "company"=>$param["company"],
+                        "phone"=>$param["phone"],
 			"billingAddress" => array(
 			"firstName" => $param["billing_first_name"],
 			"lastName" => $param["billing_last_name"],
+                        "company"=>$param["company"],
+                        "phone"=>$param["phone"],
+                        "email"=>$param["email"],
 			"line1" => $param["billing_line1"],
 			"city" => $param["billing_city"],
 			"state" => $param["billing_state"],
 			"zip" => $param["billing_zip"],
 			"country" => $param["billing_country"],
 			))
-		);
-	
+		);	
 		$customer = $result->customer();
 		return array("chargebee_customer_id"=>$customer->id,"first_name"=>$customer->firstName,"last_name"=>$customer->lastName,"auto_collection"=>$customer->autoCollection,"net_term_days"=>$customer->netTermDays,"preferred_currency_code"=>$customer->preferredCurrencyCode,"billing_address"=>array("first_name"=>$customer->billingAddress->firstName,"last_name"=>$customer->billingAddress->lastName,"line1"=>$customer->billingAddress->line1,"city"=>$customer->billingAddress->city,"state"=>$customer->billingAddress->state,"country"=>$customer->billingAddress->country,"zip"=>$customer->billingAddress->zip,"validation_status"=>$customer->billingAddress->validationStatus));
 		}
@@ -359,18 +361,18 @@ class Module_Chargebee extends Icargo
 			$data["plan_quantity"] = $subscriptionData["subscription"]["plan_quantity"];
 			$data["plan_unit_price"] = $subscriptionData["subscription"]["plan_unit_price"]/100;
 			$data["status"] = $subscriptionData["subscription"]["status"];
-			
+			$data['allowed_shipment']=$param->plan_limit;
 			//$data["billing_cycles"] = $subscriptionData["subscription"]["billing_period"];
 			
 			
 			$data["start_date"] = $param->start_date;
-			//$data["trial_end"] = $param->trial_end;
 			unset($data['customer_id']);
 			//print_r($data);die;
 			$id = $this->modelObj->saveSubscription($data);
 			return $response = array("status"=>"success","message"=>"Subscription created successfully");
 			}
 			catch(Exception $e){
+                            exit($e->getMessage());exit;
 				return array("status"=>"error","message"=>$e->getMessage());
 			}
 		}
@@ -414,13 +416,15 @@ class Module_Chargebee extends Icargo
 				"billing_state"=>$param->billing_state,
 				"billing_zip"=>$param->billing_zip,
 				"billing_country"=>$param->billing_country,
-                "user_id"=>"0"
+                                "user_id"=>$param->user_id,
+                                "company"=>$param->billing_last_name,
+                                "phone"=>$param->phone,
 			);
 
 			$customer_info = $this->_createCustomer($data);
 			
 			$data["chargebee_customer_id"] = $customer_info['chargebee_customer_id'];
-
+                        unset($data['phone'],$data['company']);
 			$this->modelObj->saveCustomer($data);
 			$response = array("status"=>"success","message"=>"Customer created successfully","customer_info"=>$customer_info);
 			return $response;
