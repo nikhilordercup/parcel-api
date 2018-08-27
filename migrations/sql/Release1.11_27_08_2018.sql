@@ -1,12 +1,18 @@
-ALTER TABLE `icargo_creditbalance_history` 
-ADD COLUMN `payment_for` ENUM('RECHARGE', 'SHIPMENTS', 'INVOICE', 'VOUCHER', 'NONE') NOT NULL DEFAULT 'NONE' AFTER `payment_desc`;
-
-DROP TABLE  icargo_customer_availablecredithistory;
-
-ALTER TABLE `icargo_accountbalancehistory` 
-CHANGE COLUMN `balance` `balance` FLOAT(10,2) NOT NULL DEFAULT '0.00' ,
-ADD COLUMN `pre_balance` FLOAT(10,2) NOT NULL DEFAULT 0.00 AFTER `payment_for`;
-
+CREATE TABLE `icargo_accountbalancehistory` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) DEFAULT '0',
+  `customer_type` enum('PREPAID','POSTPAID','NONE') NOT NULL DEFAULT 'NONE',
+  `company_id` int(11) DEFAULT '0',
+  `payment_type` enum('CREDIT','DEBIT','NONE') DEFAULT 'NONE',
+  `pre_balance` float(10,2) NOT NULL DEFAULT '0.00',
+  `amount` float(10,2) NOT NULL DEFAULT '0.00',
+  `balance` float(10,2) NOT NULL DEFAULT '0.00',
+  `create_date` datetime DEFAULT '1970-01-01 00:00:00',
+  `payment_reference` varchar(255) DEFAULT NULL,
+  `payment_desc` varchar(255) DEFAULT NULL,
+  `payment_for` enum('RECHARGE','BOOKSHIP','PAYINVOICE','VOUCHER','PRICECHANGE','CANCELSHIP','NONE') NOT NULL DEFAULT 'NONE',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=latin1;
 
 ALTER TABLE `icargo_customer_info` 
 ADD COLUMN `tax_exempt` ENUM('YES', 'NO') NOT NULL DEFAULT 'NO' AFTER `charge_from_base`;
@@ -130,12 +136,12 @@ ALTER TABLE `icargo_webapi_request_response`
 ADD COLUMN `request_status` VARCHAR(45) NOT NULL DEFAULT 'NC' AFTER `create_time`,
 ADD COLUMN `end_point` VARCHAR(255) NULL DEFAULT NULL AFTER `request_status`;
 
+ALTER TABLE `icargo_webapi_request_response` 
+ADD COLUMN `webservice_req` TEXT NULL AFTER `end_point`;
 
 ALTER TABLE `icargo_webapi_request_response` 
 ADD COLUMN `webservice_res` TEXT NULL DEFAULT NULL AFTER `webservice_req`;
 
-ALTER TABLE `icargo_webapi_request_response` 
-ADD COLUMN `webservice_req` TEXT NULL AFTER `end_point`;
 
 ALTER TABLE `icargo_recurring_jobs` 
 CHANGE COLUMN `recurring_day` `recurring_day` ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'NONE') NOT NULL DEFAULT 'NONE' ;
