@@ -9,7 +9,6 @@
 		"phpmailer/phpmailer": "^6.0",
 		"chargebee/chargebee-php": "*",
 		"firebase/php-jwt": "^5.0",
-		"mpdf/mpdf": "^6.1",
 		"setasign/fpdf": "^1.8",
 		"setasign/fpdi": "^2.0",
 		"sngrl/php-firebase-cloud-messaging": "dev-master",
