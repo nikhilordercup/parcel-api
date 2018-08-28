@@ -33,6 +33,7 @@ require_once 'module/configuration/GridConfiguration.php';
 require_once 'module/configuration/CustomFilterConfiguration.php';
 require_once 'module/driver/DriverController.php';
 require_once 'module/chargebee/SubscriptionController.php';
+require_once 'module/easypost/EasyProvider.php';
 require_once 'module/easypost/EasypostController.php';
 require_once 'api.php';
 require_once 'common.php';

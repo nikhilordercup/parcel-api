@@ -342,7 +342,12 @@ class Booking_Model_Booking
 	
 	public function getServiceDataByLoadIdentity($loadIdentity){
 		$sql = "SELECT SST.service_name,SST.currency,CST.service_code FROM ".DB_PREFIX."shipment_service AS SST INNER JOIN ".DB_PREFIX."courier_vs_services AS CST ON SST.service_name = CST.service_name WHERE SST.load_identity='$loadIdentity'";
-		return $this->_db->getRowRecord($sql);
+		$rec= $this->_db->getRowRecord($sql);
+                if(!$rec){
+                    $sql="SELECT SST.service_name,SST.currency,SST.service_name AS service_code FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity='$loadIdentity'";
+                    $rec= $this->_db->getRowRecord($sql);
+                }
+                return $rec;
 	}
 	
 	public function getLabelByLoadIdentity($loadIdentity){

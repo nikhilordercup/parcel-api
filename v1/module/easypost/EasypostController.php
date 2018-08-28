@@ -86,5 +86,48 @@ class EasypostController {
         }
         return $this;
     }
+    
+    public function generateLabel($toAddress,$fromAddress,$parcelInfo ,$selectedService,$insurance=0){
+        try {
+            if (count($parcelInfo) > 1) {
+                $shipment = \EasyPost\Order::create(array(
+                            'to_address' => $toAddress,
+                            'from_address' => $fromAddress,
+                            'parcel' => $parcelInfo[0],
+                            "carrier_accounts" => $accounts
+                ));
+                if($insurance){
+                    $shipment->insure(array('amount' => $insurance));
+                }
+                
+                $shipment->buy($this->getRateId($shipment, $selectedService));
+                
+            } else {
+                $shipment = \EasyPost\Shipment::create(array(
+                            'to_address' => $toAddress,
+                            'from_address' => $fromAddress,
+                            'parcel' => $parcelInfo[0],
+                            "carrier_accounts" => $accounts
+                ));
+                $shipment->buy($this->getRateId($shipment, $selectedService));
+            }
+        }catch (\EasyPost\Error $ex) {
+            print_r($ex->prettyPrint());
+            exit;
+        }
+        
+    }
+    public function getRateId($shipment,$serviceName){
+        $rates=$shipment->get_rates()->rates;
+        $rate=null;
+        foreach ($rates as $r){
+            $rate=$r->__toArray();
+            if($rate['service']==$serviceName){
+                $rate=$r;
+                break;
+            }
+        }
+        return $rate;
+    }
 
 }

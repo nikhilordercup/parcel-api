@@ -367,10 +367,14 @@ final class Nextday extends Booking {
                                     "account_number" => $this->carrierList[$accountNumber]["account_number"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
                                 );
-                                //$service=
+//                                $service_code=$this
+//                                        ->getRealServiceCode($this->carrierList[$accountNumber]["services"],
+//                                                $service_code);
+                               // exit($service_code);
+                                
                                 $service->service_info = array(
-                                    "code" => $this->carrierList[$accountNumber]["services"][$service_code]["service_code"],
-                                    "name" => $this->carrierList[$accountNumber]["services"][$service_code]["service_name"]
+                                    "code" => isset($this->carrierList[$accountNumber]["services"][$service_code])?$this->carrierList[$accountNumber]["services"][$service_code]["service_code"]:$service_code,
+                                    "name" => isset($this->carrierList[$accountNumber]["services"][$service_code])?$this->carrierList[$accountNumber]["services"][$service_code]["service_name"]:$service_code
                                 );
                             }
                         } else {
@@ -470,7 +474,7 @@ final class Nextday extends Booking {
        
             $this->_setPostRequest();           // print_r($this->data);exit;                  
             $easyPostRate=$this->filterCarrierServiceProviderData()
-                    ->fetchEasyPostPrice();
+                    ->fetchEasyPostPrice($this->_param->company_id);
             
             if($this->data["status"]=="success" ){                            
                 $requestStr = json_encode($this->data);
@@ -639,7 +643,9 @@ final class Nextday extends Booking {
             $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
 
             if ($addressInfo["status"] == "error") {
+                
                 $this->rollBackTransaction();
+                
                 return $addressInfo;
             }
             $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "COLL", "NEXT", "P", $execution_order, $carrier_account_number, $is_internal);
@@ -654,6 +660,7 @@ final class Nextday extends Booking {
             /********Search string used for pickups (DHL, FEDEX etc) ***********/
             if ($shipmentStatus["status"] == "error") {
                 $this->rollBackTransaction();
+                
                 return $shipmentStatus;
             }
             if ($key == 0)
@@ -687,6 +694,7 @@ final class Nextday extends Booking {
                                    
             if ($serviceStatus["status"] == "error") {
                 $this->rollBackTransaction();
+                
                 return $serviceStatus;
             }
 
@@ -744,7 +752,7 @@ final class Nextday extends Booking {
                          
             //get shipment volume and heighest dimension
             $shipmentDimension = $this->_getParcelDimesionByShipmentId($shipmentStatus["shipment_id"]);
-
+                
             $this->_saveShipmentDimension($shipmentDimension, $shipmentStatus["shipment_id"]);
         }
         
@@ -812,6 +820,7 @@ final class Nextday extends Booking {
             }
         } else {            
             $deleteBooking = $this->_deleteBooking($loadIdentity);
+            
             if($deleteBooking){
                 return array("status"=>"error","message"=>$labelInfo['message'],"file_path"=>"");
             }

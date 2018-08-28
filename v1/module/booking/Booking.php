@@ -833,8 +833,9 @@ class Booking extends Icargo
         }
         return $this;
     }
-    public function fetchEasyPostPrice(){//        
+    public function fetchEasyPostPrice($companyId){//        
         $easyPostController=new EasypostController;
+        
         $toAddress=[
             "name"    => $this->data['to']['name'],
             "street1" => $this->data['to']['street1'],
@@ -863,14 +864,17 @@ class Booking extends Icargo
                 array_push($accounts, $c['credentials']['easypost_account_id']);
             }
         } 
-//       
+        
+// print_r($this->easyPostData);exit;     
         $rates=$easyPostController
                 ->trimArray($toAddress)
                 ->trimArray($fromAddress)
                 ->getShipmentRates($toAddress,$fromAddress,$this->data['package'],$accounts);
         $priceArray=[];
         foreach ($rates as $r){
-           // print_r($r->__toArray());
+            if(!$this->isServiceActive($companyId,$r)){                
+                    continue;
+            }
             $rate=[
               "rate"=>[
                            "weight_charge"=>$r['rate'],
@@ -881,7 +885,8 @@ class Booking extends Icargo
                            "over_weight_charge"=>0.0
                         ]  
             ];
-            $carrierName=$this->getCarrierNameMapping($r['carrier']);
+//            print_r($r);exit;
+            $carrierName=$this->getCarrierNameMapping($r['carrier_account_id']);
             $carrierAccountId=$this->getCarrierAccountId($carrierName);
             
             $priceArray['rate'][$carrierName]
@@ -890,17 +895,22 @@ class Booking extends Icargo
         }
         return $priceArray;
     }
-    private function getCarrierNameMapping($name){
-        $carrierList=[
-            'DHL',
-            'UKMAIL'
-        ];
-        foreach ($carrierList as $c){
-            if(stristr($name,$c)){
-                return $c;
+    private function getCarrierNameMapping($easyPostAccountId){
+//        $carrierList=[
+//            'DHL',
+//            'UKMAIL'
+//        ];
+        foreach($this->easyPostData as $d){
+            if($d['account'][0]['credentials']['easypost_account_id']==$easyPostAccountId){
+                return $d['name'];
             }
         }
-        return $name;
+//        foreach ($carrierList as $c){
+//            if(stristr($name,$c)){
+//                return $c;
+//            }
+//        }
+//        return $name;
         
     }
     private function getCarrierAccountId($name){
@@ -917,5 +927,32 @@ class Booking extends Icargo
             $final .= ucfirst($s);
         }
         return $final;
+    }
+    protected function getRealServiceCode($services,$key){
+        if(array_key_exists($key, $services)){
+            return $key;
+        }else{            
+            foreach($services as $k=>$services){
+                if($key==$this->toCamelCase($k)){
+                    return $k;
+                }                
+            }
+            return $key;
+        }
+    }
+    public function isServiceActive($companyId, $rate){
+        if(!isset($this->serviceList)){
+            $easyProvider=new EasyProvider;
+            $this->serviceList=$easyProvider->getCompanyServiceList($companyId);
+        }
+        $found=false;
+        foreach ($this->serviceList as $service){
+            $service=(array)$service;
+            if($service['easy_post_id']==$rate['service']){
+                $found=true;
+                break;
+            }
+        }
+        return $found;
     }
 }
