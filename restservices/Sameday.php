@@ -187,8 +187,25 @@ class Sameday extends  Booking
                  $response["message"] = 'service date  missing';
                  $response["error_code"] = "ERROR0018";   
                  return $response;
-        }
-        elseif(!isset($param->collection) || ($param->collection=='')){
+        }elseif(!isset($param->warehouse_id) || ($param->warehouse_id=='')){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'warehouse id missing.';
+                 $response["error_code"] = "ERROR0064";   
+                 return $response;
+        }elseif(!isset($param->warehouse_latitude) || ($param->warehouse_latitude=='')){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'warehouse latitude missing.';
+                 $response["error_code"] = "ERROR0065";   
+                 return $response;
+        }elseif(!isset($param->warehouse_longitude) || ($param->warehouse_longitude=='')){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'warehouse longitude missing.';
+                 $response["error_code"] = "ERROR0066";   
+                 return $response;
+        }elseif(!isset($param->collection) || ($param->collection=='')){
                  $response = array(); 
                  $response["status"] = "fail";
                  $response["message"] = 'Collection key missing';

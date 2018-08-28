@@ -1,4 +1,4 @@
-<?php 
+<?php
 date_default_timezone_set('Europe/Bucharest');
 require_once '../v1/constant.php';
 require_once '../Credentials.php';
@@ -81,12 +81,17 @@ function verifyToken($app,$r) {
     try{
         $r = json_decode($r);
         $token = $app->request->headers->get("Authorization");
-        $url   = $app->request->getRootUri();
+        $url    = $app->request->getScheme().'://';
+        $url   .= $app->request->getHost();
+        $url   .= $app->request->getPath();
+        $parseUrl = explode('/',$url);
+        array_pop($parseUrl);
+        $fullReqUrl = implode('/',$parseUrl);
         $model = new restservices_Model();
         $tokenData = decodeJWtKey($token);
         $responceData = $model->getTokenofCustomer($tokenData);
     if(count($responceData)>0){
-        if(CHECKED  && $responceData['url'] !=$url){
+        if(CHECKED  && $responceData['url'] !=$fullReqUrl){
                 $error = true;  
                 $response["status"] = "fail";
                 $response["message"] = 'your tried with unauthorized resource ';
