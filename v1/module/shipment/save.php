@@ -603,7 +603,7 @@ class shipment extends Library{
                 }
             }
             //$returnData = $ticketNumber;
-            return array("status"=>"success","ticket_number"=>$ticketNumber);
+            return array("status"=>"success","ticket_number"=>$ticketNumber,"load_identity"=>$shipmentData['instaDispatch_loadIdentity']);
             //return $returnData;
         }else{
             return array("status"=>"error","message"=>"Address not saved");
@@ -797,9 +797,13 @@ class shipment extends Library{
 		   $shipdata = $this->_getSingleShipmentData((object)$data,$this->company_id);
           
 		   $shipid = $this->_add_shipment_data_uk_mail($shipdata);
-
+           
 		   if($shipid["status"]=="success"){
                $gridData[] =  $this->_getgridData($shipid["ticket_number"]);
+
+               //save tracking info
+               $this->db->save("shipment_tracking", array("load_identity"=>$shipid["load_identity"],"code"=>"INFO_RECEIVED"));
+
                return array('success'=>true,'message'=>'Shipment has been added successfully - '.$shipid["ticket_number"],'griddata'=>$gridData);
            }else{
                return array('success'=>false,'message'=>'Shipment has not been added successfully','griddata'=>array());
@@ -1390,7 +1394,7 @@ class shipment extends Library{
             //$_data["chargable_value"] = 0.00;
             $_data["invoice_reference"] ='';
            // $_data["json_data"] = $data_string;
-
+            $_data["status"] ='INFO_RECEIVED';   
             $service_id = $this->db->save("shipment_service", $_data);
         }
         return $service_id;
@@ -1433,14 +1437,23 @@ class shipment extends Library{
         $postcode = $this->postcodeObj->validate($address["postcode"]);
        
         if($postcode){
+			if(isset($address["type"])){
+				$address_type = ($address["type"] == 'no') ? 'Business' : 'Residential' ;
+			}else{
+				$address_type = "";
+			}
             $address["postcode"] = $postcode;
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
             $data["address_line2"] = (isset($address["address_line2"])) ? addslashes($address["address_line2"]) : "";
 			
 			$data["first_name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
-			$data["phone"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
-			$data["email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
+			//$data["phone"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
+			//$data["email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
+			
+			//$data["name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
+			$data["contact_no"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
+			$data["contact_email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
             
             $data["postcode"] = addslashes($address["postcode"]);
             $data["city"] = (isset($address["city"])) ? addslashes($address["city"]) : "";
@@ -1458,7 +1471,7 @@ class shipment extends Library{
             $data["customer_id"] = $address["customer_id"];
             
             $data["is_warehouse"] = (isset($address["is_warehouse"])) ? $address["is_warehouse"] : "N";
-            $data["address_type"] = (isset($address["type"])) ? $address["type"] : "";//address_type
+            $data["address_type"] = $address_type;//(isset($address["type"])) ? $address["type"] : "";//address_type
             
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
 
@@ -1473,7 +1486,7 @@ class shipment extends Library{
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
-    }
+    } 
 
     private
     
@@ -1706,6 +1719,9 @@ class shipment extends Library{
                 }
                 $counter++;
             }
+
+            $this->db->save("shipment_tracking", array("load_identity"=>$loadIdentity,"code"=>"INFO_RECEIVED"));
+
             $this->db->commitTransaction();
            
             //email to customer

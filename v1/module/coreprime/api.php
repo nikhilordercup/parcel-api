@@ -18,8 +18,11 @@ class Module_Coreprime_Api extends Icargo
     function _postRequest($data)
     {
         $data_string = json_encode($data);
-        $ch = curl_init('http://occore.ordercup1.com/api/v1/rate');
-        //$ch = curl_init('http://occore.ordercup.com/api/v1/rate');
+		$url = "http://occore.ordercup1.com/api/v1/rate";
+		if(ENV=="live")
+			$url = "http://occore.ordercup.com/api/v1/rate"; 
+		
+        $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -31,8 +34,6 @@ class Module_Coreprime_Api extends Icargo
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
-        //print_r($server_output);die; 
-        $server_output =  '{"rate":{"PNP":[{"21232123":[{"asap":[{"rate":{"flow_type":"Domestic","price":15.46,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":3.092,"tax_percentage":20.0}}]},{"one_hour":[{"rate":{"flow_type":"Domestic","price":13.96,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":2.792,"tax_percentage":20.0}}]},{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":3.38,"rate_type":"Drop Rate","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"drop_service","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"service_times":{"last_booking_time":"16:05:00:PM","last_pickup_time":"17:00:00:PM"},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.676,"tax_percentage":20.0}}]}]},{"21232123":[{"standard_same_day":[{"rate":{"flow_type":"Domestic","price":3.38,"rate_type":"Drop Rate","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"drop_service","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:32:41"},"service_times":{"last_booking_time":"16:05:00:PM","last_pickup_time":"17:00:00:PM"},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":0.676,"tax_percentage":20.0}}]},{"asap":[{"rate":{"flow_type":"Domestic","price":15.46,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":15,"unit":"MIN"},"category":"asap","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:26:50"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":3.092,"tax_percentage":20.0}}]},{"one_hour":[{"rate":{"flow_type":"Domestic","price":13.96,"rate_type":"Distance","act_number":"21232123","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":12,"width":12,"height":12,"unit":"IN"},"weight":{"weight":10,"unit":"KG"},"time":{"max_waiting_time":45,"unit":"MIN"},"category":"1_hour_delivery","charge_from_base":false,"icon":"/icons/original/missing.png","max_delivery_time":"09:31:53"},"service_times":{"last_booking_time":"","last_pickup_time":""},"surcharges":{"same_day_drop_surcharge":0.0,"collection_surcharge":0},"taxes":{"total_tax":2.792,"tax_percentage":20.0}}]}]}]}}';
         return $server_output;
     }
     private
@@ -145,21 +146,22 @@ class Module_Coreprime_Api extends Icargo
         //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
         $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id, $param->company_id);
 
-
         $carriers =  array();
         if(count($carrier)>0){
             foreach($carrier as $carrierData){
-                $service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_id']);
+				if($carrierData['is_self']=='YES'){
+					$service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_id']);
 
-                if(count($service)>0){
-                    $tempservice = array();
-                    foreach($service as $key=>$valData){
-                        $tempservice[] = $valData['service_code'];
-                    }
-                    $carriers[$carrierData['code']][] =  array('credentials'=>array('username'=>'','password'=>'','account_number'=>$carrierData['account_number']),'services'=>implode(',',$tempservice));
-                }else{
-                    return array("status" => "error", "message" => "Service Not configured or disabled for this customer");
-                }
+					if(count($service)>0){
+						$tempservice = array();
+						foreach($service as $key=>$valData){
+							$tempservice[] = $valData['service_code'];
+						}
+						$carriers[$carrierData['code']][] =  array('credentials'=>array('username'=>'','password'=>'','account_number'=>$carrierData['account_number']),'services'=>implode(',',$tempservice));
+					}else{
+						return array("status" => "error", "message" => "Service Not configured or disabled for this customer");
+					}
+				}
             }
         }else{
             return array("status" => "error", "message" => "Carrier Not configured or disabled for this customer");

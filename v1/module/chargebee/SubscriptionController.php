@@ -12,13 +12,11 @@
  * @author perce_qzotijf
  */
 class SubscriptionController {
-
     protected $_parentObj;
     private $_db;
     private $_app;
     private $_requestParams;
     private $_table = 'user_grid_states';
-
     /**
      * Driver Controller constructor.
      */
@@ -28,13 +26,11 @@ class SubscriptionController {
         $this->_requestParams = json_decode($this->_app->request->getBody());
         ChargeBee_Environment::configure("instadispatch-test", "test_SXcdH4OWVOcd91fCcuYr2UYKhYnFJPfEFZ6");
     }
-
     /**
      * Register routes for subscription data
      * @param type $app
      */
     public static function initRoutes($app) {
-
         $app->post('/subscribePlan', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -71,7 +67,6 @@ class SubscriptionController {
             $data = $self->updatePassword($r->access_token, passwordHash::hash($r->newPassword));
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-
         $app->post('/updateCardInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -86,7 +81,6 @@ class SubscriptionController {
             $data = $self->updateCardInfo($r->access_token, $cardInfo);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-
         $app->post('/updateBillingAddress', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -115,7 +109,6 @@ class SubscriptionController {
                 echoResponse(200, array('result' => 'fail', 'message' => $data));
             }
         });
-
         $app->post('/getBillingInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -127,7 +120,6 @@ class SubscriptionController {
                 echoResponse(200, array('result' => 'fail', 'message' => $data));
             }
         });
-
         $app->post('/getPlanList', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -135,7 +127,6 @@ class SubscriptionController {
             $data = $self->getPlanList();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-
         $app->post('/getSubscriptionInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -177,7 +168,6 @@ class SubscriptionController {
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
     }    
-
     public function getSubscriptionInfo($company_id) {
         $sql = "SELECT CS.*, U.id, P.plan_type FROM " . DB_PREFIX . "chargebee_subscription AS CS "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
@@ -196,7 +186,6 @@ class SubscriptionController {
                 . "GROUP BY instaDispatch_loadGroupTypeCode";
         return $this->_db->getAllRecords($sql);
     }
-
     public function getPlanInfo($company_id) {
         $sql = "SELECT CS.*, U.id, P.plan_type FROM " . DB_PREFIX . "chargebee_subscription AS CS LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
                 CS.chargebee_customer_id = CC.chargebee_customer_id 
@@ -205,7 +194,6 @@ class SubscriptionController {
                  "WHERE U.id=$company_id AND CS.status IN ('in_trial','active')";
         return $this->_db->getAllRecords($sql);
     }
-
     public function getUserInfo($token) {
         $sql = "SELECT U.id, U.name, U.email, CC.chargebee_customer_id AS self_id, CCP.chargebee_customer_id as p_id  
                 FROM " . DB_PREFIX . "users AS U LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON U.id= CC.user_id 
@@ -213,17 +201,14 @@ class SubscriptionController {
                 WHERE U.access_token='$token' ";
         return $this->_db->getOneRecord($sql);
     }
-
     public function updateName($token, $name) {
         $sql = "UPDATE " . DB_PREFIX . "users SET name='$name' WHERE access_token='$token'";
         return $this->_db->updateData($sql);
     }
-
     public function updatePassword($token, $password) {
         $sql = "UPDATE " . DB_PREFIX . "users SET password='$name' WHERE access_token='$token'";
         return $this->_db->updateData($sql);
     }
-
     public function getCardInfo($token) {
         $userInfo = $this->getUserInfo($token);
         $cardInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "user_cards WHERE user_id=" . $userInfo['id']);
@@ -233,7 +218,6 @@ class SubscriptionController {
             return NULL;
         }
     }
-
     public function updateCardInfo($token, $info) {
         $userInfo = $this->getUserInfo($token);
         $chargeBeeCustomer = ($userInfo['self_id'] != NULL) ? $userInfo['self_id'] : $userInfo['p_id'];
@@ -258,7 +242,6 @@ class SubscriptionController {
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
         }
     }
-
     public function getBillingInfo($token) {
         $userInfo = $this->getUserInfo($token);
         $billingINfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "billing_addresses WHERE user_id=" . $userInfo['id']);
@@ -268,7 +251,6 @@ class SubscriptionController {
             return NULL;
         }
     }
-
     public function updateBillingInfo($token, $info) {
         $userInfo = $this->getUserInfo($token);
         $chargeBeeCustomer = ($userInfo['self_id'] != NULL) ? $userInfo['self_id'] : $userInfo['p_id'];
@@ -296,7 +278,6 @@ class SubscriptionController {
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
         }
     }
-
     public function getPlanList() {
         $sameDay = $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_type='SAME_DAY'");
         $lastMile = $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_type='LAST_MILE'");
@@ -305,7 +286,6 @@ class SubscriptionController {
             'lastMile' => $lastMile
         );
     }
-
     public function createNewSubscription($r) {
         try{
         $planInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_id='" . $r->plan_id . "'");
@@ -315,7 +295,6 @@ class SubscriptionController {
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON CS.chargebee_customer_id=CC.chargebee_customer_id "
                 . " WHERE CC.user_id='" . $r->company_id . "' AND P.plan_type='" . $r->plan_type . "' "
                 . " AND CS.status IN ('in_trial','active')");
-
         if ($exist) {
             $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>strtotime('tomorrow')));
             $result = $result->subscription();

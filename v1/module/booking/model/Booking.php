@@ -60,7 +60,6 @@ class Booking_Model_Booking
                 . "INNER JOIN `" . DB_PREFIX . "courier_vs_services` AS CST ON CST.id=CSCT.service_id "
                 . $flowTypeJoin
                 . "WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.service_type='NEXTDAY' AND CCST.company_customer_id='$customer_id' AND CCST.courier_id='$carrier_id' ".$flowTypeCond;                        
-        //$sql = "SELECT DISTINCT(CST.service_code) AS service_code, CST.service_name FROM " . DB_PREFIX . "company_vs_customer_vs_services AS CCST INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS CSCT ON CCST.service_id = CSCT.service_id INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON CST.id = CSCT.service_id WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.courier_id= '$carrier_id' AND CCST.company_customer_id='$customer_id'";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -351,7 +350,7 @@ class Booking_Model_Booking
 	}
 	
 	public function getLabelByLoadIdentity($loadIdentity){
-		$sql = "SELECT label_file_pdf,label_json FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity IN('$loadIdentity')";
+		$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code FROM ".DB_PREFIX."shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
 		return $this->_db->getAllRecords($sql);
 	}
 
@@ -404,7 +403,6 @@ class Booking_Model_Booking
 	
 	public function checkPackageSpecificService($company_id,$package_code,$carrier_code){
 		$sql = "SELECT PST.service_code as service_code,CST.service_name as service_name FROM ".DB_PREFIX."package_service AS PST INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON PST.service_code = CST.service_code WHERE PST.package_code='$package_code' AND PST.carrier_code='$carrier_code' AND PST.company_id=$company_id";
-		//echo $sql; die;
 		return $this->_db->getAllRecords($sql);
 	}
 	
@@ -470,6 +468,13 @@ class Booking_Model_Booking
     
     public function getCompanyInfo($companyId) {
         return $this->_db->getRowRecord("SELECT IU.* FROM " . DB_PREFIX . "users AS IU WHERE IU.id='$companyId'");
+    }
+
+    public
+
+    function saveInfoReceived($load_identity){
+        $id = $this->_db->save("shipment_tracking", array("load_identity"=>$load_identity, "code"=>"INFO_RECEIVED"));
+        return $id;
     }
 }
 ?>

@@ -1010,66 +1010,64 @@ if(!isset($res['config_data']))
     echoResponse(200, $res);
 });
 
+$app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('email','access_token','service_date'),$r);
+    $obj = new Module_Google_Api($r);
+    $response = $obj->getGeolocationAndDistanceMatrix($r);
+    echoResponse(200, $response);
+});
 
-//Duplicate Route in api.php
-//$app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
-//    $response = array();
-//    $r = json_decode($app->request->getBody());
-//    verifyRequiredParams(array('email','access_token','service_date'),$r);
-//    $obj = new Module_Google_Api($r);
-//    $response = $obj->getGeolocationAndDistanceMatrix($r);
-//    echoResponse(200, $response);
-//});
-//
-//$app->post('/getAvailableServices', function() use($app){
-//    $response = array();
-//    $r = json_decode($app->request->getBody());
-//    verifyRequiredParams(array('email','access_token','transit_distance','transit_time','number_of_collections','number_of_drops','total_waiting_time','service_date'),$r);
-//    $obj = new Module_Coreprime_Api($r);
-//    $response = $obj->getAllServices($r);
-//    echoResponse(200, $response);
-//});
+$app->post('/getAvailableServices', function() use($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('email','access_token','transit_distance','transit_time','number_of_collections','number_of_drops','total_waiting_time','service_date'),$r);
+    $obj = new Module_Coreprime_Api($r);
+    $response = $obj->getAllServices($r);
+    echoResponse(200, $response);
+});
 
-//$app->post('/searchAddress', function() use($app){
-//    $r = json_decode($app->request->getBody());
-//    verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
-//    $obj = new Module_Addressbook_Addressbook($r);
-//    $response = $obj->getAllAddresses($r);
-//    echoResponse(200, $response);
-//});
-//
-//$app->post('/searchAddressById', function() use($app){
-//    $r = json_decode($app->request->getBody());
-//    verifyRequiredParams(array('access_token','email','customer_id','id','address_origin'),$r);
-//    $obj = new Module_Addressbook_Addressbook($r);
-//    $response = $obj->searchAddressById($r);
-//    echoResponse(200, $response);
-//});
-//
-//$app->post('/bookShipment', function() use($app){
-//    $r = json_decode($app->request->getBody());
-//    verifyRequiredParams(array('service_date','transit_time','transit_distance','email','access_token','company_id','customer_id'),$r);
-//    $obj = new shipment();
-//    $response = $obj->bookSameDayShipment($r);
-//    echoResponse(200, $response);
-//});
+$app->post('/searchAddress', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
+    $obj = new Module_Addressbook_Addressbook($r);
+    $response = $obj->getAllAddresses($r);
+    echoResponse(200, $response);
+});
 
-//
-//$app->post('/getSamedayShipmentByCustomerId', function() use($app){
-//    $r = json_decode($app->request->getBody());
-//    verifyRequiredParams(array('access_token','email','customer_id'),$r);
-//    //$obj = new shipment();
-//    //$response = $obj->bookSameDayShipment($r);
-//    //echoResponse(200, $response);
-//});
-//
-//$app->post('/searchCustomer', function() use($app){
-//    $r = json_decode($app->request->getBody());
-//    verifyRequiredParams(array('access_token','company_id','email','keywords','warehouse_id'),$r);
-//    $obj = new Controller($r);
-//    $response = $obj->getCustomerByControllerId($r);
-//    echoResponse(200, $response);
-//});
+$app->post('/searchAddressById', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','customer_id','id','address_origin'),$r);
+    $obj = new Module_Addressbook_Addressbook($r);
+    $response = $obj->searchAddressById($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/bookShipment', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('service_date','transit_time','transit_distance','email','access_token','company_id','customer_id'),$r);
+    $obj = new shipment();
+    $response = $obj->bookSameDayShipment($r);
+    echoResponse(200, $response);
+});
+
+
+$app->post('/getSamedayShipmentByCustomerId', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','email','customer_id'),$r);
+    //$obj = new shipment();
+    //$response = $obj->bookSameDayShipment($r);
+    //echoResponse(200, $response);
+});
+
+$app->post('/searchCustomer', function() use($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email','keywords','warehouse_id'),$r);
+    $obj = new Controller($r);
+    $response = $obj->getCustomerByControllerId($r);
+    echoResponse(200, $response);
+});
 
 $app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
     $response = array();
@@ -1127,12 +1125,6 @@ $app->post('/searchCustomer', function() use($app){
     verifyRequiredParams(array('access_token','company_id','email','keywords'),$r);
     $obj = new Controller($r);
     $response = $obj->getCustomerByControllerId($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/test', function() use($app){
-    $response = array();
-    $r = json_decode($app->request->getBody());
     echoResponse(200, $response);
 });
 
@@ -1804,7 +1796,6 @@ $app->post('/getQuoteData', function() use($app){
     $response = $obj->getQuoteDataByQuoteNumber($r);
     echoResponse(200, $response);
 });
-/*end of save quote feature comment by kavita 2april2018*/ 
 
 $app->post('/updateCarrierPrice', function() use ($app) { 
 	$response = array();
@@ -1999,7 +1990,7 @@ $app->post('/getAddressBySearchString', function() use ($app) {
     $response = $obj->getAddressBySearchString($r);
     echoResponse(200, $response);
 });
-/*start of adding flow type*/
+
 $app->post('/getServiceFlowType', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','email','service_id'),$r);
@@ -2007,14 +1998,7 @@ $app->post('/getServiceFlowType', function() use ($app) {
     $response = $obj->getServiceFlowType($r->service_id);
     echoResponse(200, $response);
 });
-/*end of adding flow type*/
 
-/****** Country Master update and add/edit non-dutiable list, Starts from here ************/
-/*
- * Author: Amita Pandey
- * Date: 29-June-2018
- * Purpose: Used for updating the country detail
- */
 $app->post('/editcountry', function() use ($app) {
     $r = json_decode($app->request->getBody());    
     $obj = new Country($r);
@@ -2026,11 +2010,7 @@ $app->post('/editcountry', function() use ($app) {
     }
     echoResponse(200, $results);
 });
-/*
- * Author: Amita Pandey
- * Date: 29-June-2018
- * Purpose: For getting non-dutiable and dutiable country list for country specific
- */
+
 $app->post('/loadNonDuitableCountry', function() use ($app) {
     $r = json_decode($app->request->getBody()); 
     $obj = new Country($r);       
@@ -2038,11 +2018,7 @@ $app->post('/loadNonDuitableCountry', function() use ($app) {
     
     echoResponse(200, $response);
 });
-/*
- * Author: Amita Pandey
- * Date: 29-June-2018
- * Purpose: Used for disabling the non-dutiable list
- */
+
 $app->post('/updateNonDutiable', function() use ($app) {
     $r = json_decode($app->request->getBody()); 
     $obj = new Country($r);       
@@ -2073,13 +2049,6 @@ $app->post('/addNonDutiable', function() use ($app) {
     echoResponse(200, $results);
 });
 
-/****** Country Master update and add/edit non-dutiable list, Ends here ************/
-
-/*
- * Author: Amita Pandey
- * Date: 11-July-2018
- * Purpose: Check delivery country is dutiable for collection or not
- */
 $app->post('/checkDutiableCountry', function() use ($app) {
     $r = json_decode($app->request->getBody()); 
     $obj = new Common();
@@ -2181,6 +2150,28 @@ $app->post('/withdrawAssignedRoute', function() use ($app){
     $obj = new Route_Release(array("email"=>$r->email, "access_token"=>$r->access_token));
     $response = $obj->routeReleaseFromDriver($r);
     echoResponse(200, $response);
+});
+
+$app->post('/updateTrackingStatus', function() use ($app){
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Route_Release(array("email"=>$r->email, "access_token"=>$r->access_token));
+    $response = $obj->routeReleaseFromDriver($r);
+    echoResponse(200, $response);
+});
+
+
+$app->post('/test', function() use ($app){
+    //$r = json_decode($app->request->getBody(), true);
+    //verifyRequiredParams(array('load_identity'),$r);
+
+    //$obj = new Find_Save_Tracking();
+    //$status = $obj->_findAllTrackingCode($r['load_identity']);
+    //print_r($status);die;
+    //$obj->saveTrackingStatus(array("ticket_str"=>'ICARGOS185483','form_code'=>'OC-address-unaccesseble-or-not-found','user_type'=>'Driver'));
+
+
+     //die;
 });
 
 GridConfiguration::initRoutes($app);

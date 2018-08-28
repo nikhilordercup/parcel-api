@@ -359,13 +359,17 @@ class Route_Assign
             $this->tickets = $tickets;
             $this->tickets_str = implode("','", $tickets);
             if($route_type == 'SAME'){
-              $data = $this->_save_and_assign_to_driver();  
+              $data = $this->_save_and_assign_to_driver();
+              //save tracking history
+              Find_Save_Tracking::_getInstance()->saveRouteTrackingStatus(array("ticket_str"=>implode(",", $this->tickets), "user_type"=>"Controller"));
+                
             }else{
             // check warehouse status is YES
             $in_warehouse = $this->modelObj->checkAllShipmentInWarehouse($this->tickets_str);//$this->_check_all_shipment_in_warehouse();
             if ($in_warehouse['exist'] == 0)
                 { //it may be zero
                 $data = $this->_save_and_assign_to_driver();
+                Find_Save_Tracking::_getInstance()->saveRouteTrackingStatus(array("ticket_str"=>implode(",", $this->tickets), "user_type"=>"Controller"));
                 }
               else
                 {
