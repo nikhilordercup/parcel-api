@@ -135,6 +135,7 @@ function verifyToken($app,$r) {
          $response["status"] = "fail";
          $response["message"] = 'Invalid json object';//$e->getMessage();
          $response["error_code"] = "SYSERROR001";
+         $response["error_desc"] = $e->getMessage();
          echo json_encode($response);die;
     }
 
@@ -178,7 +179,8 @@ function verifyTokenByPass($app,$r) {
          $error = true;  
          $response["status"] = "fail";
          $response["message"] = 'Invalid json object';//$e->getMessage();
-         $response["error_code"] = "SYSERROR001";
+         $response["error_code"] = "SYSERROR002";
+         $response["error_desc"] = $e->getMessage();
          echo json_encode($response);die;
     }
 
@@ -315,7 +317,7 @@ EOD;
         $app = \Slim\Slim::getInstance();
         $response["status"] = "error";
         $response["message"] = 'unauthorized token';
-        $response["error_code"] = "ERROR001";
+        $response["error_code"] = "ERROR001"; 
         echoResponse(400, $response);
         $app->stop();
     }
