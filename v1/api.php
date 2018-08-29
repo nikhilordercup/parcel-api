@@ -2160,19 +2160,29 @@ $app->post('/updateTrackingStatus', function() use ($app){
     echoResponse(200, $response);
 });
 
+$app->post('/saveEasyPostTracking', function() use ($app){
+    $r = json_decode(file_get_contents("php://input"));
+   
+    $obj = new Easypost_Tracking($r->data);
 
-$app->post('/test', function() use ($app){
-    //$r = json_decode($app->request->getBody(), true);
-    //verifyRequiredParams(array('load_identity'),$r);
+    $obj->saveTracking();
 
-    //$obj = new Find_Save_Tracking();
-    //$status = $obj->_findAllTrackingCode($r['load_identity']);
-    //print_r($status);die;
-    //$obj->saveTrackingStatus(array("ticket_str"=>'ICARGOS185483','form_code'=>'OC-address-unaccesseble-or-not-found','user_type'=>'Driver'));
-
-
-     //die;
+    die;
 });
+
+$app->post('/createTracking', function() use ($app){
+    $r = json_decode(file_get_contents("php://input"));
+
+    $tracking_code = "1174215114";
+    $carrier = "DHLExpress";
+
+    $obj = new Create_Tracking($r->data);
+
+    $obj->createTracking($tracking_code, $carrier);
+
+    die;
+});
+
 
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);

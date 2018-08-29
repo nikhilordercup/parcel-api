@@ -137,8 +137,9 @@ require_once 'pod_signature.php';//no need to keep separate file to save image. 
 require_once 'module/package/Module_Package_Index.php';
 
 require_once 'module/booking/collection.php';
-require_once 'module/tracking/Tracking_Index.php';
+require_once 'module/tracking/Easypost_Tracking.php';
 require_once 'module/tracking/Find_Save_Tracking.php';
+require_once 'module/tracking/Create_Tracking.php';
 
 
 //Country file included
