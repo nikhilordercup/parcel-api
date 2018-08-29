@@ -734,7 +734,7 @@ SELECT  S.warehouse_id as warehouse_id,
       }
       public function getLoadDetail($loadidentity){ 
        $record = array();
-         $sqldata = 'SST.service_name AS current_status,SST.isInvoiced,SST.accountkey,SST.grand_total,COUR.cancelation_charge,SST.customer_id,SST.load_identity,SST.status';
+         $sqldata = 'SST.tracking_code AS current_status,SST.isInvoiced,SST.accountkey,SST.grand_total,COUR.cancelation_charge,SST.customer_id,SST.load_identity,SST.status';
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service AS SST
                 LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COUR ON COUR.account_number = SST.accountkey
                 #LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COUR ON COUR.id = SST.carrier
@@ -742,5 +742,16 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getRowRecord($sql); 
         return $record;
       }
+     public function getEligibleCancelCode(){ 
+       $record = array();
+         $sqldata = 'code';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_master AS SMAS
+                 where SMAS.is_used_for_cancel = 'YES' and status = '1'";
+         $record = $this->db->getAllRecords($sql); 
+         return $record;
+      }
+    
+    
+        
   }           
 ?>

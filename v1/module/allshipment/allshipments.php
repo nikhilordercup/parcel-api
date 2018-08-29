@@ -1708,7 +1708,6 @@ class allShipments extends Icargo
               $currentLoadStatus = $this->modelObj->getLoadDetail($valdata);
               if($currentLoadStatus['status']  != 'cancel'){
                   $currentLoadStatus = $currentLoadStatus['current_status'];
-                  $currentLoadStatus = 'A';
                   if(in_array($currentLoadStatus,$eligiblearray)){
                       $returnData['success'][] = $valdata; 
                   }else{
@@ -1721,9 +1720,8 @@ class allShipments extends Icargo
       }else{
           return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
       }
-    
     if(count($returnData['fail'])>0){
-        return  array("status"=>"fail", "message"=>implode(',',$returnData['fail'])."not eligible for cancellation,Please remove these from your selection before process");   
+        return  array("status"=>"fail", "message"=>implode(',',$returnData['fail'])." not eligible for cancellation,Please remove these from your selection before process");   
     }elseif(count($returnData['success'])>0){
       return  array("status"=>"success", "data"=>$returnData['success'],"message"=>implode(',',$returnData['success'])." eligible for cancellation"); 
     }else{
@@ -1731,13 +1729,20 @@ class allShipments extends Icargo
     }
  }    
     public function getEligibleStatusForCanceljob(){
-     return array('A','B','C','D','E');
+        $returnarray = array();
+        $code =  $this->modelObj->getEligibleCancelCode();
+        if(count($code)>0){
+          foreach($code as $datacode){
+            $returnarray[] = $datacode['code'];
+          }  
+        }
+       return $returnarray;
  }    
     public function cancelJob($param){
         $returnData = array();
         $company_id         = $param->company_id;
         $userId             = $param->user; 
-        if(is_array($param->job_identity) && count($param->job_identity)>0){
+        if(is_array($param->job_identity) && count($param->job_identity)>0){    
           foreach($param->job_identity as $valdata){
            $loadDetail = $this->modelObj->getLoadDetail($valdata); 
            $voucherUpdate = $this->manageVoucherAndAccount($loadDetail,$loadDetail['grand_total'],'CREDIT',$company_id,$userId); 
