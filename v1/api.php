@@ -2176,7 +2176,7 @@ $app->post('/createTracking', function() use ($app){
     $tracking_code = "1174215114";
     $carrier = "DHLExpress";
 
-    $obj = new Create_Tracking($r->data);
+    $obj = new Create_Tracking();
 
     $obj->createTracking($tracking_code, $carrier);
 

@@ -12,8 +12,7 @@ class Create_Tracking extends Icargo{
 
     public
 
-    function __construct($param){
-        $this->trackingData = $param;
+    function __construct(){
         $this->modelObj = new Tracking_Model_Index();
         $this->commonObj = new Common();
 
@@ -155,7 +154,7 @@ class Create_Tracking extends Icargo{
     function createTracking($tracking_code, $carrier){
         \EasyPost\EasyPost::setApiKey($this->apiInfo[ENV]["api_key"]);
         $this->trackingData = \EasyPost\Tracker::create(array('tracking_code' => $tracking_code, 'carrier' => $carrier));
-        print_r($this->trackingData);die;
+
         $this->_updateShipmentService($tracking_code);
         $this->_saveShipmentLifeHistory();
         $this->_saveShipmentTracking();
