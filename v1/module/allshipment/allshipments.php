@@ -1052,7 +1052,7 @@ class allShipments extends Icargo
                     $voucherdata                       = $this->getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown);
                     $voucherdata['voucher_type']       = (($temp['grand_total'] - $oldGrandTotal) > 0) ? 'DEBIT' : 'CREDIT';
                     $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
-                    $voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
+                    //$voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
                     $voucherdata['total']              = $temp['grand_total'] - $oldGrandTotal;
                     $voucherdata['shipment_reference'] = $param['job_identity'];
                     $voucherdata['create_date']        = date('Y-m-d');
