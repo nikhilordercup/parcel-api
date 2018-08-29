@@ -199,3 +199,13 @@ ALTER TABLE `icargo_shipment_service`
 CHANGE COLUMN `service_response_string` `service_response_string` TEXT NULL ,
 ADD COLUMN `customer_type` ENUM('PREPAID', 'POSTPAID', 'NONE') NOT NULL DEFAULT 'NONE' AFTER `booked_by_recurring`,
 ADD COLUMN `booked_api_token_id` INT(11) NULL DEFAULT 0 AFTER `customer_type`;
+
+ALTER TABLE `icargo_release1_11`.`icargo_shipments_master` 
+ADD COLUMN `is_used_for_cancel` ENUM('YES', 'NO') NOT NULL DEFAULT 'NO' AFTER `tracking_internal_code`;
+
+ALTER
+ ALGORITHM = UNDEFINED
+DEFINER=`app_stable`@`localhost` 
+ SQL SECURITY DEFINER
+ VIEW `icargo_shipments_view`
+ AS select `S`.`warehouse_id` AS `warehouse_id`,`S`.`company_id` AS `company_id`,`S`.`instaDispatch_loadIdentity` AS `instaDispatch_loadIdentity`,`S`.`customer_id` AS `customer_id`,`SST`.`carrier` AS `carrier`,`SST`.`service_name` AS `service_name`,`S`.`instaDispatch_loadGroupTypeCode` AS `shipment_type`,`S`.`shipment_create_date` AS `booking_date`,`S`.`booked_by` AS `booked_by`,`SST`.`grand_total` AS `amount`,`SST`.`isInvoiced` AS `isInvoiced`,`SST`.`tracking_code` AS `tracking_code` from (`app_stable`.`icargo_shipment` `S` left join `app_stable`.`icargo_shipment_service` `SST` on((`SST`.`load_identity` = `S`.`instaDispatch_loadIdentity`))) where (((`S`.`current_status` = 'C') or (`S`.`current_status` = 'O') or (`S`.`current_status` = 'S') or (`S`.`current_status` = 'D') or (`S`.`current_status` = 'Ca') or (`S`.`current_status` = 'Cancel')) and ((`S`.`instaDispatch_loadGroupTypeCode` = 'SAME') or (`S`.`instaDispatch_loadGroupTypeCode` = 'NEXT'))) group by `S`.`instaDispatch_loadIdentity`;
