@@ -1,0 +1,2 @@
+ALTER TABLE `icargo_api_driver_tracking` ADD `code` VARCHAR(100) NULL DEFAULT NULL AFTER `longitude`;
+ALTER TABLE `icargo_api_driver_tracking` ADD `source` VARCHAR(45) NULL DEFAULT NULL AFTER `event_time`;

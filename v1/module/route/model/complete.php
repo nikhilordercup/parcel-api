@@ -38,13 +38,13 @@ class Route_Model_Complete{
 		try{
             $this->getInstance()->save("driver_time_tracking",$data);
         }catch(Exception $e){
-
+          
         }
 	}
 
     public function saveDriverApiTracking($param){
         try{
-            $this->getInstance()->save("api_driver_tracking",$param);
+            return $this->getInstance()->save("api_driver_tracking",$param);
         }catch(Exception $e){
 
         }

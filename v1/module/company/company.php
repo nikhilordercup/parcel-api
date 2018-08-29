@@ -118,8 +118,16 @@ class Company extends Icargo{
     }
 	
 	private function _getWarehouseList(){
-        $records = $this->db->getAllRecords("SELECT WT.`id` AS `warehouse_id`, `name` AS `warehouse_name` FROM ".DB_PREFIX."warehouse as WT INNER JOIN ".DB_PREFIX."company_warehouse AS CWT ON CWT.warehouse_id = WT.id WHERE CWT.`company_id`='".$this->_company_id."' AND CWT.`status`=1");
-		return $records;
+        $records = $this->db->getAllRecords("SELECT WT.`id` AS `warehouse_id`, `name` AS `warehouse_name`, latitude AS latitude, longitude AS longitude FROM ".DB_PREFIX."warehouse as WT INNER JOIN ".DB_PREFIX."company_warehouse AS CWT ON CWT.warehouse_id = WT.id WHERE CWT.`company_id`='".$this->_company_id."' AND CWT.`status`=1");
+        $temp = array();
+        foreach($records as $record){
+            array_push($temp, array(
+                "warehouse_id"=>$record["warehouse_id"],
+                "warehouse_name"=>$record["warehouse_name"],
+                "option"=> array("geo_location"=>array("latitude"=>$record["latitude"], "longitude"=>$record["longitude"]))
+            ));
+        }
+        return $records;
     }
     
     public function addWareHouse($param){

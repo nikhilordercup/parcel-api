@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_courier_vs_services` ADD `flow_type` VARCHAR(100) NOT NULL COMMENT 'service flow type' AFTER `service_category`; 

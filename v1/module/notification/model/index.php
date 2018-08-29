@@ -1,17 +1,11 @@
 <?php
 class Notification_Model_Index
 {
-    public static $db = NULL;
-
     public
 
     function __construct()
     {
-        if(self::$db==NULL)
-        {
-            self::$db  = new DbHandler();
-        }
-        $this->_db = self::$db;
+        $this->_db  = new DbHandler();
     }
 
     public
@@ -95,6 +89,12 @@ class Notification_Model_Index
 
     public
 
+    function getAllDeliveryShipmentDetailByLoadIdentity($load_identity){
+        return $this->_db->getAllRecords("SELECT * FROM `".DB_PREFIX."shipment` AS ST WHERE `instaDispatch_loadIdentity`='$load_identity' AND shipment_service_type='D'");
+    }
+
+    public
+
     function getShipmentDetailByLoadIdentity($load_identity){
         return $this->_db->getAllRecords("SELECT * FROM `".DB_PREFIX."shipment` AS ST WHERE `instaDispatch_loadIdentity`='$load_identity'");
     }
@@ -102,7 +102,7 @@ class Notification_Model_Index
     public
 
     function getCompanyInfo($company_id){
-        return $this->_db->getRowRecord("SELECT address_1 AS address_1, address_2 AS address_2, postcode AS postcode, city AS city, state AS state, country AS country FROM `".DB_PREFIX."users` AS UT WHERE `id`='$company_id'");
+        return $this->_db->getRowRecord("SELECT email AS email, name AS name, address_1 AS address_1, address_2 AS address_2, postcode AS postcode, city AS city, state AS state, country AS country FROM `".DB_PREFIX."users` AS UT WHERE `id`='$company_id'");
     }
 
     public
@@ -151,6 +151,33 @@ class Notification_Model_Index
         return $this->_db->getRowRecord($sql);
     }
 
+    public
+
+    function getServiceName($load_identity){
+        $sql = "SELECT `service_name` AS `service_name` FROM `".DB_PREFIX."shipment_service` WHERE load_identity ='$load_identity'";
+        return $this->_db->getRowRecord($sql);
+    }
+
+    public
+
+    function getQuotationByQuotationNumber($quotation_number){
+        $sql = "SELECT * FROM `".DB_PREFIX."quote_service` WHERE quote_number ='$quotation_number'";
+        return $this->_db->getRowRecord($sql);
+    }
+
+    /*public
+
+    function findNotCollectedShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='P'";
+        return $this->_db->getOneRecord($sql);
+    }
+
+    public
+
+    function findNotDeliveredShipmentCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='D'";
+        return $this->_db->getOneRecord($sql);
+    }*/
 
     public function startTransaction() {
         $this->_db->startTransaction();

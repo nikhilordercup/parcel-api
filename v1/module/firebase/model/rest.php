@@ -78,54 +78,33 @@ class Firebase_Model_Rest
         WHERE CA.shipment_routed_id = '$shipment_routed_id' AND CA.current_status  = 'O' AND DS.shipment_status  = 'N' AND
         (DS.shipment_accepted='Pending' OR DS.shipment_accepted='YES')";
 
-       /*  $sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
-        CA.shipment_total_item, ABT.postcode AS shipment_postcode, ABT.address_line1 AS `shipment_address1`, ABT.address_line2 AS shipment_address2, CA.shipment_required_service_starttime, 
-        CA.shipment_required_service_endtime, CA.instaDispatch_loadGroupTypeCode, CA.instaDispatch_objectIdentity, CA.shipment_service_type, CA.instaDispatch_LoadGroupTypeCode, 
-        ABT.country AS `shipment_customer_country`, CA.is_receivedinwarehouse, CA.warehousereceived_date, CA.is_driverpickupfromwarehouse, CA.driver_pickuptime, CA.estimatedtime, 
-        CA.distancemiles, CA.shipment_routed_id, CA.shipment_latitude, CA.shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, CA.assigned_driver 
-        FROM " . DB_PREFIX . "shipment AS CA INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=CA.address_id
-        WHERE CA.shipment_routed_id = '$shipment_routed_id' AND CA.current_status  = 'O'"; */
         $records = $this->db->getAllRecords($sql);
         return $records;
     }
     
     public function getShipmentDropByShipmentTicket($shipment_routed_id,$ticket)
     {
-        /*$sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
+        $sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
         CA.shipment_total_item, CA.shipment_postcode, CA.shipment_address1, CA.shipment_address2, CA.shipment_address3, CA.shipment_required_service_starttime, 
         CA.shipment_required_service_endtime, CA.instaDispatch_loadGroupTypeCode, CA.instaDispatch_objectIdentity, CA.shipment_service_type, CA.instaDispatch_LoadGroupTypeCode, 
         CA.shipment_customer_country, CA.is_receivedinwarehouse, CA.warehousereceived_date, CA.is_driverpickupfromwarehouse, CA.driver_pickuptime, CA.estimatedtime, 
-        CA.distancemiles, CA.shipment_routed_id, CA.shipment_latitude, CA.shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, DS.driver_id 
-        FROM " . DB_PREFIX . "shipment AS CA INNER JOIN " . DB_PREFIX . "driver_shipment AS DS ON CA.shipment_ticket = DS.shipment_ticket 
-        WHERE CA.shipment_routed_id = '$shipment_routed_id'  AND  CA.shipment_ticket IN('$ticket') AND DS.shipment_status  = 'N'";*/
-
-        $sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
-        CA.shipment_total_item, ABT.postcode AS shipment_postcode, ABT.address_line1 AS shipment_address1, ABT.address_line2 AS shipment_address2, CA.shipment_address3, CA.shipment_required_service_starttime, 
-        CA.shipment_required_service_endtime, CA.instaDispatch_loadGroupTypeCode, CA.instaDispatch_objectIdentity, CA.shipment_service_type, CA.instaDispatch_LoadGroupTypeCode, 
-        ABT.country AS shipment_customer_country, CA.is_receivedinwarehouse, CA.warehousereceived_date, CA.is_driverpickupfromwarehouse, CA.driver_pickuptime, CA.estimatedtime, 
-        CA.distancemiles, CA.shipment_routed_id, ABT.latitude AS shipment_latitude, ABT.longitude AS shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, CA.assigned_driver AS driver_id
-        FROM " . DB_PREFIX . "shipment AS CA INNER JOIN " . DB_PREFIX . "address_book AS ABT ON CA.address_id = ABT.id 
+        CA.distancemiles, CA.shipment_routed_id, CA.shipment_latitude, CA.shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, CA.assigned_driver AS driver_id 
+        FROM " . DB_PREFIX . "shipment AS CA
         WHERE CA.shipment_routed_id = '$shipment_routed_id'  AND  CA.shipment_ticket IN('$ticket') AND CA.current_status  = 'O'";
+
         $records = $this->db->getAllRecords($sql);
         return $records;
     }
     
     public function getShipmentDropByShipmentTicketAfterCarded($shipment_routed_id,$ticket)
     {
-        /*$sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
+
+        $sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
         CA.shipment_total_item, CA.shipment_postcode, CA.shipment_address1, CA.shipment_address2, CA.shipment_address3, CA.shipment_required_service_starttime, 
         CA.shipment_required_service_endtime, CA.instaDispatch_loadGroupTypeCode, CA.instaDispatch_objectIdentity, CA.shipment_service_type, CA.instaDispatch_LoadGroupTypeCode, 
         CA.shipment_customer_country, CA.is_receivedinwarehouse, CA.warehousereceived_date, CA.is_driverpickupfromwarehouse, CA.driver_pickuptime, CA.estimatedtime, 
-        CA.distancemiles, CA.shipment_routed_id, CA.shipment_latitude, CA.shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, DS.driver_id 
-        FROM " . DB_PREFIX . "shipment AS CA INNER JOIN " . DB_PREFIX . "driver_shipment AS DS ON CA.shipment_ticket = DS.shipment_ticket 
-        WHERE CA.shipment_routed_id = '$shipment_routed_id'  AND  CA.shipment_ticket IN('$ticket')";*/
-
-        $sql = "SELECT CA.shipment_id, CA.shipment_total_weight, CA.shipment_total_volume, CA.shipment_ticket, CA.is_receivedinwarehouse, CA.instaDispatch_docketNumber, 
-        CA.shipment_total_item, ABT.postcode AS shipment_postcode, ABT.address_line1 AS shipment_address1, ABT.address_line2 AS shipment_address2, CA.shipment_address3, CA.shipment_required_service_starttime, 
-        CA.shipment_required_service_endtime, CA.instaDispatch_loadGroupTypeCode, CA.instaDispatch_objectIdentity, CA.shipment_service_type, CA.instaDispatch_LoadGroupTypeCode, 
-        ABT.country AS shipment_customer_country, CA.is_receivedinwarehouse, CA.warehousereceived_date, CA.is_driverpickupfromwarehouse, CA.driver_pickuptime, CA.estimatedtime, 
-        CA.distancemiles, CA.shipment_routed_id, ABT.latitude AS shipment_latitude, ABT.longitude AS shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, CA.assigned_driver AS driver_id
-        FROM " . DB_PREFIX . "shipment AS CA INNER JOIN " . DB_PREFIX . "address_book AS ABT ON CA.address_id = ABT.id
+        CA.distancemiles, CA.shipment_routed_id, CA.shipment_latitude, CA.shipment_longitude, CA.shipment_latlong, CA.icargo_execution_order, CA.disputedate, CA.assigned_driver AS driver_id 
+        FROM " . DB_PREFIX . "shipment AS CA 
         WHERE CA.shipment_routed_id = '$shipment_routed_id'  AND  CA.shipment_ticket IN('$ticket')";
 
         $records = $this->db->getAllRecords($sql);
@@ -135,6 +114,19 @@ class Firebase_Model_Rest
     public function getShipmentRouteByShipmentRouteId($shipment_route_id)
     {
         $sql = "SELECT UT.uid AS uid, RT.shipment_route_id, RT.firebase_id AS firebase_id FROM " . DB_PREFIX . "shipment_route RT INNER JOIN " . DB_PREFIX . "users AS UT ON RT.driver_id = UT.id WHERE RT.shipment_route_id = $shipment_route_id";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+    }
+
+    public function getFirebaseIdByShipmentRouteId($shipment_route_id)
+    {
+        $sql = "SELECT RT.firebase_id AS firebase_id FROM " . DB_PREFIX . "shipment_route RT WHERE RT.shipment_route_id = $shipment_route_id";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+    }
+
+    public function getJobCountByShipmentRouteId($shipment_route_id){
+        $sql = "SELECT COUNT(1) AS job_count FROM " . DB_PREFIX . "shipment RT WHERE RT.shipment_routed_id = $shipment_route_id AND RT.current_status IN ('O', 'Ca')";
         $record = $this->db->getRowRecord($sql);
         return $record;
     }

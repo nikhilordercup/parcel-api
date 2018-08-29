@@ -17,7 +17,7 @@ class Module_Package_Index extends Icargo
 
     public
     function savePackage($param)
-    {
+    {//print_r($param);die;
         try {
             $this->modelObj->startTransaction();
             if (isset($param->display_order) and $param->display_order > 0) {
@@ -34,7 +34,8 @@ class Module_Package_Index extends Icargo
 
             $is_internal = ($param->is_internal==1) ? "1" : "0" ;
 
-            $package_code = ($is_internal==1) ? "Parcels" : "";
+            //$package_code = ($is_internal==1) ? "Parcels" : "";
+			$package_code = ($is_internal==1) ? "CP" : "";
 
             $package_id = $this->modelObj->savePackage(array(
                 "type" => $param->new_type,
@@ -73,7 +74,7 @@ class Module_Package_Index extends Icargo
             $this->modelObj->commitTransaction();
 
             return array("status"=>"success", "message"=>"Package saved successfully","package_lists"=>$this->_getPackages($param->customer_id));
-        }catch(Exception $e){
+        }catch(Exception $e){print_r($e);die;
             $this->modelObj->rollBackTransaction();
             return array("status"=>"error", "message"=>"Package not saved. Record rollback.");
         }

@@ -70,8 +70,10 @@ class AllShipment_Model
                 WHERE 1 ".$subquery."
                 AND S.company_id  = '" . $componyId . "'
                 ".$filter."
+				order by booking_date DESC
                 ".$limitstr."
                 ";
+		//echo $sql;die;		
         $record = $this->db->getAllRecords($sql);
         return $record;
         
@@ -105,6 +107,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     S.instaDispatch_loadGroupTypeCode,
                     S.shipment_service_type,
                     S.current_status,
+					S.shipment_create_date,
                     S.shipment_required_service_date,
                     S.shipment_required_service_starttime,
                     S.shipment_postcode AS shipment_postcode,
@@ -116,8 +119,12 @@ SELECT  S.warehouse_id as warehouse_id,
                     (SST.base_price + SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,
                     SST.service_name as shipment_service_name,
                     COUR.name as carrier,
+					COUR.icon as carrier_icon,
                     UT.name as booked_by,
-                    SST.isInvoiced as isInvoiced';
+                    SST.isInvoiced as isInvoiced,
+					SST.status as cancel_status,
+					SST.label_json as label_json';
+
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
@@ -149,7 +156,7 @@ SELECT  S.warehouse_id as warehouse_id,
 
     public function getShipmentsDetail($identity){ 
        $record = array();
-         $sqldata = '
+         /*$sqldata = '
          S.company_id as companyid,
          S.instaDispatch_loadGroupTypeCode as job_type,
          S.shipment_service_type as shipment_type,
@@ -196,6 +203,54 @@ SELECT  S.warehouse_id as warehouse_id,
          UL.user_type as bookingtype,
          UT.name as customer_desc,
          SST.load_identity as customerreference
+        ';*/
+		$sqldata = '
+         S.company_id as companyid,
+         S.instaDispatch_loadGroupTypeCode as job_type,
+         S.shipment_service_type as shipment_type,
+         S.shipment_create_date as bookingdate,
+         S.shipment_required_service_date as expecteddate,
+         S.shipment_required_service_starttime as expectedstarttime,
+         S.shipment_required_service_endtime as expectedendtime,
+         S.shipment_ticket,
+         UTT.name as customer,
+         SST.carrier as carrierid,
+         COUR.name as carriername,
+         SST.service_name as service,
+         SST.rate_type as chargeableunit,
+         SST.transit_distance_text as chargeablevalue,
+         SST.transit_time_text as transittime,
+         UTS.name as user,
+         SST.carrier as carrier,
+         SST.load_identity as reference,
+         DRIV.name as collectedby, 
+         S.waitAndReturn as waitandreturn,
+         SST.label_tracking_number as carrierreference,
+         CI.accountnumber as carrierbillingacount,
+         S.shipment_customer_phone as customerphone,
+         S.shipment_customer_name as customername,
+         S.shipment_customer_email as customeremail,
+         S.shipment_postcode AS postcode,
+         S.shipment_address1 AS address_line1,
+         S.shipment_address2 AS address_line2,
+         S.shipment_customer_country AS country,
+         S.shipment_customer_city AS city,
+         S.shipment_county AS state,
+         (SST.base_price +  SST.courier_commission_value)as customerbaseprice,
+         SST.surcharges as customersurcharge,
+         (SST.base_price +  SST.courier_commission_value + SST.surcharges)as customersubtotal,
+         SST.taxes as customertax,
+         SST.total_price as customertotalprice,
+         (SST.base_price +  SST.courier_commission_value + SST.surcharges + SST.taxes)as customertotalprice,
+         SST.base_price as carrierbaseprice,
+         SST.surcharges as carriersurcharge,
+         (SST.base_price + SST.surcharges) as carriersubtotal,
+         SST.taxes as carriertax,
+         (SST.base_price + SST.surcharges) as carriertotalprice,
+         SST.invoice_reference as customerinvoicereference,
+         UL.user_type as bookingtype,
+         UT.name as customer_desc,
+         SST.load_identity as customerreference
         ';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON (SST.load_identity = S.instaDispatch_loadIdentity AND S.shipment_service_type = 'P')
@@ -213,6 +268,13 @@ SELECT  S.warehouse_id as warehouse_id,
         return $record;
       }
     
+	public function getAllParcelsByIdentity($identity){  
+      $sqldata = 'DISTINCT(S.instaDispatch_loadIdentity)';
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' GROUP BY P.instaDispatch_loadIdentity";
+	  $record = $this->db->getAllRecords($sql);
+      return $record;
+    }
+	
     /*
     public function getShipmentsPriceDetail($identity,$courier_id,$company_id,$priceversion){ 
        $record = array();
@@ -545,5 +607,17 @@ SELECT  S.warehouse_id as warehouse_id,
          $record = $this->db->getAllRecords($sql);
          return  $record;  
 	 }
+
+	//get status from shipment service table_name
+	 public function getStatusByLoadIdentity($load_identity){
+		//$record = $this->db->getOneRecord("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '". $load_identity ."'");
+		$records = $this->db->getAllRecords("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity IN ('$load_identity')");
+		return $records;
+	} 
+
+    public function getCurrentTrackingStatusByLoadIdentity($load_identity){ 
+        return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SMT.name AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON SMT.code=SST.tracking_code WHERE load_identity = '$load_identity'");
+        //return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SST.tracking_code AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST WHERE SST.load_identity = '$load_identity'");
+    }
   }
 ?>

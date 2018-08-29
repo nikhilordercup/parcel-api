@@ -1,14 +1,16 @@
 <?php
-
+require_once 'dbConnect.php';
 class DbHandler {
 
-    private $conn;
+    private static $_db = NULL;
 
     function __construct() {
-        require_once 'dbConnect.php';
+        if(self::$_db==NULL){
+            self::$_db = new dbConnect();
+        }
         // opening db connection
-        $db = new dbConnect();
-        $this->conn = $db->connect();
+        //$db = new dbConnect();
+        $this->conn = self::$_db->connect();
     }
     /**
      * Start transaction
@@ -201,6 +203,14 @@ class DbHandler {
 	}
     
     public function getAffectedRows(){
+		return $this->conn->affected_rows;
+	}
+	
+	public function deleteData($query){
+		$r = $this->conn->query($query);
+		if(!$r){
+            throw new Exception($this->conn->error.__LINE__);
+		}
 		return $this->conn->affected_rows;
 	}
 }
