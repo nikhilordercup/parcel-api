@@ -69,7 +69,8 @@ public function createInvoice($param){
          $invoicecount++;
          $invoicePriceData = array('base_amount'=>0,'surcharge_total'=>0,'fual_surcharge'=>0,'tax'=>0,'total_ammount'=>0);
           if($invoiceId){
-             foreach($val['shipments'] as $innerkey=>$innerval){ 
+            if(isset($val['shipments']) and count($val['shipments'])>0){
+              foreach($val['shipments'] as $innerkey=>$innerval){ 
                  $docketdata = array();
                  $docketdata['invoice_id'] = $invoiceId;
                  $docketdata['invoice_reference'] = $invoicedata['invoice_reference'];
@@ -110,6 +111,7 @@ public function createInvoice($param){
                  $invoicePriceData['total_ammount'] += $docketdata['total'];
                  $updatestatus = $this->modelObj->editContent('invoices',$invoicePriceData," id = '".$invoiceId."'");  
              }
+            }
             $voucherAllPrices = array();
             if(isset($val['vouchers']) and count($val['vouchers'])>0){
              foreach($val['vouchers'] as $innerkey=>$innerval){ 
