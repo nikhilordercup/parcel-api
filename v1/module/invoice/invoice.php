@@ -29,7 +29,7 @@ public function createInvoice($param){
       $tempdatap = array();
       $getAllVoucher = array();
       foreach($invoicedDocketData as $key=>$val){
-       $tempdatap[$val['customer_id']]['shipments'][] = $val;
+          $tempdatap[$val['customer_id']]['shipments'][] = $val;
           $tempdatap[$val['customer_id']]['total']['totalshipment'][] = 1;
           $tempdatap[$val['customer_id']]['total']['totalitems'][]= $val['items'];
       }
@@ -40,6 +40,8 @@ public function createInvoice($param){
       if(count($getAllVoucher)>0){
       foreach($getAllVoucher as $key=>$val){
          $tempdatap[$val['customer_id']]['vouchers'][] = $val;
+         $tempdatap[$val['customer_id']]['total']['totalshipment'][] = 1;
+         $tempdatap[$val['customer_id']]['total']['totalitems'][]= $val['items'];  
        }  
      } 
      
