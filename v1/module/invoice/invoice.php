@@ -294,6 +294,7 @@ public function createAllInvoicePdf($invoiceRef,$imageName,$watermark){
              $footerContent  = $this->prepareFooterHtml($footerTemplate,$customerdata,$src);
              ob_clean();
              $pdf = new mPDF('c','A4-L');
+             $pdf->showImageErrors = true;
              $pdf->SetHTMLHeader('<div class="container"> <h3>TAX INVOICE</h3></div>');
              $pdf->SetDisplayMode('fullpage');
              if($watermark!=''){
@@ -301,7 +302,7 @@ public function createAllInvoicePdf($invoiceRef,$imageName,$watermark){
                  $pdf->watermarkTextAlpha = 0.081;
                  $pdf->watermark_font = 'DejaVuSansCondensed';
                  $pdf->showWatermarkText = true;
-             }   
+             }  
              $pdf->writeHTML($html);
              $pdf->SetHTMLHeader('');
              $pdf->SetHTMLFooter('<table width="100%"><tr>
