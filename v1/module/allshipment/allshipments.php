@@ -209,7 +209,8 @@ class allShipments extends Icargo
                             $labelArr = json_decode($pickupData['label_json']);
 
 
-                            if(is_object($labelArr) && count($labelArr)>0){
+                            if(is_object($labelArr) && count($labelArr)>0 && isset($labelArr->label)){
+                              //  print_r($labelArr);exit;
                                     $collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
                             }else{
                                     $collectionReference = "";

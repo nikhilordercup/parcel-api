@@ -20,14 +20,16 @@ final class Coreprime_Dhl extends Carrier {
         $serviceProvider=new EasyProvider();
         $dataObj=json_decode($json_data);
         $serviceProvider=$serviceProvider->fetchCarrierProviderByName($dataObj->carrier);
-        
+//        print_r($dataObj);exit;
         if($serviceProvider['provider_name']=='Easy Post'){
             $easyPOstController=new EasypostController;
-            $easyPOstController->generateLabel($dataObj->to,
+            $shipment=$easyPOstController->generateLabel($dataObj->to,
                     $dataObj->from, $dataObj->package, 
-                    $dataObj->carrier);
+                    $dataObj->carrier,$dataObj->service,
+                    [$dataObj->credentials->easypost_account_id],$dataObj);
+          //  print_r($shipment);exit;
+            return $this->saveEasyPostLabel($shipment,$loadIdentity);
         }
-        print_r($dataObj);exit;
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label", $json_data);                         
         
@@ -53,7 +55,8 @@ final class Coreprime_Dhl extends Carrier {
                 header('Content-Type: application/pdf');
             }
             //echo $file_name;
-            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") 
+                    . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
 
             //return array("status" => "success", "message" => "label generated successfully", 'label_detail'=> $labelArr, "file_loc"=>$file_name, "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $flabel[0] . '.pdf');
             unset($labelArr->label->base_encode);            
@@ -406,6 +409,7 @@ final class Coreprime_Dhl extends Carrier {
         $credentialInfo["authentication_token_created_at"] = $credentialData["authentication_token_created_at"];
         $credentialInfo["token"] = $credentialData["token"];
         $credentialInfo["account_number"] = $carrierAccountNumber; 
+        $credentialInfo['easypost_account_id']= $credentialData['easypost_account_id'];
         $credentialInfo["master_carrier_account_number"] = "";
         $credentialInfo["latest_time"] = "17:00:00";
         $credentialInfo["earliest_time"]="14:00:00";
@@ -425,7 +429,35 @@ final class Coreprime_Dhl extends Carrier {
             $error['last_name'] = Dhl_Validation::_getInstance()->errorMsg;
         }
     }
-
+    public function saveEasyPostLabel($shipment,$loadIdentity){
+        $shipment = isset($shipment->postage_label)?$shipment:$shipment->shipments[0];
+        //print_r($shipment);exit;
+        $labelUrl=$shipment->postage_label->offsetGet('label_url');
+       // exit($labelUrl);
+        $fileName= basename($labelUrl);
+        $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/'; 
+            $file_url = mkdir($label_path . $loadIdentity .'/dhl/', 0777, true);
+            $file=$label_path . $loadIdentity .'/dhl/'.$fileName;
+            file_put_contents($file, fopen($labelUrl, 'r'));
+            $dompdf=new Dompdf();           
+            $dompdf->loadHtml('<html><body><img src="'.$file.'"></img></body></html>');
+            file_put_contents($file.'.pdf', $dompdf->output());
+//            $img = new \Imagick($file);
+//            $img->setImageFormat('pdf');
+//            $img->writeImages($file.'.pdf', true);
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") 
+                    . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            $json=$shipment->__toArray();
+            $json['provider']="Easy Post";
+        return array(
+                    "status" => "success",
+                    "message" => "label generated successfully",
+                    "label_detail" => 'Easy Post', 
+                    "file_loc"=>$file, 
+                    "file_path" => $fileUrl. "/label/" . $loadIdentity . '/dhl/' . basename($labelUrl) . '.pdf',
+                    "label_tracking_number"=>$shipment->tracking_code,
+                    "label_files_png" => $file,
+                    "label_json" =>json_encode($json)
+            );
+    }
 }
-
-?>

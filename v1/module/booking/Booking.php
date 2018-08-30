@@ -827,4 +827,128 @@ class Booking extends Icargo
     function getUserInfo($user_id){
         return $this->modelObj->getUserInfo($user_id);
     }
+    public function filterCarrierServiceProviderData(){
+        $this->easyPostData=[];        
+        foreach($this->data['carriers'] as $k=>$d){
+            if(trim($d['provider_name'])=='Easy Post'){
+                $this->easyPostData[]=$d;
+                unset($this->data['carriers'][$k]);
+            }
+            
+        }
+        return $this;
+    }
+    public function fetchEasyPostPrice($companyId){//        
+        $easyPostController=new EasypostController;
+        
+        $toAddress=[
+            "name"    => $this->data['to']['name'],
+            "street1" => $this->data['to']['street1'],
+            "street2" => $this->data['to']['street2'],
+            "company" => $this->data['to']['company'],
+            "city"    => $this->data['to']['city'],
+            "state"   => $this->data['to']['state'],
+            "zip"     => $this->data['to']['zip'],
+            "phone"   => $this->data['to']['phone'],
+            "country" => $this->data['to']['country']
+        ];
+        $fromAddress=[
+            "name"    => $this->data['from']['name'],
+            "street1" => $this->data['from']['street1'],
+            "street2" => $this->data['from']['street2'],
+            "company" => $this->data['from']['company'],
+            "city"    => $this->data['from']['city'],
+            "state"   => $this->data['from']['state'],
+            "zip"     => $this->data['from']['zip'],
+            "phone"   => $this->data['from']['phone'],
+            "country" => $this->data['from']['country']
+        ];
+        $accounts=[];
+        foreach($this->easyPostData as $epd){
+            foreach ($epd['account'] as $c){
+                array_push($accounts, $c['credentials']['easypost_account_id']);
+            }
+        } 
+        
+// print_r($this->easyPostData);exit;     
+        $rates=$easyPostController
+                ->trimArray($toAddress)
+                ->trimArray($fromAddress)
+                ->getShipmentRates($toAddress,$fromAddress,$this->data['package'],$accounts);
+        $priceArray=[];
+        foreach ($rates as $r){
+            if(!$this->isServiceActive($companyId,$r))                
+                    continue;
+            $rate=[
+              "rate"=>[
+                           "weight_charge"=>$r['rate'],
+                           "fuel_surcharge"=>0.0,
+                           "remote_area_delivery"=>0.0,
+                           "insurance_charge"=>0.0,
+                           "over_sized_charge"=>0.0,
+                           "over_weight_charge"=>0.0,
+                           "rate_provider"=>"Easy Post"
+                        ]  
+            ];
+            $carrierName=$this->getCarrierNameMapping($r['carrier_account_id']);
+            $carrierAccountId=$this->getCarrierAccountId($carrierName);
+            if($carrierName==""){
+                continue;
+            }
+            $priceArray['rate'][$carrierName]
+                    [0][$carrierAccountId]
+                    [][$r['service']][]=$rate;
+        }
+        return $priceArray;
+    }
+    private function getCarrierNameMapping($easyPostAccountId){
+        foreach($this->easyPostData as $d){
+            if($d['account'][0]['credentials']['easypost_account_id']==$easyPostAccountId){
+                return $d['name'];
+            }
+        }
+        
+    }
+    private function getCarrierAccountId($name){
+        foreach($this->easyPostData as $c){
+            if($c['name']==$name){
+                return $c['account'][0]['credentials']['account_number'];
+            }
+        }
+    }
+    protected function toCamelCase($string){
+        $str= explode('_', $string);
+        $final="";
+        foreach($str as $s){
+            $final .= ucfirst($s);
+        }
+        return $final;
+    }
+    protected function getRealServiceCode($services,$key){
+        if(array_key_exists($key, $services)){
+            return $key;
+        }else{            
+            foreach($services as $k=>$services){
+                if($key==$this->toCamelCase($k)){
+                    return $k;
+                }                
+            }
+            return $key;
+        }
+    }
+    public function isServiceActive($companyId, $rate){
+        if(!isset($this->serviceList)){
+            $easyProvider=new EasyProvider;
+            $this->serviceList=$easyProvider->getCompanyServiceList($companyId);
+        }
+        $found=false;
+        foreach ($this->serviceList as $service){
+            $service=(array)$service;
+            if($service['easy_post_id']==$rate['service']){
+                $found=true;
+                break;
+            }
+        }
+        return $found;
+    }
 }

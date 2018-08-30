@@ -333,7 +333,7 @@ class Booking_Model_Booking
 	public function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity){
 		//$sql = "SELECT carrier_account_number FROM ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND shipment_service_type='D'";
         //$accountNumber = $this->_db->getOneRecord($sql);
-		$sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM ".DB_PREFIX."courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
+		$sql = "SELECT username,password,token,authentication_token,authentication_token_created_at, easypost_account_id FROM ".DB_PREFIX."courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
 		$credentailData = $this->_db->getRowRecord($sql);
 		//$credentailData['account_number'] = $accountNumber['carrier_account_number'];
 		return $credentailData;
