@@ -154,7 +154,7 @@ class Sameday extends  Booking
                   $temp['service_code']         = $val2->otherinfo->courier_service_code;
                   $temp['service_name']         = $val2->otherinfo->courier_service_name;
                   $temp['service_id']           = $val2->otherinfo->service_id;
-                  $temp['act_number']           = $val2->otherinfo->accountkey;
+                  //$temp['act_number']           = $val2->otherinfo->accountkey;
                   $temp['price']                = $val2->base_price;
                   $temp['max_delivery_time']    = $val2->max_delivery_time;
                   $temp['max_waiting_time']     = $val2->time->max_waiting_time .' '. $val2->time->unit;
@@ -433,8 +433,8 @@ class Sameday extends  Booking
         $post_data["extra"] = [];
         $post_data["insurance"] = []; //print_r($post_data);die;
         $data = $this->_filterApiResponse(json_decode($this->_postRequest(json_encode($post_data)), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
-        if(!empty($data)){
-            $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);   
+        $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);
+		if(!empty($data)){   
             $transitdata   =  array();
             $transitdata['transit_distance'] = $transit_distance;
             $transitdata['transit_time'] = $transit_time;
@@ -795,6 +795,8 @@ class Sameday extends  Booking
                     $shipmentService->load_identity = $loadIdentity;
 					$shipmentService->service_request_string = ''; //json_encode($data->service_request_string);
 					$shipmentService->service_response_string = '';//json_encode($data->service_request_string);
+                    $shipmentService->booked_quotation_ref = $data->booked_quotation_ref;
+                    $shipmentService->tracking_callbackurl = $data->tracking_callbackurl;
                     unset($shipmentService->message);
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"version"=>$priceVersionNo));
                     $service_id = $this->_saveSamedayShipmentService($shipmentService);
@@ -870,7 +872,7 @@ class Sameday extends  Booking
             Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
             $response =  array("status"=>"success", "message"=>"Shipment booked successfully. Booking reference no $loadIdentity","identity"=>$loadIdentity);
             $temparray = array();
-            $temparray['session_id'] = $data->quation_reference;
+            $temparray['session_id'] = $data->booked_quotation_ref;
             $temparray['response'] = json_encode($response);
             $temparray['request'] = $this->request;
             $temparray['status'] = 1;
@@ -1175,9 +1177,12 @@ class Sameday extends  Booking
         $_data = array();
         $_attribute = array();
         $service_id = "";
+        $quoteRef = $param->booked_quotation_ref;
+        $callbackUrl = $param->tracking_callbackurl;
         $_data["surcharges"] = 0;
         $_data["taxes"] = 0;
         $_data["charge_from_base"] = 0;
+        
         if(isset($param->otherinfo)){
             $param->otherinfo =  json_decode(json_encode($param->otherinfo),1);
         }
@@ -1200,7 +1205,8 @@ class Sameday extends  Booking
         unset($param->base_price);
         unset($param->total_price);
         unset($param->pricewithouttax);
-         
+        unset($param->booked_quotation_ref);
+        unset($param->tracking_callbackurl);
         if(isset($param->icon)){
             $_attribute["column_name"] = "icon";
             $_attribute["value"] = $param->icon;
@@ -1267,6 +1273,8 @@ class Sameday extends  Booking
                 $priceData = $this->resrServiceModel->getBookedShipmentsPrice($_data['customer_id']); 
                 $_data['customer_type']        = $priceData['customer_type'];
                 $_data['booked_api_token_id']  = $this->webApiToken;
+                $_data['booked_quotation_ref']  = $quoteRef;
+                $_data['tracking_callbackurl']  = $callbackUrl;
                 $service_id = $this->db->save("shipment_service", $_data);
         }
         return $service_id;
@@ -1323,7 +1331,8 @@ class Sameday extends  Booking
                               $bookingData['userid']                    = $bookingData['company_id'];
                               $bookingData['service_request_string']    =  array();  
                               $bookingData['service_response_string']   =  array();  
-                              $bookingData['quation_reference']         =  $this->bookparam->quation_reference;
+                              $bookingData['booked_quotation_ref']      =  $this->bookparam->quation_reference;
+                              $bookingData['tracking_callbackurl']      =  isset($this->bookparam->callback_url)?$this->bookparam->callback_url:'';
                               $status = $this->bookSameDayShipment((object)$bookingData);
                               if($status['status']=='success'){
                                   $updatestatus = $this->resrServiceModel->editContent('webapi_request_response',
@@ -1427,12 +1436,12 @@ class Sameday extends  Booking
                 }
             }
         }
-        print_r($return);die;   
+        return $return;   
     }
     public      function getEligibleRecurringJob(){
         $reccuringBucket =  array();
         $recurringData = $this->resrServiceModel->getSamedayReccuringJobs();
-        
+        //print_r($recurringData);die;
         if(count($recurringData)>0){
             foreach($recurringData as $reccuringVal){
                 switch($reccuringVal['recurring_type']){
