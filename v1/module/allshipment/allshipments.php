@@ -876,7 +876,7 @@ class allShipments extends Icargo
                         $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($param['company_id']);
                         //$voucherdata['amount']             = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) : ($oldGrandTotal - $temp['grand_total']);
                         //$voucherdata['shipment_id']  = $shipId;
-                        $voucherdata['amount']             = ($temp['grand_total'] - $oldGrandTotal);
+                        $voucherdata['total']             = ($temp['grand_total'] - $oldGrandTotal);
                         $voucherdata['shipment_reference'] = $param['job_identity'];
                         $voucherdata['create_date']        = date('Y-m-d');
                         $voucherdata['created_by']         = $param['user'];
@@ -1045,7 +1045,7 @@ class allShipments extends Icargo
         }
         if ($adddata) {
             $temp['grand_total'] = $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
-            if ($isInvoiced == 'YES') {
+            if ($isInvoiced == 'YES') { 
                 if ($temp['grand_total'] != $oldGrandTotal) {
                     $voucherHistoryid                  = $this->modelObj->getVoucherHistory($param['job_identity']);
                     $voucherdata                       = array();
