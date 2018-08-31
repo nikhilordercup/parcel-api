@@ -200,8 +200,12 @@ CHANGE COLUMN `service_response_string` `service_response_string` TEXT NULL ,
 ADD COLUMN `customer_type` ENUM('PREPAID', 'POSTPAID', 'NONE') NOT NULL DEFAULT 'NONE' AFTER `booked_by_recurring`,
 ADD COLUMN `booked_api_token_id` INT(11) NULL DEFAULT 0 AFTER `customer_type`;
 
-ALTER TABLE `icargo_release1_11`.`icargo_shipments_master` 
+ALTER TABLE `icargo_shipments_master` 
 ADD COLUMN `is_used_for_cancel` ENUM('YES', 'NO') NOT NULL DEFAULT 'NO' AFTER `tracking_internal_code`;
+
+ALTER TABLE `icargo_shipment_service` 
+ADD COLUMN `booked_quotation_ref` VARCHAR(255) NULL DEFAULT NULL AFTER `booked_api_token_id`,
+ADD COLUMN `tracking_callbackurl` VARCHAR(255) NULL DEFAULT NULL AFTER `booked_quotation_ref`;
 
 ALTER
  ALGORITHM = UNDEFINED
