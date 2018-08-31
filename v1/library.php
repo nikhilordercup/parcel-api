@@ -3,7 +3,11 @@
 
         public static $_obj = NULL;
 
+<<<<<<< HEAD
         public $google_api_key = "";//"""AIzaSyDF739R0sANnxcYUcDrv7mrprlT1EGo1Vs";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
+=======
+        public $google_api_key = "";//"AIzaSyDF739R0sANnxcYUcDrv7mrprlT1EGo1Vs";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
+>>>>>>> dfaf6846e6bcd1c97cbac5f5267eb55129c0658e
 
         public static function _getInstance(){
             if(self::$_obj==NULL){

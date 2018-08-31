@@ -278,8 +278,8 @@ public function createAllInvoicePdf($invoiceRef,$imageName,$watermark){
          $footerTemplate  = file_get_contents($physicalPath.'invoice-footer.html');
          $bodyContent    = file_get_contents($physicalPath.'invoice-body.html');
          $htmlTemplate   = $headerContent.$bodyContent;
+         $pdfRefData = array();
          if(count($invoiceRef)>0){ 
-            $pdfRefData = array();
             foreach($invoiceRef as $ref){
              $pdfdata = $this->modelObj->getAllInviceShip($ref);
              $customerdata =  $this->modelObj->getAllInviceCustomerDetails($ref); 
