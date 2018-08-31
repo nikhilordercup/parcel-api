@@ -175,15 +175,13 @@ class Sameday extends  Booking
         return $responsedata; 
    }
     public  function getSameDayQuotation($param){
-        $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);   
-        $response_filter_type = "min";
         $endpoint      = $this->endpoint;
         $param->customer_id = $param->customer_id;
         $googleRequest = array();
-        if(!isset($param->service_date) || ($param->service_date=='')){
+        if(!isset($param->service_date) || ($param->service_date=='') || !($this->isValidServiceDate($param->service_date))){
                  $response = array(); 
                  $response["status"] = "fail";
-                 $response["message"] = 'service date  missing';
+                 $response["message"] = 'service date and time missing';
                  $response["error_code"] = "ERROR0018";   
                  return $response;
         }elseif(!isset($param->warehouse_id) || ($param->warehouse_id=='')){
@@ -394,7 +392,7 @@ class Sameday extends  Booking
                     $response = array(); 
                     $response["status"] = "fail";
                     $response["message"] = 'Service Not configured or disabled for this customer';
-                    $response["error_code"] = "ERROR0018";   
+                    $response["error_code"] = "ERROR0078";   
                     return $response;
                 }
             }
@@ -436,6 +434,7 @@ class Sameday extends  Booking
         $post_data["insurance"] = []; //print_r($post_data);die;
         $data = $this->_filterApiResponse(json_decode($this->_postRequest(json_encode($post_data)), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
         if(!empty($data)){
+            $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);   
             $transitdata   =  array();
             $transitdata['transit_distance'] = $transit_distance;
             $transitdata['transit_time'] = $transit_time;
@@ -449,9 +448,9 @@ class Sameday extends  Booking
             $param->transit_distance_text   = $transit_distance_text;
             $param->transit_time_text       = $transit_time_text;
             $data = $this->_getWbFormat($data,$transitdata,$param,$endpoint,$googleRequest);
-           return array("status" => "success","rate"=>$data,"availiable_balence" => $available_credit['available_credit']);
+           return array("status" => "success","rate"=>$data,"service_date"=>$param->service_date,"availiable_balence" => $available_credit['available_credit']);
         }else{
-             return array("status" => "fail","rate"=>array(),"availiable_balence" => $available_credit['available_credit']);
+             return array("status" => "fail","rate"=>array(),"service_date"=>$param->service_date,"availiable_balence" => $available_credit['available_credit']);
         }
      }
     /*  get a Quote end here*/
@@ -598,7 +597,7 @@ class Sameday extends  Booking
         $temparray = array();
         if($current_request->service_date  != $pre_request->service_date){ 
              $response["status"] = "fail";
-             $response["message"] = 'Requested Service date mismatch with Quotation';
+             $response["message"] = 'Requested Service date and time is mismatch with Quotation';
              $response["error_code"] = "ERROR0044";    
         }
         elseif(count($current_request->collection)!=count($pre_request->collection)){ 
@@ -625,8 +624,49 @@ class Sameday extends  Booking
              $response["status"] = "fail";
              $response["message"] = 'address Line 1 is missing in collection address.';
              $response["error_code"] = "ERROR0048"; 
-        }
-        else{ 
+        }elseif($current_request->collection->address->country != $pre_request->collection->address->country){ 
+             $response["status"] = "fail";
+             $response["message"] = 'collection country mismatch with Quotation';
+             $response["error_code"] = "ERROR0070"; 
+        }elseif($current_request->collection->address->postcode != $pre_request->collection->address->postcode){
+             $response["status"] = "fail";
+             $response["message"] = 'collection postcode mismatch with Quotation';
+             $response["error_code"] = "ERROR0071"; 
+        }else{    
+        foreach($current_request->delivery as $key=>$val){
+            if(!isset($val->address)  || ($val->address=='')){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'Delivery address parameter missing in Quotation';
+                 $response["error_code"] = "ERROR0073";   
+                 return $response;
+             }
+             elseif(!isset($val->address->postcode)  || ($val->address->postcode=='')){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'Delivery Postcode parameter missing.';
+                 $response["error_code"] = "ERROR0074";   
+                 return $response;
+            }elseif($val->address->postcode != $pre_request->delivery[$key]->address->postcode){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'requested delivery postcode are mismatch or order mismatch';
+                 $response["error_code"] = "ERROR0075";   
+                 return $response;
+            }elseif(!isset($val->address->country)  || ($val->address->country=='')){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'Delivery country parameter missing';
+                 $response["error_code"] = "ERROR0076";   
+                 return $response;
+            }elseif($val->address->country != $pre_request->delivery[$key]->address->country){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'requested delivery country are mismatch or order mismatch';
+                 $response["error_code"] = "ERROR0077";   
+                 return $response;
+            }  
+        }   
             $current_request->collection->address->latitude = $pre_request->collection->address->latitude;
             $current_request->collection->address->longitude = $pre_request->collection->address->longitude;
             $current_request->collection->address->geo_position = $pre_request->collection->address->geo_position;
@@ -1242,11 +1282,11 @@ class Sameday extends  Booking
                  $response["message"] = 'service code  missing';
                  $response["error_code"] = "ERROR0050";   
                  return $response;
-        }elseif(!isset($this->bookparam->service_date) || ($this->bookparam->service_date=='')){
+        }elseif(!isset($this->bookparam->service_date) || ($this->bookparam->service_date=='') || !($this->isValidServiceDate($this->bookparam->service_date))){
                  $response = array(); 
                  $response["status"] = "fail";
-                 $response["message"] = 'service date  missing';
-                 $response["error_code"] = "ERROR0018";   
+                 $response["message"] = 'service date and time missing or invalid';
+                 $response["error_code"] = "ERROR0079";   
                  return $response;
         }elseif(!isset($this->bookparam->quation_reference) || ($this->bookparam->quation_reference=='')){
                  $response = array(); 
@@ -1273,6 +1313,9 @@ class Sameday extends  Booking
                       $preServiceKeys  = array_keys((array)$preResponse);
                       if(in_array($this->bookparam->service_id,$preServiceKeys)){ 
                               $filterQuotationdata    = $this->validateQuotation($this->bookparam,$preRequest);
+                              if($filterQuotationdata['status']=='fail'){
+                                  return $filterQuotationdata;
+                              }
                               unset($preRequest->collection,$preRequest->delivery);    
                               $bookingData  = array_merge($filterQuotationdata['data'],(array)$preRequest);
                               $bookingData['collection_user_id']        = $bookingData['customer_id'];
@@ -1556,6 +1599,10 @@ class Sameday extends  Booking
         $data['web_responce'] = json_encode($resp);
         $data['requested_url'] = $url;
         $this->resrServiceModel->addContent('api_request_response',$data);
-    } 
+    }
+    public      function isValidServiceDate($date, $format = 'Y-m-d H:i'){
+                    $d = DateTime::createFromFormat($format, $date);
+                    return $d && $d->format($format) == $date;
+        }
 }
 ?>
