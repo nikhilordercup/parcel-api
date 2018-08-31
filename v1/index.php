@@ -1,5 +1,4 @@
 <?php
-
 ini_set('date.timezone', 'Europe/London');
 
 require_once 'constant.php';
@@ -230,4 +229,4 @@ function rootPath(){
     return dirname(dirname(dirname(__FILE__)));
 }
 
-$app->run();
+$app->run(); 

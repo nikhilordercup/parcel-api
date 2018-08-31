@@ -521,7 +521,7 @@ final class Nextday extends Booking
         } else {
             return array(
                 "status" => "error",
-                "message" => $this->data["message"]
+                "message" => "Coreprime api error. Insufficient data."
             );
         }
     }
@@ -809,7 +809,7 @@ final class Nextday extends Booking
 
             //tracking
             $obj = new Create_Tracking();
-            $obj->createTracking($labelData["label_tracking_number"], 'DHLExpress');
+            $obj->createTracking($labelData["label_tracking_number"], $carrier_code);
             
             /************update booking status to success from pending*****************/
             $statusArr = array(
@@ -912,5 +912,4 @@ final class Nextday extends Booking
         return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
     }
 }
-
 ?>

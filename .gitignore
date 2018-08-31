@@ -1,6 +1,12 @@
 .DS_Store
 nbproject
+config.php
+/.idea/
 /vendor/
-/.idea
-/.vscode
-/.vagrant
+/label/
+/pod/
+composer.lock
+/config.php
+/temp/
+parcel-api.userprefs
+pod/signature/\*.png
