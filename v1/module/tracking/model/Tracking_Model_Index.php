@@ -251,7 +251,7 @@ class Tracking_Model_Index
         return $this->_db->update("shipment_service", array(
             "tracking_code" => $tracking_code,
             "status" => $tracking_code
-        ), "load_identity='$tracking_id'");
+        ), "load_identity='$load_identity'");
     }
 
     public

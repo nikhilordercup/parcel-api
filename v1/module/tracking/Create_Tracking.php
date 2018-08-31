@@ -7,7 +7,8 @@ class Create_Tracking extends Icargo{
         "pre_transit" => "INFO_RECEIVED",
         "in_transit" => "IN_TRANSIT",
         "out_for_delivery" => "OUTFORDELIVERY",
-        "delivered" => "DELIVERED"
+        "delivered" => "DELIVERED",
+		"unknown"  => "INFO_RECEIVED"
     );
 
     public
@@ -94,59 +95,71 @@ class Create_Tracking extends Icargo{
     private
 
     function _saveTrackingDetail(){
-        foreach($this->trackingData->tracking_details as $details){
-            $temp = $this->modelObj->findTrackingDetail($details->status_detail, $details->datetime);
-            if($temp["tracking_code_count"]==0){
-                $data = array(
-                    "object" => $details->object,
-                    "message" => $details->message,
-                    "description" => $details->description,
-                    "status" => $details->status,
-                    "status_detail" => $details->status_detail,
-                    "datetime" => $details->datetime,
-                    "source" => $details->source,
-                    "carrier_code" => $details->carrier_code,
-                    "city" => $details->city,
-                    "state" => $details->state,
-                    "country" => $details->country,
-                    "zip" => $details->zip,
-                    "tracking_id" => $this->trackingData->result->id,
-                    "origin" => 'easypost'
-                );
-                $this->modelObj->saveTrackingDetail($data);
-            }
-        }
+		if(isset($this->trackingData->tracking_details)){
+			foreach($this->trackingData->tracking_details as $details){
+				$temp = $this->modelObj->findTrackingDetail($details->status_detail, $details->datetime);
+				if($temp["tracking_code_count"]==0){
+					$data = array(
+						"object" => $details->object,
+						"message" => $details->message,
+						"description" => $details->description,
+						"status" => $details->status,
+						"status_detail" => $details->status_detail,
+						"datetime" => $details->datetime,
+						"source" => $details->source,
+						"carrier_code" => $details->carrier_code,
+						"city" => $details->city,
+						"state" => $details->state,
+						"country" => $details->country,
+						"zip" => $details->zip,
+						"tracking_id" => $this->trackingData->result->id,
+						"origin" => 'easypost'
+					);
+					$this->modelObj->saveTrackingDetail($data);
+				}
+			}
+		}
     }
 
     private function _saveTrackingCarrierDetail(){
-        $data = array(
-            "object" => $this->trackingData->carrier_detail->object,
-            "service" => $this->trackingData->carrier_detail->service,
-            "container_type" => $this->trackingData->carrier_detail->container_type,
-            "est_delivery_date_local" => $this->trackingData->carrier_detail->est_delivery_date_local,
-            "est_delivery_time_local" => $this->trackingData->carrier_detail->est_delivery_time_local,
-            "origin_location" => $this->trackingData->carrier_detail->origin_location,
-            "origin_location_city" => $this->trackingData->carrier_detail->origin_tracking_location->city,
-            "origin_location_state" => $this->trackingData->carrier_detail->origin_tracking_location->state,
-            "origin_location_country" => $this->trackingData->carrier_detail->origin_tracking_location->country,
-            "origin_location_zip" => $this->trackingData->carrier_detail->origin_tracking_location->zip,
-            "destination_location" => $this->trackingData->carrier_detail->destination_location,
-            "destination_location_city" => $this->trackingData->carrier_detail->destination_tracking_location->city,
-            "destination_location_state" => $this->trackingData->carrier_detail->destination_tracking_location->state,
-            "destination_location_country" => $this->trackingData->carrier_detail->destination_tracking_location->country,
-            "destination_location_zip" => $this->trackingData->carrier_detail->destination_tracking_location->zip,
-            "guaranteed_delivery_date" => $this->trackingData->carrier_detail->guaranteed_delivery_date,
-            "alternate_identifier" => $this->trackingData->carrier_detail->alternate_identifier,
-            "initial_delivery_attempt" => $this->trackingData->carrier_detail->initial_delivery_attempt,
-            "tracking_id" => $this->trackingData->id,
-            "origin" => 'easypost'
-        );
+		if(isset($this->trackingData->carrier_detail)){
+				$data = array(
+				"object" => $this->trackingData->carrier_detail->object,
+				"service" => $this->trackingData->carrier_detail->service,
+				"container_type" => $this->trackingData->carrier_detail->container_type,
+				"est_delivery_date_local" => $this->trackingData->carrier_detail->est_delivery_date_local,
+				"est_delivery_time_local" => $this->trackingData->carrier_detail->est_delivery_time_local,
+				"origin_location" => $this->trackingData->carrier_detail->origin_location,
+				"origin_location_city" => $this->trackingData->carrier_detail->origin_tracking_location->city,
+				"origin_location_state" => $this->trackingData->carrier_detail->origin_tracking_location->state,
+				"origin_location_country" => $this->trackingData->carrier_detail->origin_tracking_location->country,
+				"origin_location_zip" => $this->trackingData->carrier_detail->origin_tracking_location->zip,
+				"destination_location" => $this->trackingData->carrier_detail->destination_location,
+				"destination_location_city" => $this->trackingData->carrier_detail->destination_tracking_location->city,
+				"destination_location_state" => $this->trackingData->carrier_detail->destination_tracking_location->state,
+				"destination_location_country" => $this->trackingData->carrier_detail->destination_tracking_location->country,
+				"destination_location_zip" => $this->trackingData->carrier_detail->destination_tracking_location->zip,
+				"guaranteed_delivery_date" => $this->trackingData->carrier_detail->guaranteed_delivery_date,
+				"alternate_identifier" => $this->trackingData->carrier_detail->alternate_identifier,
+				"initial_delivery_attempt" => $this->trackingData->carrier_detail->initial_delivery_attempt,
+				"tracking_id" => $this->trackingData->id,
+				"origin" => 'easypost'
+			);
 
-        $temp = $this->modelObj->findTrackingCarrierDetail($this->trackingData->result->id);
-        if($temp["num_count"]==0)
-            $this->modelObj->saveTrackingCarrierDetail($data);
-        else
-            $this->modelObj->updateTrackingCarrierDetail($data, $this->trackingData->result->id);
+            $temp = $this->modelObj->findTrackingCarrierDetail($this->trackingData->result->id);
+            if($temp["num_count"]==0)
+                $this->modelObj->saveTrackingCarrierDetail($data);
+            else
+                $this->modelObj->updateTrackingCarrierDetail($data, $this->trackingData->result->id);
+		}
+		/*if(isset($this->trackingData->result)){
+			$temp = $this->modelObj->findTrackingCarrierDetail($this->trackingData->result->id);
+			if($temp["num_count"]==0)
+				$this->modelObj->saveTrackingCarrierDetail($data);
+			else
+				$this->modelObj->updateTrackingCarrierDetail($data, $this->trackingData->result->id);
+		}*/
+        
     }
 
     public
@@ -154,7 +167,6 @@ class Create_Tracking extends Icargo{
     function createTracking($tracking_code, $carrier){
         \EasyPost\EasyPost::setApiKey($this->apiInfo[ENV]["api_key"]);
         $this->trackingData = \EasyPost\Tracker::create(array('tracking_code' => $tracking_code, 'carrier' => $carrier));
-
         $this->_updateShipmentService($tracking_code);
         $this->_saveShipmentLifeHistory();
         $this->_saveShipmentTracking();
