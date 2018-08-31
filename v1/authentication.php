@@ -1,4 +1,4 @@
-<?php
+<?php 
 $app->post('/login', function() use ($app) {
     require_once 'passwordHash.php';
     require_once("module/authentication/authentication.php");
@@ -164,5 +164,4 @@ $app->post('/listAllPlanForCustomerRegistration', function() use ($app){
     $planData = $db->getAllRecords("SELECT plan_id,plan_name FROM " . DB_PREFIX ."chargebee_plan WHERE status='active'");
     $countryData = $db->getAllRecords("SELECT * FROM " . DB_PREFIX ."countries");
     echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
-});
-
+}); 

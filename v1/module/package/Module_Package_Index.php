@@ -90,5 +90,4 @@ class Module_Package_Index extends Icargo
     function getPackages($param){
         return $this->_getPackages($param->user_id);
     }
-
 }

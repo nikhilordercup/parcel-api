@@ -273,4 +273,3 @@ class Company extends Icargo{
         return $data;
 	}
 }
-?>

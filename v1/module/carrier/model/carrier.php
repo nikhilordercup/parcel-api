@@ -255,5 +255,4 @@ class Carrier_Model_Carrier
      } */
 
 }
-
 ?>

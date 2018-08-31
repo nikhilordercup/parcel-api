@@ -806,6 +806,10 @@ final class Nextday extends Booking
             );
             
             $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
+
+            //tracking
+            $obj = new Create_Tracking();
+            $obj->createTracking($labelData["label_tracking_number"], $carrier_code);
             
             /************update booking status to success from pending*****************/
             $statusArr = array(
@@ -908,5 +912,4 @@ final class Nextday extends Booking
         return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
     }
 }
-
 ?>
