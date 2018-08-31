@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 class Shipment_Sameday_Release extends Icargo
 {
