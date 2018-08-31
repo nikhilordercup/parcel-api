@@ -105,19 +105,18 @@ class Sameday extends  Booking
             return array();
         }
     }
-    private function getGeoLocationByPostCode($postcode){
-       $counter = 0;
+    private function getGeoLocationByPostCode($postcode,$counter=0){
        $geoData =  $this->googleApi->getGeoPositionFromPostcode((object) array('postcode'=>$postcode));
        if($geoData['status']!='success'){
           $counter++;
-          if($counter>5){
+          if($counter>3){
                  $response = array(); 
                  $response["status"] = "fail";
                  $response["message"] = 'Invalid postcode '.$postcode;
                  $response["error_code"] = "ERROR006";   
                  return $response;
           }
-          return $this->getGeoLocationByPostCode($postcode);   
+          return $this->getGeoLocationByPostCode($postcode,$counter);   
        }
        return $geoData;
     }
@@ -250,7 +249,7 @@ class Sameday extends  Booking
         else{
             
             if(!isset($param->collection->address->latitude) && !isset($param->collection->address->longitude)){
-              $collectionGeo = $this->getGeoLocationByPostCode($param->collection->address->postcode);
+              $collectionGeo = $this->getGeoLocationByPostCode($param->collection->address->postcode,0);
               if($collectionGeo['status'] != 'success'){
                 return $collectionGeo;
               }
@@ -320,7 +319,7 @@ class Sameday extends  Booking
                  return $response;
             }else{
                 if(!isset($val->address->latitude) && !isset($val->address->longitude)){  
-                    $deliveryGeo = $this->getGeoLocationByPostCode($val->address->postcode);
+                    $deliveryGeo = $this->getGeoLocationByPostCode($val->address->postcode,0);
                     if($deliveryGeo['status'] != 'success'){
                     return $deliveryGeo;
                 }else{

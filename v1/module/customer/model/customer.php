@@ -34,7 +34,7 @@ class Customer_Model {
     
    public function getCustomerDataByCompanyId($company_id){
      $record = array();
-	 $sqldata ='t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token,CI.ccf,t1.status,CI.accountnumber,CI.available_credit as balence,CI.creditlimit as creditlimit,CI.invoicecycle,CI.customer_type';
+	 $sqldata ='t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token,CI.ccf,t1.status,CI.accountnumber,CI.available_credit as amount,CI.creditlimit as creditlimit,CI.invoicecycle,CI.customer_type';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS t1
 			 INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
