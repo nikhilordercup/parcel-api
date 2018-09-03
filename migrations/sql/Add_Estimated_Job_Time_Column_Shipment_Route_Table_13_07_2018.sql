@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipment_route` ADD `estimated_job_time` INT NOT NULL DEFAULT '0' AFTER `assign_start_time`;

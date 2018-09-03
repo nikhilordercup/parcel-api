@@ -68,7 +68,7 @@ class Carrier_Model_Carrier
 
     public function getCcfOfCarrierServices($service_code, $customer_id, $company_id, $courier_id)
     {
-      $sql = "
+        $sql = "
         SELECT  
         COURSER.id as service_id,
         CCST.customer_ccf AS customer_carrier_service_ccf,
@@ -96,7 +96,7 @@ class Carrier_Model_Carrier
         AND CCST.company_customer_id = '$customer_id'
         AND CCST.company_id = '$company_id'
         AND CCST.courier_id = '$courier_id'
-        AND COURSER.service_code = '$service_code'";
+        AND COURSER.service_code = '$service_code'";         
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 
@@ -255,5 +255,4 @@ class Carrier_Model_Carrier
      } */
 
 }
-
 ?>

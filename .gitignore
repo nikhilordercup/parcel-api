@@ -1,9 +1,14 @@
 .DS_Store
 nbproject
+config.php
+.idea/
 vendor/
-.idea
+label/
+composer.lock
+config.php
+temp/
 .vscode
 .vagrant
-pod/
+parcel-api.userprefs
+pod/signature/\*.png
 assets/outputpdf
-config.php

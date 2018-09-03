@@ -139,7 +139,7 @@ class Report extends Icargo{
 		
 		
 		//$driverTimeData = $this->_parentObj->db->getAllRecords("SELECT * FROM " . DB_PREFIX . "driver_time_tracking WHERE create_date BETWEEN '".$param->startDate."' AND '".$param->endDate."'");	
-		$driverTimeData = $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id),t1.* FROM ".DB_PREFIX."driver_time_tracking as t1 INNER JOIN ".DB_PREFIX."shipment as t2 ON t2.shipment_routed_id=t1.shipment_route_id WHERE create_date BETWEEN '".$param->startDate."' AND '".$param->endDate."' AND t2.instaDispatch_loadGroupTypeName='".$param->service_type."'");	
+		$driverTimeData = $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id),t1.* FROM ".DB_PREFIX."driver_time_tracking as t1 INNER JOIN ".DB_PREFIX."shipment as t2 ON t2.shipment_routed_id=t1.shipment_route_id WHERE create_date BETWEEN '".$param->startDate."' AND '".$param->endDate."' AND t2.instaDispatch_loadGroupTypeName='".$param->service_type."' AND t2.company_id=".$param->company_id."");	
 
 		if(count($driverTimeData>0)){
 		foreach($driverTimeData as $key=>$value){

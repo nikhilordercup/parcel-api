@@ -1,4 +1,4 @@
-<?php
+<?php 
 $app->post('/login', function() use ($app) {
     require_once 'passwordHash.php';
     require_once("module/authentication/authentication.php");
@@ -15,6 +15,7 @@ $app->post('/signUp', function() use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('email','name', 'password','city', 'state'),$r->company);//,'country'
+
     $phone = $r->company->phone;
     $email = $r->company->email;
     $password = $r->company->password;
@@ -45,7 +46,8 @@ $app->post('/signUp', function() use ($app) {
             'parent_id'=>0
         );
         $user = $db->save("users",$data);
-
+        $countryInfo=$db->getOneRecord("SELECT * FROM ".DB_PREFIX."countries WHERE short_name='".$r->company->country."'" );
+           
 
         //$user = $db->insertIntoTable($r->company, $column_names, $table_name);
         if ($user != NULL) {
@@ -77,10 +79,14 @@ $app->post('/signUp', function() use ($app) {
                     "code"=>str_replace(array(" ","-"),array("_","_"), strtolower($r->company->name)).$user
                 )
             );
-
+            $basic_plan = $db->getOneRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC ");
             //register user plan
             //chargebee customer data
-            $chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,"billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,"billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,"billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,"customer_email"=>$r->company->email);
+            $chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,
+                "billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,
+                "billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,
+                "billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,
+                "customer_email"=>$r->company->email,"user_id"=>$user,'phone'=>$r->company->phone,'plan_limit'=>$basic_plan['shipment_limit']);
 
             //chargebee customer registration
             $obj = new Module_Chargebee($chargebee_customer_data);
@@ -88,7 +94,12 @@ $app->post('/signUp', function() use ($app) {
 
             //chargebee associate to trial plan
             $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
-            $basic_plan = $db->getRowRecord("select * from ".DB_PREFIX."chargebee_plan where plan_id='".$r->company->plan_id."'");
+            
+           
+            Chargebee_Model_Chargebee::getInstanse()->
+            updateBillingInfo($user, $chargebee_customer_data->customer_id);
+            
+            
 
 
             $chargebee_customer_data = (object) array(
@@ -99,6 +110,7 @@ $app->post('/signUp', function() use ($app) {
                 "start_date"=>date("Y-m-d"),
                 //"trial_end"=>$r->company->state,
                 "billing_cycles"=>$basic_plan["billing_cycle"],
+                'plan_limit'=>$basic_plan['shipment_limit']
             );
 
             if(strtolower($basic_plan["trial_period_unit"])=="month"){
@@ -113,6 +125,22 @@ $app->post('/signUp', function() use ($app) {
             $obj->createSubscription($chargebee_customer_data);
             // save user id to chargebee_customer_table
             $db->update("chargebee_customer", array("user_id"=>$user),"chargebee_customer_id='$chargebee_customer_data->customer_id'");
+
+            //save user default notification templates
+            $sql = "SELECT * FROM " . DB_PREFIX ."notification_default";
+            $templates = $db->getALLRecordS($sql);
+
+            foreach($templates as $template){
+                $db->save("notification", array(
+                    "company_id" => $user,
+                    "type" => '',
+                    "jobtype" => '',
+                    "trigger_type" => $template["trigger_type"],
+                    "trigger_code" => $template["trigger_code"],
+                    "status" => $template["status"],
+                    "template" => $template["template"]
+                ));
+            }
 
             $response["status"] = "success";
             $response["message"] = "User account created successfully";
@@ -136,5 +164,4 @@ $app->post('/listAllPlanForCustomerRegistration', function() use ($app){
     $planData = $db->getAllRecords("SELECT plan_id,plan_name FROM " . DB_PREFIX ."chargebee_plan WHERE status='active'");
     $countryData = $db->getAllRecords("SELECT * FROM " . DB_PREFIX ."countries");
     echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
-});
-?>
+}); 

@@ -1,18 +1,14 @@
 <?php
-require_once 'auth.php';
-require_once 'process-driver.php';
-require_once 'process-form.php';
-require_once 'optimize-route.php';
-require_once 'logout.php';
+require_once 'Idriver_Auth.php';
+require_once 'Process_Route.php';
+require_once 'Process_Form.php';
+require_once 'Optimize_Route.php';
+require_once 'Logout.php';
 require_once 'Ws_Credential_Info.php';
-
 class Idriver{
-    
     public function __construct()
     {
-        
     }
-    
     public function services($params)
     {
         if(isset($params->service))
@@ -56,30 +52,26 @@ class Idriver{
                 case 'route-paused' :
                     return $this->_route_paused($params);
                 break;
-				case 'logout' :
-					return $this->_logout($params);
-				break;
+                case 'logout' :
+                    return $this->_logout($params);
+                break;
                 case 'save/user-credential-info' :
                     return $this->_saveCredentialInfo($params);
-                    
             }   
         }
     }
-    
     private function _authenticate($params)
     {
         $obj = new Idriver_Auth(array('email'=>$params->username, 'password'=>$params->password));
         $data = $obj->authenticate();
         return $data;
     }
-    
     private function _route_accepted($params)
     {
         $obj = new Process_Route($params);
         $data = $obj->route_action();
         return $data;
     }
-    
      private function _route_paused($params)
     {  
         $params->loadActionCode = 'PAUSED';
@@ -87,16 +79,12 @@ class Idriver{
         $data = $obj->route_action();
         return $data;
     }
-    
-    
-        
     private function _process_driver_action($params)
     {
         $obj = new Process_Route($params);
         $data = $obj->route_action();
         return $data;
     }
-    
     private function _process_cancel_request($params)
     {
         $params->id = $params->user_id;
@@ -104,7 +92,6 @@ class Idriver{
         $data = $obj->route_action();
         return $data;   
     }
-    
     private function _process_start_route($params)
     {
         $params->id = $params->driver_id;
@@ -113,7 +100,6 @@ class Idriver{
         $data = $obj->route_action();
         return $data;   
     }
-    
     private function _process_route_form($params)
     {
         $params->id = $params->driver_id;
@@ -122,19 +108,16 @@ class Idriver{
         $data = $obj->process();
         return $data;
     }
-    
     private function _process_route_optimization($params)
     { 
         $obj = new Optimize_Route($params);
         $data = $obj->optimize();
         return $data;
     }
-    
     private function _save_load_scan_status($params)
     {
-        //   print_r($params);
+           return $params;
     }
-    
     private function _save_driver_gps_location($params)
     {
         $params->loadActionCode = 'SAVE-GPS-LOCATION';
@@ -142,18 +125,15 @@ class Idriver{
         $data = $obj->route_action();
         return array("status"=>"success", "message"=>"gps location captured");
     }
-	
-	private function _logout($params)
-	{
-		$obj = new Driver_Logout($params);
-		$obj->clearAccessToken();
-	}
-
-	private function _saveCredentialInfo($params)
+    private function _logout($params)
+    {
+        $obj = new Driver_Logout($params);
+        $obj->clearAccessToken();
+    }
+    private function _saveCredentialInfo($params)
     {
         $obj = new Ws_Credential_Info();
         $obj->saveCredentialInfo(array("device_token_id"=>$params->device_token_id, "user_code"=>$params->user_code, "company_id"=>$params->company_id));
         return array("status"=>"success", "message"=>"device token captured");
     }
 }
-?>
