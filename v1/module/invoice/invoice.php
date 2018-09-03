@@ -102,7 +102,7 @@ public function createInvoice($param){
                  }
                 $invoicedocket = $this->modelObj->addContent('invoice_vs_docket',$docketdata);
                 if($invoicedocket){
-                  $updatestatus = $this->modelObj->editContent('shipment_service',array('isInvoiced'=>'YES','invoice_reference'=>$invoicedata['invoice_reference'])," load_identity = '".$docketdata['reference']."'"); 
+                  $updatestatus = $this->modelObj->editContent('shipment_service',array('isInvoiced'=>'YES','invoice_reference'=>$invoicedata['invoice_reference'])," load_identity = '".$docketdata['reference']."'");
                 }
                  $invoicePriceData['base_amount'] += $docketdata['base_amount'];
                  $invoicePriceData['surcharge_total'] += $docketdata['surcharge_total'];
@@ -111,6 +111,7 @@ public function createInvoice($param){
                  $invoicePriceData['total_ammount'] += $docketdata['total'];
                  $updatestatus = $this->modelObj->editContent('invoices',$invoicePriceData," id = '".$invoiceId."'");  
              }
+<<<<<<< HEAD
             }
             $voucherAllPrices = array();
             if(isset($val['vouchers']) and count($val['vouchers'])>0){
@@ -194,7 +195,6 @@ public function getDueDateOfInvoice($customerId,$date){
    }  
 private function getOriginandDestination($jobId){
         $shipmentsData = $this->modelObj->getjobDetails($jobId);
-     
         $dataArray   =     array();
         $data   =     array(); 
         foreach($shipmentsData as $key=>$val){                                
@@ -254,7 +254,7 @@ public function cancelInvoices($param){
             $updatestatus = $this->modelObj->editContent('shipment_service',
                                                          array('isInvoiced'=>'NO','invoice_reference'=>'')," invoice_reference = '".$vals."'");  
             $updatestatusVoucher = $this->modelObj->editContent('vouchers',
-                                                         array('is_invoiced'=>'NO','invoice_reference'=>'')," invoice_reference = '".$vals."'"); 
+                                                         array('is_invoiced'=>'NO','invoice_reference'=>'')," invoice_reference = '".$vals."'");
             if($updatestatus){
             $updateinvoicestatus = $this->modelObj->editContent('invoices',
                                                          array('invoice_status'=>'CANCEL'),
@@ -383,7 +383,6 @@ public function getBodyDataHTML($html,$pdfdata){
          array('__header_column__','__body_data__'),array($columnName,$htmlData),$html);  
     return $return;
    }
-
 public function payinvoices($param){
     $this->db->startTransaction();
     $checkInvoiceStatus =  $this->modelObj->getInvoiceStatus($param->invoice_reference);
@@ -424,10 +423,7 @@ public function payinvoices($param){
         $this->db->rollBackTransaction();
         return array('status'=>"false",'message'=>'already paid','code'=>'SERR14');  
     }
-}
-    
-    
-    
+}    
 public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef){
      $customerData = $this->modelObj->getCustomerAccount($customer_id);
      $creditbalanceData = array();
@@ -452,11 +448,10 @@ public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef){
       }
       return array("status"=>"error", "message"=>"Invoice payment not saved");
     } 
-    public function loadPostpaidCustomer($company_id){
+public function loadPostpaidCustomer($company_id){
         $return = array();
         $shipmentsData = $this->modelObj->getPostpaidCustomer($company_id);
         return $shipmentsData;
-   }  
-    
+   }     
 }
 ?>

@@ -9,6 +9,7 @@
 		"sngrl/php-firebase-cloud-messaging": "dev-master",
                 "dompdf/dompdf": "^0.8.2",
 		"kreait/firebase-php": "^4.0",
-	    	"mpdf/mpdf": "*"
+	    	"mpdf/mpdf": "*",
+         "easypost/easypost-php": "~3.0"
 	}
 }

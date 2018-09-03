@@ -165,22 +165,6 @@ class Notification_Model_Index
         return $this->_db->getRowRecord($sql);
     }
 
-
-    /*public
-
-    function findNotCollectedShipmentCountByLoadIdentity($load_identity){
-        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='P'";
-        return $this->_db->getOneRecord($sql);
-    }
-
-    public
-
-    function findNotDeliveredShipmentCountByLoadIdentity($load_identity){
-        $sql = "SELECT COUNT(1) AS shipment_count FROM " . DB_PREFIX . "shipment where instaDispatch_loadIdentity='$load_identity' AND current_status='C' AND shipment_service_type='D'";
-        return $this->_db->getOneRecord($sql);
-    }*/
-
-
     public function startTransaction() {
         $this->_db->startTransaction();
     }

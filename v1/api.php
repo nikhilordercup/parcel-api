@@ -2321,6 +2321,21 @@ $app->post('/loadPostpaidCustomer', function() use ($app) {
     $response = $obj->loadPostpaidCustomer($r->company_id);
     echoResponse(200, $response);
 });
+$app->post('/saveEasyPostTracking', function() use ($app){
+    $r = json_decode(file_get_contents("php://input"));
+    $obj = new Easypost_Tracking($r->data);
+    $obj->saveTracking();
+    exit();
+});
+/*
+$app->post('/createTracking', function() use ($app){
+    $r = json_decode(file_get_contents("php://input"));
+    $tracking_code = "1174215114";
+    $carrier = "DHLExpress";
+    $obj = new Create_Tracking();
+    $obj->createTracking($tracking_code, $carrier);
+    exit();
+});*/
    
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
