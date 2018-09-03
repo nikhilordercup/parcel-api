@@ -4,3 +4,6 @@ vendor/
 .idea
 .vscode
 .vagrant
+pod/
+assets/outputpdf
+config.php
