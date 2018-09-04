@@ -111,7 +111,6 @@ public function createInvoice($param){
                  $invoicePriceData['total_ammount'] += $docketdata['total'];
                  $updatestatus = $this->modelObj->editContent('invoices',$invoicePriceData," id = '".$invoiceId."'");  
              }
-<<<<<<< HEAD
             }
             $voucherAllPrices = array();
             if(isset($val['vouchers']) and count($val['vouchers'])>0){
