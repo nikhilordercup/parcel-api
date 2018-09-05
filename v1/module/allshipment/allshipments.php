@@ -178,6 +178,7 @@ class allShipments extends Icargo
 							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
 							$data['cancel_status']      = $pickupData['cancel_status'];
                             $data['collection_reference'] = "";
+                            $data['shipment_status']        = $pickupData['current_status'];
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -190,9 +191,9 @@ class allShipments extends Icargo
                         $lastDeliveryarray        = end($innerval['SAME']['D']);
                         $data['deliverypostcode'] = $lastDeliveryarray['shipment_postcode'];
                         $data['delivery']         = $lastDeliveryarray['shipment_postcode'] . ', ' . $lastDeliveryarray['shipment_customer_country'];
-                        foreach ($innerval['SAME']['D'] as $deliverykey => $deliveryData) {
-                            $shipmentstatus[] = $deliveryData['current_status'];
-                        }
+                        //foreach ($innerval['SAME']['D'] as $deliverykey => $deliveryData) {
+                            //$shipmentstatus[] = $deliveryData['current_status'];
+                        //}
                     }
                     /*$arrd = array_unique($shipmentstatus);
                     if (count($arrd) > 1) {
@@ -211,9 +212,7 @@ class allShipments extends Icargo
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
                             $labelArr = json_decode($pickupData['label_json']);
-
-
-                            if(is_object($labelArr) && count($labelArr)>0){
+                            if(is_object($labelArr) && count( (array)$labelArr)>0){
                                     $collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
                             }else{
                                     $collectionReference = "";
@@ -235,7 +234,8 @@ class allShipments extends Icargo
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
 							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
 							$data['cancel_status'] = $pickupData['cancel_status'];
-							$data['collection_reference'] = $collectionReference;
+							$data['shipment_status']        = $pickupData['current_status'];
+                            $data['collection_reference'] = $collectionReference;
 							
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }

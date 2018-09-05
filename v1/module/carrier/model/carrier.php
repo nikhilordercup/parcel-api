@@ -175,7 +175,7 @@ class Carrier_Model_Carrier
         WHERE   CCC.status = 1 AND  COMCOUR.status = 1 
         AND CCC.customer_id = '$customer_id'
         AND CCC.company_id = '$company_id'
-        AND CCC.courier_id = '$courier_id'";
+        AND CCC.company_courier_account_id = '$courier_id'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }
 

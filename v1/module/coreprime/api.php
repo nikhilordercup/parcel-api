@@ -147,12 +147,11 @@ class Module_Coreprime_Api extends Icargo
         }
         //$carrier = $this->modelObj->getCustomerCode($param->customer_id);
         $carrier = $this->modelObj->getCustomerCarrierData($param->customer_id, $param->company_id);
-
         $carriers =  array();
         if(count($carrier)>0){
             foreach($carrier as $carrierData){
 				if($carrierData['is_self']=='YES'){
-					$service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_id']);
+					$service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
 
 					if(count($service)>0){
 						$tempservice = array();
@@ -168,7 +167,6 @@ class Module_Coreprime_Api extends Icargo
         }else{
             return array("status" => "error", "message" => "Carrier Not configured or disabled for this customer");
         }
-
         $post_data = [];
         /*$post_data["credentials"] = array(
             "account_number" => $carrier['account_number'],

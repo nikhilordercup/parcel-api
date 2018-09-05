@@ -127,7 +127,7 @@ function verifyToken($app,$r) {
     else{
       $error = true;  
       $response["status"] = "fail";
-      $response["message"] = 'your account is not inactive,Please contact to admin';
+      $response["message"] = 'your account is inactive,Please contact to admin';
       $response["error_code"] = "ERROR003"; 
     }
      }catch(Exception $e){
