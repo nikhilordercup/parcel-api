@@ -73,4 +73,15 @@ $app->post('/cancelJob', function() use ($app) {
 	$saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
     echoResponse(200, $records);
 });
+$app->post('/getShipmentTracking', function() use ($app) { 
+    $response = array();
+    $r = verifyToken($app,$app->request->getBody());
+    $r->endpoint = 'getShipmentTracking';
+    $obj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
+	$records = $obj->getShipmentTracking($r);
+	$saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
+    echoResponse(200, $records);
+});
+
+    
 ?>

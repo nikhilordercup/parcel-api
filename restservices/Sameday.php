@@ -1613,5 +1613,40 @@ class Sameday extends  Booking
                     $d = DateTime::createFromFormat($format, $date);
                     return $d && $d->format($format) == $date;
         }
+    
+    
+    public  function getShipmentTracking($param){ 
+        $param->job_identity = array($param->identity);
+        $param->user = $param->company_id;
+        $endpoint      = $this->endpoint;
+        if(!isset($param->identity) || ($param->identity=='')){
+                 $response = array(); 
+                 $response["status"] = "fail";
+                 $response["message"] = 'identity missing';
+                 $response["error_code"] = "ERROR0052";   
+                 return $response;
+        }
+        $loadServiceDetail =  $this->resrServiceModel->getLoadServiceDetails($param->identity);
+         if($loadServiceDetail['customer_id'] != $param->customer_id){
+             $response = array(); 
+             $response["status"] = "fail";
+             $response["message"] = 'Unauthorized tracking inquiry';
+             $response["error_code"] = "ERROR0063";   
+             return $response;
+         }
+         elseif(!is_array($loadServiceDetail) || empty($loadServiceDetail)){
+             $response = array(); 
+             $response["status"] = "fail";
+             $response["message"] = 'No shipment found';
+             $response["error_code"] = "ERROR0059";   
+             return $response;
+        }else{ 
+             unset($param->identity);
+             return $this->allShipmentsObj->loadTracking($param);
+            
+        }
+      } 
+    
+        
 }
 ?>

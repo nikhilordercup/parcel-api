@@ -753,6 +753,24 @@ SELECT  S.warehouse_id as warehouse_id,
       }
     
     
+    
+       public function getShipmentTrackingID($identity){ 
+       $record = array();
+         $sqldata = 'S.tracking_id';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_tracking AS S
+                 WHERE S.load_identity = '" . $identity . "'";
+         return $this->db->getRowRecord($sql); 
+        
+      }  
+      public function getShipmentTrackingDetails($identity){ 
+       $record = array();
+         $sqldata = 'S.*';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "tracking_detail AS S
+                WHERE S.load_identity = '" . $identity . "'";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    
         
   }           
 ?>
