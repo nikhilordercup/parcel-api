@@ -759,8 +759,17 @@ final class Nextday extends Booking {
                 "label_json" => isset( $labelInfo['label_json'] ) ? $labelInfo['label_json'] : ''
             );
             
+<<<<<<< HEAD
             $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData,$loadIdentity);
 
+=======
+            $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
+
+            //tracking
+            $obj = new Create_Tracking();
+            $obj->createTracking($labelData["label_tracking_number"], $carrier_code);
+            
+>>>>>>> 006dff53dac8dcf9318f2cf29e84e6ad1e0d8c0d
             /************update booking status to success from pending*****************/
             $statusArr = array("status"=>"success");
             $this->modelObj->updateBookingStatus($statusArr,$loadIdentity);
@@ -821,5 +830,9 @@ final class Nextday extends Booking {
         return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
     }
 }
+<<<<<<< HEAD
 
 ?>
+=======
+?>
+>>>>>>> 006dff53dac8dcf9318f2cf29e84e6ad1e0d8c0d

@@ -153,5 +153,4 @@ class CustomerCostFactor
         return $surcharge_ccf_price;
     }
 }
-
 ?>
