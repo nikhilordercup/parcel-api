@@ -211,7 +211,7 @@ final class Nextday extends Booking
                                                 $surchargeCcf["courier_surcharge_name"] = "Collection Surcharge";
                                                 $surchargeCcf["carrier_id"]             = $collected_item["carrier_id"];
                                             } else {
-                                                $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$accountNumber]["carrier_id"], $surcharge_price);
+                                                $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$accountNumber]["account_id"], $surcharge_price);
                                             }
                                             
                                             $collected_item["surcharges"][$surcharge_code] = $surchargeCcf;
@@ -345,7 +345,7 @@ final class Nextday extends Booking
                                                 $surchargeCcf["courier_surcharge_name"] = "Collection Surcharge";
                                                 $surchargeCcf["carrier_id"]             = $collected_item["carrier_id"];
                                             } else {
-                                                $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$accountNumber]["carrier_id"], $surcharge_price);
+                                                $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $this->_param->customer_id, $this->_param->company_id, $this->carrierList[$accountNumber]["account_id"], $surcharge_price);
                                             }
                                             
                                             $collected_item["surcharges"][$surcharge_code] = $surchargeCcf;
@@ -650,8 +650,8 @@ final class Nextday extends Booking
             );
             $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
             //tracking
-            $obj = new Create_Tracking();
-            $obj->createTracking($labelData["label_tracking_number"], $carrier_code);
+           // $obj = new Create_Tracking();
+            //$obj->createTracking($labelData["label_tracking_number"], $carrier_code);
             /************update booking status to success from pending*****************/
             $statusArr = array(
                 "status" => "success"
