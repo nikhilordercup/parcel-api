@@ -91,13 +91,13 @@ function verifyToken($app,$r) {
         $tokenData = decodeJWtKey($token);
         $responceData = $model->getTokenofCustomer($tokenData);
     if(count($responceData)>0){
-        if(CHECKED  && $responceData['url'] !=$fullReqUrl){
+        /*if(CHECKED  && $responceData['url'] !=$fullReqUrl){
                 $error = true;  
                 $response["status"] = "fail";
                 $response["message"] = 'your tried with unauthorized resource ';
                 $response["error_code"] = "ERROR001";
         }
-        elseif($token != $responceData['token']){
+        else*/if($token != $responceData['token']){
             $error = true;  
             $response["status"] = "fail";
             $response["message"] = 'wrong accesstoken passed';
