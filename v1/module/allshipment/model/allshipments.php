@@ -706,7 +706,7 @@ SELECT  S.warehouse_id as warehouse_id,
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS RECJOB
                  LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = RECJOB.customer_id
                  LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = RECJOB.company_carrier_id
-         where RECJOB.company_id  = '$companyId' ";//group by RECJOB.load_identity ";
+         where RECJOB.company_id  = '$companyId' group by RECJOB.load_identity ";
         $record = $this->db->getAllRecords($sql); 
         return $record;
       }

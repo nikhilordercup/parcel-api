@@ -91,9 +91,9 @@ class restservices_Model
                     A.transit_distance_text,A.transit_time_text,A.max_delivery_time,A.carrier,A.booked_service_id ,SER.service_code, 
 	                COM.account_number,COM.username,COM.password,COUR.code';
        $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "shipment_service as A
-               INNER JOIN icargo_courier_vs_company as COM on COM.id = A.carrier
-               INNER JOIN icargo_courier_vs_services as SER on SER.id = A.booked_service_id
-               INNER JOIN icargo_courier as COUR on COUR.id = A.carrier
+               INNER JOIN " . DB_PREFIX . "courier_vs_company as COM on COM.id = A.carrier
+               INNER JOIN " . DB_PREFIX . "courier_vs_services as SER on SER.id = A.booked_service_id
+               INNER JOIN " . DB_PREFIX . "courier as COUR on COUR.id = COM.courier_id 
                WHERE  A.load_identity = '$loadIdentity'";
         return $this->db->getRowRecord($sql);
     }
@@ -105,7 +105,7 @@ class restservices_Model
                    S.address_id,S.user_id,S.customer_id,S.shipment_companyName,S.shipment_country_code,S.shipment_notes,S.customer_id,S.warehouse_id,
                    W.latitude as warehouse_latitude,W.longitude as warehouse_longitude,S.company_id';
         $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "shipment as S
-                INNER JOIN icargo_warehouse as W on W.id = S.warehouse_id 
+                INNER JOIN " . DB_PREFIX . "warehouse as W on W.id = S.warehouse_id 
                 WHERE  S.instaDispatch_loadIdentity = '$loadIdentity'";
         return $this->db->getAllRecords($sql);
     } 

@@ -30,6 +30,7 @@ $app->get('/executeRecurringJob', function() use($app){
         $response = array();
         $r = verifyTokenByPass($app,$app->request->getBody());
         $r->endpoint = 'bookedRecurringJob';
+        $app->request->headers->set('Authorization',$r->token);
         $sameobj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
         //$nextobj = new Nextday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>'bookedRecurringJob'));
         $records = $sameobj->executeSameDayRecurringJob($r);
