@@ -1867,14 +1867,14 @@ class allShipments extends Icargo
         $shipmentsInfoData     = $this->modelObj->checkEligibleforRecurring($loadidentity);
         if($shipmentsInfoData and $shipmentsInfoData['is_recurring']!=''){
             if($shipmentsInfoData['is_recurring']=='YES'){
-                return array("status"=>"success", "is_recurring"=>true);
+                return array("status"=>"success", "is_recurring"=>false);
             }elseif($shipmentsInfoData['is_recurring']=='NO'){
-                return array("status"=>"error", "is_recurring"=>false);
+                return array("status"=>"error", "is_recurring"=>true);
             }else{
-                return array("status"=>"error", "is_recurring"=>false);
+                return array("status"=>"error", "is_recurring"=>true);
             }
         }else{
-            return array("status"=>"error", "message"=>"is_recurring error", "is_recurring"=>false);
+            return array("status"=>"error", "message"=>"is_recurring error", "is_recurring"=>true);
         }
      }    
     
