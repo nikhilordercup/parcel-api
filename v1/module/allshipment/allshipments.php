@@ -1396,18 +1396,19 @@ class allShipments extends Icargo
 			
 	}
 	
-	public function cancelShipmentByLoadIdentity($param){
+	public function cancelShipmentByLoadIdentity($param){ 
             $carrierObj = new Carrier();
             $carrier_code = $param->carrier_code;
             if(strtolower($carrier_code) == 'dhl') {
                 return $this->_updateShipmentCancel($param);    
-            } else {                
+            } else {
                 $cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
                 $cancelShipment = json_decode($cancelShipment);
                 if(isset($cancelShipment->void_consignment)){
                     return $this->_updateShipmentCancel($param);    
                 }else{
-                    return array("status"=>"error","message"=>$cancelShipment->error);
+                   // return array("status"=>"error","message"=>$cancelShipment->error);
+                    return array("status"=>"error","message"=>"cancel request not completed by carrier");
                 }
             }
 	}
@@ -1656,7 +1657,7 @@ class allShipments extends Icargo
         $company_id   = $param->company_id;
         $job_type     = $param->job_type;
         $load_identity  = $param->job_identity[0];
-        $status         = $this->modelObj->deleteContent("DELETE from icargo_recurring_jobs where load_identity  = '$loadidentity' AND company_id = '$company_id'");
+        $status         = $this->modelObj->deleteContent("DELETE from icargo_recurring_jobs where load_identity  = $loadidentity AND company_id = '$company_id'");
         $condition   = "load_identity  = '$load_identity'";
         $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'YES'), $condition);
         if(count($param->paramdata->alldata)>0){
@@ -1744,24 +1745,65 @@ class allShipments extends Icargo
         $userId             = $param->user; 
         if(is_array($param->job_identity) && count($param->job_identity)>0){    
           foreach($param->job_identity as $valdata){
+           
+             $shipment_type =  $this->modelObj->getShipmentsType($valdata); 
+             if($shipment_type and $shipment_type['shipment_type']!=''){
+                if($shipment_type['shipment_type']=='NEXT'){
+                    $tempdata = array();
+                    $tempdata['load_identity']  = $valdata;
+                    $tempdata['carrier']        = $shipment_type['code'];
+                    $tempdata['ship_date']      = date('Y-m-d',strtotime($shipment_type['booking_date']));
+                    $tempdata['carrier_code']   = $shipment_type['code'];
+                    $courierStatus = $this->cancelShipmentByLoadIdentity((object)$tempdata);
+                    if($courierStatus['status']!='error'){
+                        $returnData[]       = $param->job_identity;
+                        $requestStatus = $this->cancelJobRequest($valdata,$company_id,$userId,$param);
+                        if($requestStatus['status']!='error'){
+                             return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
+                        }else{
+                             return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00003"); 
+                        }
+                    }else{  
+                         return   array("status"=>"fail", "message"=>"courier not allow for cancellation","error_code"=>"ERRORCAN00001"); 
+                    }
+                  }
+                elseif($shipment_type['shipment_type']=='SAME'){
+                        $returnData[]    = $param['job_identity'];
+                        $requestStatus = $this->cancelJobRequest($valdata,$company_id,$userId,$param);
+                        if($requestStatus['status']!='error'){
+                             return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
+                        }else{
+                             return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00002"); 
+                        }
+                    }
+                else{
+                   return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00004"); 
+                }   
+             }
+           }
+        }else{
+          return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00005"); 
+        }
+    return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
+}     
+    public function cancelJobRequest($valdata,$company_id,$userId,$param){
            $loadDetail = $this->modelObj->getLoadDetail($valdata); 
            $voucherUpdate = $this->manageVoucherAndAccount($loadDetail,$loadDetail['grand_total'],'CREDIT',$company_id,$userId); 
            if($voucherUpdate['status']=='success'){
               if(isset($loadDetail['cancelation_charge']) and $loadDetail['cancelation_charge'] > 0){
                $this->manageVoucherAndAccount($loadDetail,$loadDetail['cancelation_charge'],'DEBIT',$company_id,$userId);        
               } 
-                $returnData       = $param->job_identity;
+                //$returnData       = $param->job_identity;
                 $condition        = "load_identity = '" . $valdata . "'";
                 $status1          = $this->modelObj->editContent("shipment_service", array('status'=>'cancel'), $condition);
                 $condition        = "instaDispatch_loadIdentity = '" . $valdata . "'";
                 $status2          = $this->modelObj->editContent("shipment", array('current_status'=>'Cancel'), $condition);
-           }   
-          }
-        }else{
-          return   array("status"=>"fail", "message"=>"Please pass valid cancel identity"); 
-        }
-    return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
-}     
+                return array("status"=>"success", "message"=>"cancel successfull"); 
+           }
+           else{
+              return array("status"=>"error", "message"=>"cancel job request fail","error_code"=>"ERRORCAN00006"); 
+           }
+        }    
     public function manageVoucherAndAccount($loadDetail,$amount,$payemntType,$companyId,$userId){
    $voucherRef = '';
    $getCustomerdetails  =  $this->modelObj->getCustomerInfo($loadDetail['customer_id']);
@@ -1796,8 +1838,7 @@ class allShipments extends Icargo
     $accountUpdatestatus =  $this->manageAccount($dataarr);
     return $accountUpdatestatus;
 }  
-
-  public function loadTracking($param){
+    public function loadTracking($param){
         $returnData = array();
         $company_id         = $param->company_id;
         $userId             = $param->user; 
@@ -1820,6 +1861,23 @@ class allShipments extends Icargo
         }
         return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$trackingDetail);
 }
+    
+    public function checkEligibleforRecurring($param){ 
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+        $shipmentsInfoData     = $this->modelObj->checkEligibleforRecurring($loadidentity);
+        if($shipmentsInfoData and $shipmentsInfoData['is_recurring']!=''){
+            if($shipmentsInfoData['is_recurring']=='YES'){
+                return array("status"=>"success", "is_recurring"=>true);
+            }elseif($shipmentsInfoData['is_recurring']=='NO'){
+                return array("status"=>"error", "is_recurring"=>false);
+            }else{
+                return array("status"=>"error", "is_recurring"=>false);
+            }
+        }else{
+            return array("status"=>"error", "message"=>"is_recurring error", "is_recurring"=>false);
+        }
+     }    
+    
         
 }
 ?>

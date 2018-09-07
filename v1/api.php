@@ -2222,6 +2222,7 @@ $app->post('/getRecurringJobs', function() use ($app) {
 	$records = $obj->getRecurringJobs($r);
 	echoResponse(200, $records);
 });
+
 $app->post('/editRecurringjobStatus', function() use ($app) { 
 	$response = array();
 	$r = json_decode($app->request->getBody());
@@ -2336,7 +2337,14 @@ $app->post('/createTracking', function() use ($app){
     $obj->createTracking($tracking_code, $carrier);
     exit();
 });*/
-   
+$app->post('/checkEligibleforRecurring', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->checkEligibleforRecurring($r);
+	echoResponse(200, $records);
+});  
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);

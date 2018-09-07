@@ -128,12 +128,13 @@ class View_Support extends Icargo{
         $records = $this->modelObj->getActiveRoute($this->company_id);
 
         foreach($records as $key => $record){
+            $shipmentData = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $record['shipment_route_id'], $record["driver_id"]);
+            if(count($shipmentData)>0){
             $temp[$record['shipment_route_id']]['info']['row_id'] = $key;
-
+            
             //get driver name
             $driverData = $this->modelObj->getCustomerById($record["driver_id"]);
 
-            $shipmentData = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $record['shipment_route_id'], $record["driver_id"]);
             $temp[$record['shipment_route_id']]['info']['shipment_routed_id'] = $record["shipment_route_id"];
             $temp[$record['shipment_route_id']]['info']['route_id'] = $record["route_id"];
             $temp[$record['shipment_route_id']]['info']['assign_driver'] = $record["driver_id"];
@@ -205,6 +206,7 @@ class View_Support extends Icargo{
                 $temp[$record['shipment_route_id']]['info']['parcels'] = $parcels;
                 $temp[$record['shipment_route_id']]['info']['parcel_count'] = count($parcels);
             }
+        }
         }
         return $temp;
     }
