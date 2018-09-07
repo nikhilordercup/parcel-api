@@ -1,5 +1,5 @@
 <?php
-date_default_timezone_set('Europe/Bucharest');
+date_default_timezone_set('Europe/London');
 require_once '../v1/constant.php';
 require_once '../Credentials.php';
 require_once '../v1/dbHandler.php';
@@ -164,6 +164,7 @@ function verifyTokenByPass($app,$r) {
             $r->warehouse_id            = $responceData['warehouse_id'];         
             $r->warehouse_latitude      = $responceData['warehouse_latitude'];         
             $r->warehouse_longitude     = $responceData['warehouse_longitude'];
+            $r->token                   = $responceData['token'];
             $r->webToken                = 1;
             $r->status                  = 'success';
             return $r;

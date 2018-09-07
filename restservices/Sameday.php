@@ -1441,34 +1441,38 @@ class Sameday extends  Booking
     public      function getEligibleRecurringJob(){
         $reccuringBucket =  array();
         $recurringData = $this->resrServiceModel->getSamedayReccuringJobs();
-        //print_r($recurringData);die;
+        //print_r($recurringData);
+        $currenttime  = date("H:i:s");
+        //print_r($currenttime);die;
         if(count($recurringData)>0){
             foreach($recurringData as $reccuringVal){
                 switch($reccuringVal['recurring_type']){
                     case 'DAILY':
-                      if(strtotime(date("H:m:s")) >= strtotime($reccuringVal['recurring_time'])){
+                     //echo strtotime($currenttime);echo '</br>';echo  strtotime($reccuringVal['recurring_time']);echo '</br>';
+                      if(strtotime($currenttime) >= strtotime($reccuringVal['recurring_time']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
                           $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);   
                       }    
-                    break;
+                    //break;
                     case 'WEEKLY':
-                      if((strtotime(date("H:m:s")) >= strtotime($reccuringVal['recurring_time'])) && (strtoupper(date("D"))===$reccuringVal['recurring_day'])){
+                      if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (strtoupper(date("D"))===$reccuringVal['recurring_day']) && (strtotime(date('Y-m-d')) >= strtotime($reccuringVal['last_booking_date']))){
                           $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);   
                       } 
-                    break;
+                    //break;
                     case 'MONTHLY':
-                      if((strtotime(date("H:m:s")) >= strtotime($reccuringVal['recurring_time'])) && (date("d")===$reccuringVal['recurring_month_date'])){
+                      if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (date("d")===$reccuringVal['recurring_month_date']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
                           $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);   
                       }      
                        
-                    break;
+                   // break;
                     case 'ONCE':
-                      if((strtotime(date("H:m:s")) >= strtotime($reccuringVal['recurring_time'])) && (strtotime(date("Y-m-d"))===strtotime($reccuringVal['recurring_date']))){
-                          $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);   
+                      if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (strtotime(date("Y-m-d"))===strtotime($reccuringVal['recurring_date']))){
+                          $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal && ($reccuringVal['last_booking_date'] == '1970-01-01' ) );   
                       }
-                    break;
+                    //break; 
                  }
                }
             }
+        //print_r($reccuringBucket);die;
         return $reccuringBucket;  
     }
     public      function bookSamedayByLoadIdentity($loadidentity){
@@ -1607,6 +1611,7 @@ class Sameday extends  Booking
         $data['web_request'] = json_encode($req);
         $data['web_responce'] = json_encode($resp);
         $data['requested_url'] = $url;
+        $data['create_date'] = date('Y-m-d H:i:s');
         $this->resrServiceModel->addContent('api_request_response',$data);
     }
     public      function isValidServiceDate($date, $format = 'Y-m-d H:i'){
