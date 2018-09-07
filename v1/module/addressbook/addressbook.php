@@ -20,7 +20,7 @@ class Module_Addressbook_Addressbook extends Icargo{
 	    if(isset($param->origin) && $param->origin=='api')
 	    {
 	        $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookup($param->search_postcode);
+            $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
 
             if($addresses["status"]=="success")
             {

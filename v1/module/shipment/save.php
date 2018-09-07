@@ -225,7 +225,7 @@ class shipment extends Library{
 		return $record['id'];
 	}
 	
-	private function _add_shipment_data_nextday_sameday($data){
+	private function _add_shipment_data_nextday_sameday($data){print_r($data);die;
 		
 		if($data['itemCount'] > 0){
 			$data['jobLoadItems']['jobLoadItem'] = array($data['jobLoadItems']['jobLoadItem']);
@@ -1433,7 +1433,7 @@ class shipment extends Library{
 
     private
     
-    function _save_address($address){
+    function _save_address($address){print_r($address);die;
         $postcode = $this->postcodeObj->validate($address["postcode"]);
        
         if($postcode){
@@ -1490,7 +1490,7 @@ class shipment extends Library{
 
     private
     
-    function _bookSameDayShipment($param){ 
+    function _bookSameDayShipment($param){
         $shipment_data = $param["shipment_data"];
         //address
         $address = $this->_save_address($shipment_data);
@@ -1606,7 +1606,7 @@ class shipment extends Library{
         
     function bookSameDayShipment($data)
     {   
-       
+       print_r($data);die;
         $carrier_id = $data->service_detail->otherinfo->courier_id;
 
         //check customer is enable or not  shipment_instruction

@@ -7,12 +7,13 @@ Class Address_Lookup{
     
     public
     
-    function lookup($string)
+    function lookup($string,$countryCode='')
     {
         //Set Licence and Account Code
         $postcodeObj = new Postcode();
-        $string = $postcodeObj->validate($string);
-		if($string!=''){
+        $string = $postcodeObj->validate($string,$countryCode);
+        //if($string!=''){
+		if(count($string)>0){
 			$oPostcode = new interactiveFindByPostcode();//interactiveRetrieveByAddress();
         
 			$oPostcode->setLicenceKey('JJ36-KU94-DC22-FN63');
@@ -23,13 +24,11 @@ Class Address_Lookup{
 			
 			//Set Language (Not needed, english is the default)
 			$oPostcode->setLanguage('English');
-			
 			//Set the company were looking for and address
 			//$oPostcode->setCompany('Enevis Ltd');
 			//$oPostcode->setAddress('Twistleton Court, DA1 2EN');
 			//$oPostcode->setAddress($string);
-
-			$oPostcode->setPostcode($string);
+			$oPostcode->setPostcode($string[0],$string[1]);
 			
 			if (!$oPostcode->run()) {
 				//Ensure there isn't any errors

@@ -12,7 +12,7 @@ define('LABEL_URL', '');*/
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', '');
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'icargo');
+define('DB_NAME', 'icargon');
 define('DB_PREFIX', 'icargo_');
 define('LABEL_URL', '/dev/');
 ?>
