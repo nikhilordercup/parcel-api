@@ -706,7 +706,7 @@ SELECT  S.warehouse_id as warehouse_id,
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS RECJOB
                  LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = RECJOB.customer_id
                  LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = RECJOB.company_carrier_id
-         where RECJOB.company_id  = '$companyId' group by RECJOB.load_identity ";
+         where RECJOB.company_id  = '$companyId' ";//group by RECJOB.load_identity ";
         $record = $this->db->getAllRecords($sql); 
         return $record;
       }
@@ -770,6 +770,24 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getAllRecords($sql); 
         return $record;
       }
+     public function getShipmentsType($loadidentity){
+        $sqldata = 'S.shipment_type,COUR.code,S.booking_date';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_view AS S
+                LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COMCOUR ON COMCOUR.id = S.carrier
+                LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = COMCOUR.courier_id
+                WHERE S.instaDispatch_loadIdentity  = '" . $loadidentity . "'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+       }
+        
+    public function checkEligibleforRecurring($identity){ 
+       $record = array();
+         $sqldata = 'S.is_recurring';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service AS S
+                 WHERE S.load_identity = " . $identity . "";
+         return $this->db->getRowRecord($sql); 
+        
+      }  
     
         
   }           
