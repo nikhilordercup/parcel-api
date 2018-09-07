@@ -177,7 +177,7 @@ class Booking_Model_Booking
     public
 
     function getInternalCarrier($company_id){
-        $sql = "SELECT CT.description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.account_number, CCT.pickup, CCT.pickup_surcharge, CCT.collection_start_at, CCT.collection_end_at, CCT.is_internal AS internal, CCT.username, CCT.password FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id=CT.id WHERE CCT.company_id='$company_id' AND CCT.status='1'";
+        $sql = "SELECT CT.description, CT.icon AS icon, CT.id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.account_number, CCT.pickup, CCT.pickup_surcharge, CCT.collection_start_at, CCT.collection_end_at, CCT.is_internal AS internal, CCT.username, CCT.password FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id=CT.id WHERE CCT.company_id='$company_id' AND CCT.status='1' AND CCT.is_internal=1";
         return $this->_db->getRowRecord($sql);
     }
 

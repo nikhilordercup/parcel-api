@@ -28,6 +28,7 @@ final Class Collection{
         $this->collectionStartAt = "00:00:00";
         $this->collectionEndAt   = "00:00:00";
         $this->isRegularPickup   = "no"; // regular pickup no means initilly it is set to schedule pickup
+		$this->skipPickupProcess = false;
     }
 
     public
@@ -84,7 +85,6 @@ final Class Collection{
         $this->_getCollectionAddressString();
 
         $this->_findCourier($this->carriers);
-
         $result = array();
         if(count($this->carrierList)>0){
             foreach($this->carrierList as $item){
@@ -92,7 +92,9 @@ final Class Collection{
             }
 
             $this->_findInternalCourier();
-            array_push($result, $this->internalCarrier);
+			if(isset($this->internalCarrier)){
+				array_push($result, $this->internalCarrier);
+			}    
         }
         return $result;
     }
@@ -195,8 +197,8 @@ final Class Collection{
             $item["is_regular_pickup"]    = $this->isRegularPickup;
             $item["collection_date_time"] = $collectionDateTime;
             $collectionList = $this->_prepareCollectionList($item);
-
-            if($item["pickup"]==1 || $this->isRegularPickup=="yes"){
+            
+            if($item["pickup"]==1 || $this->isRegularPickup=="yes" || $this->skipPickupProcess==true){
                 //collected by carrier itself
                 $collectionList["collected_by"][] = array(
                     "carrier_code"         => $collectionList["carrier_code"],
@@ -293,6 +295,8 @@ final Class Collection{
         $defaultCollectionAddStr = $this->_getAddressString($defaultCollectionAddress);
         if($this->CollectionAddressStr==$defaultCollectionAddStr)
             $this->isRegularPickup = "yes";
+		else
+			$this->skipPickupProcess = true;
     }
 
     private
