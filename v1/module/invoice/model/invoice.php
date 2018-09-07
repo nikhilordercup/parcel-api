@@ -244,5 +244,14 @@ class AllInvoice_Model
         $record = $this->db->getAllRecords($sql);
         return $record;
      }
+    public function getPrepaidCustomer($company_id){
+        $record = array();
+        $sqldata = 'U.name,U.id,U.email';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "users as U 
+                LEFT JOIN " . DB_PREFIX ."customer_info as C ON C.user_id = U.id
+                WHERE U.user_level = 5 AND C.customer_type = 'PREPAID' AND U.parent_id = '$company_id' order by U.name";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+     }
    }
 ?>

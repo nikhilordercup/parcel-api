@@ -2345,6 +2345,33 @@ $app->post('/checkEligibleforRecurring', function() use ($app) {
 	$records = $obj->checkEligibleforRecurring($r);
 	echoResponse(200, $records);
 });  
+$app->post('/loadPrepaidCustomer', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->loadPrepaidCustomer($r->company_id);
+    echoResponse(200, $response);
+});
+$app->post('/prepaidrecharge', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->prepaidrecharge($r);
+    echoResponse(200, $response);
+}); 
+
+$app->post('/downloadAccountStatements', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','customer_id','from','to'),$r);
+	$response = $obj->downloadAccountStatements($r);
+	echoResponse(200, $response);
+});
+
+
+
+
+
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);

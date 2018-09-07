@@ -696,9 +696,9 @@ SELECT  S.warehouse_id as warehouse_id,
          RECJOB.job_id AS id,
          RECJOB.load_identity AS job_reference,
          RECJOB.load_type AS type,
-         RECJOB.last_booking_date AS last_booek_date,
-         RECJOB.last_booking_time AS last_booeked_time,
-         RECJOB.last_booking_reference AS last_booeked_ref,
+         RECJOB.last_booking_date AS last_booked_date,
+         RECJOB.last_booking_time AS last_booked_time,
+         RECJOB.last_booking_reference AS last_booked_ref,
          RECJOB.recurring_type AS recurring_type,
          RECJOB.status AS status,
          COUR.name as carrier,
@@ -706,7 +706,7 @@ SELECT  S.warehouse_id as warehouse_id,
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS RECJOB
                  LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = RECJOB.customer_id
                  LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = RECJOB.company_carrier_id
-         where RECJOB.company_id  = '$companyId' ";//group by RECJOB.load_identity ";
+         where RECJOB.company_id  = '$companyId' group by RECJOB.load_identity ";
         $record = $this->db->getAllRecords($sql); 
         return $record;
       }

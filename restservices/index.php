@@ -319,7 +319,7 @@ EOD;
         $response["status"] = "error";
         $response["message"] = 'unauthorized token';
         $response["error_code"] = "ERROR001"; 
-        echoResponse(400, $response);
+        echoResponse(400, $response);die;
         $app->stop();
     }
     return $jwtData;

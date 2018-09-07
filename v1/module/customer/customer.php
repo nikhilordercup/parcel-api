@@ -1261,5 +1261,133 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         return $response;
 	 } 
     
+                
+    private function getOriginandDestination($jobId){
+        $shipmentsData = $this->modelObj->getjobDetails($jobId);
+        $dataArray   =     array();
+        $data   =     array(); 
+        foreach($shipmentsData as $key=>$val){                                
+          $val['instaDispatch_loadGroupTypeCode']  = strtoupper($val['instaDispatch_loadGroupTypeCode']);    
+          $dataArray[$val['instaDispatch_loadIdentity']][strtoupper($val['instaDispatch_loadGroupTypeCode'])][$val['shipment_service_type']][]   = $val;
+         }
+        
+        if(count($dataArray)>0){
+          foreach($dataArray as $innerkey=>$innerval){
+            if(key($innerval) == 'SAME'){
+              if(array_key_exists('P',$innerval['SAME'])){  
+               foreach($innerval['SAME']['P'] as $pickupkey=>$pickupData){
+                 $data['collection'] = $pickupData['shipment_postcode'].' '.$pickupData['shipment_customer_country'];
+                 $data['collection_date'] = $pickupData['shipment_required_service_date'];  
+                   
+              }  
+            }       
+              if(array_key_exists('D',$innerval['SAME'])){  
+                $temp = array();
+                foreach ($innerval['SAME']['D'] as $key => $row){
+                   $temp[$key] = $row['icargo_execution_order'];
+                }
+                array_multisort($temp, SORT_ASC, $innerval['SAME']['D']);
+                $lastDeliveryarray =  end($innerval['SAME']['D']);
+                $data['delivery']  = $lastDeliveryarray['shipment_postcode'].' '.$lastDeliveryarray['shipment_customer_country'];
+            }
+            }
+            if(key($innerval) == 'NEXT'){ 
+             if(array_key_exists('P',$innerval['NEXT'])){  
+               foreach($innerval['NEXT']['P'] as $pickupkey=>$pickupData){
+                  $data['collection']          = $pickupData['shipment_postcode'].' '.$pickupData['shipment_customer_country'];
+                    $data['collection_date'] = $pickupData['shipment_required_service_date'];  
+              }  
+            }       
+             if(array_key_exists('D',$innerval['NEXT'])){  
+                krsort($innerval['NEXT']['D']);
+                $deliveryPostcode = array();
+                foreach($innerval['NEXT']['D'] as $deliverykey=>$deliveryData){
+                 $deliveryPostcode[$deliveryData['icargo_execution_order']]  = $deliveryData['shipment_postcode'].' '.$deliveryData['shipment_customer_country'];
+                }
+                krsort($deliveryPostcode);
+                $data['delivery']  = end($deliveryPostcode); 
+            }
+           } 
+          }
+        } 
+       return $data;
+   }  
+    public function downloadAccountStatements($param){  
+        $data =  $this->modelObj->downloadAccountStatements($param->customer_id,$param->from,$param->to,$param->company_id);
+        $customerdata =  $this->modelObj->getCustomerDetails($param->customer_id); 
+        $companydata  =  $this->modelObj->getCompanyDetails($param->company_id); 
+        $customerdata =  array_merge($companydata,$customerdata);
+        foreach($customerdata as $key=>$val){
+            $customerdata[$key] = !empty($val)?$val:'NA';
+        }
+        $pdfData   = array();
+        if(count($data)>0){
+            $ammountBucket = array('creditBucket'=>array(),'debitBucket'=>array());
+            foreach($data as $key=>$value){
+              if($value['payment_for'] == 'RECHARGE'){
+                    $temp = array();
+                    $temp['reference']          = $value['payment_reference'];
+                    $temp['invoice_type']       = $value['payment_for'];
+                    $temp['collection_date']    = date('Y-m-d',strtotime($value['create_date']));
+                    $temp['origin']             = 'NA';
+                    $temp['destination']        = 'NA';
+                    $temp['transaction']        = $value['payment_type'];
+                    $temp['chargable_value']    = 'NA';
+                    $temp['service_name']       = 'NA';
+                    $temp['customer_booking_reference'] = $value['payment_reference'];
+                    $temp['base_amount']        = 0.00;
+                    $temp['surcharge_total']    = 0.00;
+                    $temp['fual_surcharge']     = 0.00;
+                    $temp['tax']                = 0.00;
+                    $temp['total']              = $value['amount'];
+                    if($value['payment_type']=='DEBIT'){
+                        $ammountBucket['debitBucket'][] = $value['amount'];
+                    }elseif($value['payment_type']=='CREDIT'){
+                        $ammountBucket['creditBucket'][] = $value['amount'];
+                    }else{
+                        //
+                    }
+                    $pdfData[] = $temp;
+               }elseif($value['payment_for'] == 'BOOKSHIP' || $value['payment_for'] == 'PRICECHANGE' || $value['payment_for'] == 'CANCELSHIP'){
+                $temp = array();
+                $getDocketOriginandEndPoint = $this->getOriginandDestination($value['payment_reference']); 
+                if(!empty($getDocketOriginandEndPoint)){
+                    $temp['origin'] = isset($getDocketOriginandEndPoint['collection'])?$getDocketOriginandEndPoint['collection']:'';
+                    $temp['destination'] = isset($getDocketOriginandEndPoint['delivery'])?$getDocketOriginandEndPoint['delivery']:'';
+                    $temp['collection_date'] = ($getDocketOriginandEndPoint['collection_date']=='0000-00-00')?'1970-01-01':$getDocketOriginandEndPoint['collection_date'];
+                 }else{
+                    $temp['collection_date']    = 'NA';
+                    $temp['origin']             = 'NA';
+                    $temp['destination']        = 'NA';
+                 }
+                $shipmentDetails    =  $this->modelObj->getShipmentDetails($value['payment_reference'],$param->company_id);     
+                $temp['reference']          = $value['payment_reference'];
+                $temp['invoice_type']       = $value['payment_for'];
+                $temp['transaction']        = $value['payment_type'];
+                $temp['chargable_value']    = $shipmentDetails['chargable_value'];
+                $temp['service_name']       = $shipmentDetails['service_name'];
+                $temp['customer_booking_reference'] = $shipmentDetails['customer_booking_reference'];
+                $temp['base_amount']        =  $shipmentDetails['base_amount'];
+                $temp['fual_surcharge']     =  isset($shipmentDetails['fual_surcharge'])?$shipmentDetails['fual_surcharge']:0;  
+                $temp['surcharge_total']    =  ($shipmentDetails['surcharge_total']-$temp['fual_surcharge']);
+                $temp['tax']                =  $shipmentDetails['tax'];
+                $temp['total']              =  ($temp['base_amount']+$temp['surcharge_total']+$temp['fual_surcharge']+$temp['tax']);
+                if($value['payment_type']=='DEBIT'){
+                        $ammountBucket['debitBucket'][] = $value['amount'];
+                }elseif($value['payment_type']=='CREDIT'){
+                        $ammountBucket['creditBucket'][] = $value['amount'];
+                }else{
+                        //
+                    }
+               $pdfData[] = $temp;
+              }else{
+                  //
+              }  
+            }
+        }
+        $result = array('amount'=>array('creditBucket'=>array_sum($ammountBucket['creditBucket']),'debitBucket'=>array_sum($ammountBucket['debitBucket']))
+                        ,'data'=>$pdfData,'customer'=>$customerdata);
+        return $result;
+	}
  }
 ?>

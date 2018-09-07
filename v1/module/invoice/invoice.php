@@ -401,7 +401,7 @@ public function payinvoices($param){
          $updatestatus = $this->modelObj->editContent('invoices',
             array('invoice_status'=>'PAID')," invoice_reference = '".$param->invoice_reference."' AND invoice_status != 'CANCEL'");
          if($updatestatus){
-              $datastatus =  $this->_manageAccounts($param->customer_id,$param->company_id,$param->payamount,$param->invoice_reference);
+              $datastatus =  $this->_manageAccounts($param->customer_id,$param->company_id,$param->payamount,$param->invoice_reference,'PAYINVOICE','INVOICE PAYMENT');
               if($datastatus['status']=='success'){
                   $this->db->commitTransaction();
                    return array('status'=>true,'message'=>$param->invoice_reference.' Paid','reference'=>$param->invoice_reference);
@@ -423,7 +423,7 @@ public function payinvoices($param){
         return array('status'=>"false",'message'=>'already paid','code'=>'SERR14');  
     }
 }    
-public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef){
+public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef,$payfor,$paydesc){
      $customerData = $this->modelObj->getCustomerAccount($customer_id);
      $creditbalanceData = array();
      $creditbalanceData['customer_id']          = $customer_id;
@@ -435,8 +435,8 @@ public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef){
      $creditbalanceData['balance']              = $customerData["available_credit"] + $amount;
      $creditbalanceData['create_date']          = date("Y-m-d");
      $creditbalanceData['payment_reference']    = $invoiceRef;
-     $creditbalanceData['payment_desc']         = 'INVOICE PAYMENT';
-     $creditbalanceData['payment_for']          = 'PAYINVOICE';
+     $creditbalanceData['payment_desc']         = $paydesc;
+     $creditbalanceData['payment_for']          = $payfor;
      $addHistory                                = $this->modelObj->addContent('accountbalancehistory',$creditbalanceData);
      if($addHistory){
          $condition     = "user_id = '".$customer_id."'";
@@ -445,12 +445,28 @@ public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef){
               return array("status"=>"success", "message"=>"Invoice paid");
           }
       }
-      return array("status"=>"error", "message"=>"Invoice payment not saved");
+      return array("status"=>"error", "message"=>"payment not saved");
     } 
 public function loadPostpaidCustomer($company_id){
-        $return = array();
-        $shipmentsData = $this->modelObj->getPostpaidCustomer($company_id);
-        return $shipmentsData;
-   }     
+    $return = array();
+    $shipmentsData = $this->modelObj->getPostpaidCustomer($company_id);
+    return $shipmentsData;
+   }  
+public function loadPrepaidCustomer($company_id){
+    $return = array();
+    $shipmentsData = $this->modelObj->getPrepaidCustomer($company_id);
+    return $shipmentsData;
+   }
+public function prepaidrecharge($param){
+      $this->db->startTransaction();
+      $datastatus =  $this->_manageAccounts($param->customer,$param->company_id,$param->payamount,$param->payment_reference,'RECHARGE',$param->paymode);
+      if($datastatus['status']=='success'){
+          $this->db->commitTransaction();
+           return array('status'=>true,'message'=>"Account recharged successfully.");
+      }else{
+          $this->db->rollBackTransaction();
+          return array('status'=>"false",'message'=>'fail','code'=>'SERR11');
+      }
+   }   
 }
 ?>
