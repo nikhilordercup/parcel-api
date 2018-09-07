@@ -1611,6 +1611,8 @@ class allShipments extends Icargo
         $recurringInfoData  = $this->modelObj->getRecurringJobsByCompanyId($company_id);
         foreach($recurringInfoData as $key=>$val){
             $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;   
+            $recurringInfoData[$key]['last_booked_date'] = ($val['last_booked_date']=='1970-01-01')?'':$val['last_booked_date'];
+            $recurringInfoData[$key]['last_booked_time'] = ($val['last_booked_time']=='00:00:00')?'':$val['last_booked_time'];
         }
          return $recurringInfoData;
   }
