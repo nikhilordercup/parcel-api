@@ -764,10 +764,10 @@ SELECT  S.warehouse_id as warehouse_id,
       }  
       public function getShipmentTrackingDetails($identity){ 
        $record = array();
-         $sqldata = 'S.*';
-         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "tracking_detail AS S
-                WHERE S.load_identity = '" . $identity . "'";
-        $record = $this->db->getAllRecords($sql); 
+         $sqldata = 'S.code as status,S.create_date as event_date';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_tracking AS S
+                 WHERE S.load_identity = '" . $identity . "'";
+         $record =  $this->db->getAllRecords($sql); 
         return $record;
       }
      public function getShipmentsType($loadidentity){

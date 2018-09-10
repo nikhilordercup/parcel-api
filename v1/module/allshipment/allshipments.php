@@ -1847,14 +1847,15 @@ class allShipments extends Icargo
         $trackingId         = array();
         $trackingDetail     = array();
         if(is_array($param->job_identity) && count($param->job_identity)>0){    
-          foreach($param->job_identity as $valdata){
-           $trackingIdData =   $this->modelObj->getShipmentTrackingID($valdata); 
-               if($trackingIdData && $trackingIdData['tracking_id']!=''){
-                $trackingId[] = $trackingIdData['tracking_id'];
-               }
-           }
-          if(count($trackingId)>0){
-             $trackingDetail[$valdata] = $this->modelObj->getShipmentTrackingDetails($valdata); 
+          //foreach($param->job_identity as $valdata){
+           //$trackingIdData =   $this->modelObj->getShipmentTrackingID($valdata); 
+               //if($trackingIdData && $trackingIdData['tracking_id']!=''){
+                //$trackingId[] = $trackingIdData['tracking_id'];
+               //}
+           //}
+          $trackingDetail = $this->modelObj->getShipmentTrackingDetails($param->job_identity[0]);
+          if(count($trackingDetail)>0){
+             //
           }else{
               return   array("status"=>"fail", "message"=>"tracking details not found","error_code"=>"ERROR0080"); 
           }  
