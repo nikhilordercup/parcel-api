@@ -646,15 +646,15 @@ public function checkCustomerEmailExist($company_email){
     
     public function getCompanyDetails($companyId){
        $record = array();
-       $sqldata ='COM.name AS company_name,COM.address_1 AS company_address1,
+       $sqldata ='C.logo,COM.name AS company_name,COM.address_1 AS company_address1,
                     COM.address_2 AS company_address2,COM.postcode AS company_postcode,
                     COM.city AS company_city,COM.country  AS company_county';
        $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS COM
+               LEFT JOIN " . DB_PREFIX . "configuration as C on C.company_id = COM.id
                where  COM.id = '$companyId'";
        $record = $this->db->getRowRecord($sql);
        return  $record;     
-    } 
-
+    }
     public function getjobDetails($shipmentRef){
          $record = array();
          $sqldata ='S1.instaDispatch_loadIdentity,S1.shipment_required_service_date,

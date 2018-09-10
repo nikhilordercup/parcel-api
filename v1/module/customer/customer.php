@@ -1317,6 +1317,14 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         $customerdata =  $this->modelObj->getCustomerDetails($param->customer_id); 
         $companydata  =  $this->modelObj->getCompanyDetails($param->company_id); 
         $customerdata =  array_merge($companydata,$customerdata);
+        
+        $img_file = realpath(dirname(dirname(dirname(dirname(__FILE__))))).'/assets/logo/'.$companydata['logo'];
+        $imgData = base64_encode(file_get_contents($img_file));
+        $src = 'data:'.mime_content_type($img_file).';charset=binary;base64,'.$imgData;
+        
+        
+        
+        
         foreach($customerdata as $key=>$val){
             $customerdata[$key] = !empty($val)?$val:'NA';
         }
@@ -1386,7 +1394,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
             }
         }
         $result = array('amount'=>array('creditBucket'=>array_sum($ammountBucket['creditBucket']),'debitBucket'=>array_sum($ammountBucket['debitBucket']))
-                        ,'data'=>$pdfData,'customer'=>$customerdata);
+                        ,'data'=>$pdfData,'customer'=>$customerdata,'companyimg'=>$src);
         return $result;
 	}
  }
