@@ -340,13 +340,17 @@ class Sameday extends  Booking
         $googleRequest['warehouse_id'] = $param->warehouse_id;
         $googleRequest['warehouse_latitude'] = $param->warehouse_latitude;
         $googleRequest['warehouse_longitude'] = $param->warehouse_longitude;
+        $googleRequest['company_id'] = $param->company_id;
+        
+        
         try{
               $distanceMatrixData = json_decode(json_encode($this->googleApi->getGeolocationAndDistanceMatrix( (object) $googleRequest)), FALSE);
             }catch(Exception $e){
                     $response = array(); 
                     $response["status"] = "fail";
                     $response["message"] = 'Distance Matrix API down, try again';
-                    $response["error_code"] = "ERROR0058";   
+                    $response["error_code"] = "ERROR0058";
+                    $response["api_message"] = $e->getMessage();   
                     return $response;
             }
         $transit_distance = $distanceMatrixData->transit_distance;

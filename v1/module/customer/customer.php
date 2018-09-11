@@ -47,7 +47,7 @@ class Customer extends Icargo{
                 "email_verified"=>"1",
                 "access_token"=>"",
                 "free_trial_expiry"=>"1970-01-01 00:00:00",
-                "parent_id"=>$param->parent_id,"is_default"=>1);
+                "parent_id"=>$param->company_id,"is_default"=>1);
                 $customer_id = $this->modelObj->addContent('users',$data);
                 
                 $this->modelObj->addContent('company_warehouse',array('company_id'=>$customer_id,'warehouse_id'=>$param->warehouse_id,'status'=>"1",'update_date'=>date("Y-m-d h:i:s", strtotime('now'))));

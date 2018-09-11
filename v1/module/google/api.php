@@ -125,19 +125,22 @@
 
             $service_date = strtotime($param->service_date);
             $mode = "bicycling";//"walking";//"transit";//"driving";//"bicycling";
-            if($param->company_id==194 || $param->company_id==207){
-                $mode = "driving";
+            if(isset($param->company_id)){ 
+               if($param->company_id==194 || $param->company_id==207){
+                  $mode = "driving";
+              }
+             if($param->company_id==207){
+                 $round_trip = true;
+             }
+            unset($param->company_id);
             }
-
-            if($param->company_id==207){
-                $round_trip = true;
-            }
+                
+            
 
             //Request to coreprime api including warehouse to collection postcode distance
 
             unset($param->email);
             unset($param->access_token);
-            unset($param->company_id);
             unset($param->service_date);
 
             unset($param->warehouse_id);
