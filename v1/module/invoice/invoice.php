@@ -459,6 +459,7 @@ public function loadPrepaidCustomer($company_id){
    }
 public function prepaidrecharge($param){
       $this->db->startTransaction();
+      $param->payment_reference = isset($param->payment_reference)?$param->payment_reference:'000000';
       $datastatus =  $this->_manageAccounts($param->customer,$param->company_id,$param->payamount,$param->payment_reference,'RECHARGE',$param->paymode);
       if($datastatus['status']=='success'){
           $this->db->commitTransaction();
