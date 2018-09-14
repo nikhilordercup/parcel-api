@@ -436,6 +436,7 @@ public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef,$pa
      $creditbalanceData['create_date']          = date("Y-m-d");
      $creditbalanceData['payment_reference']    = $invoiceRef;
      $creditbalanceData['payment_desc']         = $paydesc;
+     $creditbalanceData['payment_provider']     = $paydesc;
      $creditbalanceData['payment_for']          = $payfor;
      $addHistory                                = $this->modelObj->addContent('accountbalancehistory',$creditbalanceData);
      if($addHistory){
