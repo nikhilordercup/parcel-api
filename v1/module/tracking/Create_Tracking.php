@@ -75,7 +75,7 @@ class Create_Tracking extends Icargo{
             "weight" => $this->trackingData->weight,  
             "est_delivery_date" => $this->trackingData->est_delivery_date,  
             //"shipment_id" => $this->trackingData->shipment_id,
-            "load_identity" => $this->trackingData->shipment_id,
+            "load_identity" => $this->loadIdentity,
             "carrier" => $this->trackingData->carrier,
             "finalized" => (empty($this->trackingData->finalized)) ? 0 : $this->trackingData->finalized,
             "is_return" => $this->trackingData->is_return, 

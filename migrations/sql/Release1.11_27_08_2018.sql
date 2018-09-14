@@ -207,6 +207,8 @@ ALTER TABLE `icargo_shipment_service`
 ADD COLUMN `booked_quotation_ref` VARCHAR(255) NULL DEFAULT NULL AFTER `booked_api_token_id`,
 ADD COLUMN `tracking_callbackurl` VARCHAR(255) NULL DEFAULT NULL AFTER `booked_quotation_ref`;
 
+ALTER TABLE `icargo_accountbalancehistory` ADD `payment_provider` VARCHAR(255) NOT NULL AFTER `payment_for`;
+
 ALTER
  ALGORITHM = UNDEFINED
 DEFINER=`app_stable`@`localhost` 

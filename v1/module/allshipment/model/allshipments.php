@@ -566,17 +566,14 @@ SELECT  S.warehouse_id as warehouse_id,
         }
   public  function getShipmentPodByShipmentTicket($tickets){
         $record = array();
-        $sqldata = 'R1.*';
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_pod AS R1
-                WHERE R1.shipment_ticket IN ($tickets)";
+        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ($tickets)";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
   public function allowedTracking(){
         $record = array();
-        $sqldata = 'R1.tracking_internal_code as id,R1.name';
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_master AS R1
-                    WHERE R1.is_used_for_tracking = 'YES'";
+        //$sqldata = 'R1.tracking_internal_code as id,R1.name';
+        $sql = "SELECT R1.code as id,R1.name FROM " . DB_PREFIX . "shipments_master AS R1 WHERE R1.is_used_for_tracking = 'YES'";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -788,7 +785,24 @@ SELECT  S.warehouse_id as warehouse_id,
          return $this->db->getRowRecord($sql); 
         
       }  
-    
+    public function getDropTrackingByLoadIdentity($load_identity){
+        //$sql = "SELECT ST.shipment_service_type, ST.shipment_ticket, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipment AS ST ON STT.load_identity = ST.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY FIELD(ST.shipment_service_type, 'P','D') "; //ORDER BY STT.id ASC;
+        $sql = "SELECT STT.shipment_ticket, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY STT.create_date, FIELD(service_type, 'collection','delivery')"; 
+        $record = $this->db->getAllRecords($sql);
+        return  $record;  
+    }
+
+    public function getShipmentTrackingByLoadIdentity($load_identity){
+        $sql = "SELECT ST.shipment_service_type, STT.load_identity, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipment AS ST ON STT.load_identity = ST.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY STT.create_date, FIELD(service_type, 'collection','delivery')";
+        $record = $this->db->getAllRecords($sql);
+        return  $record;  
+    }
+
+    public function getShipmentInfoByShipmentTicket($shipment_ticket){
+        $sql = "SELECT ST.shipment_service_type, ST.instaDispatch_loadGroupTypeCode AS load_type FROM " . DB_PREFIX . "shipment AS ST WHERE shipment_ticket='$shipment_ticket';";
+        $record = $this->db->getRowRecord($sql);
+        return  $record;  
+    }
         
   }           
 ?>

@@ -271,11 +271,13 @@ class allShipments extends Icargo
     public function getSameDayShipmentDetails($param)
     {
         $allInfo = $this->_getBasicInfoOfShipment($param['identity']);
+
         return array(
             'sameday' => array(
                 'basicinfo' => $allInfo['basicInfo'],
                 'priceinfo' => $allInfo['priceinfo'],
                 'trackinginfo' => $allInfo['trackinginfo'],
+                'shipmentTrackinginfo' => $allInfo['shipmentTrackinginfo'],
                 'podinfo' => $allInfo['podinfo']
             )
         );
@@ -289,6 +291,7 @@ class allShipments extends Icargo
                 'basicinfo' => $allInfo['basicInfo'],
                 'priceinfo' => $allInfo['priceinfo'],
                 'trackinginfo' => $allInfo['trackinginfo'],
+                'shipmentTrackinginfo' => $allInfo['shipmentTrackinginfo'],
                 'podinfo' => $allInfo['podinfo'],
 				'parcelInfo'=>$allInfo['parcelInfo']
             )
@@ -298,14 +301,16 @@ class allShipments extends Icargo
 
     private function _getBasicInfoOfShipment($identity)
     {
-        $trackinginfo           = array();
+        $dropTrackinginfo           = array();
         $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
 		$parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $shipmentsPriceInfoData = $this->ManagePriceData($carrierPrice, $customerPrice);
-        $trackinginfo           = $this->getShipmentsTrackingDetails($identity);
+        //$trackinginfo           = $this->getShipmentsTrackingDetails($identity);
+        $dropTrackinginfo       = $this->getDropTrackingDetails($identity);
+        $shipmentTrackinginfo   = $this->getShipmentTrackingByLoadIdentity($identity);
 
         //$shipmentsPriceInfoData = $this->ManagePriceData($this->modelObj->getShipmentsPriceDetail($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion));
         $basicInfo = array();
@@ -400,17 +405,13 @@ class allShipments extends Icargo
                 $basicInfo['customerinvoicestatus']    = $getInvoiceDetails['invoice_status'];
 
             }
-
-
-
-
-
         }
         $podinfo = $this->getShipmentsPodDetails('"' . implode('","', $basicInfo['shipment_ticket']) . '"');
         return array(
             'basicInfo' => $basicInfo,
             'priceinfo' => $shipmentsPriceInfoData,
-            'trackinginfo' => $trackinginfo,
+            'trackinginfo' => $dropTrackinginfo,
+            'shipmentTrackinginfo' => $shipmentTrackinginfo,
             'podinfo' => $podinfo,
 			'parcelInfo'=>$parcelInfo
         );
@@ -1161,6 +1162,57 @@ class allShipments extends Icargo
         );
     }
 
+    public function getShipmentTrackingByLoadIdentity($identity){
+        $shipmentLifeCycle = $this->modelObj->getShipmentTrackingByLoadIdentity($identity);
+        $records = array();
+        foreach ($shipmentLifeCycle as $key => $dataVal) {
+            $records[$dataVal["code"]]['load_identity']         = $dataVal["load_identity"];
+            $records[$dataVal["code"]]['code']                  = $dataVal["code"];
+            $records[$dataVal["code"]]['code_text']             = $dataVal["code_text"];
+            $records[$dataVal["code"]]['shipment_service_type'] = ($dataVal['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+            $records[$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
+            $records[$dataVal["code"]]['create_time']           = date("H:i", strtotime($dataVal['create_date']));
+            $records[$dataVal["code"]]['system_create_time']    = $dataVal['create_date'];
+            //$shipmentLifeCycle[$key]['is_custom_create']      = ($dataVal['is_custom_create'] == 0) ? 'false' : 'true';
+        }
+        return array_values($records);
+    }
+
+    public function getDropTrackingDetails($identity){
+        $shipmentLifeCycle = $this->modelObj->getDropTrackingByLoadIdentity($identity);
+
+        $records = array();
+        foreach ($shipmentLifeCycle as $key => $dataVal) {
+            //$shipmentLifeCycle[$key]['shipment_service_type'] = "N/A";
+
+
+
+            $records[$dataVal["code"]]['shipment_service_type'] = "N/A";
+            $records[$dataVal["code"]]['shipment_ticket']       = $dataVal["shipment_ticket"];
+            $records[$dataVal["code"]]['code']                  = $dataVal["code"];
+            $records[$dataVal["code"]]['code_text']             = $dataVal["code_text"];
+            $records[$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
+            $records[$dataVal["code"]]['create_time']           = date("H:i", strtotime($dataVal['create_date']));
+
+            if($dataVal["shipment_ticket"]){
+                $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
+                $records[$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+            }
+
+
+            /*if($dataVal["shipment_ticket"]){
+                $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
+                $shipmentLifeCycle[$key]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+            }
+            $shipmentLifeCycle[$key]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
+            $shipmentLifeCycle[$key]['create_time']           = date("H:i", strtotime($dataVal['create_date']));*/
+
+            //$shipmentLifeCycle[$key]['is_custom_create']    = ($dataVal['is_custom_create'] == 0) ? 'false' : 'true';
+        }
+        return array_values($records);
+        //return $shipmentLifeCycle;
+    }
+
     public function getShipmentsTrackingDetails($identity)
     {
         $shipmentLifeCycle = $this->modelObj->getShipmentLifeCycleHistoryByIdentity($identity);
@@ -1177,7 +1229,7 @@ class allShipments extends Icargo
         $retrundata  = array();
         foreach ($shipmentPod as $keys => $dataVal) {
             $temp              = array();
-            $temp['date']      = date('Y/m/d', strtotime($dataVal['create_date']));
+            $temp['date']      = Library::_getInstance()->date_format($dataVal['create_date']);//date('Y/m/d', strtotime($dataVal['create_date']));
             $temp['time']      = date('H:m:s', strtotime($dataVal['create_date']));
             $temp['recipient'] = $dataVal['contact_person'];
             $temp['comment']   = $dataVal['comment'];
@@ -1199,10 +1251,11 @@ class allShipments extends Icargo
         $param   = json_decode(json_encode($param), 1);
         $records = array();
         if (is_array($param['data']) && count($param['data']) > 0) {
+            $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($param['data']['reference']);
             $tempval                                = array();
             $tempval['shipment_ticket']             = $param['data']['reference'];
             $tempval['instaDispatch_loadIdentity']  = $param['job_identity'];
-            $tempval['create_date']                 = date('Y-m-d', strtotime($param['data']['servicedate']));
+            $tempval['create_date']                 = Library::_getInstance()->date_format($param['data']['servicedate']);//date('Y-m-d', strtotime($param['data']['servicedate']));
             $tempval['create_time']                 = date('H:m:s', strtotime($param['data']['servicedate']));
             $tempval['actions']                     = $param['data']['events'];
             $tempval['internel_action_code']        = $param['data']['events'];
@@ -1216,7 +1269,18 @@ class allShipments extends Icargo
             $tempval['company_id']       = $param['company_id'];
             $tempval['action_taken_by']  = 'controller';
             $tempval['is_custom_create'] = '1';
+                
+            $addData                     = $this->modelObj->addContent('shipment_tracking', array(
+                "shipment_ticket" => $param['data']['reference'],
+                "load_identity"   => $param['job_identity'],
+                "code"            => $param['data']['events'],
+                "create_date"     => date('Y-m-d H:i:s', strtotime($param['data']['servicedate'])),
+                "load_type"       => $shipmentInfo["load_type"],
+                "service_type"    => ($shipmentInfo["shipment_service_type"]='P') ? 'colletion' : 'delivery',
+                "custom_tracking" => 1
+            ));
             $adddata                     = $this->modelObj->addContent('shipment_life_history', $tempval);
+
             if ($adddata) {
                 return array(
                     'status' => 'success',
@@ -1770,7 +1834,7 @@ class allShipments extends Icargo
                     }
                   }
                 elseif($shipment_type['shipment_type']=='SAME'){
-                        $returnData[]    = $param['job_identity'];
+                        $returnData[]    = $param->job_identity[0];
                         $requestStatus = $this->cancelJobRequest($valdata,$company_id,$userId,$param);
                         if($requestStatus['status']!='error'){
                              return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
@@ -1846,24 +1910,37 @@ class allShipments extends Icargo
         $userId             = $param->user; 
         $trackingId         = array();
         $trackingDetail     = array();
-        if(is_array($param->job_identity) && count($param->job_identity)>0){    
-          //foreach($param->job_identity as $valdata){
-           //$trackingIdData =   $this->modelObj->getShipmentTrackingID($valdata); 
-               //if($trackingIdData && $trackingIdData['tracking_id']!=''){
-                //$trackingId[] = $trackingIdData['tracking_id'];
-               //}
-           //}
-          $trackingDetail = $this->modelObj->getShipmentTrackingDetails($param->job_identity[0]);
-          if(count($trackingDetail)>0){
-             //
-          }else{
-              return   array("status"=>"fail", "message"=>"tracking details not found","error_code"=>"ERROR0080"); 
-          }  
-         }else{
-          return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
+        if(is_array($param->job_identity) && count($param->job_identity)==0){
+            return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
+        }else{
+            $trackingDetail = $this->getShipmentTrackingByLoadIdentity($param->job_identity[0]);
+            if(count($trackingDetail)==0){
+                return array("status"=>"fail", "message"=>"tracking details not found","error_code"=>"ERROR0080");
+            }else{
+                $records = array();
+               
+                foreach($trackingDetail as $item){
+                    array_push($records, array(
+                        "status"=>$item["code"],
+                        "event_date"=>$item["system_create_time"]
+                    ));
+                }
+                return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$records);
+            }
         }
-        return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$trackingDetail);
-}
+        /*if(is_array($param->job_identity) && count($param->job_identity)>0){    
+            $trackingDetail = $this->modelObj->getShipmentTrackingByLoadIdentity($param->job_identity[0]);
+            //$trackingDetail = $this->modelObj->getShipmentTrackingDetails($param->job_identity[0]);
+            if(count($trackingDetail)>0){
+                //
+            }else{
+                return   array("status"=>"fail", "message"=>"tracking details not found","error_code"=>"ERROR0080"); 
+            }  
+        }else{
+            return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
+        }
+        return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$trackingDetail);*/
+    }
     
     public function checkEligibleforRecurring($param){ 
         $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 

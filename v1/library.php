@@ -257,7 +257,7 @@
         
         public function date_format($date)
         {
-            return date("M/d/Y", strtotime($date));
+            return date("d-m-Y", strtotime($date));
         }
         
         public function time_format($time)
