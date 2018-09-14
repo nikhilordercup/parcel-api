@@ -14,13 +14,13 @@ public function getallinvoice($param){
 	return $invoiceData;
    }
 public function createInvoice($param){ 
-      $_start_date          = (isset($param->start_date) and ($param->start_date))?$param->start_date:'0000-00-00';
-      $_end_date            = (isset($param->end_date) and ($param->end_date))?$param->end_date:'0000-00-00';
+      $_start_date          = (isset($param->start_date) and ($param->start_date))?$param->start_date:'1970-01-01';
+      $_end_date            = (isset($param->end_date) and ($param->end_date))?$param->end_date:'1970-01-01';
       $_sendpdftocustomer   = (isset($param->sendpdftocustomer) and ($param->sendpdftocustomer))?$param->sendpdftocustomer:false;
-      $_attachvoucher       = (isset($param->attachvoucher) and ($param->attachvoucher))?$param->attachvoucher:false;
+      $_attachvoucher       = (isset($param->attachvoucher) and ($param->attachvoucher))?true:false;
       $_sendtomail          = (isset($param->sendtomail) and ($param->sendtomail))?$param->sendtomail:false;
       $_sendtocustomemail   = (isset($param->sendtomailofemail) and ($param->sendtomailofemail))?$param->sendtomailofemail:'';
-      $_start_date          = (isset($param->addolduninvoiced) and ($param->addolduninvoiced))?'0000-00-00':$_start_date;// intialized start date  for add previous booking
+      $_start_date          = (isset($param->addolduninvoiced) and ($param->addolduninvoiced))?'1970-01-01':$_start_date;// intialized start date  for add previous booking
       $_email               = $param->email;    
       $_company_id          = $param->company_id;
       $customerfilter = isset($param->customer)?"AND A.customer_id = '".$param->customer."'":" ";
@@ -34,7 +34,7 @@ public function createInvoice($param){
           $tempdatap[$val['customer_id']]['total']['totalitems'][]= $val['items'];
       }
       
-      if(isset($_attachvoucher)){
+      if($_attachvoucher){
         $getAllVoucher = $this->modelObj->getAllVoucher($_company_id,$customerfilter);  
       }
       if(count($getAllVoucher)>0){

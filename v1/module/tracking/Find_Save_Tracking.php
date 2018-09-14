@@ -44,13 +44,33 @@ class Find_Save_Tracking{
     private
 
     function _saveTrackingStatus($status){
-        //save tracking history
-
-        $this->modelObj->saveTrackingHistory(array(
-            "shipment_ticket" => "",
-            "load_identity" => $this->load_identity,
+        //find history info
+        $historyInfo = $this->modelObj->findTrackingHistory(array(
+            "shipment_ticket" => $status["shipment_ticket"],
+            "load_identity" => $status["load_identity"],
             "code" => $status["tracking_code"]
         ));
+
+        //delete old record
+        $this->modelObj->deleteTrackingByLoadIdentityAndCode(array(
+            "shipment_ticket" => $status["shipment_ticket"],
+            "load_identity" => $status["load_identity"],
+            "code" => $status["tracking_code"]
+        ));
+
+        $historyData = array(
+            "shipment_ticket" => $status["shipment_ticket"],
+            "load_identity" => $status["load_identity"],
+            "code" => $status["tracking_code"],
+            "load_type" => $status["load_type"],
+            "service_type" => $status["service_type"]
+        );
+
+        if(count($historyInfo)>0){
+            $historyData["create_date"] = $historyInfo["create_date"];
+        }
+
+        $this->modelObj->saveTrackingHistory($historyData);
         
         //update tracking status
         $this->_saveTrackingcode();
@@ -66,73 +86,15 @@ class Find_Save_Tracking{
     private
 
     function _findSamedayCollectionShipmentStatusByLoadIdentity($load_identity){
-        $allCollectionShipmentCount = $this->modelObj->findAllCollectionShipmentCountByLoadIdentity($load_identity);
-
-        $allCollectedShipmentCount = $this->modelObj->findCollectedShipmentCountByLoadIdentity($load_identity);
-
-        $allCardedShipmentCount = $this->modelObj->findCardedCollectedShipmentCountByLoadIdentity($load_identity);
-
-        $notCollectedCount = $this->modelObj->findNotCollectedShipmentCountByLoadIdentity($load_identity);
-
-        $allCollectionShipmentCount = $allCollectionShipmentCount["shipment_count"];
-        $allCollectedShipmentCount  = $allCollectedShipmentCount["shipment_count"];
-        $allCardedShipmentCount     = $allCardedShipmentCount["shipment_count"];
-        $notCollectedCount          = $notCollectedCount["shipment_count"];
-
-        if($allCollectionShipmentCount > 1){
-            if($allCollectedShipmentCount > 0 and $allCollectedShipmentCount<$allCollectionShipmentCount){
-                //partly collected
-                $this->_saveTrackingStatus(array("tracking_code"=>"PARTLYCOLLECTED", "actions"=>"partly collected"));
-                return array("tracking_code"=>"PARTLYCOLLECTED", "actions"=>"partly collected");
-            }
-            if($allCollectedShipmentCount > 0 and $allCollectedShipmentCount==$allCollectionShipmentCount){
-                //need to collected
-                $this->_saveTrackingStatus(array("tracking_code"=>"COLLECTIONSUCCESS", "actions"=>"collected"));
-                $this->_findDeliveryShipmentStatusByLoadIdentity($load_identity);
-                return array("tracking_code"=>"COLLECTIONSUCCESS", "actions"=>"collected");
-            }
-            if($notCollectedCount==0){
-                //awaiting collection
-                $this->_saveTrackingStatus(array("tracking_code"=>"COLLECTIONAWAITED", "actions"=>"collection awaited"));
-                return array("tracking_code"=>"COLLECTIONAWAITED", "actions"=>"collection awaited");
-            }
+        if($this->shipment_info["service_type"]=='collection'){
+            $trackingCode = ($this->shipment_info["current_status"]=="D") ? "COLLECTIONSUCCESS" : "COLLECTIONAWAITED";
+            $action = ($this->shipment_info["current_status"]=="D") ? "collected" : "collection awaited";
+            $this->_saveTrackingStatus(array("load_type"=>$this->shipment_info["load_type"],"service_type"=>$this->shipment_info["service_type"],"load_identity"=>$this->shipment_info["load_identity"],"shipment_ticket"=>$this->shipment_info["shipment_ticket"], "tracking_code"=>$trackingCode, "actions"=>$action));
         }
-        elseif($allCollectionShipmentCount == 1){
-            if($allCollectedShipmentCount > 0){
-                //collected
-                //if load type is SAME then we have to check 
-
-
-                if($this->load_type=='SAME'){
-                    $codeCount = $this->_findTrackingCodeCountByLoadTypeAndTrackingCode("COLLECTIONSUCCESS", $this->load_identity);
-
-                    if($codeCount==0)
-                        $this->_saveTrackingStatus(array("tracking_code"=>"COLLECTIONSUCCESS", "actions"=>"collected"));
-                }
-                return $this->_findDeliveryShipmentStatusByLoadIdentity($load_identity);
-            }
-
-            if($allCollectedShipmentCount==0 and $allCardedShipmentCount>0){
-                //collection carded
-                $this->_saveTrackingStatus(array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"collection carded"));
-                return array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"collection carded");
-            }
-            if($notCollectedCount==$allCollectionShipmentCount){
-                //awaiting collection
-                $this->_saveTrackingStatus(array("tracking_code"=>"COLLECTIONAWAITED", "actions"=>"collection awaited"));
-                return array("tracking_code"=>"COLLECTIONAWAITED", "actions"=>"collection awaited");
-            }
-        }
-        elseif($notCollectedCount==$allCollectionShipmentCount){
-            //awaiting collection
-            $this->_saveTrackingStatus(array("tracking_code"=>"COLLECTIONAWAITED", "actions"=>"collection awaited"));
-            return array("tracking_code"=>"COLLECTIONAWAITED", "actions"=>"collection awaited");
-        }else{
-            return array();
-        }
+        $this->_findDeliveryShipmentStatusByLoadIdentity($load_identity);
     }
 
-    private
+    /*private
 
     function _findNextdayCollectionShipmentStatusByLoadIdentity($load_identity){
         $allCollectionShipmentCount = $this->modelObj->findAllCollectionShipmentCountByLoadIdentity($load_identity);
@@ -192,72 +154,27 @@ class Find_Save_Tracking{
         }else{
             return array();
         }
-    }
+    }*/
 
     private 
 
     function _findDeliveryShipmentStatusByLoadIdentity($load_identity){
-        $allDeliveryShipmentCount = $this->modelObj->findAllDeliveryShipmentCountByLoadIdentity($load_identity);
-
-        $allDeliveredShipmentCount = $this->modelObj->findDeliveredShipmentCountByLoadIdentity($load_identity);
-
-        $allCardedShipmentCount = $this->modelObj->findCardedDeliveryShipmentCountByLoadIdentity($load_identity);
-
-        $notDeliveredCount = $this->modelObj->findNotDeliveredShipmentCountByLoadIdentity($load_identity);
-
-        $allDeliveryShipmentCount = $allDeliveryShipmentCount["shipment_count"];
-        $allDeliveredShipmentCount = $allDeliveredShipmentCount["shipment_count"];
-        $allCardedShipmentCount = $allCardedShipmentCount["shipment_count"];
-        $notDeliveredCount = $notDeliveredCount["shipment_count"];
-
-        if($allDeliveryShipmentCount > 1){
-            if($allDeliveredShipmentCount > 0 and $allDeliveredShipmentCount<$allDeliveryShipmentCount){
-                //partly delivered
-                if($this->load_type=='SAME'){
-                    $this->_saveTrackingStatus(array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery"));
-                    return array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery");
-                }else{
-                    $this->_saveTrackingStatus(array("tracking_code"=>"PARTLYDELIVERED", "actions"=>"partly delivered"));
-                    return array("tracking_code"=>"PARTLYDELIVERED", "actions"=>"partly delivered");
+        if($this->shipment_info["service_type"]=='delivery'){
+            $collectionSuccessCount = $this->modelObj->findCollectionSuccessCountByLoadIdentity($this->shipment_info["load_identity"]);
+            if($collectionSuccessCount["num_rows"]>0){
+                if($this->shipment_info["current_status"]=="Ca"){
+                    $trackingCode = "DELIVERY_CARDED";
                 }
+                elseif($this->shipment_info["current_status"]=="D"){
+                    $trackingCode = "DELIVERYSUCCESS";
+                }
+                else{
+                    $trackingCode = "OUTFORDELIVERY";
+                }
+                //$trackingCode = ($this->shipment_info["current_status"]=="D") ? "DELIVERYSUCCESS" : "OUTFORDELIVERY";
+                $action = ($this->shipment_info["current_status"]=="D") ? "delivered" : "out for delivery";
+                $this->_saveTrackingStatus(array("load_type"=>$this->shipment_info["load_type"],"service_type"=>$this->shipment_info["service_type"],"load_identity"=>$this->shipment_info["load_identity"],"shipment_ticket"=>$this->shipment_info["shipment_ticket"],"tracking_code"=>$trackingCode, "actions"=>$action));
             }
-            if($allDeliveredShipmentCount == 0 and $allDeliveredShipmentCount<$allDeliveryShipmentCount){
-                //out for delivery
-                $this->_saveTrackingStatus(array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery"));
-                return array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery");
-            }
-            if($allDeliveredShipmentCount > 0 and $allDeliveredShipmentCount==$allDeliveryShipmentCount){
-                //delivered
-                $this->_saveTrackingStatus(array("tracking_code"=>"DELIVERYSUCCESS", "actions"=>"delivered"));
-                return array("tracking_code"=>"DELIVERYSUCCESS", "actions"=>"delivered");
-            }
-        }
-        elseif($allDeliveryShipmentCount == 1){
-            
-            if($allDeliveredShipmentCount > 0){
-                //delivered
-                $this->_saveTrackingStatus(array("tracking_code"=>"DELIVERYSUCCESS", "actions"=>"delivered"));
-                return array("tracking_code"=>"DELIVERYSUCCESS", "actions"=>"delivered");
-            }
-
-            if($allDeliveredShipmentCount==0 and $allCardedShipmentCount>0){
-                //delivery carded
-                $this->_saveTrackingStatus(array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"delivered carded"));
-                return array("tracking_code"=>"RETURNINWAREHOUSE", "actions"=>"delivered carded");
-            }
-
-            if($allDeliveredShipmentCount == 0){
-                //out for delivery
-                $this->_saveTrackingStatus(array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery"));
-                return array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery");
-            }
-        }
-        elseif($notDeliveredCount==0){
-            //out for delivery
-            $this->_saveTrackingStatus(array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery"));
-            return array("tracking_code"=>"OUTFORDELIVERY", "actions"=>"out for delivery");
-        }else{
-            return array();
         }
     }
 
@@ -268,7 +185,8 @@ class Find_Save_Tracking{
             $this->_findDeliveryShipmentStatusByLoadIdentity($this->load_identity);
         }
         elseif($this->load_type=='NEXT'){
-            $this->_findNextdayCollectionShipmentStatusByLoadIdentity($this->load_identity);
+            //$this->_findNextdayCollectionShipmentStatusByLoadIdentity($this->load_identity);
+            $this->_findSamedayCollectionShipmentStatusByLoadIdentity($this->load_identity);
         }
         elseif($this->load_type=='SAME'){
             $this->_findSamedayCollectionShipmentStatusByLoadIdentity($this->load_identity);
@@ -284,12 +202,33 @@ class Find_Save_Tracking{
         $this->formCode = isset($param["form_code"]) ? $param["form_code"] : "";
 
         $ticketStr = implode("','", $this->shipmentTickets);
-       
+
         $loadIdentity = $this->modelObj->findAssignedLoadIdentityByShipmentTicket($ticketStr);
 
+        //current_status<>'D' 
         $temp = array();
-        foreach($loadIdentity as $shipment){  
-            $temp[$shipment["load_identity"]]["warehouse_id"]  = $shipment["warehouse_id"];
+        foreach($loadIdentity as $shipment){
+            $shipmentInfo = $this->modelObj->findShipmentlByLoadIdentity($shipment["load_identity"]);
+
+            //start of testing
+            $this->load_identity = $shipment["load_identity"];
+            foreach($shipmentInfo as $item){
+                $this->shipment_info = array(
+                    "shipment_type"   => $item["instaDispatch_loadGroupTypeCode"],
+                    "shipment_ticket" => $item["shipment_ticket"],
+                    "current_status"  => $item["current_status"],
+                    "service_type"    => ($item["shipment_service_type"]=='P') ? 'collection' : 'delivery',
+                    "load_type"       => strtoupper($item["instaDispatch_loadGroupTypeCode"]),
+                    "load_identity"   => $item["instaDispatch_loadIdentity"]
+                );
+                $this->load_type = strtoupper($item["instaDispatch_loadGroupTypeCode"]);
+                $this->_findAndSaveTrackingStatus();
+            }
+
+
+            //end of testing
+
+            /*$temp[$shipment["load_identity"]]["warehouse_id"]  = $shipment["warehouse_id"];
             $temp[$shipment["load_identity"]]["load_identity"] = $shipment["load_identity"];
             $temp[$shipment["load_identity"]]["load_type"] = $shipment["load_type"];
 
@@ -298,14 +237,18 @@ class Find_Save_Tracking{
             $temp[$shipment["load_identity"]]["shipment_route_id"] = $shipment["shipment_route_id"];
             $temp[$shipment["load_identity"]]["driver_id"] = $shipment["assigned_driver"];
 
-            $temp[$shipment["load_identity"]]["shipment_info"][] = array(
-                "shipment_type"   => $shipment["load_type"],
-                "shipment_ticket" => $shipment["shipment_ticket"],
-                "current_status"  => $shipment["current_status"]
-                //"service_type"    => ($shipment["shipment_service_type"]=='P') ? 'collection' : 'delivery'
-            );
+            $temp[$shipment["load_identity"]]["shipment_info"] = array();
+
+            foreach($shipmentInfo as $item){
+                $temp[$shipment["load_identity"]]["shipment_info"][] = array(
+                    "shipment_type"   => $item["load_type"],
+                    "shipment_ticket" => $item["shipment_ticket"],
+                    "current_status"  => $item["current_status"],
+                    "service_type"    => ($item["shipment_service_type"]=='P') ? 'collection' : 'delivery'
+                );
+            }*/
         }
-        $temp = array_values($temp);
+        /*$temp = array_values($temp);
 
         foreach($temp as $item){
             $this->shipment_info = $item["shipment_info"];
@@ -313,18 +256,43 @@ class Find_Save_Tracking{
             $this->shipment_route_id = $item["shipment_route_id"];
             $this->company_id = $item["company_id"];
             $this->warehouse_id = $item["warehouse_id"];
-            $this->user_type = $param["user_type"].'testing';
-
+            $this->user_type = $param["user_type"];
             $this->load_identity = $item["load_identity"];
             $this->load_type = strtoupper($item["load_type"]);
-
             $this->_findAndSaveTrackingStatus();
+
+        }*/
+    }
+
+    public
+
+    function saveRouteTrackingStatus($param){
+        $this->shipmentTickets = explode(",", $param["ticket_str"]);
+
+        $ticketStr = implode("','", $this->shipmentTickets);
+       
+        $loadIdentity = $this->modelObj->findAssignedLoadIdentityByShipmentTicket($ticketStr);
+        foreach($loadIdentity as $shipment){
+            $shipmentInfo = $this->modelObj->findShipmentlByLoadIdentity($shipment["load_identity"]);
+            $this->load_identity = $shipment["load_identity"];
+            foreach($shipmentInfo as $item){
+                $this->shipment_info = array(
+                    "shipment_type"   => $item["instaDispatch_loadGroupTypeCode"],
+                    "shipment_ticket" => $item["shipment_ticket"],
+                    "current_status"  => $item["current_status"],
+                    "service_type"    => ($item["shipment_service_type"]=='P') ? 'collection' : 'delivery',
+                    "load_type"       => strtoupper($item["instaDispatch_loadGroupTypeCode"]),
+                    "load_identity"   => $item["instaDispatch_loadIdentity"]
+                );
+                $this->load_type = strtoupper($item["instaDispatch_loadGroupTypeCode"]);
+                $this->_findAndSaveTrackingStatus();
+            }
         }
     }
 
     public 
 
-    function saveRouteTrackingStatus($param){
+    function saveRouteTrackingStatusBKP($param){
         //check any collection left
         $this->shipmentTickets = explode(",", $param["ticket_str"]);
 
@@ -334,6 +302,8 @@ class Find_Save_Tracking{
 
         $temp = array();
         foreach($loadIdentity as $shipment){
+            $shipmentInfo = $this->modelObj->findShipmentlByLoadIdentity($shipment["load_identity"]);
+
             $temp[$shipment["load_identity"]]["warehouse_id"]  = $shipment["warehouse_id"];
             $temp[$shipment["load_identity"]]["load_identity"] = $shipment["load_identity"];
             $temp[$shipment["load_identity"]]["load_type"] = $shipment["load_type"];
@@ -343,12 +313,23 @@ class Find_Save_Tracking{
             $temp[$shipment["load_identity"]]["shipment_route_id"] = $shipment["shipment_route_id"];
             $temp[$shipment["load_identity"]]["driver_id"] = $shipment["assigned_driver"];
 
-            $temp[$shipment["load_identity"]]["shipment_info"][] = array(
-                "shipment_type"   => $shipment["load_type"],
+            $temp[$shipment["load_identity"]]["shipment_info"] = array();
+
+            foreach($shipmentInfo as $item){
+                $temp[$shipment["load_identity"]]["shipment_info"][] = array(
+                    "shipment_type"   => $item["load_type"],
+                    "shipment_ticket" => $item["shipment_ticket"],
+                    "current_status"  => $item["current_status"],
+                    "service_type"    => ($item["shipment_service_type"]=='P') ? 'collection' : 'delivery'
+                );
+            }
+
+            /*$temp[$shipment["load_identity"]]["shipment_info"][] = array(
+                //"shipment_type"   => $shipment["load_type"],
                 "shipment_ticket" => $shipment["shipment_ticket"],
-                "current_status"  => $shipment["current_status"]//,
-                //"service_type"    => ($shipment["shipment_service_type"]=='P') ? 'collection' : 'delivery'
-            );
+                "current_status"  => $shipment["current_status"],
+                "service_type"    => ($shipment["shipment_service_type"]=='P') ? 'collection' : 'delivery'
+            );*/
         }
         $temp = array_values($temp);
 
@@ -358,11 +339,9 @@ class Find_Save_Tracking{
             $this->shipment_route_id = $item["shipment_route_id"];
             $this->company_id = $item["company_id"];
             $this->warehouse_id = $item["warehouse_id"];
-            $this->user_type = $param["user_type"].'testing';
-
+            $this->user_type = $param["user_type"];
             $this->load_identity = $item["load_identity"];
             $this->load_type = strtoupper($item["load_type"]);
-
             $this->_findAndSaveTrackingStatus();
         }
     }

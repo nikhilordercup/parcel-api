@@ -222,18 +222,12 @@ class Module_Coreprime_Api extends Icargo
         }
     }
     private function _calculateSamedayServiceccf($serviceCode,$service, $courier_id, $customer_id, $company_id){
-
         $service_ccf_price = $this->customerccf->calculateServiceCcf($serviceCode,$service['price'], $courier_id, $customer_id, $company_id);
         $service_ccf_price['courier_id'] = $courier_id;
         $service['price'] = $service_ccf_price["price"] + $service['price'];
 
-
-        $service['service_name'] =
-            isset($service_ccf_price["company_service_name"]) ?
-                $service_ccf_price["company_service_name"] : $service_ccf_price["courier_service_name"];
-        $service['service_code'] =
-            isset($service_ccf_price["company_service_code"]) ?
-                $service_ccf_price["company_service_code"] : $service_ccf_price["courier_service_code"];
+        $service['service_name'] = ($service_ccf_price["company_service_name"]) ? $service_ccf_price["company_service_name"] : $service_ccf_price["courier_service_name"];
+        $service['service_code'] = ($service_ccf_price["company_service_code"]) ? $service_ccf_price["company_service_code"] : $service_ccf_price["courier_service_code"];
         $service['info'] = $service_ccf_price;
         $service['price_with_ccf'] = $service['price'];
         return $service;
