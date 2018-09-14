@@ -36,7 +36,7 @@ class Carrier{
                     $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
                 }
                 
-                
+             
                 if( $shipmentInfo['status'] == 'success' ) {
                     return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json']);
                 } else {

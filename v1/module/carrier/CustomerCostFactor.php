@@ -121,7 +121,7 @@ class CustomerCostFactor
     }
 
     public function calculateSurchargeCcf($surcharge_code, $customer_id, $company_id, $courier_id, $price)
-    {
+    { 
         $surchargeCcf = $this->modelObj->getCcfOfCarrierSurcharge($surcharge_code, $customer_id, $company_id, $courier_id);
 
         if ($surchargeCcf) {

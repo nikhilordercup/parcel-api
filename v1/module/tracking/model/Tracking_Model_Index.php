@@ -61,12 +61,22 @@ class Tracking_Model_Index
         return $record;
     }
 
+    /*public
+
+    function findAssignedLoadIdentityByShipmentTicket($shipment_ticket)
+    {
+        $record = array();
+        $sql = "SELECT instaDispatch_loadIdentity AS load_identity, instaDispatch_loadGroupTypeCode AS load_type, shipment_ticket AS shipment_ticket, assigned_driver AS assigned_driver, shipment_routed_id AS shipment_route_id, company_id AS company_id, warehouse_id AS warehouse_id, current_status AS current_status FROM " . DB_PREFIX . "shipment WHERE shipment_ticket IN('$shipment_ticket') ORDER BY FIELD (shipment_service_type, 'P','D')";
+        $records = $this->_db->getAllRecords($sql);
+        return $records;
+    }*/
+
     public
 
     function findAssignedLoadIdentityByShipmentTicket($shipment_ticket)
     {
         $record = array();
-        $sql = "SELECT instaDispatch_loadIdentity AS load_identity, instaDispatch_loadGroupTypeCode AS load_type, shipment_ticket AS shipment_ticket, assigned_driver AS assigned_driver, shipment_routed_id AS shipment_route_id, company_id AS company_id, warehouse_id AS warehouse_id, current_status AS current_status FROM " . DB_PREFIX . "shipment WHERE shipment_ticket IN('$shipment_ticket')";/*assigned_driver > 0 AND */
+        $sql = "SELECT DISTINCT(instaDispatch_loadIdentity) AS load_identity FROM " . DB_PREFIX . "shipment WHERE shipment_ticket IN('$shipment_ticket')";
         $records = $this->_db->getAllRecords($sql);
         return $records;
     }
@@ -146,12 +156,16 @@ class Tracking_Model_Index
     public
 
     function saveTrackingHistory($param)
-    {
-        return $this->_db->save("shipment_tracking", array(
+    {   
+        return $this->_db->save("shipment_tracking", $param);
+
+        /*return $this->_db->save("shipment_tracking", array(
             "shipment_ticket" => $param["shipment_ticket"],
             "load_identity" => $param["load_identity"],
-            "code" => $param["code"]          
-        ));
+            "code" => $param["code"],
+            "load_type" => $param["load_type"],
+            "service_type" => $param["service_type"]         
+        ));*/
     }
 
     public
@@ -266,7 +280,28 @@ class Tracking_Model_Index
 
     function findShipmentlByLoadIdentity($load_identity)
     {
-        $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity='$load_identity'";
+        $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity='$load_identity' ORDER BY FIELD (shipment_service_type, 'P','D')";
         return $this->_db->getAllRecords($sql);
+    }
+
+    public
+
+    function deleteTrackingByLoadIdentityAndCode($param)
+    {
+        return $this->_db->delete("DELETE FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
+    }
+
+    public
+
+    function findCollectionSuccessCountByLoadIdentity($load_identity){
+        $sql = "SELECT COUNT(1) AS num_rows FROM " . DB_PREFIX . "shipment_tracking AS STT where load_identity='$load_identity' AND code='COLLECTIONSUCCESS'";
+        return $this->_db->getRowRecord($sql);
+    }
+
+    public
+
+    function findTrackingHistory($param)
+    {
+        return $this->_db->getRowRecord("SELECT create_date AS create_date FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
     }
 }

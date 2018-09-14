@@ -473,11 +473,15 @@ class Quotation extends Icargo
     function getQuoteDataByQuoteNumber($param)
     {
         $quoteArr = array();
-        $customerData = $this->db->getRowRecord("SELECT t1.name,t1.id,email FROM " . DB_PREFIX . "users as t1 INNER JOIN " . DB_PREFIX . "quote_shipment as t2 ON t1.id = t2.customer_id WHERE t2.quote_number = '" . $param->quote_number . "'");
+        $customerData = $this->db->getRowRecord("SELECT c.available_credit,t1.name,t1.id,email FROM " . DB_PREFIX . "users as t1 
+            INNER JOIN " . DB_PREFIX . "quote_shipment as t2 ON t1.id = t2.customer_id
+            INNER JOIN " . DB_PREFIX . "customer_info as c on t2.customer_id = c.user_id
+            WHERE t2.quote_number = '" . $param->quote_number . "'");
         $quoteArr['customer'] = array(
             "id" => $customerData['id'],
             "name" => $customerData['name'],
-            "email" => $customerData['email']
+            "email" => $customerData['email'],
+            "availiable_balence"=>$customerData['available_credit']
         );
         $userData = $this->db->getRowRecord("SELECT t1.name,t1.id FROM " . DB_PREFIX . "users as t1 INNER JOIN " . DB_PREFIX . "quote_shipment as t2 ON t1.id = t2.user_id WHERE t2.quote_number = '" . $param->quote_number . "'");
         $quoteArr['user'] = array(

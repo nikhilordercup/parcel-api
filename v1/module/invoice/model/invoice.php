@@ -55,10 +55,10 @@ class AllInvoice_Model
     
     public function getAllInvice($whareHouseId,$componyId){
         $record = array();
-        $sqldata = 'I.invoice_reference,I.total_ammount as total_amount,I.raised_on,
+        $sqldata = 'I.incoice_pdf,I.invoice_reference,I.total_ammount as total_amount,I.raised_on,
                     I.deu_date as due_on,I.from,I.to,I.voucer as voucher,
                     I.tot_shipmets as shipments,I.tot_item as item,I.invoice_status as status,
-                    CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer';
+                    CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer,CI.user_id as customer_id';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = I.customer_id
                     WHERE I.company_id  = '" . $componyId . "'
@@ -89,12 +89,15 @@ class AllInvoice_Model
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service as A
                 LEFT JOIN " . DB_PREFIX . "shipment as S on S.instaDispatch_loadIdentity = A.load_identity
                 LEFT JOIN " . DB_PREFIX . "shipment_price as SP on (SP.load_identity = A.load_identity AND SP.api_key = 'surcharges' AND SP.price_code = 'fual_surcharge')
+                LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = A.customer_id
                 WHERE A.isInvoiced = 'NO'
                 AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')
                 ".$customerfilter."
                 AND DATE_FORMAT(S.shipment_create_date,'%Y-%m-%d') between '" . $from . "' AND '" . $to . "'
                 AND S.company_id = '" .$companyId ."'
                 AND S.shipment_service_type = 'P'
+                AND A.is_hold = 'NO'
+                AND CI.customer_type = 'POSTPAID'
                 ORDER BY A.customer_id"; 
         $record = $this->db->getAllRecords($sql);
         return $record; 
@@ -158,6 +161,7 @@ class AllInvoice_Model
                     DATE_FORMAT(S1.deu_date,"%Y-%m-%d")  AS customerinvoiceduedate,
                     S1.base_amount AS baseprice,S1.surcharge_total AS surcharge,
                     S1.invoice_status as status,
+                    S1.voucer as voucher,
                     S1.fual_surcharge AS fualsurcharge,S1.tax AS tax,S1.total_ammount AS total';
         $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "invoices AS S1
                 LEFT JOIN " . DB_PREFIX . "users AS COM ON COM.id = S1.company_id
@@ -169,16 +173,85 @@ class AllInvoice_Model
 
 	public function getAllInvoiceByCustomerId($whareHouseId,$companyId,$customerId){
         $record = array();
-        $sqldata = 'I.invoice_reference,I.total_ammount as total_amount,I.raised_on,
+        $sqldata = 'I.incoice_pdf,I.invoice_reference,I.total_ammount as total_amount,I.raised_on,
                     I.deu_date as due_on,I.from,I.to,I.voucer as voucher,
                     I.tot_shipmets as shipments,I.tot_item as item,I.invoice_status as status,
-                    CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer';
+                    CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer,CI.user_id as customer_id';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = I.customer_id
                     WHERE I.company_id  = '".$companyId ."' AND I.customer_id  = ".$customerId."";
         $record = $this->db->getAllRecords($sql);
         return $record;
      }	
-    
+    public function  getAllVoucher($companyId,$customerfilter){  
+        $record = array();
+        $sqldata = 'A.*,DATE_FORMAT(S.shipment_create_date,"%Y-%m-%d") AS booking_date,
+                    S.shipment_total_item AS items,
+                    B.service_name as service_name,
+                    B.rate_type as rate_type,
+                    B.transit_distance_text as chargable_value,
+                    S.shipment_id as reference_id';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "vouchers as A
+                LEFT JOIN " . DB_PREFIX . "shipment_service as B on B.load_identity = A.shipment_reference
+                LEFT JOIN " . DB_PREFIX . "shipment as S on S.instaDispatch_loadIdentity = A.shipment_reference
+                WHERE 1 =1 
+                ".$customerfilter."
+                AND A.company_id = '" .$companyId ."'
+                AND A.is_invoiced = 'NO'
+                AND S.shipment_service_type = 'P'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     }
+    public function getInvoiceData($invoiceId){
+        $record = array();
+        $sqldata = 'I.*';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
+                    WHERE I.id  = '".$invoiceId ."'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+     }	 
+    public function getCompanyLogo($company_id){
+        $record = array();
+        $sqldata = 'logo';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "configuration 
+                    WHERE company_id  = '".$company_id ."'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+     }
+    public function getCustomerAccount($customerId){
+        $record = array();
+        $sqldata = 'available_credit,customer_type';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "customer_info 
+                    WHERE user_id  = '".$customerId ."'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+     }
+     public function getInvoiceStatus($invoice_reference){
+        $record = array();
+        $sqldata = 'invoice_status';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices 
+                    WHERE invoice_reference  = '".$invoice_reference ."'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+     }
+     public function getPostpaidCustomer($company_id){
+        $record = array();
+        $sqldata = 'U.name,U.id,U.email';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "users as U 
+                LEFT JOIN " . DB_PREFIX ."customer_info as C ON C.user_id = U.id
+                WHERE U.user_level = 5 AND C.customer_type = 'POSTPAID' AND U.parent_id = '$company_id' order by U.name";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+     }
+    public function getPrepaidCustomer($company_id){
+        $record = array();
+        $sqldata = 'U.name,U.id,U.email';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "users as U 
+                LEFT JOIN " . DB_PREFIX ."customer_info as C ON C.user_id = U.id
+                WHERE U.user_level = 5 AND C.customer_type = 'PREPAID' AND U.parent_id = '$company_id' order by U.name";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+     }
    }
 ?>
