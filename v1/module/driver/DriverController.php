@@ -106,5 +106,4 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
             $this->_db->updateData($updateSql);
         }
     }
-
 }

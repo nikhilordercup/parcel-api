@@ -1015,7 +1015,10 @@ $app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('email','access_token','service_date'),$r);
     $obj = new Module_Google_Api($r);
-    $response = $obj->getGeolocationAndDistanceMatrix($r);
+    try{$response = $obj->getGeolocationAndDistanceMatrix($r);}
+    catch(Exception $e){
+        $response = array('status'=>'error','message'=>'distance matrix error');
+    }
     echoResponse(200, $response);
 });
 
@@ -1064,65 +1067,6 @@ $app->post('/getSamedayShipmentByCustomerId', function() use($app){
 $app->post('/searchCustomer', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','email','keywords','warehouse_id'),$r);
-    $obj = new Controller($r);
-    $response = $obj->getCustomerByControllerId($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
-    $response = array();
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('email','access_token','service_date'),$r);
-    $obj = new Module_Google_Api($r);
-    $response = $obj->getGeolocationAndDistanceMatrix($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/getAvailableServices', function() use($app){
-    $response = array();
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('email','access_token','transit_distance','transit_time','number_of_collections','number_of_drops','total_waiting_time','service_date'),$r);
-    $obj = new Module_Coreprime_Api($r);
-    $response = $obj->getAllServices($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/searchAddress', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
-    $obj = new Module_Addressbook_Addressbook($r);
-    $response = $obj->getAllAddresses($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/searchAddressById', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','email','customer_id','id','address_origin'),$r);
-    $obj = new Module_Addressbook_Addressbook($r);
-    $response = $obj->searchAddressById($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/bookShipment', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('service_date','transit_time','transit_distance','email','access_token','company_id','customer_id'),$r);
-    $obj = new shipment();
-    $response = $obj->bookSameDayShipment($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/getSamedayShipmentByCustomerId', function() use($app){
-    $response = array();
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','email','customer_id'),$r);
-    //$obj = new shipment();
-    //$response = $obj->bookSameDayShipment($r);
-    echoResponse(200, $response);
-});
-
-$app->post('/searchCustomer', function() use($app){
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','company_id','email','keywords'),$r);
     $obj = new Controller($r);
     $response = $obj->getCustomerByControllerId($r);
     echoResponse(200, $response);
@@ -1960,6 +1904,13 @@ $app->post('/getAllShipmentsCarrier', function() use ($app) {
     $response = $obj->getAllCarrier($r);
     echoResponse(200, $response);
 });
+$app->post('/getAllShipmentsCarrier', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getAllCarrier($r);
+    echoResponse(200, $response);
+});
 $app->post('/getAllMasterCouriers', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','user_id'),$r);
@@ -2159,19 +2110,203 @@ $app->post('/updateTrackingStatus', function() use ($app){
     $response = $obj->routeReleaseFromDriver($r);
     echoResponse(200, $response);
 });
+$app->post('/getCustomerAllTransactionData', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
+	$response = $obj->getCustomerAllTransactionData($r);
+	echoResponse(200, $response);
+});
+$app->post('/unholdJob', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->unholdJob($r);
+    echoResponse(200, $response);
+});
+$app->post('/holdJob', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->holdJob($r);
+    echoResponse(200, $response);
+});
+$app->post('/getlogo', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getlogo($r);
+    echoResponse(200, $response);
+});
+$app->post('/recurringShipmentDetails', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getRecurringShipmentDetails($r);
+	echoResponse(200, $records);
+});
+$app->post('/recurringJob', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->bookRecurringJob($r);
+	echoResponse(200, $records);
+});
 
+$app->post('/getRecurringJobs', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getRecurringJobs($r);
+	echoResponse(200, $records);
+});
 
-$app->post('/test', function() use ($app){
-    //$r = json_decode($app->request->getBody(), true);
-    //verifyRequiredParams(array('load_identity'),$r);
+$app->post('/editRecurringjobStatus', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id','descid'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->editRecurringjobStatus($r);
+	echoResponse(200, $records);
+});
+$app->post('/deleteRecurringjobStatus', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id','descid','jobref'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->deleteRecurringjobStatus($r);
+	echoResponse(200, $records);
+});
 
-    //$obj = new Find_Save_Tracking();
-    //$status = $obj->_findAllTrackingCode($r['load_identity']);
-    //print_r($status);die;
-    //$obj->saveTrackingStatus(array("ticket_str"=>'ICARGOS185483','form_code'=>'OC-address-unaccesseble-or-not-found','user_type'=>'Driver'));
+$app->post('/recurringJobDetails', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','job_identity'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->recurringJobDetails($r);
+	echoResponse(200, $records);
+});
+$app->post('/updateRecurringJob', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->updateRecurringJob($r);
+	echoResponse(200, $records);
+});
+$app->post('/getAllRecurringBreakdown', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token','company_id','job_reference'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->getAllRecurringBreakdown($r);
+	echoResponse(200, $records);
+});
+$app->post('/checkEligibleForCancel', function() use ($app) { 
+	$response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->checkEligibleForCancel($r);
+    echoResponse(200, $response);
+});
+$app->post('/cancelJob', function() use ($app) { 
+	$response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->cancelJob($r);
+    echoResponse(200, $response);
+});
+$app->post('/getAuthorizationData', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','warehouse_id','customer_id'),$r);
+	$response = $obj->getAuthorizationData($r);
+	echoResponse(200, $response);
+});
+$app->post('/editAuthorizationStatus', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','descid','customer_id','status'),$r);
+	$response = $obj->editAuthorizationStatus($r);
+	echoResponse(200, $response);
+});
+$app->post('/editAuth', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','descid','title','url','description'),$r);
+	$response = $obj->editAuthorization($r);
+	echoResponse(200, $response);
+});
+$app->post('/addAuth', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','title','customer_id','url','description'),$r);
+	$response = $obj->addAuthorization($r);
+	echoResponse(200, $response);
+});
+$app->post('/payinvoices', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->payinvoices($r);
+    echoResponse(200, $response);
+}); 
+$app->post('/loadPostpaidCustomer', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->loadPostpaidCustomer($r->company_id);
+    echoResponse(200, $response);
+});
+$app->post('/saveEasyPostTracking', function() use ($app){
+    $r = json_decode(file_get_contents("php://input"));
+    $obj = new Easypost_Tracking($r->data);
+    $obj->saveTracking();
+    exit();
+});
+/*
+$app->post('/createTracking', function() use ($app){
+    $r = json_decode(file_get_contents("php://input"));
+    $tracking_code = "1174215114";
+    $carrier = "DHLExpress";
+    $obj = new Create_Tracking();
+    $obj->createTracking($tracking_code, $carrier);
+    exit();
+});*/
+$app->post('/checkEligibleforRecurring', function() use ($app) { 
+	$response = array();
+	$r = json_decode($app->request->getBody());
+	verifyRequiredParams(array('email','access_token'),$r);
+	$obj = new allShipments($r);
+	$records = $obj->checkEligibleforRecurring($r);
+	echoResponse(200, $records);
+});  
+$app->post('/loadPrepaidCustomer', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id','email'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->loadPrepaidCustomer($r->company_id);
+    echoResponse(200, $response);
+});
+$app->post('/prepaidrecharge', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->prepaidrecharge($r);
+    echoResponse(200, $response);
+}); 
 
-
-     //die;
+$app->post('/downloadAccountStatements', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id','customer_id','from','to'),$r);
+	$response = $obj->downloadAccountStatements($r);
+	echoResponse(200, $response);
 });
 
 GridConfiguration::initRoutes($app);

@@ -118,19 +118,23 @@ SELECT  S.warehouse_id as warehouse_id,
                     UTT.name as shipment_customer_name,
                     (SST.base_price + SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,
                     SST.service_name as shipment_service_name,
+                    SST.is_hold as is_hold,
+                    SST.is_recurring as is_recurring,
+                    SST.booked_by_recurring as booked_by_recurring,
                     COUR.name as carrier,
 					COUR.icon as carrier_icon,
                     UT.name as booked_by,
                     SST.isInvoiced as isInvoiced,
 					SST.status as cancel_status,
-					SST.label_json as label_json';
-
+					SST.label_json as label_json,
+                    SST.tracking_code as current_status';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UT ON UT.id = S.booked_by
                     LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity = S.instaDispatch_loadIdentity
-                    LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = SST.carrier
+                    LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
+                    LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = COMCOUR.courier_id
                     WHERE 1 = 1  
                     ".$filter."
                     ORDER BY  FIELD(\"S.shipment_service_type\",\"P\",\"D\"),S.shipment_id DESC";
@@ -562,17 +566,14 @@ SELECT  S.warehouse_id as warehouse_id,
         }
   public  function getShipmentPodByShipmentTicket($tickets){
         $record = array();
-        $sqldata = 'R1.*';
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_pod AS R1
-                WHERE R1.shipment_ticket IN ($tickets)";
+        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ($tickets)";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
   public function allowedTracking(){
         $record = array();
-        $sqldata = 'R1.tracking_internal_code as id,R1.name';
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_master AS R1
-                    WHERE R1.is_used_for_tracking = 'YES'";
+        //$sqldata = 'R1.tracking_internal_code as id,R1.name';
+        $sql = "SELECT R1.code as id,R1.name FROM " . DB_PREFIX . "shipments_master AS R1 WHERE R1.is_used_for_tracking = 'YES'";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -619,5 +620,189 @@ SELECT  S.warehouse_id as warehouse_id,
         return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SMT.name AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON SMT.code=SST.tracking_code WHERE load_identity = '$load_identity'");
         //return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SST.tracking_code AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST WHERE SST.load_identity = '$load_identity'");
     }
-  }
+    public function getCustomerInfo($customerId){ 
+       $record = array();
+         $sqldata = 'C.available_credit,C.customer_type';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "customer_info AS C
+                WHERE C.user_id = '" . $customerId . "'";
+        return $this->db->getRowRecord($sql); 
+        
+      }
+   
+    public function getCompanylogo($company_id){    
+    $record = $this->db->getRowRecord("SELECT logo FROM " . DB_PREFIX . "configuration WHERE company_id = ".$company_id); 
+    return $record['logo'];
+     }
+    public function getRecurringShipmentDetails($identity){ 
+       $record = array();
+         $sqldata = '
+         S.instaDispatch_loadGroupTypeCode as job_type,
+         S.shipment_service_type as shipment_type,
+         S.shipment_customer_phone as customerphone,
+         S.shipment_customer_name as customername,
+         S.shipment_customer_email as customeremail,
+         S.shipment_postcode AS postcode,
+         S.shipment_address1 AS address_line1,
+         S.shipment_address2 AS address_line2,
+         S.shipment_customer_country AS country,
+         S.shipment_customer_city AS city,
+         S.shipment_county AS state,
+         S.customer_id AS customer_id,
+         S.company_id AS company_id,
+         SST.carrier AS company_carrier_id,
+         SST.service_name as service,
+         SST.rate_type as chargeableunit,
+         SST.transit_distance_text as chargeablevalue,
+         SST.transit_time_text as transittime,
+         SST.carrier as carrier,
+         SST.load_identity as reference,
+         (SST.base_price +  SST.courier_commission_value + SST.surcharges + SST.taxes)as customertotalprice,
+         (SST.base_price + SST.surcharges) as carriertotalprice,
+         SST.load_identity as customerreference,
+         UTT.name as customer,
+         UTS.name as user,
+         UT.name as customer_desc,
+         COUR.name as carriername';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
+                    LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON (SST.load_identity = S.instaDispatch_loadIdentity AND S.shipment_service_type = 'P')
+                    LEFT JOIN " . DB_PREFIX . "users AS UT ON UT.id = S.booked_by
+                    LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
+                    LEFT JOIN " . DB_PREFIX . "users AS UTS ON UTS.id = S.user_id
+                    LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = SST.carrier
+                    WHERE(S.instaDispatch_loadGroupTypeCode  = 'SAME' OR S.instaDispatch_loadGroupTypeCode  = 'NEXT')
+                    AND S.instaDispatch_loadIdentity in($identity) 
+                    ORDER BY  FIELD(\"S.shipment_service_type\",\"P\",\"D\")";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    
+    public function getRecurringDetails($identity){ 
+       $record = array();
+         $sqldata = '
+         SST.customer_id AS customer_id,
+         SST.carrier AS company_carrier_id,
+         SST.booked_service_id as company_service_id';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service AS SST
+         where SST.load_identity in($identity)";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+     public function getRecurringJobsByCompanyId($companyId){ 
+       $record = array();
+         $sqldata = '
+         RECJOB.job_id AS id,
+         RECJOB.load_identity AS job_reference,
+         RECJOB.load_type AS type,
+         RECJOB.last_booking_date AS last_booked_date,
+         RECJOB.last_booking_time AS last_booked_time,
+         RECJOB.last_booking_reference AS last_booked_ref,
+         RECJOB.recurring_type AS recurring_type,
+         RECJOB.status AS status,
+         COUR.name as carrier,
+         UTT.name as customer';  
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS RECJOB
+                 LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = RECJOB.customer_id
+                 LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = RECJOB.company_carrier_id
+         where RECJOB.company_id  = '$companyId' group by RECJOB.load_identity ";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+    
+    public function getRecurringJobDetail($identity){ 
+       $record = array();
+         $sqldata = '*';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS RECJOB
+         where RECJOB.load_identity = '$identity'";
+         $record = $this->db->getAllRecords($sql); 
+         return $record;
+      }
+     public function getRecurringJobsBreakDown($companyId,$loadidentity){ 
+       $record = array();
+         $sqldata = '
+         RECJOB.job_id AS id,
+         RECJOB.recurring_day AS recurring_day,
+         RECJOB.recurring_date AS recurring_date,
+         RECJOB.recurring_time AS recurring_time,
+         RECJOB.recurring_month_date AS recurring_month_date,
+         RECJOB.status AS status';  
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS RECJOB
+         where RECJOB.company_id  = '$companyId' AND RECJOB.load_identity  = '$loadidentity' ";
+        $record = $this->db->getAllRecords($sql); 
+        return $record;
+      }
+      public function getLoadDetail($loadidentity){ 
+       $record = array();
+         $sqldata = 'SST.tracking_code AS current_status,SST.isInvoiced,SST.accountkey,SST.grand_total,COUR.cancelation_charge,SST.customer_id,SST.load_identity,SST.status';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service AS SST
+                LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COUR ON COUR.account_number = SST.accountkey
+                #LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COUR ON COUR.id = SST.carrier
+                WHERE  SST.load_identity  = '$loadidentity' ";       
+        $record = $this->db->getRowRecord($sql); 
+        return $record;
+      }
+     public function getEligibleCancelCode(){ 
+       $record = array();
+         $sqldata = 'code';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_master AS SMAS
+                 where SMAS.is_used_for_cancel = 'YES' and status = '1'";
+         $record = $this->db->getAllRecords($sql); 
+         return $record;
+      }
+    
+    
+    
+       public function getShipmentTrackingID($identity){ 
+       $record = array();
+         $sqldata = 'S.tracking_id';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_tracking AS S
+                 WHERE S.load_identity = '" . $identity . "'";
+         return $this->db->getRowRecord($sql); 
+        
+      }  
+      public function getShipmentTrackingDetails($identity){ 
+       $record = array();
+         $sqldata = 'S.code as status,S.create_date as event_date';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_tracking AS S
+                 WHERE S.load_identity = '" . $identity . "'";
+         $record =  $this->db->getAllRecords($sql); 
+        return $record;
+      }
+     public function getShipmentsType($loadidentity){
+        $sqldata = 'S.shipment_type,COUR.code,S.booking_date';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipments_view AS S
+                LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COMCOUR ON COMCOUR.id = S.carrier
+                LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = COMCOUR.courier_id
+                WHERE S.instaDispatch_loadIdentity  = '" . $loadidentity . "'";
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+       }
+        
+    public function checkEligibleforRecurring($identity){ 
+       $record = array();
+         $sqldata = 'S.is_recurring';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service AS S
+                 WHERE S.load_identity = " . $identity . "";
+         return $this->db->getRowRecord($sql); 
+        
+      }  
+    public function getDropTrackingByLoadIdentity($load_identity){
+        //$sql = "SELECT ST.shipment_service_type, ST.shipment_ticket, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipment AS ST ON STT.load_identity = ST.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY FIELD(ST.shipment_service_type, 'P','D') "; //ORDER BY STT.id ASC;
+        $sql = "SELECT STT.shipment_ticket, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY STT.create_date, FIELD(service_type, 'collection','delivery')"; 
+        $record = $this->db->getAllRecords($sql);
+        return  $record;  
+    }
+
+    public function getShipmentTrackingByLoadIdentity($load_identity){
+        $sql = "SELECT ST.shipment_service_type, STT.load_identity, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipment AS ST ON STT.load_identity = ST.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY STT.create_date, FIELD(service_type, 'collection','delivery')";
+        $record = $this->db->getAllRecords($sql);
+        return  $record;  
+    }
+
+    public function getShipmentInfoByShipmentTicket($shipment_ticket){
+        $sql = "SELECT ST.shipment_service_type, ST.instaDispatch_loadGroupTypeCode AS load_type FROM " . DB_PREFIX . "shipment AS ST WHERE shipment_ticket='$shipment_ticket';";
+        $record = $this->db->getRowRecord($sql);
+        return  $record;  
+    }
+        
+  }           
 ?>
