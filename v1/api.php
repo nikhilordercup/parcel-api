@@ -631,7 +631,7 @@ $app->post('/getaddressbypostcode', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
     verifyRequiredParams(array('email','access_token','shipment_postcode'),$r);
-	$obj = new View_Support(array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_postcode'=>$r->shipment_postcode));
+	$obj = new View_Support(array('email'=>$r->email,'access_token'=>$r->access_token,'shipment_postcode'=>$r->shipment_postcode,'country_code'=>$r->country_code));
 	$status = $obj->getaddressbypostcode();
 	echoResponse(200, $status);
 }); 
@@ -1038,6 +1038,12 @@ $app->post('/searchAddress', function() use($app){
 
 $app->post('/searchAddressById', function() use($app){
     $r = json_decode($app->request->getBody());
+	
+	if(is_object($r->id)){
+		foreach($r->id as $id){
+			$r->id = $id;
+		}
+	}
     verifyRequiredParams(array('access_token','email','customer_id','id','address_origin'),$r);
     $obj = new Module_Addressbook_Addressbook($r);
     $response = $obj->searchAddressById($r);

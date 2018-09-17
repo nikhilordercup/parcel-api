@@ -33,6 +33,7 @@ class Module_Addressbook_Addressbook extends Icargo{
                         "street" => $list["street"]
                     ));
                 }
+				print_r($records);//die;
                 $response = array("status"=>"success","data"=>$records,"origin"=>"api");
                 return $response;
 			}
@@ -117,7 +118,8 @@ class Module_Addressbook_Addressbook extends Icargo{
     function searchAddressById($param){
         if($param->address_origin=="api"){
             $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookupByID((int)$param->id);
+            //$addresses = $pcaLookup->lookupByID((int)$param->id);
+			$addresses = $pcaLookup->lookupByID($param->id);
             if($addresses["status"]=="success"){
                 $data = $addresses["data"][0];
                 return array("status"=>"success", "data"=>array(
