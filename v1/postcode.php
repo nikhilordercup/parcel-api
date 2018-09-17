@@ -55,5 +55,6 @@ class Postcode {
 		);
 		return $ZIPREG[$countryCode];
 	}
+
 }
 ?>

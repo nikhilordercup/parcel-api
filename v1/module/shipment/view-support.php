@@ -132,12 +132,13 @@ class View_Support extends Icargo{
         $records = $this->modelObj->getActiveRoute($this->company_id);
 
         foreach($records as $key => $record){
+            $shipmentData = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $record['shipment_route_id'], $record["driver_id"]);
+            if(count($shipmentData)>0){
             $temp[$record['shipment_route_id']]['info']['row_id'] = $key;
-
+            
             //get driver name
             $driverData = $this->modelObj->getCustomerById($record["driver_id"]);
 
-            $shipmentData = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $record['shipment_route_id'], $record["driver_id"]);
             $temp[$record['shipment_route_id']]['info']['shipment_routed_id'] = $record["shipment_route_id"];
             $temp[$record['shipment_route_id']]['info']['route_id'] = $record["route_id"];
             $temp[$record['shipment_route_id']]['info']['assign_driver'] = $record["driver_id"];
@@ -209,6 +210,7 @@ class View_Support extends Icargo{
                 $temp[$record['shipment_route_id']]['info']['parcels'] = $parcels;
                 $temp[$record['shipment_route_id']]['info']['parcel_count'] = count($parcels);
             }
+        }
         }
         return $temp;
     }
@@ -1682,6 +1684,7 @@ class View_Support extends Icargo{
         $shipmentdetails     = $this->modelObj->getShipmentStatusDetails('"'.$ticketid.'"');
         $parcelDetails                                = $this->modelObj->getAllParceldataByTicket($ticketid);
         $shipmentTrackingDetails                      = $this->shipmentTrackingDetails($shipmentdetails);
+       
         $shipmentdetails['shipment_service_type']     = ($shipmentdetails['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
         
         $adressarr = array();
@@ -1694,7 +1697,16 @@ class View_Support extends Icargo{
         $shipmentRejectHistory                        = $this->modelObj->getAcceptRejectsShipmentStatusHistory($ticketid);
         $shipmentCurrentStatus                        = $this->modelObj->getShipmentCurrentStatusAndDriverId($ticketid);
         $shipmentLifeCycle                            = $this->modelObj->getShipmentLifeCycleHistory($ticketid);
-        
+
+        $trackingRecords = array();
+        //remove duplicate record from tracking info 
+        foreach($shipmentLifeCycle as $item){
+            $trackingRecords[$item["internel_action_code"]] = $item;
+            $trackingRecords[$item["internel_action_code"]]["create_date"] = Library::_getInstance()->date_format($item["create_date"]);
+        }
+        //end of duplicate record from tracking info
+
+
         if ($shipmentdetails['current_status'] == 'D') {
             $existingPodData = $this->modelObj->getExistingPodData($ticketid);
             $contactName     = $commentData = '';
@@ -1714,11 +1726,9 @@ class View_Support extends Icargo{
         $returnData['trackingData']                 = $shipmentTrackingDetails;
         $returnData['shipmentHistoryData']          = $shipmentHistory;
         $returnData['rejectHistoryData']            = $shipmentRejectHistory;
-        $returnData['shipmentLifeCycle']            = $shipmentLifeCycle;
+        $returnData['shipmentLifeCycle']            = array_values($trackingRecords);//$shipmentLifeCycle;
         $returnData['griddata']                     = $this->getshipmentdetailsjsonAction($ticketid); 
         
-        
-       
         return $returnData;
     }
    

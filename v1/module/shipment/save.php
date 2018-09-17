@@ -225,7 +225,7 @@ class shipment extends Library{
 		return $record['id'];
 	}
 	
-	private function _add_shipment_data_nextday_sameday($data){print_r($data);die;
+	private function _add_shipment_data_nextday_sameday($data){
 		
 		if($data['itemCount'] > 0){
 			$data['jobLoadItems']['jobLoadItem'] = array($data['jobLoadItems']['jobLoadItem']);
@@ -1318,10 +1318,12 @@ class shipment extends Library{
         }
         $data_string = json_encode($param);
         $_data["carrier"]                   = $param->otherinfo['courier_id'];
+        $_data["accountkey"]                = $param->otherinfo['accountkey'];
         $_data["courier_commission_type"]   = $param->otherinfo['operator'];
         $_data["courier_commission"]        = $param->otherinfo['ccf_value'];
         $_data["courier_commission_value"]  = $param->otherinfo['price'];
         $_data["base_price"]                = $param->otherinfo['original_price'];
+        $_data["booked_service_id"]         = $param->otherinfo['service_id'];
         $_data["total_price"]               = $_data["base_price"]  + $_data["courier_commission_value"];
         unset($param->surchargesinfo);
         unset($param->otherinfo);
@@ -1394,8 +1396,11 @@ class shipment extends Library{
             //$_data["chargable_value"] = 0.00;
             $_data["invoice_reference"] ='';
            // $_data["json_data"] = $data_string;
-            $_data["status"] ='INFO_RECEIVED';   
-            $service_id = $this->db->save("shipment_service", $_data);
+             $_data["status"] ='INFO_RECEIVED';
+                $customerData = $this->getBookedCustomerInfo($_data['customer_id']); 
+                $_data['customer_type']        = $customerData['customer_type'];
+               
+             $service_id = $this->db->save("shipment_service", $_data);
         }
         return $service_id;
     }
@@ -1433,7 +1438,7 @@ class shipment extends Library{
 
     private
     
-    function _save_address($address){print_r($address);die;
+    function _save_address($address){
         $postcode = $this->postcodeObj->validate($address["postcode"]);
        
         if($postcode){
@@ -1490,7 +1495,7 @@ class shipment extends Library{
 
     private
     
-    function _bookSameDayShipment($param){
+    function _bookSameDayShipment($param){ 
         $shipment_data = $param["shipment_data"];
         //address
         $address = $this->_save_address($shipment_data);
@@ -1606,7 +1611,7 @@ class shipment extends Library{
         
     function bookSameDayShipment($data)
     {   
-       print_r($data);die;
+       
         $carrier_id = $data->service_detail->otherinfo->courier_id;
 
         //check customer is enable or not  shipment_instruction
@@ -1628,8 +1633,12 @@ class shipment extends Library{
             if(!isset($data->service_detail))
                 {
                 return array("status"=>"error", "message"=>"Shipment service is mandatory", "data"=>$data);
-                }
-           
+            }
+            $bookingShipPrice = $data->service_detail->total_price;
+            $available_credit = $this->_getCustomerAccountBalence($data->customer_id,$bookingShipPrice);
+            if($available_credit["status"]=="error"){
+                return array("status"=>"error", "message"=>"You don't have sufficient balance", "data"=>$data);;
+            }
             $shipmentData = array();
             $service_id = false;
             $shipmentId = 0;
@@ -1680,7 +1689,7 @@ class shipment extends Library{
                     //save shipment price detail
                    
                     $service_id = $this->_saveShipmentService($shipmentService);
-                     
+                    $paymentStatus = $this->_manageAccounts($service_id, $loadIdentity, $data->customer_id,$this->company_id);
                     ++$counter;
                 }
                 elseif($shipmentStatus["status"]=="error"){
@@ -1714,6 +1723,12 @@ class shipment extends Library{
                     unset($shipmentService->message);
                     //save shipment price detail
                     $service_id = $this->_saveShipmentService($shipmentService);
+                    
+                    $paymentStatus = $this->_manageAccounts($service_id,$loadIdentity,$data->customer_id,$this->company_id);
+                    // add Price
+                    
+                    
+                    
                 }elseif($shipmentStatus["status"]=="error"){
                     return $shipmentStatus;
                 }
@@ -1735,5 +1750,75 @@ class shipment extends Library{
             return array("status"=>"error", "message"=>"Customer account disabled.");
         }
     }
+    
+    protected
+    function _manageAccounts($priceServiceid,$load_identity, $customer_id,$company_id){
+          $priceData = $this->getBookedShipmentsPrice($priceServiceid,$customer_id);
+          if(isset($priceData["grand_total"])){
+                 $creditbalanceData = array();
+                 $creditbalanceData['customer_id']          = $customer_id;
+                 $creditbalanceData['customer_type']        = $priceData['customer_type'];
+                 $creditbalanceData['company_id']           = $company_id;
+                 $creditbalanceData['payment_type']         = 'DEBIT';
+                 $creditbalanceData['pre_balance']          = $priceData["available_credit"];
+                 $creditbalanceData['amount']               = $priceData["grand_total"];
+                 $creditbalanceData['balance']              = $priceData["available_credit"] - $priceData["grand_total"];
+                 $creditbalanceData['create_date']          = date("Y-m-d");
+                 $creditbalanceData['payment_reference']    = $load_identity;
+                 $creditbalanceData['payment_desc']         = 'BOOK A SHIPMENT';
+                 $creditbalanceData['payment_for']          = 'BOOKSHIP';
+                 $addHistory = $this->saveAccountHistory($creditbalanceData);
+                  if($addHistory>0){
+                      $condition = "user_id = '".$customer_id."'";
+                      $updateStatus = $this->editAccountBalance(array('available_credit'=>$creditbalanceData['balance']),$condition); 
+                      if($updateStatus){
+                          return array("status"=>"success", "message"=>"Price Update save");
+                      }
+                  }
+        }
+        return array("status"=>"error", "message"=>"shipment service not saved");
+    }
+    
+         public
+
+    function getCustomerAccountBalence($customer_id){
+        $sql = "SELECT available_credit FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customer_id'";
+        return $this->db->getRowRecord($sql);
+    }
+    function getBookedShipmentsPrice($priceServiceid,$customerId){
+        $sql = "SELECT S.grand_total,C.customer_type,C.available_credit FROM " . DB_PREFIX . "shipment_service as S
+                INNER JOIN " . DB_PREFIX . "customer_info as C on S.customer_id = C.user_id
+                WHERE S.id = '$priceServiceid' AND C.user_id = '$customerId'";
+        return $this->db->getRowRecord($sql);
+    } 
+    public
+
+    function saveAccountHistory($data){
+        $his_id = $this->db->save("accountbalancehistory", $data);
+        return $his_id;
+    }
+    
+  public
+
+    function editAccountBalance($data,$condition){
+        $status = $this->db->update("customer_info", $data,$condition);
+        return $status;
+    }
+    
+    
+    public
+
+    function _getCustomerAccountBalence($customer_id,$bookShipPrice){
+        $available_credit = $this->getCustomerAccountBalence($customer_id);
+        if(($available_credit["available_credit"] <= 0  ) || ($available_credit["available_credit"] < $bookShipPrice) ){
+            return array("status"=>"error", "message"=>"you don't have sufficient balance,your current balance is ".$available_credit["available_credit"]." .","available_credit"=>$available_credit['available_credit']);
+        }
+        return array("status"=>"success", "message"=>"sufficient balance.","available_credit"=>$available_credit['available_credit']);
+    }
+      public function getBookedCustomerInfo($customerId){
+        $sql = "SELECT C.customer_type,C.available_credit FROM " . DB_PREFIX . "customer_info as C
+                WHERE  C.user_id = '$customerId'";
+        return $this->db->getRowRecord($sql);
+    }   
 } 
 ?>

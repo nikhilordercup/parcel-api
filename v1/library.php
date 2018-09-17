@@ -3,7 +3,7 @@
 
         public static $_obj = NULL;
 
-        public $google_api_key = "AIzaSyBmFtpn3wTVqapnXeC1RLWUCiZDnO119-0";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
+        public $google_api_key = "AIzaSyBhIrfuaPZmIGXV8KO5jCSE-Tpkr8J-7Z8";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
 
         public static function _getInstance(){
             if(self::$_obj==NULL){
@@ -257,7 +257,7 @@
         
         public function date_format($date)
         {
-            return date("M/d/Y", strtotime($date));
+            return date("d-m-Y", strtotime($date));
         }
         
         public function time_format($time)

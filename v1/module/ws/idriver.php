@@ -137,4 +137,3 @@ class Idriver{
         return array("status"=>"success", "message"=>"device token captured");
     }
 }
-?>

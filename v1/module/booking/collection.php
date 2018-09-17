@@ -28,7 +28,7 @@ final Class Collection{
         $this->collectionStartAt = "00:00:00";
         $this->collectionEndAt   = "00:00:00";
         $this->isRegularPickup   = "no"; // regular pickup no means initilly it is set to schedule pickup
-		$this->skipPickupProcess = false;
+        $this->skipPickupProcess = false;
     }
 
     public
@@ -85,6 +85,7 @@ final Class Collection{
         $this->_getCollectionAddressString();
 
         $this->_findCourier($this->carriers);
+
         $result = array();
         if(count($this->carrierList)>0){
             foreach($this->carrierList as $item){
@@ -92,9 +93,10 @@ final Class Collection{
             }
 
             $this->_findInternalCourier();
-			if(isset($this->internalCarrier)){
-				array_push($result, $this->internalCarrier);
-			}    
+            if(isset($this->internalCarrier)){
+            array_push($result, $this->internalCarrier);  
+                array_push($result, $this->internalCarrier);
+            }
         }
         return $result;
     }
@@ -112,47 +114,35 @@ final Class Collection{
         $weekDay = date('w', strtotime($date));
         return ($weekDay == 0 || $weekDay == 6);
     }
-	
-	private
 
-    function _nextCollectionTime($collection_start_at, $collection_end_at, $collection_date=null){//print_r($collection_start_at);echo '-----'; print_r($collection_end_at);die;
-        $todayStartTimeTimestamp = strtotime($this->today.' '.$collection_start_at);
-        $todayEndTimeTimestamp = strtotime($this->today.' '.$collection_end_at);
+    private
 
-        $collection_date = ($collection_date!=null) ? $collection_date : $this->collectionDate;
-
-        $collectionDateTimestamp = strtotime($collection_date);
-
-        $nextCollectionDate = "";
-        
-        
-        if($this->_isWeekend($collection_date)){
-            $nextMonday = date("Y-m-d", strtotime("next monday"));
-            $nextCollectionDate = date("Y-m-d H:i", strtotime("$nextMonday $collection_start_at"));
-            $nextCollectionDate = "$nextCollectionDate";
-        }
-        else{
-            $nextDateStamp      = strtotime(date("Y-m-d ".$collection_start_at, strtotime('+1 day', strtotime($collection_date))));//strtotime($collection_date);
-            $colletionDateStamp = strtotime($this->collectionDate);
-            //echo "$collection_date--$nextDateStamp - $collection_start_at";die;
-            if(($collectionDateTimestamp >= $todayStartTimeTimestamp) AND ($collectionDateTimestamp <= $todayEndTimeTimestamp)){
-                //$nextCollectionDate = date("Y-m-d");
-                //$nextCollectionDate = "$nextCollectionDate $collection_start_at";
-                //$nextCollectionDate = date("Y-m-d H:i", strtotime($nextCollectionDate));
-                //echo "140<br>";echo date("Y-m-d H:i",$colletionDateStamp);
-                $nextCollectionDate = date("Y-m-d H:i", $colletionDateStamp);
-            }elseif($nextDateStamp > $colletionDateStamp){
-                //$nextCollectionDate = "$collection_date";
-                //$nextCollectionDate = date("Y-m-d H:i", strtotime($nextCollectionDate));
-                $nextCollectionDate = date("Y-m-d H:i", $nextDateStamp);
-            }else{
-                $nextCollectionDateTime = date("Y-m-d", strtotime('+1 day', strtotime($collection_date)));
-                $nextCollectionDateTime = $nextCollectionDateTime.' '.$collection_start_at;
-                return $this->_nextCollectionTime($collection_start_at, $collection_end_at, $nextCollectionDateTime);
-            }
-        }
-        return $nextCollectionDate;
-    }
+    function _nextCollectionTime($collection_start_at, $collection_end_at, $collection_date=null){
+       $todayStartTimeTimestamp = strtotime($this->today.' '.$collection_start_at);
+       $todayEndTimeTimestamp = strtotime($this->today.' '.$collection_end_at);
+       $collection_date = ($collection_date!=null) ? $collection_date : $this->collectionDate;
+       $collectionDateTimestamp = strtotime($collection_date);
+       $nextCollectionDate = "";
+       if($this->_isWeekend($collection_date)){
+           $nextMonday = date("Y-m-d", strtotime("next monday"));
+           $nextCollectionDate = date("Y-m-d H:i", strtotime("$nextMonday $collection_start_at"));
+           $nextCollectionDate = "$nextCollectionDate";
+       }
+       else{
+           $nextDateStamp      = strtotime(date("Y-m-d ".$collection_start_at, strtotime('+1 day', strtotime($collection_date))));//strtotime($collection_date);
+           $colletionDateStamp = strtotime($this->collectionDate);
+           if(($collectionDateTimestamp >= $todayStartTimeTimestamp) AND ($collectionDateTimestamp <= $todayEndTimeTimestamp)){
+               $nextCollectionDate = date("Y-m-d H:i", $colletionDateStamp);
+           }elseif($nextDateStamp > $colletionDateStamp){
+               $nextCollectionDate = date("Y-m-d H:i", $nextDateStamp);
+           }else{
+               $nextCollectionDateTime = date("Y-m-d", strtotime('+1 day', strtotime($collection_date)));
+               $nextCollectionDateTime = $nextCollectionDateTime.' '.$collection_start_at;
+               return $this->_nextCollectionTime($collection_start_at, $collection_end_at, $nextCollectionDateTime);
+           }
+       }
+       return $nextCollectionDate;
+   }
 
     private
 
@@ -200,7 +190,7 @@ final Class Collection{
             $item["is_regular_pickup"]    = $this->isRegularPickup;
             $item["collection_date_time"] = $collectionDateTime;
             $collectionList = $this->_prepareCollectionList($item);
-            
+
             if($item["pickup"]==1 || $this->isRegularPickup=="yes" || $this->skipPickupProcess==true){
                 //collected by carrier itself
                 $collectionList["collected_by"][] = array(
@@ -298,8 +288,8 @@ final Class Collection{
         $defaultCollectionAddStr = $this->_getAddressString($defaultCollectionAddress);
         if($this->CollectionAddressStr==$defaultCollectionAddStr)
             $this->isRegularPickup = "yes";
-		else
-			$this->skipPickupProcess = true;
+        else
+            $this->skipPickupProcess = true;
     }
 
     private
