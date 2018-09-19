@@ -263,10 +263,11 @@ class shipment extends Library{
 			$ticketNumber = $this->_generate_ticket_no();
 			
 			$datapostcode = $this->postcodeObj->validate($data['postcode']);
+			$datapostcode = $datapostcode[0];
 			
-			$shipment_geo_location = $this->get_lat_long_by_postcode($datapostcode[0],$data['latitude'],$data['longitude']);
+			$shipment_geo_location = $this->get_lat_long_by_postcode($datapostcode,$data['latitude'],$data['longitude']);
 			
-			$warehouse_id = $this->_shipment_warehouse(array("company_id"=>$this->company_id, "postcode"=>$datapostcode[0], "shipment_geo_location"=>$shipment_geo_location));
+			$warehouse_id = $this->_shipment_warehouse(array("company_id"=>$this->company_id, "postcode"=>$datapostcode, "shipment_geo_location"=>$shipment_geo_location));
 			
 			$postcode = $this->postcodeObj->validate($valuedata['postcode']);
 			$postcode = $postcode[0];
