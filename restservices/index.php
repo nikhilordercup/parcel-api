@@ -173,7 +173,7 @@ function verifyTokenByPass($app,$r) {
     else{
       $error = true;  
       $response["status"] = "fail";
-      $response["message"] = 'your account is not inactive';
+      $response["message"] = 'your account is inactive';
       $response["error_code"] = "ERROR003"; 
     }
      }catch(Exception $e){
