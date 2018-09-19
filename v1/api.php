@@ -2178,3 +2178,4 @@ GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
 SubscriptionController::initRoutes($app);
+RateEngineController::initRoutes($app);

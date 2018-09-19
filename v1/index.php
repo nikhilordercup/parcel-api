@@ -37,6 +37,7 @@ require_once 'module/configuration/GridConfiguration.php';
 require_once 'module/configuration/CustomFilterConfiguration.php';
 require_once 'module/driver/DriverController.php';
 require_once './module/chargebee/SubscriptionController.php';
+require_once './module/rate-engine/RateEngineController.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
