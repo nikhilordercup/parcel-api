@@ -2183,6 +2183,67 @@ $app->post('/createTracking', function() use ($app){
     die;
 });
 
+$app->post('/getProfileInfo', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new Company($r);
+    $response = $obj->getUserProfileInfo($r);
+    echoResponse(200, $response);    
+});
+
+$app->post('/updateProfile', function() use ($app){    
+    $response = array();
+    $r = (object)$app->request->post();    
+    $obj = new Company($r);    
+    $response = $obj->updateUserInfo($r);
+    echoResponse(200, $response);    
+});
+$app->post('/createStripeCustomer', function() use ($app){    
+    $response = array();    
+    $r = json_decode($app->request->getBody());    
+    $obj = new ServiceProvider($r);    
+    $response = $obj->createStripeCustomer($r);    
+    echoResponse(200, $response);    
+});
+$app->post('/getStripeCustomer', function() use ($app){    
+    $response = array();    
+    $r = json_decode($app->request->getBody());    
+    $obj = new ServiceProvider($r);    
+    $response = $obj->getStripeCustomer($r);
+    echoResponse(200, $response);    
+});
+$app->post('/saveCustomerToken', function() use ($app){    
+    $response = array();    
+    $r = json_decode($app->request->getBody());    
+    $obj = new ServiceProvider($r);    
+    $response = $obj->saveCustomerToken($r);
+    echoResponse(200, $response);    
+});
+$app->post('/getCustomerServiceProvider', function() use ($app){    
+    $response = array();           
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);    
+    $response = $obj->getCustomerServiceProvider($r);
+    //print_r($response); die;
+    echoResponse(200, $response);    
+});
+$app->post('/getServiceProviderById', function() use ($app){    
+    $response = array();           
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);    
+    $response = $obj->getServiceProviderById($r);
+    //print_r($response); die;
+    echoResponse(200, $response);    
+});
+$app->post('/saveCustomerTransaction', function() use ($app){    
+    $response = array();           
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);    
+    $response = $obj->getServiceProviderById($r);
+    //print_r($response); die;
+    echoResponse(200, $response);    
+});
+
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);

@@ -140,6 +140,8 @@ require_once 'module/tracking/Easypost_Tracking.php';
 require_once 'module/tracking/Find_Save_Tracking.php';
 require_once 'module/tracking/Create_Tracking.php';
 
+require_once 'module/service_provider/ServiceProvider.php';
+require_once 'module/service_provider/model/ServiceProviderModel.php';
 
 //Country file included
 require_once 'module/country/model/country.php';

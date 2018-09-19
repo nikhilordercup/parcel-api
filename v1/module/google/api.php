@@ -146,7 +146,7 @@
                 {
                 foreach($items as $key2 => $item)
                     {
-                    if(count($item)>0)
+                    if(@count($item)>0)
                         {
                         if($key=="collection_postcodes")
                             {
@@ -229,14 +229,14 @@
                     return $matrix;
                 }
             }
-
+//print_r($param); die;
             return array(
                 "origin"=>$origin,
                 "destination"=>$destination,
                 "waypoints"=>$waypoints,
                 "total_waiting_time"=>array_sum($total_waiting_time),
-                "number_of_collections"=>count($param->collection_postcodes),
-                "number_of_drops"=>count($param->delivery_postcodes),
+                "number_of_collections"=>@count($param->collection_postcodes),
+                "number_of_drops"=>@count($param->delivery_postcodes),
                 "transit_distance"=>$transit_distance, 
                 "transit_time"=>$transit_time, 
                          
