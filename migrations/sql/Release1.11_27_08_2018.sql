@@ -209,6 +209,9 @@ ADD COLUMN `tracking_callbackurl` VARCHAR(255) NULL DEFAULT NULL AFTER `booked_q
 
 ALTER TABLE `icargo_accountbalancehistory` ADD `payment_provider` VARCHAR(255) NOT NULL AFTER `payment_for`;
 
+ALTER TABLE `icargo_recurring_jobs` CHANGE `status` `status` ENUM('true','false','fail') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'true';
+
+
 ALTER
  ALGORITHM = UNDEFINED
 DEFINER=`app_stable`@`localhost` 

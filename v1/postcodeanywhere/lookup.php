@@ -11,6 +11,8 @@ Class Address_Lookup{
     {
         //Set Licence and Account Code
         $postcodeObj = new Postcode();
+		if($countryCode=='')
+			$countryCode = 'GB';//UK
         $string = $postcodeObj->validate($string,$countryCode);
         //if($string!=''){
 		if(count($string)>0){

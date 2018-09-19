@@ -1440,14 +1440,13 @@ class shipment extends Library{
     
     function _save_address($address){
         $postcode = $this->postcodeObj->validate($address["postcode"]);
-       
         if($postcode){
 			if(isset($address["type"])){
 				$address_type = ($address["type"] == 'no') ? 'Business' : 'Residential' ;
 			}else{
 				$address_type = "";
 			}
-            $address["postcode"] = $postcode;
+            $address["postcode"] = $postcode[0];
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
             $data["address_line2"] = (isset($address["address_line2"])) ? addslashes($address["address_line2"]) : "";

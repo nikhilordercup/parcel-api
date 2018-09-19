@@ -312,7 +312,7 @@ class Sameday extends  Booking
             elseif(!isset($val->address->country)  || ($val->address->country=='')){
                  $response = array(); 
                  $response["status"] = "fail";
-                 $response["message"] = 'Delivery country parameter missing';
+                 $response["message"] = 'Delivery country parameter missing.';
                  $response["error_code"] = "ERROR0017";   
                  return $response;
             }else{
@@ -1418,9 +1418,12 @@ class Sameday extends  Booking
         if(count($reccuringBucket)>0){
             foreach($reccuringBucket as $key=>$data){
                 $returnData = $this->bookSamedayByLoadIdentity($data['load_identity']);
-                if($returnData['status']=='error'){
+                if($returnData['status']=='error' || $returnData['status']=='fail'){
                     Consignee_Notification::_getInstance()->sendRecurringNotification(
                     array('rowdata'=>$data['rowdata'],'returnData'=>$returnData));
+                    $updatestatus = $this->resrServiceModel->editContent('recurring_jobs',
+                                                         array('status'=>'fail')," job_id = '".$data['rowdata']['job_id']."'"); 
+                    return $returnData;
                 }else{
                    if($returnData['status']=='success'){
                        $id = $data['rowdata']['job_id'];

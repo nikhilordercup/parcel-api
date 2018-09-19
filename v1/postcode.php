@@ -31,7 +31,9 @@ class Postcode {
 		}
 	}
 	
-	public function validate($p,$countryCode){
+	public function validate($p,$countryCode=''){
+		if($countryCode=='')
+			$countryCode='GB';
 		return $this->format_postcode($p,$countryCode);
 		
 	}
