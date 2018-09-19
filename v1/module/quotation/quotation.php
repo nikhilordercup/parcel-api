@@ -94,8 +94,9 @@ class Quotation extends Icargo
         $this->db->startTransaction();
         foreach($data->collection_shipment_address as $collection_data)
         {
+			$postcode = $postcodeObj->validate($collection_data->postcode);
             $shipmentData = array(
-                "shipment_postcode" => $postcodeObj->validate($collection_data->postcode),
+                "shipment_postcode" => $postcode[0],//$postcodeObj->validate($collection_data->postcode),
                 "shipment_address" => $collection_data->formatted_address,
                 "quote_number" => $quoteNumber,
                 "shipment_service_type" => "P",
@@ -126,9 +127,10 @@ class Quotation extends Icargo
         }
 
         foreach($data->delivery_shipment_address as $delivery_data)
-        {
+        {  
+		    $postcode = $postcodeObj->validate($delivery_data->postcode);
             $shipmentData = array(
-                "shipment_postcode" => $postcodeObj->validate($delivery_data->postcode),
+                "shipment_postcode" => $postcode[0],//$postcodeObj->validate($delivery_data->postcode),
                 "shipment_address" => $delivery_data->formatted_address,
                 "quote_number" => $quoteNumber,
                 "shipment_service_type" => "D",
