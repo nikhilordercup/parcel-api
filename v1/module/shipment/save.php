@@ -264,11 +264,12 @@ class shipment extends Library{
 			
 			$datapostcode = $this->postcodeObj->validate($data['postcode']);
 			
-			$shipment_geo_location = $this->get_lat_long_by_postcode($datapostcode,$data['latitude'],$data['longitude']);
+			$shipment_geo_location = $this->get_lat_long_by_postcode($datapostcode[0],$data['latitude'],$data['longitude']);
 			
-			$warehouse_id = $this->_shipment_warehouse(array("company_id"=>$this->company_id, "postcode"=>$datapostcode, "shipment_geo_location"=>$shipment_geo_location));
+			$warehouse_id = $this->_shipment_warehouse(array("company_id"=>$this->company_id, "postcode"=>$datapostcode[0], "shipment_geo_location"=>$shipment_geo_location));
 			
 			$postcode = $this->postcodeObj->validate($valuedata['postcode']);
+			$postcode = $postcode[0];
 			if($postcode){
 				$valuedata['postcode'] = $postcode;
 				$shipmentData['error_flag'] = 0;
@@ -426,7 +427,7 @@ class shipment extends Library{
 		$this->company_id = $this->_get_company_id($data['company_code']);
         
         $postcode = $this->postcodeObj->validate($data['postcode']);
-
+		$postcode = $postcode[0];
         
 		$warehouse_id = $this->warehouse_id;//$this->_shipment_warehouse(array("company_id"=>$this->company_id, "postcode"=>$postcode));
 
@@ -769,6 +770,7 @@ class shipment extends Library{
     public function addshipmentDetail(){
        $data = array();  
 	   $postcode = $this->postcodeObj->validate($this->tempdata->delivery->postcode);//$this->validatePostcode($this->tempdata->delivery->postcode);
+	   $postcode = $postcode[0];
        if($postcode){
 		   $dateData = isset($this->tempdata->delivery->servicedate)?$this->tempdata->delivery->servicedate:date("Y/m/d H:m:s");
 		   
@@ -970,6 +972,13 @@ class shipment extends Library{
         $data = array();
         
         $ticketNumber = $this->_generate_ticket_no();
+		if(isset($param["postcode"])){
+			$postcode = $this->postcodeObj->validate($param["postcode"]);
+			$postcode = $postcode[0];
+		}else{
+			$postcode = "";
+		}
+		
 
         if($ticketNumber){
             $timestamp = $param["timestamp"];
@@ -1074,7 +1083,7 @@ class shipment extends Library{
             $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
             $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
             $data['shipment_customer_city'] = (isset($param["city"])) ? $param["city"]: "";
-            $data['shipment_postcode'] = (isset($param["postcode"])) ? $this->postcodeObj->validate($param["postcode"]) : "";
+            $data['shipment_postcode'] = $postcode;
             $data['shipment_customer_country'] = (isset($param["country"])) ? $param["country"] : "";
             $data['shipment_instruction'] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
@@ -1440,13 +1449,14 @@ class shipment extends Library{
     
     function _save_address($address){
         $postcode = $this->postcodeObj->validate($address["postcode"]);
+		$postcode = $postcode[0];
         if($postcode){
 			if(isset($address["type"])){
 				$address_type = ($address["type"] == 'no') ? 'Business' : 'Residential' ;
 			}else{
 				$address_type = "";
 			}
-            $address["postcode"] = $postcode[0];
+            $address["postcode"] = $postcode;
             $data = array();
             $data["address_line1"] = (isset($address["address_line1"])) ? addslashes($address["address_line1"]) : "";
             $data["address_line2"] = (isset($address["address_line2"])) ? addslashes($address["address_line2"]) : "";
