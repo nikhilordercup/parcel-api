@@ -81,4 +81,20 @@ class Consignee_Notification
         $obj = new Quotation_Notification_Consignee($param);
         $obj->send($param);
     }
+     /* New Template*/
+    public
+
+    function sendCustomerInvoiceNotification($param,$_sendpdftocustomer,$_sendtocustomemail,$physicalpath){
+        $this->__autoload("Customer_Invoice", "invoice");
+        $obj = new Customer_Invoice($param);
+        $obj->send($param,$_sendpdftocustomer,$_sendtocustomemail,$physicalpath);
+    }
+    
+    public
+    function sendRecurringNotification($param){
+        $this->__autoload("Recurring", "recurring");
+        $obj = new Recurring($param);
+        $obj->send($param);
+    } 
+   
 }

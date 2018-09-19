@@ -47,7 +47,7 @@ class Customer extends Icargo{
                 "email_verified"=>"1",
                 "access_token"=>"",
                 "free_trial_expiry"=>"1970-01-01 00:00:00",
-                "parent_id"=>$param->parent_id,"is_default"=>1);
+                "parent_id"=>$param->company_id,"is_default"=>1);
                 $customer_id = $this->modelObj->addContent('users',$data);
                 
                 $this->modelObj->addContent('company_warehouse',array('company_id'=>$customer_id,'warehouse_id'=>$param->warehouse_id,'status'=>"1",'update_date'=>date("Y-m-d h:i:s", strtotime('now'))));
@@ -66,24 +66,27 @@ class Customer extends Icargo{
                 $customerinfo['accountnumber'] = $this->generateCustomerAccount($param->companyname,$customer_id);
                 $customerinfo['vatnumber']    = isset($param->customer->vatnumber)?$param->customer->vatnumber:'';
                 $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
-                $customerinfo['available_credit'] = $customerinfo['creditlimit'];
+                $customerinfo['available_credit'] = ($param->customer->type=='POSTPAID')?$customerinfo['creditlimit']:$param->customer->availablebalance;
                 $customerinfo['invoicecycle'] = $param->customer->invoicecycle;
                 $customerinfo['charge_from_base'] = $param->customer->charge_from_base;
-                $this->modelObj->addContent('customer_info',$customerinfo);
+                $customerinfo['tax_exempt'] = $param->customer->tax_exempt;
              
-             if($customerinfo['customer_type']=='POSTPAID'){
+                 
+                $this->modelObj->addContent('customer_info',$customerinfo);
+            //if($customerinfo['customer_type']=='POSTPAID'){
                  $creditbalanceData = array();
                  $creditbalanceData['customer_id'] = $customer_id;
-                 $creditbalanceData['customer_type'] = 'POSTPAID';
+                 $creditbalanceData['customer_type'] = $customerinfo['customer_type'];
                  $creditbalanceData['company_id'] = $param->company_id;
                  $creditbalanceData['payment_type'] = 'CREDIT';
                  $creditbalanceData['amount'] = $customerinfo['available_credit'];
                  $creditbalanceData['balance'] = $customerinfo['available_credit'];
                  $creditbalanceData['create_date'] = date("Y-m-d");
-                 $creditbalanceData['payment_reference'] = 'CustomerSignupRecharge';
+                 $creditbalanceData['payment_reference'] = NULL;
                  $creditbalanceData['payment_desc'] = 'Customer Registration Credit Balance';
-                 $this->modelObj->addContent('creditbalance_history',$creditbalanceData);
-            }
+                 $creditbalanceData['payment_for'] = 'RECHARGE';
+                 $this->modelObj->addContent('accountbalancehistory',$creditbalanceData);
+            //}
              if(key_exists('customerpickup',$param) && is_object($param->customerpickup)){ 
                  $param->customerpickup->customer_id = $customer_id;
                  $this->saveCarrierCustomerPickupInfo($param->customerpickup);
@@ -138,6 +141,7 @@ class Customer extends Icargo{
          foreach($data as $key=>$val){
           $data[$key]['status'] = ($val['status']==1)?true:false;
           $data[$key]['action'] = 'customerdetail';
+          //$infoStatus    = $this->modelObj->editContent("customer_info",array('webapi_token'=>encodeJwtData(array('customer'=>$val['accountnumber']))), "user_id = '" . $val['id'] . "'"); 
         }
        return $data;
         
@@ -557,22 +561,21 @@ class Customer extends Icargo{
       $data['customer']['vatnumber'] = $customerpersonaldata['vatnumber'];
       $data['customer']['creditlimit'] = (float)$customerpersonaldata['creditlimit'];
       $data['customer']['available_credit'] = $data['customer']['creditlimit'];
+      $data['customer']['availablebalance'] = (float)$customerpersonaldata['availablebalance'];
       $data['customer']['invoicecycle'] = (int)$customerpersonaldata['invoicecycle'];
       $data['customer']['type'] = $customerpersonaldata['customer_type'];
       $data['customer']['charge_from_base'] = $customerpersonaldata['charge_from_base'];
-	  $data['customer']['auto_label_print'] = $customerpersonaldata['auto_label_print'];
-      
-     $data['customerbilling']['name'] = $customerbillingdata['name'];
-     $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
-     $data['customerbilling']['address_2'] = $customerbillingdata['address_line2'];
-     $data['customerbilling']['postcode'] = $customerbillingdata['postcode'];
-     $data['customerbilling']['city'] = $customerbillingdata['city'];
-     $data['customerbilling']['state'] = $customerbillingdata['state'];
-     $data['customerbilling']['country'] = $customerbillingdata['country'];
-     $data['customerbilling']['phone'] = $customerbillingdata['phone'];
-     $data['customerbilling']['email'] = $customerbillingdata['email'];
-      
-       
+      $data['customer']['tax_exempt'] = $customerpersonaldata['tax_exempt'];
+      $data['customer']['auto_label_print'] = $customerpersonaldata['auto_label_print'];
+      $data['customerbilling']['name'] = $customerbillingdata['name'];
+      $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
+      $data['customerbilling']['address_2'] = $customerbillingdata['address_line2'];
+      $data['customerbilling']['postcode'] = $customerbillingdata['postcode'];
+      $data['customerbilling']['city'] = $customerbillingdata['city'];
+      $data['customerbilling']['state'] = $customerbillingdata['state'];
+      $data['customerbilling']['country'] = $customerbillingdata['country'];
+      $data['customerbilling']['phone'] = $customerbillingdata['phone'];
+      $data['customerbilling']['email'] = $customerbillingdata['email'];
      $data['customerpickup']['name'] = $customerpickupdata['name'];
      $data['customerpickup']['address_1'] = $customerpickupdata['address_line1'];
      $data['customerpickup']['address_2'] = $customerpickupdata['address_line2'];
@@ -697,7 +700,8 @@ class Customer extends Icargo{
             $customerinfo['creditlimit'] = isset($param->customer->creditlimit)?$param->customer->creditlimit:0;
             $customerinfo['invoicecycle'] = isset($param->customer->invoicecycle)?$param->customer->invoicecycle:0;
             $customerinfo['charge_from_base'] = isset($param->customer->charge_from_base)?$param->customer->charge_from_base:'YES';
-			$customerinfo['auto_label_print'] = isset($param->customer->auto_label_print)?$param->customer->auto_label_print:'YES';
+            $customerinfo['tax_exempt'] = isset($param->customer->tax_exempt)?$param->customer->tax_exempt:'YES'; 
+            $customerinfo['auto_label_print'] = isset($param->customer->auto_label_print)?$param->customer->auto_label_print:'YES';
             $condition = "user_id = '" . $param->customer_id . "'"; 
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);  
               
@@ -1186,5 +1190,212 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
 		return $data;
 		
 	}
-}
+    
+    public function getCustomerAllTransactionData($param){  
+        $data =  $this->modelObj->getCustomerAllTransactionData($param->customer_id);
+        $result = array();
+        foreach($data as $item){
+            $temp = array();
+            $temp['date'] = date('d-m-Y',strtotime($item['create_date']));
+            $temp['credit'] = ($item['payment_type']=='CREDIT')?$item['amount']:'';
+            $temp['debit']  = ($item['payment_type']=='DEBIT')?$item['amount']:'';
+            $temp['amount'] = $item['balance'];  
+            $temp['reference'] = $item['payment_reference'];  
+            $temp['description'] = $item['payment_desc'];  
+            $temp['payment_for'] = $item['payment_for'];  
+            array_push($result, $temp);
+        }
+        return $result;
+	}
+    public function getAuthorizationData($param){  
+        $data =  $this->modelObj->getCustomerAllAuthorizationData($param->customer_id);
+        foreach($data as $key=>$item){
+            $data[$key]['status'] =  ($item['status']==1)?true:false;
+            $data[$key]['actioncode'] =  'Authorization';
+        }
+        return $data;
+	}
+    public function editAuthorizationStatus($param){
+		$response = array();
+		$data =  $this->modelObj->editAuthorizationStatus($param);
+		if ($data!= NULL) {
+			$response["status"] = "success";
+			$response["message"] = "updated successfully";  
+		}else{
+			$response["status"] = "error";
+			$response["message"] = "Failed to update. Please try again";
+		}
+        return $response;
+	}
+    public function editAuthorization($param){
+		$response = array();
+		$data =  $this->modelObj->editAuthorization($param);
+		if ($data!= NULL) {
+			$response["status"] = "success";
+			$response["message"] = "updated successfully";  
+		}else{
+			$response["status"] = "error";
+			$response["message"] = "Failed to update. Please try again";
+		}
+        return $response;
+	}
+    public function addAuthorization($param){
+        $temp = array();
+        $temp['title'] = $param->title;
+        $temp['description'] = $param->description;
+        $temp['url'] = $param->url;
+        $temp['token'] = '';
+        $temp['customer_id'] = $param->customer_id;
+        $tokenId = $this->modelObj->addContent('customer_tokens',$temp);
+        if($tokenId){
+           $token  =  encodeJwtData(array("identity"=>$tokenId,"email"=>$param->email,"iss"=>"icargo","iat"=>1493968811));
+           $status =  $this->modelObj->editContent("customer_tokens",array("token"=>$token),"token_id =  $tokenId");
+           if($status){
+             $response["status"] = "success";
+			 $response["message"] = "Created successfully";    
+           }
+        }else{
+            $response["status"] = "error";
+			$response["message"] = "Failed to create. Please try again";
+        }
+        return $response;
+	 } 
+    
+                
+    private function getOriginandDestination($jobId){
+        $shipmentsData = $this->modelObj->getjobDetails($jobId);
+        $dataArray   =     array();
+        $data   =     array(); 
+        foreach($shipmentsData as $key=>$val){                                
+          $val['instaDispatch_loadGroupTypeCode']  = strtoupper($val['instaDispatch_loadGroupTypeCode']);    
+          $dataArray[$val['instaDispatch_loadIdentity']][strtoupper($val['instaDispatch_loadGroupTypeCode'])][$val['shipment_service_type']][]   = $val;
+         }
+        
+        if(count($dataArray)>0){
+          foreach($dataArray as $innerkey=>$innerval){
+            if(key($innerval) == 'SAME'){
+              if(array_key_exists('P',$innerval['SAME'])){  
+               foreach($innerval['SAME']['P'] as $pickupkey=>$pickupData){
+                 $data['collection'] = $pickupData['shipment_postcode'].' '.$pickupData['shipment_customer_country'];
+                 $data['collection_date'] = $pickupData['shipment_required_service_date'];  
+                   
+              }  
+            }       
+              if(array_key_exists('D',$innerval['SAME'])){  
+                $temp = array();
+                foreach ($innerval['SAME']['D'] as $key => $row){
+                   $temp[$key] = $row['icargo_execution_order'];
+                }
+                array_multisort($temp, SORT_ASC, $innerval['SAME']['D']);
+                $lastDeliveryarray =  end($innerval['SAME']['D']);
+                $data['delivery']  = $lastDeliveryarray['shipment_postcode'].' '.$lastDeliveryarray['shipment_customer_country'];
+            }
+            }
+            if(key($innerval) == 'NEXT'){ 
+             if(array_key_exists('P',$innerval['NEXT'])){  
+               foreach($innerval['NEXT']['P'] as $pickupkey=>$pickupData){
+                  $data['collection']          = $pickupData['shipment_postcode'].' '.$pickupData['shipment_customer_country'];
+                    $data['collection_date'] = $pickupData['shipment_required_service_date'];  
+              }  
+            }       
+             if(array_key_exists('D',$innerval['NEXT'])){  
+                krsort($innerval['NEXT']['D']);
+                $deliveryPostcode = array();
+                foreach($innerval['NEXT']['D'] as $deliverykey=>$deliveryData){
+                 $deliveryPostcode[$deliveryData['icargo_execution_order']]  = $deliveryData['shipment_postcode'].' '.$deliveryData['shipment_customer_country'];
+                }
+                krsort($deliveryPostcode);
+                $data['delivery']  = end($deliveryPostcode); 
+            }
+           } 
+          }
+        } 
+       return $data;
+   }  
+    public function downloadAccountStatements($param){  
+        $data =  $this->modelObj->downloadAccountStatements($param->customer_id,$param->from,$param->to,$param->company_id);
+        $customerdata =  $this->modelObj->getCustomerDetails($param->customer_id); 
+        $companydata  =  $this->modelObj->getCompanyDetails($param->company_id); 
+        $customerdata =  array_merge($companydata,$customerdata);
+        
+        $img_file = realpath(dirname(dirname(dirname(dirname(__FILE__))))).'/assets/logo/'.$companydata['logo'];
+        $imgData = base64_encode(file_get_contents($img_file));
+        $src = 'data:'.mime_content_type($img_file).';charset=binary;base64,'.$imgData;
+        
+        
+        
+        
+        foreach($customerdata as $key=>$val){
+            $customerdata[$key] = !empty($val)?$val:'NA';
+        }
+        $pdfData   = array();
+        if(count($data)>0){
+            $ammountBucket = array('creditBucket'=>array(),'debitBucket'=>array());
+            foreach($data as $key=>$value){
+              if($value['payment_for'] == 'RECHARGE'){
+                    $temp = array();
+                    $temp['reference']          = $value['payment_reference'];
+                    $temp['invoice_type']       = $value['payment_for'];
+                    $temp['collection_date']    = date('Y-m-d',strtotime($value['create_date']));
+                    $temp['origin']             = 'NA';
+                    $temp['destination']        = 'NA';
+                    $temp['transaction']        = $value['payment_type'];
+                    $temp['chargable_value']    = 'NA';
+                    $temp['service_name']       = 'NA';
+                    $temp['customer_booking_reference'] = $value['payment_reference'];
+                    $temp['base_amount']        = 0.00;
+                    $temp['surcharge_total']    = 0.00;
+                    $temp['fual_surcharge']     = 0.00;
+                    $temp['tax']                = 0.00;
+                    $temp['total']              = $value['amount'];
+                    if($value['payment_type']=='DEBIT'){
+                        $ammountBucket['debitBucket'][] = $value['amount'];
+                    }elseif($value['payment_type']=='CREDIT'){
+                        $ammountBucket['creditBucket'][] = $value['amount'];
+                    }else{
+                        //
+                    }
+                    $pdfData[] = $temp;
+               }elseif($value['payment_for'] == 'BOOKSHIP' || $value['payment_for'] == 'PRICECHANGE' || $value['payment_for'] == 'CANCELSHIP'){
+                $temp = array();
+                $getDocketOriginandEndPoint = $this->getOriginandDestination($value['payment_reference']); 
+                if(!empty($getDocketOriginandEndPoint)){
+                    $temp['origin'] = isset($getDocketOriginandEndPoint['collection'])?$getDocketOriginandEndPoint['collection']:'';
+                    $temp['destination'] = isset($getDocketOriginandEndPoint['delivery'])?$getDocketOriginandEndPoint['delivery']:'';
+                    $temp['collection_date'] = ($getDocketOriginandEndPoint['collection_date']=='0000-00-00')?'1970-01-01':$getDocketOriginandEndPoint['collection_date'];
+                 }else{
+                    $temp['collection_date']    = 'NA';
+                    $temp['origin']             = 'NA';
+                    $temp['destination']        = 'NA';
+                 }
+                $shipmentDetails    =  $this->modelObj->getShipmentDetails($value['payment_reference'],$param->company_id);     
+                $temp['reference']          = $value['payment_reference'];
+                $temp['invoice_type']       = $value['payment_for'];
+                $temp['transaction']        = $value['payment_type'];
+                $temp['chargable_value']    = $shipmentDetails['chargable_value'];
+                $temp['service_name']       = $shipmentDetails['service_name'];
+                $temp['customer_booking_reference'] = $shipmentDetails['customer_booking_reference'];
+                $temp['base_amount']        =  $shipmentDetails['base_amount'];
+                $temp['fual_surcharge']     =  isset($shipmentDetails['fual_surcharge'])?$shipmentDetails['fual_surcharge']:0;  
+                $temp['surcharge_total']    =  ($shipmentDetails['surcharge_total']-$temp['fual_surcharge']);
+                $temp['tax']                =  $shipmentDetails['tax'];
+                $temp['total']              =  ($temp['base_amount']+$temp['surcharge_total']+$temp['fual_surcharge']+$temp['tax']);
+                if($value['payment_type']=='DEBIT'){
+                        $ammountBucket['debitBucket'][] = $value['amount'];
+                }elseif($value['payment_type']=='CREDIT'){
+                        $ammountBucket['creditBucket'][] = $value['amount'];
+                }else{
+                        //
+                    }
+               $pdfData[] = $temp;
+              }else{
+                  //
+              }  
+            }
+        }
+        $result = array('amount'=>array('creditBucket'=>array_sum($ammountBucket['creditBucket']),'debitBucket'=>array_sum($ammountBucket['debitBucket']))
+                        ,'data'=>$pdfData,'customer'=>$customerdata,'companyimg'=>$src);
+        return $result;
+	}
+ }
 ?>

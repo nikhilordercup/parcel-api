@@ -30,7 +30,7 @@ final class Coreprime_Dhl extends Carrier {
             //$pdf_base64_handler = fopen($pdf_base64,'r');
             //$pdf_content = fread ($pdf_base64_handler,filesize($pdf_base64));
             //fclose ($pdf_base64_handler);
-            $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/'; 
+            $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/';  
             $file_url = mkdir($label_path . $loadIdentity .'/dhl/', 0777, true);
             foreach ($labels as $dataFile) {
                 //$dataFile = explode(".", $dataFile);

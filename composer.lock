@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "61f1a66b27b5a7e36373f0eeb14d6a4b",
+    "content-hash": "316e33ef0ece8e4a9d6c266d9241cc82",
     "packages": [
         {
             "name": "chargebee/chargebee-php",
-            "version": "v2.5.3",
+            "version": "v2.5.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/chargebee/chargebee-php.git",
-                "reference": "f98e1ae4b40d99772ea076915914e1f83ae0ae1f"
+                "reference": "c33bed2fee7947db4a9a1867877748bc67001cb0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/f98e1ae4b40d99772ea076915914e1f83ae0ae1f",
-                "reference": "f98e1ae4b40d99772ea076915914e1f83ae0ae1f",
+                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/c33bed2fee7947db4a9a1867877748bc67001cb0",
+                "reference": "c33bed2fee7947db4a9a1867877748bc67001cb0",
                 "shasum": ""
             },
             "type": "library",
@@ -38,7 +38,7 @@
                 "recurring billing",
                 "subscription billing"
             ],
-            "time": "2018-08-17T11:26:40+00:00"
+            "time": "2018-09-12T14:02:34+00:00"
         },
         {
             "name": "dompdf/dompdf",
@@ -246,16 +246,16 @@
         },
         {
             "name": "giggsey/libphonenumber-for-php",
-            "version": "8.9.12",
+            "version": "8.9.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/giggsey/libphonenumber-for-php.git",
-                "reference": "b906325b1bcf99309bc10bff7cbdc1ed8fbcf774"
+                "reference": "cb4e0cf25f742a838b9d53ed6a7088c4f24086f3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/b906325b1bcf99309bc10bff7cbdc1ed8fbcf774",
-                "reference": "b906325b1bcf99309bc10bff7cbdc1ed8fbcf774",
+                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/cb4e0cf25f742a838b9d53ed6a7088c4f24086f3",
+                "reference": "cb4e0cf25f742a838b9d53ed6a7088c4f24086f3",
                 "shasum": ""
             },
             "require": {
@@ -310,7 +310,7 @@
                 "phonenumber",
                 "validation"
             ],
-            "time": "2018-08-23T10:23:25+00:00"
+            "time": "2018-09-10T15:26:43+00:00"
         },
         {
             "name": "giggsey/locale",
@@ -363,16 +363,16 @@
         },
         {
             "name": "google/auth",
-            "version": "v1.3.3",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/google/google-auth-library-php.git",
-                "reference": "af72b3f50420c801dc35cc07b1fa429ae027b847"
+                "url": "https://github.com/googleapis/google-auth-library-php.git",
+                "reference": "196237248e636a3554a7d9e4dfddeb97f450ab5c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-auth-library-php/zipball/af72b3f50420c801dc35cc07b1fa429ae027b847",
-                "reference": "af72b3f50420c801dc35cc07b1fa429ae027b847",
+                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/196237248e636a3554a7d9e4dfddeb97f450ab5c",
+                "reference": "196237248e636a3554a7d9e4dfddeb97f450ab5c",
                 "shasum": ""
             },
             "require": {
@@ -406,20 +406,20 @@
                 "google",
                 "oauth2"
             ],
-            "time": "2018-08-27T19:47:35+00:00"
+            "time": "2018-09-17T20:29:21+00:00"
         },
         {
             "name": "google/cloud-core",
-            "version": "v1.23.1",
+            "version": "v1.23.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/GoogleCloudPlatform/google-cloud-php-core.git",
-                "reference": "44b3bb512a7a445bd4ecafbdc86ed7c142e58f9f"
+                "reference": "dcf5427839894f7b50553650aea05daf5ffaa014"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php-core/zipball/44b3bb512a7a445bd4ecafbdc86ed7c142e58f9f",
-                "reference": "44b3bb512a7a445bd4ecafbdc86ed7c142e58f9f",
+                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php-core/zipball/dcf5427839894f7b50553650aea05daf5ffaa014",
+                "reference": "dcf5427839894f7b50553650aea05daf5ffaa014",
                 "shasum": ""
             },
             "require": {
@@ -433,7 +433,7 @@
             },
             "require-dev": {
                 "erusev/parsedown": "^1.6",
-                "google/gax": "^0.36",
+                "google/gax": "^0.37",
                 "opis/closure": "^3",
                 "phpdocumentor/reflection": "^3.0",
                 "phpunit/phpunit": "^4.8|^5.0",
@@ -465,7 +465,7 @@
                 "Apache-2.0"
             ],
             "description": "Google Cloud PHP shared dependency, providing functionality useful to all components.",
-            "time": "2018-08-22T17:55:03+00:00"
+            "time": "2018-09-13T20:56:50+00:00"
         },
         {
             "name": "google/cloud-storage",
@@ -692,16 +692,16 @@
         },
         {
             "name": "kreait/firebase-php",
-            "version": "4.16.0",
+            "version": "4.17.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kreait/firebase-php.git",
-                "reference": "c30740e5df6d7aafd98fdc3f94ca9f06c26e2592"
+                "reference": "75050337d6ae2053f35c5dfd78c487296ab2a7a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kreait/firebase-php/zipball/c30740e5df6d7aafd98fdc3f94ca9f06c26e2592",
-                "reference": "c30740e5df6d7aafd98fdc3f94ca9f06c26e2592",
+                "url": "https://api.github.com/repos/kreait/firebase-php/zipball/75050337d6ae2053f35c5dfd78c487296ab2a7a7",
+                "reference": "75050337d6ae2053f35c5dfd78c487296ab2a7a7",
                 "shasum": ""
             },
             "require": {
@@ -758,7 +758,7 @@
                 "google",
                 "sdk"
             ],
-            "time": "2018-08-23T22:54:22+00:00"
+            "time": "2018-09-12T14:53:26+00:00"
         },
         {
             "name": "kreait/firebase-tokens",
@@ -922,26 +922,26 @@
         },
         {
             "name": "league/flysystem",
-            "version": "1.0.46",
+            "version": "1.0.47",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "f3e0d925c18b92cf3ce84ea5cc58d62a1762a2b2"
+                "reference": "a11e4a75f256bdacf99d20780ce42d3b8272975c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/f3e0d925c18b92cf3ce84ea5cc58d62a1762a2b2",
-                "reference": "f3e0d925c18b92cf3ce84ea5cc58d62a1762a2b2",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/a11e4a75f256bdacf99d20780ce42d3b8272975c",
+                "reference": "a11e4a75f256bdacf99d20780ce42d3b8272975c",
                 "shasum": ""
             },
             "require": {
+                "ext-fileinfo": "*",
                 "php": ">=5.5.9"
             },
             "conflict": {
                 "league/flysystem-sftp": "<1.0.6"
             },
             "require-dev": {
-                "ext-fileinfo": "*",
                 "phpspec/phpspec": "^3.4",
                 "phpunit/phpunit": "^5.7.10"
             },
@@ -1002,7 +1002,7 @@
                 "sftp",
                 "storage"
             ],
-            "time": "2018-08-22T07:45:22+00:00"
+            "time": "2018-09-14T15:30:29+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -1081,6 +1081,49 @@
                 "psr-3"
             ],
             "time": "2017-06-19T01:22:40+00:00"
+        },
+        {
+            "name": "mpdf/mpdf",
+            "version": "v6.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mpdf/mpdf.git",
+                "reference": "a15743d030ce3b5b7be36c6e83f76589b27c3f2c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mpdf/mpdf/zipball/a15743d030ce3b5b7be36c6e83f76589b27c3f2c",
+                "reference": "a15743d030ce3b5b7be36c6e83f76589b27c3f2c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=4.3.10"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "mpdf.php",
+                    "classes"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-1.0+"
+            ],
+            "authors": [
+                {
+                    "name": "Ian Back"
+                }
+            ],
+            "description": "A PHP class to generate PDF files from HTML with Unicode/UTF-8 and CJK support",
+            "homepage": "http://www.mpdf1.com/mpdf/index.php",
+            "keywords": [
+                "pdf",
+                "php",
+                "utf-8"
+            ],
+            "time": "2015-03-01T10:27:49+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",
@@ -1600,16 +1643,16 @@
         },
         {
             "name": "setasign/fpdi",
-            "version": "v2.0.3",
+            "version": "v2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Setasign/FPDI.git",
-                "reference": "5998a2f81ae5b4a59eb75ed65e6ec0518163de8d"
+                "reference": "99a3181db556020fafa8f4d416120d8d14dee2ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Setasign/FPDI/zipball/5998a2f81ae5b4a59eb75ed65e6ec0518163de8d",
-                "reference": "5998a2f81ae5b4a59eb75ed65e6ec0518163de8d",
+                "url": "https://api.github.com/repos/Setasign/FPDI/zipball/99a3181db556020fafa8f4d416120d8d14dee2ee",
+                "reference": "99a3181db556020fafa8f4d416120d8d14dee2ee",
                 "shasum": ""
             },
             "require": {
@@ -1619,12 +1662,14 @@
             "require-dev": {
                 "phpunit/phpunit": "~5.7",
                 "setasign/fpdf": "~1.8",
+                "setasign/tfpdf": "1.25",
                 "tecnickcom/tcpdf": "~6.2"
             },
             "suggest": {
-                "setasign/fpdf": "FPDI will extend this class but as it is also possible to use \"tecnickcom/tcpdf\" as an alternative there's no fixed dependency configured.",
+                "setasign/fpdf": "FPDI will extend this class but as it is also possible to use TCPDF or tFPDF as an alternative. There's no fixed dependency configured.",
                 "setasign/fpdi-fpdf": "Use this package to automatically evaluate dependencies to FPDF.",
-                "setasign/fpdi-tcpdf": "Use this package to automatically evaluate dependencies to TCPDF."
+                "setasign/fpdi-tcpdf": "Use this package to automatically evaluate dependencies to TCPDF.",
+                "setasign/fpdi-tfpdf": "Use this package to automatically evaluate dependencies to tFPDF."
             },
             "type": "library",
             "autoload": {
@@ -1655,7 +1700,7 @@
                 "fpdi",
                 "pdf"
             ],
-            "time": "2018-04-18T13:00:41+00:00"
+            "time": "2018-09-13T14:55:17+00:00"
         },
         {
             "name": "slim/slim",

@@ -34,7 +34,7 @@ class Customer_Model {
     
    public function getCustomerDataByCompanyId($company_id){
      $record = array();
-	 $sqldata ='t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token,CI.ccf,t1.status';
+	 $sqldata ='t1.id,name,email,phone,address_1,address_2,city,postcode,t1.access_token,CI.ccf,t1.status,CI.accountnumber,CI.available_credit as amount,CI.creditlimit as creditlimit,CI.invoicecycle,CI.customer_type';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS t1
 			 INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
@@ -202,7 +202,7 @@ public function getCustomerPersonalDetails($company_id,$company_customer_id){
      $record = array();
 	 $sqldata ='t1.id,t1.name,t1.email,t1.password,t1.phone,t1.address_1,t1.address_2,t1.city,t1.postcode,t1.state,
                 t1.country,t1.status,CI.ccf_operator_service,CI.ccf_operator_surcharge,CI.ccf,CI.surcharge,CI.customer_type,
-                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base,CI.auto_label_print';
+                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.available_credit as availablebalance,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base,CI.tax_exempt,CI.auto_label_print';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS t1
 			 INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
@@ -602,5 +602,114 @@ public function checkCustomerEmailExist($company_email){
 		
 		return $this->db->save("address_carrier_time",$data);
 	}
+
+    public function getCustomerAllTransactionData($customerId){
+        $sql = "SELECT *  FROM ".DB_PREFIX."accountbalancehistory as ABT  where ABT.customer_id = ".$customerId." order by id DESC";
+        $records = $this->db->getAllRecords($sql);
+	    return $records;
+    }
+    public function getCustomerAllAuthorizationData($customerId){
+        $sql = "SELECT *  FROM ".DB_PREFIX."customer_tokens as ABT  where ABT.customer_id = ".$customerId."";
+        $records = $this->db->getAllRecords($sql);
+	    return $records;
+    }
+    
+    public function editAuthorizationStatus($param){
+        return $this->db->updateData("UPDATE ".DB_PREFIX."customer_tokens SET status = '$param->status' WHERE token_id = ".$param->descid." AND customer_id = ".$param->customer_id."");
+    }
+    public function editAuthorization($param){
+        return $this->db->updateData("UPDATE ".DB_PREFIX."customer_tokens SET title = '$param->title',description = '$param->description',url = '$param->url' WHERE token_id = '$param->descid'");
+    }
+   public function downloadAccountStatements($customerId,$from,$to,$company_id){
+        $sql = "SELECT *  FROM ".DB_PREFIX."accountbalancehistory as ABT  
+                where ABT.customer_id = ".$customerId." 
+                AND  ABT.company_id = ".$company_id."  
+                AND  DATE_FORMAT(create_date,'%Y-%m-%d') BETWEEN '$from' AND '$to'
+                order by id DESC";
+        $records = $this->db->getAllRecords($sql);
+	    return $records;
+    }
+  public function getCustomerDetails($customerId){
+         $record = array();
+         $sqldata ='CUS.billing_full_name AS customername,CUS.billing_address_1 AS customeraddress1,
+                    CUS.billing_address_2 AS customeraddress2,CUS.billing_postcode AS customerpostcode,
+                    CUS.billing_city AS customercity,CUS.billing_country AS customercountry,
+                    CUS.billing_phone AS customerphone,CUS.accountnumber AS customeraccount,
+                    CUS.vatnumber AS customervat,
+                    CUS.billing_state AS customerstate,
+                    CURDATE() AS create_statement_date';
+       $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "customer_info AS CUS
+                where CUS.user_id = '$customerId'";
+       $record = $this->db->getRowRecord($sql);
+       return  $record;     
+    } 
+    
+    public function getCompanyDetails($companyId){
+       $record = array();
+       $sqldata ='C.logo,COM.name AS company_name,COM.address_1 AS company_address1,
+                    COM.address_2 AS company_address2,COM.postcode AS company_postcode,
+                    COM.city AS company_city,COM.country  AS company_county';
+       $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "users AS COM
+               LEFT JOIN " . DB_PREFIX . "configuration as C on C.company_id = COM.id
+               where  COM.id = '$companyId'";
+       $record = $this->db->getRowRecord($sql);
+       return  $record;     
+    }
+    public function getjobDetails($shipmentRef){
+         $record = array();
+         $sqldata ='S1.instaDispatch_loadIdentity,S1.shipment_required_service_date,
+                    S1.instaDispatch_loadGroupTypeCode,
+                    S1.shipment_service_type,
+                    S1.icargo_execution_order,
+                    S1.shipment_postcode as shipment_postcode,
+                    S1.shipment_customer_country AS shipment_customer_country';
+         $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "shipment AS S1
+                 LEFT JOIN " . DB_PREFIX . "address_book AS ADDR ON ADDR.id = S1.address_id
+          WHERE S1.instaDispatch_loadIdentity  = '" . $shipmentRef . "'";
+         $record = $this->db->getAllRecords($sql);
+         return  $record;       
+     } 
+    
+    public function  getShipmentDetails($loadidentity,$companyId){   
+        $record = array();
+        $sqldata = 'S.shipment_id as reference_id,A.load_identity as reference,
+                    DATE_FORMAT(S.shipment_create_date,"%Y-%m-%d") AS booking_date,
+                    S.shipment_total_item AS items,S.shipment_total_weight AS weight,
+                    S.shipment_total_volume AS volume,S.shipment_customer_name AS consignee,
+                    S.instaDispatch_customerReference AS customer_booking_reference,
+                    A.service_name as service_name,
+                    (A.base_price +  A.courier_commission_value)as base_amount,
+                    A.surcharges as surcharge_total,A.taxes as tax,A.rate_type as rate_type,
+                    A.transit_distance_text as chargable_value,A.total_price as total,A.customer_id,
+                    SP.price as fual_surcharge';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service as A
+                LEFT JOIN " . DB_PREFIX . "shipment as S on S.instaDispatch_loadIdentity = A.load_identity
+                LEFT JOIN " . DB_PREFIX . "shipment_price as SP on (SP.load_identity = A.load_identity AND SP.api_key = 'surcharges' AND SP.price_code = 'fual_surcharge')
+                WHERE  A.load_identity = '" .$loadidentity ."'
+                AND S.company_id = '" .$companyId ."'
+                AND S.shipment_service_type = 'P'"; 
+        $record = $this->db->getRowRecord($sql);
+        return $record; 
+     }
+    
+  public function  getVoucherDetail($companyId,$voucherRef){  
+        $record = array();
+        $sqldata = 'A.*,DATE_FORMAT(S.shipment_create_date,"%Y-%m-%d") AS booking_date,
+                    S.shipment_total_item AS items,
+                    B.service_name as service_name,
+                    B.rate_type as rate_type,
+                    B.transit_distance_text as chargable_value,
+                    S.shipment_id as reference_id';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "vouchers as A
+                LEFT JOIN " . DB_PREFIX . "shipment_service as B on B.load_identity = A.shipment_reference
+                LEFT JOIN " . DB_PREFIX . "shipment as S on S.instaDispatch_loadIdentity = A.shipment_reference
+                WHERE 1 =1 
+                AND A.voucher_reference = '" .$voucherRef ."'
+                AND A.company_id = '" .$companyId ."'
+                AND S.shipment_service_type = 'P'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     }  
 }
 ?>

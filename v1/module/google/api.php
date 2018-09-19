@@ -106,10 +106,18 @@
             $transit_time = 0;
             $transit_distance = 0;
 
+            $charge_from_warehouse = true;
+            $round_trip = false;
+
             $warehouse_to_collection_point_distance = 0;
             $warehouse_to_collection_point_time = 0;
             $warehouse_to_collection_point_distance_text = "";
             $warehouse_to_collection_point_time_text = "";
+
+            $round_trip_distance = 0;
+            $round_trip_time = 0;
+            $round_trip_distance_text = "";
+            $round_trip_time_text = "";
 
             $warehouse_id = $param->warehouse_id;
             $warehouse_latitude = $param->warehouse_latitude;
@@ -117,13 +125,22 @@
 
             $service_date = strtotime($param->service_date);
             $mode = "bicycling";//"walking";//"transit";//"driving";//"bicycling";
+            if(isset($param->company_id)){ 
+               if($param->company_id==194 || $param->company_id==207){
+                  $mode = "driving";
+              }
+             if($param->company_id==207){
+                 $round_trip = true;
+             }
+            unset($param->company_id);
+            }
+                
+            
 
             //Request to coreprime api including warehouse to collection postcode distance
-            $charge_from_warehouse = true;
-            
+
             unset($param->email);
             unset($param->access_token);
-            unset($param->company_id);
             unset($param->service_date);
 
             unset($param->warehouse_id);
@@ -146,7 +163,7 @@
                 {
                 foreach($items as $key2 => $item)
                     {
-                    if(@count($item)>0)
+                    if(count($item)>0)
                         {
                         if($key=="collection_postcodes")
                             {
@@ -229,14 +246,31 @@
                     return $matrix;
                 }
             }
-//print_r($param); die;
+
+            if($round_trip){
+                $key = 0;
+                $first_collection_postcode = $param->collection_postcodes->$key;
+                $last_destination_postcode = end($param->delivery_postcodes);
+                $matrix = $this->_multipleDestinationsDistanceAndDuration(array("origin_geo_location"=>$first_collection_postcode->geo_position->latitude.",".$first_collection_postcode->geo_position->longitude,"destination_geo_location"=>array($last_destination_postcode->geo_position->latitude.','.$last_destination_postcode->geo_position->longitude),"departure_time"=>$service_date,"mode"=>$mode));
+                if($matrix["status"]=="success"){
+                    $round_trip_distance = $matrix["data"]->rows[0]->elements[0]->distance->value;
+                    $round_trip_time = $matrix["data"]->rows[0]->elements[0]->duration_in_traffic->value;
+                    $round_trip_distance_text = $this->_getTransitDistanceText(array("transit_distance"=>$round_trip_distance,"convert_to"=>"mi"));
+                    $round_trip_time_text = $this->_getTransitTimeText($round_trip_time);
+                    $transit_distance += $round_trip_distance;
+                    $transit_time += $round_trip_time;
+                }else{
+                    return $matrix;
+                }
+            }
+
             return array(
                 "origin"=>$origin,
                 "destination"=>$destination,
                 "waypoints"=>$waypoints,
                 "total_waiting_time"=>array_sum($total_waiting_time),
-                "number_of_collections"=>@count($param->collection_postcodes),
-                "number_of_drops"=>@count($param->delivery_postcodes),
+                "number_of_collections"=>count($param->collection_postcodes),
+                "number_of_drops"=>count($param->delivery_postcodes),
                 "transit_distance"=>$transit_distance, 
                 "transit_time"=>$transit_time, 
                          
@@ -252,6 +286,11 @@
                 "warehouse_to_collection_point_distance_text"=>$warehouse_to_collection_point_distance_text,
                 "warehouse_to_collection_point_time_text"=>$warehouse_to_collection_point_time_text,
 
+                "round_trip_distance"=>$round_trip_distance,
+                "round_trip_time"=>$round_trip_time,
+                "round_trip_distance_text"=>$round_trip_distance_text,
+                "round_trip_time_text"=>$round_trip_time_text,
+                 
                 "status"=>"success");
             }
         }

@@ -176,4 +176,14 @@ class Notification_Model_Index
     public function rollBackTransaction() {
         $this->_db->rollBackTransaction();
     }
+    /* get Invoice data*/
+    public function getInvoiceData($invoiceID){
+        $sql = "SELECT I.*,COM.name as company_name,COM.email as company_email,CUS.email as customer_email,CUS.name as customer_name  FROM `".DB_PREFIX."invoices` as I
+                LEFT JOIN `".DB_PREFIX."users` as CUS on (CUS.id = I.customer_id AND CUS.user_level = 5)
+                LEFT JOIN `".DB_PREFIX."users` as COM on (COM.id = I.company_id AND COM.user_level = 2)
+                WHERE I.id ='$invoiceID'";
+        return $this->_db->getRowRecord($sql);
+    }
+    
+        
 }

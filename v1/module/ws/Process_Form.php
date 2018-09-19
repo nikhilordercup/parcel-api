@@ -395,7 +395,8 @@ class Process_Form
             ));
             if ($data["status"] == "success") {
                 $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
-                $common_obj   = new Common();
+                 $common_obj   = new Common();
+                if($shipmentData){
                 if ($shipmentData["shipment_service_type"] == "P") {
                     $actions            = "Collection successful";
                     $internalActionCode = "COLLECTIONSUCCESS";
@@ -408,6 +409,8 @@ class Process_Form
                 Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver"));
 
                 $this->_add_driver_tacking();
+                }
+                
 
                 if($data["left"]==0){
                     $actions            = "Route completed";
