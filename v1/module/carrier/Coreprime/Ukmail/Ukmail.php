@@ -11,7 +11,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
     }
 
     private function _getLabel($loadIdentity, $json_data) //print_r($json_data);die;
-    {   return array( "status" => "success",'file_path'=>'label','label_tracking_number'=>'0000','label_files_png'=>'test.png','label_json'=>'{}');
+    {   //return array( "status" => "success",'file_path'=>'label','label_tracking_number'=>'0000','label_files_png'=>'test.png','label_json'=>'{}');
      
         $images       = array();
         $label_images = array();
@@ -25,6 +25,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             $labels     = explode(",", $labelArr->label->file_url);
             
             $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/';
+			$fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
             
             if (!file_exists($label_path . $loadIdentity . '/ukmail/')) {
                 $oldmask = umask(0);
@@ -46,14 +47,16 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             $img = new \Imagick($images);
             $img->setImageFormat('pdf');
             $pdf = $img->writeImages($label_path . $loadIdentity . '/ukmail/' . $loadIdentity . '.pdf', true);
-            unset($labelArr->label->base_encode);
+            unset($labelArr->label->base_encode); 
             return array(
                 "status" => "success",
                 "message" => "label generated successfully",
-                "file_path" => "http://api.instadispatch.com/live/label/" . $loadIdentity . '/ukmail/' . $loadIdentity . '.pdf',
+                //"file_path" => "http://api.instadispatch.com/live/label/" . $loadIdentity . '/ukmail/' . $loadIdentity . '.pdf',
+				"file_path" => $fileUrl . "/label/" . $loadIdentity . '/ukmail/' . $loadIdentity . '.pdf',
                 "label_tracking_number" => $labelArr->label->tracking_number,
                 "label_files_png" => implode(',', $label_images),
-                "label_file_pdf" => "http://api.instadispatch.com/live/label/" . $loadIdentity . '/ukmail/' . $loadIdentity . '.pdf',
+                //"label_file_pdf" => "http://api.instadispatch.com/live/label/" . $loadIdentity . '/ukmail/' . $loadIdentity . '.pdf',
+				"label_file_pdf" => $fileUrl . "/label/" . $loadIdentity . '/ukmail/' . $loadIdentity . '.pdf',
                 "label_json" => json_encode($labelArr)
             );
             
