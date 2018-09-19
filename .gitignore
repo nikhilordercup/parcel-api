@@ -4,6 +4,7 @@ config.php
 /.idea/
 /vendor/
 /label/
+/upload/
 /pod/
 composer.lock
 /config.php
