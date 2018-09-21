@@ -51,8 +51,8 @@ class Controller extends Icargo{
 		//return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->user_id." AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
 	}
 	
-	public function getControllerDataByCompanyAndWarehouseId($param){            
-        return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->company_id." AND t2.warehouse_id = ".$param->warehouse_id." AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
+	public function getControllerDataByCompanyAndWarehouseId($param){
+        return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->company_id." AND (t2.warehouse_id = ".$param->warehouse_id." OR t2.warehouse_id = 0) AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
     }
 
 	public function getControllerCompanyData($param){
