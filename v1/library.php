@@ -3,7 +3,7 @@
 
         public static $_obj = NULL;
 
-        public $google_api_key = "AIzaSyBhIrfuaPZmIGXV8KO5jCSE-Tpkr8J-7Z8";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
+        public $google_api_key = "AIzaSyDTadMdGMP0dTgMtce4btlMroMSGCFAJbU";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
 
         public static function _getInstance(){
             if(self::$_obj==NULL){
@@ -24,7 +24,7 @@
 
         public function put_file_content(){
 			
-		}
+		} 
 		
 		public function generateCheckDigit($base_val){
 			$result = "";
