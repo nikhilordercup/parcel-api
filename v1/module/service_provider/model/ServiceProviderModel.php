@@ -43,7 +43,7 @@ class ServiceProviderModel
        
     public function saveCustomerTransaction($data)
     {
-        $id = $this->_db->save("customer_card_details", $data);
+        $id = $this->_db->save("customer_transactions", $data);
         return $id;
     }
     

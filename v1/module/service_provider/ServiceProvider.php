@@ -111,40 +111,61 @@ class ServiceProvider extends Icargo
     public function saveCustomerTransaction()
     {        
         $data = $this->_param;
-        print_r($data);
+        //print_r($data); die;
         $customer_id =  $this->_param->customer_id;
-        $companyId = $this->_param->company_id;
-        $spList = $this->modelObj->getServiceProvider($companyId);  
-        
+        $companyId = $this->_param->company_id;                
         //$spCustomer = $this->modelObj->getSPcustomerId($spList['id'], $customer_id);
         
         $postData = array(            
-            'customer_id' => $data->customer_id,
-            'sp_id'  => $data->sp_id,
-            'sp_customer_id' => $data->sp_customer_id,
-            'sp_token_id' => $data->stripe_token->id,
-            'sp_card_id'  => $data->stripe_token->card->id,
-            'card_last_four'  => $data->stripe_token->card->last4,
-            'exp_month'  => $data->stripe_token->card->exp_month,
-            'exp_year' => $data->stripe_token->card->exp_year,
-            'city'  => $data->stripe_token->card->address_city,
-            'state'  => $data->stripe_token->card->address_state,
-            'country'  => $data->stripe_token->card->address_country,
-            'zip_code'  => $data->stripe_token->card->address_zip,
-            'address_line1'  => $data->stripe_token->card->address_line1,
-            'address_line2'  => $data->stripe_token->card->address_line2,
-            'card_type'  => $data->stripe_token->card->brand,
-            'token_added' => $data->stripe_token->created,
-            'json_data' => json_encode($data->stripe_token),
-            'status'  => 1,
-            'created' => date('Y-m-d H:i:s'),
-            'updated' => date('Y-m-d H:i:s')
+            'customer_id'           => $data->customer_id,
+            'sp_id'                 => $data->sp_id,
+            'sp_customer_id'        => $data->sp_customer_id,
+            'charge_id'             => $data->charge_detail->id,
+            'card_id'               => $data->charge_detail->source->id,
+            'transaction_id'        => $data->charge_detail->balance_transaction,
+            'currency'              => $data->charge_detail->currency,
+            'amount'                => $data->charge_detail->amount,
+            'card_last_four'        => $data->charge_detail->source->last4,
+            'exp_month'             => $data->charge_detail->source->exp_month,
+            'exp_year'              => $data->charge_detail->source->exp_year,
+            //'city'                  => $data->charge_detail->source->address_city,
+            //'state'                 => $data->charge_detail->source->address_state,
+            //'country'               => $data->charge_detail->source->address_country,
+            //'zip_code'              => $data->charge_detail->source->address_zip,
+            //'address_line1'         => $data->charge_detail->source->address_line1,
+            //'address_line2'         => $data->charge_detail->source->address_line2,
+            'card_type'             => $data->charge_detail->source->brand,
+            'transaction_created'   => $data->charge_detail->created,
+            'json_data'             => json_encode($data->charge_detail),
+            'status'                => 1,
+            'created'               => date('Y-m-d H:i:s'),
+            'updated'               => date('Y-m-d H:i:s')
         );
                       
-       $spCustomer = $this->modelObj->saveCustomerToken($postData);
-       $postData['id'] = $postData;
-       return $postData;
-     
+       $spCustomer = $this->modelObj->saveCustomerTransaction($postData);
+       
+       if($spCustomer) {
+            $customerData = array(
+                'access_token' => $data->access_token,
+                'company_id' => $data->company_id,
+                'customer' => $data->customer_id,
+                'email' => $data->user_email,
+                'endPointUrl' => 'prepaidrecharge',
+                'payamount' => $data->charge_detail->amount,
+                'payment_reference' => $spCustomer,
+                'payment_desc' => 'Payment description',
+                'payment_for' => 'RECHARGE',
+                'paymode' => 'ONLINE',
+                'payment_provider' => 'Stripe',
+            );          
+            //$postData['id'] = $postData;
+            $invoiceObj = new Invoice( (object)$customerData );
+            $response = $invoiceObj->prepaidrecharge((object)$customerData );           
+        } else {
+            $response = array('status'=>false, 'message'=>"Not able to create the data, please try again.");
+        }
+        return $response;
+    
     }
     
 }

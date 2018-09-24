@@ -2364,7 +2364,7 @@ $app->post('/saveCustomerTransaction', function() use ($app){
     $response = array();           
     $r = json_decode($app->request->getBody());
     $obj = new ServiceProvider($r);    
-    $response = $obj->getServiceProviderById($r);
+    $response = $obj->saveCustomerTransaction($r);
     //print_r($response); die;
     echoResponse(200, $response);    
 });

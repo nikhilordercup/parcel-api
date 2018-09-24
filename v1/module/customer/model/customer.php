@@ -621,11 +621,14 @@ public function checkCustomerEmailExist($company_email){
         return $this->db->updateData("UPDATE ".DB_PREFIX."customer_tokens SET title = '$param->title',description = '$param->description',url = '$param->url' WHERE token_id = '$param->descid'");
     }
    public function downloadAccountStatements($customerId,$from,$to,$company_id){
+       $from = date('Y-m-d', strtotime($from));
+       $to = date('Y-m-d', strtotime($to));
+               
         $sql = "SELECT *  FROM ".DB_PREFIX."accountbalancehistory as ABT  
                 where ABT.customer_id = ".$customerId." 
                 AND  ABT.company_id = ".$company_id."  
                 AND  DATE_FORMAT(create_date,'%Y-%m-%d') BETWEEN '$from' AND '$to'
-                order by id DESC";
+                order by id DESC";        
         $records = $this->db->getAllRecords($sql);
 	    return $records;
     }
