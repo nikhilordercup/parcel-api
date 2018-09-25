@@ -1178,7 +1178,7 @@ class allShipments extends Icargo
         return array_values($records);
     }
 
-    public function getDropTrackingDetails($identity){
+   public function getDropTrackingDetails($identity){ 
         $shipmentLifeCycle = $this->modelObj->getDropTrackingByLoadIdentity($identity);
 
         $items = array();
@@ -1220,6 +1220,7 @@ class allShipments extends Icargo
         //return array_values($records);
         //return $shipmentLifeCycle;
     }
+
 
     public function getShipmentsTrackingDetails($identity)
     {

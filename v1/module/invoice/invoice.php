@@ -190,7 +190,7 @@ public function createInvoice($param){
    }
 public function getDueDateOfInvoice($customerId,$date){
       $invoicecycle =  $this->modelObj->getCustomerInvoiceCycle($customerId);
-       return date('Y-m-d', strtotime($date. ' + '+$invoicecycle+' days'));
+       return date('Y-m-d', strtotime($date. ' + '.$invoicecycle.' days'));
    }  
 private function getOriginandDestination($jobId){
         $shipmentsData = $this->modelObj->getjobDetails($jobId);
