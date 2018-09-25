@@ -59,7 +59,7 @@ class restservices_Model
      $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "customer_tokens AS S
              LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
              LEFT JOIN " . DB_PREFIX . "users AS UT ON UT.id = UTT.parent_id 
-             LEFT JOIN " . DB_PREFIX . "company_warehouse AS CW ON CW.company_id = S.customer_id
+             LEFT JOIN " . DB_PREFIX . "company_warehouse AS CW ON (CW.company_id = UTT.parent_id)
              LEFT JOIN " . DB_PREFIX . "warehouse AS WD ON WD.id =  CW.warehouse_id
              WHERE (S.token_id = '$tokenData->identity' AND S.status = '1' AND UTT.status = '1')";
       $record = $this->db->getRowRecord($sql);

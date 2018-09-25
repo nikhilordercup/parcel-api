@@ -1181,22 +1181,23 @@ class allShipments extends Icargo
     public function getDropTrackingDetails($identity){
         $shipmentLifeCycle = $this->modelObj->getDropTrackingByLoadIdentity($identity);
 
+        $items = array();
         $records = array();
         foreach ($shipmentLifeCycle as $key => $dataVal) {
             //$shipmentLifeCycle[$key]['shipment_service_type'] = "N/A";
 
+            $shipmentTicket = ($dataVal["shipment_ticket"]) ? $dataVal["shipment_ticket"] : 0 ;
 
-
-            $records[$dataVal["code"]]['shipment_service_type'] = "N/A";
-            $records[$dataVal["code"]]['shipment_ticket']       = $dataVal["shipment_ticket"];
-            $records[$dataVal["code"]]['code']                  = $dataVal["code"];
-            $records[$dataVal["code"]]['code_text']             = $dataVal["code_text"];
-            $records[$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
-            $records[$dataVal["code"]]['create_time']           = date("H:i", strtotime($dataVal['create_date']));
+            $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = "N/A";
+            $items[$shipmentTicket][$dataVal["code"]]['shipment_ticket']       = $dataVal["shipment_ticket"];
+            $items[$shipmentTicket][$dataVal["code"]]['code']                  = $dataVal["code"];
+            $items[$shipmentTicket][$dataVal["code"]]['code_text']             = $dataVal["code_text"];
+            $items[$shipmentTicket][$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
+            $items[$shipmentTicket][$dataVal["code"]]['create_time']           = date("H:i", strtotime($dataVal['create_date']));
 
             if($dataVal["shipment_ticket"]){
                 $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
-                $records[$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+                $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
             }
 
 
@@ -1209,7 +1210,14 @@ class allShipments extends Icargo
 
             //$shipmentLifeCycle[$key]['is_custom_create']    = ($dataVal['is_custom_create'] == 0) ? 'false' : 'true';
         }
-        return array_values($records);
+
+        foreach($items as $item){
+            foreach($item as $data){
+                array_push($records, $data);
+            }
+        }
+        return $records;
+        //return array_values($records);
         //return $shipmentLifeCycle;
     }
 
