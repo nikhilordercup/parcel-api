@@ -37,7 +37,7 @@ class Customer_Invoice
                 foreach($param['invoiceId'] as $invoiceId){
                     $invoiceData    = $this->_getModelInstance()->getInvoiceData($invoiceId);
                     $template_msg   = $this->getTemplate($notificationData,$invoiceData);
-                    $subject_msg    = "icargo invoice #".$invoiceData['invoice_reference'];
+                    $subject_msg    = "Your Courier Delivery Invoice #".$invoiceData['invoice_reference'];
                     $allInvoices[]  = $invoiceData['invoice_reference'].'.pdf';
                     if($_sendpdftocustomer){
                       $pdfPath = $physicalpath.$invoiceData['invoice_reference'].'.pdf';
@@ -49,7 +49,7 @@ class Customer_Invoice
                  if($_sendtocustomemail){
                       $notificationData = $this->_getModelInstance()->getCompanyNotificationSetting($param["company_id"], $custom_trigger_code);
                       $template_msg   = $this->getTemplate($notificationData,$invoiceData); 
-                      $subject_msg    = "icargo invoice(s)";
+                      $subject_msg    = "instaDispatch invoice(s)";
                       $zipname        =  date('dmYHms').'.zip'; 
                       $this->createZip($allInvoices,$physicalpath,$zipname);
                       $mail_status    = $this->sendMail(array('customer_name'=>'custom name','customer_email'=>$_sendtocustomemail,'invoice_reference'=>'MULTIPLE'),$template_msg,$subject_msg,true,$physicalpath.$zipname);

@@ -3,7 +3,7 @@
 
         public static $_obj = NULL;
 
-        public $google_api_key = "AIzaSyDGqU9X9r6fJ5TBkGlw4V0Q-LsRlJclEFQ";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
+        public $google_api_key = "AIzaSyD1E2fLdIJHt7ePHlgT5pjcASkDDCyxiPE";//"AIzaSyC7QAlFCWP5S4GZAaVQPEYVXkfHHsvgfw0";// "AIzaSyAr3FmCRdCkORfNYgz8fnxFKK7TcsEaLOU";
 
         public static function _getInstance(){
             if(self::$_obj==NULL){
@@ -217,7 +217,6 @@
 			$direction = isset($param['order']) ? strtolower($param['order']) : 'asc';
 			$mode = $param["mode"];
 			$key = $this->google_api_key;
-
             $origin = urlencode($param['origin']);
             $destinations = urlencode(implode("|",$param['destinations']));
 			$dateTimeZone = new DateTimeZone("Europe/London"); 
@@ -226,7 +225,6 @@
 			$newTime = time() + $timeOffset; 
 			$departure_time = strtotime(date("Y-m-d H:i:s",$newTime));
             //$departure_time = $param["departure_time"];
-
             $api_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&key=$key";
             //$api_url = "http://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&sensor=false";
             try{
@@ -248,7 +246,7 @@
                 }elseif($json->status=="INVALID_REQUEST"){
                     return array("status"=>"error","message"=>$json->error_message);
                 }else{
-                    return array("status"=>"error","message"=>"Api returns bad response");
+                    return array("status"=>"error","message"=>"Api returns bad response","json"=>$json);
                 }
             } catch(Exception $e){
                 return array("status"=>"error","message"=>$e->getMessage());
@@ -302,7 +300,6 @@
             if($query!='Error'){
                 $json = json_decode($query);
                 if($json->status=="OK"){
-                    print_r($json);die;
                    $postcodeValid = false;
                     foreach($json->results[0]->address_components as $val){
                        if(in_array('postal_code',$val->types)){

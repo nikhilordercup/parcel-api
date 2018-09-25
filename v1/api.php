@@ -1019,7 +1019,7 @@ $app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
     catch(Exception $e){
         $response = array('status'=>'error','message'=>'distance matrix error','details'=>$e->getMessage());
     }
-    echoResponse(200, $response);
+    echoResponse(200, $response);exit();
 });
 
 $app->post('/getAvailableServices', function() use($app){
