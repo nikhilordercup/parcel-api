@@ -1017,9 +1017,13 @@ $app->post('/getGeolocationAndDistanceMatrix', function() use ($app){
     $obj = new Module_Google_Api($r);
     try{$response = $obj->getGeolocationAndDistanceMatrix($r);}
     catch(Exception $e){
-        $response = array('status'=>'error','message'=>'distance matrix error');
+<<<<<<< HEAD
+        $response = array('status'=>'error','message'=>'distance matrix error','err_msg'=>$e->getMessage());
+=======
+        $response = array('status'=>'error','message'=>'distance matrix error','details'=>$e->getMessage());
+>>>>>>> 409ce7170ea118eea3f8ad1921a45ab51c31e880
     }
-    echoResponse(200, $response);
+    echoResponse(200, $response);exit();
 });
 
 $app->post('/getAvailableServices', function() use($app){

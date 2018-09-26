@@ -107,6 +107,7 @@ class Sameday extends  Booking
     }
     private function getGeoLocationByPostCode($postcode,$counter=0){
        $geoData =  $this->googleApi->getGeoPositionFromPostcode((object) array('postcode'=>$postcode));
+       // print_r($geoData);die; 
        if($geoData['status']!='success'){
           $counter++;
           if($counter>3){
