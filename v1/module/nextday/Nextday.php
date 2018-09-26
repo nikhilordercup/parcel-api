@@ -492,7 +492,7 @@ final class Nextday extends Booking
     
     
     public function searchNextdayCarrierAndPrice()
-    {
+    { 
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if ($accountStatus["status"] == "error") {
             return $accountStatus;
