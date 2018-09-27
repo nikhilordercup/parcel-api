@@ -153,14 +153,23 @@ class ServiceProvider extends Icargo
                 'endPointUrl' => 'prepaidrecharge',
                 'payamount' => $data->charge_detail->amount,
                 'payment_reference' => $spCustomer,
-                'payment_desc' => 'Payment description',
-                'payment_for' => 'RECHARGE',
+                'payment_desc' => $data->charge_detail->description,
+                'payment_for' => ($data->customer_type == 'PREPAID') ? 'RECHARGE' : 'PAYINVOICE',
                 'paymode' => 'ONLINE',
                 'payment_provider' => 'Stripe',
+                'paydate' => date('Y-m-d'),
             );          
+                        
             //$postData['id'] = $postData;
             $invoiceObj = new Invoice( (object)$customerData );
-            $response = $invoiceObj->prepaidrecharge((object)$customerData );           
+            if($data->customer_type == 'PREPAID') {
+                $response = $invoiceObj->prepaidrecharge((object)$customerData );           
+            } else {
+                $iDetail = (array)$data->invoice_detail;
+                $invoice = array_merge($customerData, $iDetail);
+                
+                $response = $invoiceObj->payinvoices((object)$invoice );
+            }
         } else {
             $response = array('status'=>false, 'message'=>"Not able to create the data, please try again.");
         }

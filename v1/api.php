@@ -2368,6 +2368,15 @@ $app->post('/saveCustomerTransaction', function() use ($app){
     //print_r($response); die;
     echoResponse(200, $response);    
 });
+$app->post('/checkInvoiceNumber', function() use ($app){    
+    $response = array();           
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new Invoice($r);    
+    $response = $obj->checkInvoiceNumber($r);
+    //print_r($response); die;
+    echoResponse(200, $response);    
+});
 
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);

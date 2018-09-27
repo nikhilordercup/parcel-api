@@ -404,7 +404,7 @@ public function payinvoices($param){
               $datastatus =  $this->_manageAccounts($param->customer_id,$param->company_id,$param->payamount,$param->invoice_reference,'PAYINVOICE','INVOICE PAYMENT');
               if($datastatus['status']=='success'){
                   $this->db->commitTransaction();
-                   return array('status'=>true,'message'=>$param->invoice_reference.' Paid','reference'=>$param->invoice_reference);
+                   return array('status'=>true,'message'=>$param->invoice_reference.' Paid','reference'=>$param->invoice_reference, 'available_credit' => $datastatus['available_credit']);
               }else{
                   $this->db->rollBackTransaction();
                   return array('status'=>"false",'message'=>'fail','code'=>'SERR11');
@@ -469,6 +469,12 @@ public function prepaidrecharge($param){
           $this->db->rollBackTransaction();
           return array('status'=>"false",'message'=>'fail','code'=>'SERR11');
       }
+   }   
+   
+    public function checkInvoiceNumber($param){        
+        $shipmentsData = $this->modelObj->checkInvoiceNumberUnpaid($param);
+        return array('status' => ($shipmentsData) ? 'success' : 'error', 'data'=>$shipmentsData);
+        return $shipmentsData;
    }   
 }
 ?>
