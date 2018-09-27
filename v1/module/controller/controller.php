@@ -91,6 +91,7 @@ class Controller extends Icargo{
 
     function _getUserByCustomerId($customer_id){
         $sql = "SELECT UT.id as id, UT.name as name, email as email,UT.is_default AS is_default FROM " . DB_PREFIX . "users AS UT INNER JOIN `" . DB_PREFIX . "user_address` AS UAT ON UAT.user_id=UT.id WHERE UT.user_level=6 AND UT.parent_id='$customer_id' AND UT.status=1";
+		//echo $sql;die;
         return $this->_parentObj->db->getAllRecords($sql);
     }
 
@@ -242,7 +243,6 @@ class Controller extends Icargo{
         foreach($customerLists as $key=>$item){
             $userLists = $this->_getUserByCustomerId($item["id"]);
 
-
             if($userLists){
                 $customerLists[$key]["default_user_id"] = $item["id"];
                 $customerLists[$key]["users"][] = array("id"=>$item["id"],"name"=>$item["name"],"email"=>$item["email"],"is_default"=>0,"collection_address"=>$this->_getCustomerCollectionAddressByCustomerId($item["id"]));
@@ -265,7 +265,7 @@ class Controller extends Icargo{
                 $customerLists[$key]["users"][] = $userLists;
             }
         }
-        //print_r($customerLists);
+        
         return $customerLists;
     }
 
