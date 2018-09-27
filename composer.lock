@@ -246,16 +246,16 @@
         },
         {
             "name": "giggsey/libphonenumber-for-php",
-            "version": "8.9.13",
+            "version": "8.9.14",
             "source": {
                 "type": "git",
                 "url": "https://github.com/giggsey/libphonenumber-for-php.git",
-                "reference": "cb4e0cf25f742a838b9d53ed6a7088c4f24086f3"
+                "reference": "338f988183bee1e85ec7b4ef425a3e64a7604473"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/cb4e0cf25f742a838b9d53ed6a7088c4f24086f3",
-                "reference": "cb4e0cf25f742a838b9d53ed6a7088c4f24086f3",
+                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/338f988183bee1e85ec7b4ef425a3e64a7604473",
+                "reference": "338f988183bee1e85ec7b4ef425a3e64a7604473",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "pear/versioncontrol_git": "^0.5",
                 "phing/phing": "^2.7",
                 "php-coveralls/php-coveralls": "^1.0|^2.0",
-                "phpunit/phpunit": "^4.8|^5.0",
+                "phpunit/phpunit": "^4.8.36|^5.0",
                 "symfony/console": "^2.8|^3.0"
             },
             "type": "library",
@@ -310,7 +310,7 @@
                 "phonenumber",
                 "validation"
             ],
-            "time": "2018-09-10T15:26:43+00:00"
+            "time": "2018-09-19T15:54:29+00:00"
         },
         {
             "name": "giggsey/locale",
@@ -410,16 +410,16 @@
         },
         {
             "name": "google/cloud-core",
-            "version": "v1.23.4",
+            "version": "v1.23.5",
             "source": {
                 "type": "git",
-                "url": "https://github.com/GoogleCloudPlatform/google-cloud-php-core.git",
-                "reference": "dcf5427839894f7b50553650aea05daf5ffaa014"
+                "url": "https://github.com/googleapis/google-cloud-php-core.git",
+                "reference": "26cdddcb5b7debc4da5cccab5dbde58cd0790714"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php-core/zipball/dcf5427839894f7b50553650aea05daf5ffaa014",
-                "reference": "dcf5427839894f7b50553650aea05daf5ffaa014",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-core/zipball/26cdddcb5b7debc4da5cccab5dbde58cd0790714",
+                "reference": "26cdddcb5b7debc4da5cccab5dbde58cd0790714",
                 "shasum": ""
             },
             "require": {
@@ -465,24 +465,32 @@
                 "Apache-2.0"
             ],
             "description": "Google Cloud PHP shared dependency, providing functionality useful to all components.",
-            "time": "2018-09-13T20:56:50+00:00"
+            "time": "2018-09-20T18:52:47+00:00"
         },
         {
             "name": "google/cloud-storage",
-            "version": "v1.3.4",
+            "version": "v1.7.3",
             "source": {
                 "type": "git",
-                "url": "https://github.com/GoogleCloudPlatform/google-cloud-php-storage.git",
-                "reference": "240de4b1d65fad78983d80ca78bed7b1facd6467"
+                "url": "https://github.com/googleapis/google-cloud-php-storage.git",
+                "reference": "ff7011b0dd38069ea48d93f69d32d2882b9becfc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php-storage/zipball/240de4b1d65fad78983d80ca78bed7b1facd6467",
-                "reference": "240de4b1d65fad78983d80ca78bed7b1facd6467",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-storage/zipball/ff7011b0dd38069ea48d93f69d32d2882b9becfc",
+                "reference": "ff7011b0dd38069ea48d93f69d32d2882b9becfc",
                 "shasum": ""
             },
             "require": {
-                "google/cloud-core": "^1.14"
+                "google/cloud-core": "^1.23"
+            },
+            "require-dev": {
+                "erusev/parsedown": "^1.6",
+                "google/cloud-pubsub": "^1.0",
+                "phpdocumentor/reflection": "^3.0",
+                "phpseclib/phpseclib": "^2",
+                "phpunit/phpunit": "^4.8|^5.0",
+                "squizlabs/php_codesniffer": "2.*"
             },
             "suggest": {
                 "google/cloud-pubsub": "May be used to register a topic to receive bucket notifications.",
@@ -493,13 +501,13 @@
                 "component": {
                     "id": "cloud-storage",
                     "target": "GoogleCloudPlatform/google-cloud-php-storage.git",
-                    "path": "src/Storage",
-                    "entry": "StorageClient.php"
+                    "path": "Storage",
+                    "entry": "src/StorageClient.php"
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Google\\Cloud\\Storage\\": ""
+                    "Google\\Cloud\\Storage\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -507,7 +515,7 @@
                 "Apache-2.0"
             ],
             "description": "Cloud Storage Client for PHP",
-            "time": "2018-02-01T16:15:59+00:00"
+            "time": "2018-09-13T20:56:50+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -1804,20 +1812,20 @@
         },
         {
             "name": "superbalist/flysystem-google-storage",
-            "version": "7.0.0",
+            "version": "7.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Superbalist/flysystem-google-cloud-storage.git",
-                "reference": "be847633aaf5c9618aaf5f308a3320fe0ea394e7"
+                "reference": "9b20240775ff511b63e4e1d1c9cda710f49a5fb4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Superbalist/flysystem-google-cloud-storage/zipball/be847633aaf5c9618aaf5f308a3320fe0ea394e7",
-                "reference": "be847633aaf5c9618aaf5f308a3320fe0ea394e7",
+                "url": "https://api.github.com/repos/Superbalist/flysystem-google-cloud-storage/zipball/9b20240775ff511b63e4e1d1c9cda710f49a5fb4",
+                "reference": "9b20240775ff511b63e4e1d1c9cda710f49a5fb4",
                 "shasum": ""
             },
             "require": {
-                "google/cloud-storage": ">=1.0 <1.4",
+                "google/cloud-storage": "~1.0",
                 "league/flysystem": "~1.0",
                 "php": ">=5.5.0"
             },
@@ -1847,7 +1855,7 @@
                 }
             ],
             "description": "Flysystem adapter for Google Cloud Storage",
-            "time": "2018-02-07T13:37:04+00:00"
+            "time": "2018-09-20T14:55:41+00:00"
         }
     ],
     "packages-dev": [],

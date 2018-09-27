@@ -1,4 +1,4 @@
 <?php
-define('ENV','live');//dev //test
+define('ENV','dev');//dev //live
 define('CHECKED',true);
 ?>
