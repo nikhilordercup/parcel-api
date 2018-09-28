@@ -361,8 +361,4 @@
             return false;
         }
    }
-<<<<<<< HEAD
 ?>
-=======
-?>
->>>>>>> 526ba3113816e6cfbe62ff9854d7ab59ae5fef42
