@@ -23,9 +23,10 @@ class Module_Addressbook_Addressbook extends Icargo{
 	    { 
 	        $pcaLookup = new Address_Lookup();
             $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
-
             if($addresses["status"]=="success")
-            {
+            {   
+		        $container = json_decode(json_encode((array)$addresses['data']), TRUE);
+				$addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
                 foreach($addresses["data"] as $key => $list)
                 {
@@ -35,7 +36,6 @@ class Module_Addressbook_Addressbook extends Icargo{
                         "street" => $list["street"]
                     ));
                 }
-				print_r($records);//die;
                 $response = array("status"=>"success","data"=>$records,"origin"=>"api");
                 return $response;
 			}
@@ -47,7 +47,9 @@ class Module_Addressbook_Addressbook extends Icargo{
             $pcaLookup = new Address_Lookup();
             $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
             if($addresses["status"]=="success")
-            {
+            {   
+		        $container = json_decode(json_encode((array)$addresses['data']), TRUE);
+				$addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
                 foreach($addresses["data"] as $key => $list)
                 {
