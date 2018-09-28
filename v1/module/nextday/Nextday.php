@@ -418,8 +418,7 @@ final class Nextday extends Booking
     private function _setPostRequest() //print_r($this->_param);die;
     {
         $this->data   = array();
-        $carrierLists = $this->_getCustomerCarrierAccount();
-        print_r($carrierLists); die;
+        $carrierLists = $this->_getCustomerCarrierAccount();        
         if ($carrierLists["status"] == "success") {
             $key          = 0;
             $isDocument   = '';
