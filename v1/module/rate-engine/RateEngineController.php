@@ -43,19 +43,19 @@ class RateEngineController {
             self::$_rateEngine->cleanExcel();
             switch ($flag) {
                 case 'zone': {
-                        self::$_rateEngine->addZoneData();
+                        self::$_rateEngine->addZoneData($companyId, $carrierId);
                         break;
                     }
-                case 'zone-defination': {
-                        self::$_rateEngine->addZoneDefinations();
+                case 'zone-details': {
+                        self::$_rateEngine->addZoneDefinations($companyId, $carrierId);
                         break;
                     }
                 case 'rate-details': {
-                        self::$_rateEngine->addRateDetails();
+                        self::$_rateEngine->addRateDetails($companyId, $carrierId);
                         break;
                     }
                 case 'services': {
-                        self::$_rateEngine->addServiceData();
+                        self::$_rateEngine->addServiceData($companyId, $carrierId);
                         break;
                     }
                 case 'countries': {
@@ -98,10 +98,10 @@ class RateEngineController {
         return $this;
     }
 
-    public function addZoneData() {
+    public function addZoneData($companyId, $carrierId) {
         $zoneHeader = ['Zone Name', 'Update Name', 'Action'];
         $zones = $this->_rateEngineModel
-                ->getZoneData();
+                ->getZoneData($companyId, $carrierId);
         $this->_excelBuilder->addSheet("Zone")
                 ->changeSheetByName("Zone")
                 ->addHeader($zoneHeader)
@@ -120,23 +120,23 @@ class RateEngineController {
         return $this;
     }
 
-    public function addServiceData() {
+    public function addServiceData($companyId, $carrierId) {
         $rateTypeHeader = ['Service Name', 'Service Code'];
         $this->_excelBuilder->addSheet("Service List")
                 ->changeSheetByName("Service List")
                 ->addHeader($rateTypeHeader)
                 ->addData($this->_rateEngineModel
-                        ->getServiceData());
+                        ->getServiceData($companyId, $carrierId));
         return $this;
     }
 
-    public function addRateDetails() {
+    public function addRateDetails($companyId, $carrierId) {
         $rateDetailsHeader = ['Service', 'Rate Type', 'From Zone', 'To Zone', 'Start Unit',
             'End Unit', 'Rate', 'Additional Cost', 'Additional Base Unit', 'Unit'];
         $unitList = $this->getRateUnitList();
         $rateTypes = $this->getRateTypeList();
         $data = $this->_rateEngineModel
-                ->getRateData();
+                ->getRateData($companyId, $carrierId);
         $this->_excelBuilder->addSheet("Rate Details")
                 ->changeSheetByName("Rate Details")
                 ->addHeader($rateDetailsHeader)
@@ -181,17 +181,19 @@ class RateEngineController {
         return implode(',', $list);
     }
 
-    public function addZoneDefinations() {
-        $zoneDefinationHeader = ['Zone', 'City', 'Post Code', 'Country', 'Flow Type', "Volume Base", 'Level'];
+    public function addZoneDefinations($companyId, $carrierId) {
+        $zoneDefinationHeader = ['Zone', 'City', 'Post Code', 'Country', 'Flow Type',
+            "Volume Base", 'Level'];
         $levels = 'City,Post Code,Country';
         $flowTypes = 'Domastic,International';
-        $zoneDefination = $this->_rateEngineModel->getZoneDefinations();
+        $zoneDefination = $this->_rateEngineModel->getZoneDefinations($companyId, $carrierId);
+//        print_r($zoneDefination);exit;
         $this->_excelBuilder->addSheet("Zone Definations")
                 ->changeSheetByName("Zone Definations")
-                ->addHeader($zoneDefinationHeader)
-                ->addData($zoneDefination)
+                ->addHeader($zoneDefinationHeader)                
                 ->addSelectOption('G', $levels, count($zoneDefination))
-                ->addSelectOption('E', $flowTypes, count($zoneDefination));
+                ->addSelectOption('E', $flowTypes, count($zoneDefination))
+                ->addData($zoneDefination);
         return $this;
     }
 
@@ -203,14 +205,22 @@ class RateEngineController {
                     break;
                 }
             case 'zoneDetailsExcel': {
-                $this->_excelReader
-                        ->readZoneDefinations($_POST['company_id'], $_POST['carrierId']);
+                    $this->_excelReader->loadExcelFromPost()
+                            ->readZoneDefinations($_POST['company_id'], $_POST['carrierId']);
                     break;
                 }
             case 'rateExcel': {
+                    $d = $this->_excelReader->loadExcelFromPost()
+                            ->readRateDetails($_POST['company_id'], $_POST['carrierId']);
+                    if (isset($d['error'])) {
+                        echo json_encode($d);
+                    }else{
+                        $this->_rateEngineModel->addNewRate($_POST['company_id'], 
+                                $_POST['carrierId'], $d);
+                    }
                     break;
                 }
         }
     }
+
 }
-    
