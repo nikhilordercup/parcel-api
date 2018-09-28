@@ -112,6 +112,10 @@ class View_Support extends Icargo{
         if(isset($param['uid'])){
             $this->uid = $param['uid'];
         }
+		
+		if(isset($param['country_code'])){
+			$this->country_code = $param['country_code'];
+		}
 
 
 	}
@@ -1876,9 +1880,19 @@ class View_Support extends Icargo{
 
   public function getaddressbypostcode(){
           $pcaLookup = new Address_Lookup();
-          $addresses = $pcaLookup->lookup($this->shipment_postcode);
+          $addresses = $pcaLookup->lookup($this->shipment_postcode,$this->country_code);
           if($addresses["status"]=="success"){
-              return $addresses["data"];
+			  $records = array();
+                foreach($addresses["data"] as $key => $list)
+                {
+                    array_push($records, array(
+                        "address" => $list["place"].", ".$list["street"],
+                        "id" => $list["id"],
+                        "street" => $list["street"]
+                    ));
+                }
+				return $records;
+              //return $addresses["data"];
           }else{
               return array();
           }

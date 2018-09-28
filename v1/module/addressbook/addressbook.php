@@ -17,10 +17,12 @@ class Module_Addressbook_Addressbook extends Icargo{
     {
         $response = array();
 		//added by kavita for search button 19march2018
+		$param->country_code = '';
+		$param->country_code = ($param->country_code=='') ? 'GB' : $param->country_code;
 	    if(isset($param->origin) && $param->origin=='api')
-	    {
+	    { 
 	        $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookup($param->search_postcode);
+            $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
 
             if($addresses["status"]=="success")
             {
@@ -33,6 +35,7 @@ class Module_Addressbook_Addressbook extends Icargo{
                         "street" => $list["street"]
                     ));
                 }
+				print_r($records);//die;
                 $response = array("status"=>"success","data"=>$records,"origin"=>"api");
                 return $response;
 			}
@@ -42,7 +45,7 @@ class Module_Addressbook_Addressbook extends Icargo{
         if(!$records)
         {
             $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookup($param->search_postcode);
+            $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
             if($addresses["status"]=="success")
             {
                 $records = array();
@@ -117,7 +120,8 @@ class Module_Addressbook_Addressbook extends Icargo{
     function searchAddressById($param){
         if($param->address_origin=="api"){
             $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookupByID((int)$param->id);
+            //$addresses = $pcaLookup->lookupByID((int)$param->id);
+			$addresses = $pcaLookup->lookupByID("$param->id");
             if($addresses["status"]=="success"){
                 $data = $addresses["data"][0];
                 return array("status"=>"success", "data"=>array(

@@ -419,7 +419,7 @@ final class Nextday extends Booking
     {
         $this->data   = array();
         $carrierLists = $this->_getCustomerCarrierAccount();
-        
+        print_r($carrierLists); die;
         if ($carrierLists["status"] == "success") {
             $key          = 0;
             $isDocument   = '';

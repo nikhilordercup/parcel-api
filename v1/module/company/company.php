@@ -137,7 +137,7 @@ class Company extends Icargo{
     public function addWareHouse($param){
         $libObj = new Library();
 		$postCodeObj = new Postcode();
-		$isValidPostcode = $postCodeObj->validate($param->postcode);
+		$isValidPostcode = $postCodeObj->validate($param->postcode,$param->country_code);
 		if($isValidPostcode){
 			$latLngArr = $libObj->get_lat_long_by_postcode($param->postcode);
 			//if($latLngArr['longitude']!='' || $latLngArr['longitude']!=''){
