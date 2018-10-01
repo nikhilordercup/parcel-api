@@ -7,7 +7,7 @@ Class Address_Lookup{
     
     public
     
-    function lookup($string,$countryCode='')
+    function lookup($string,$countryCode='',$container=null)
     {
         //Set Licence and Account Code
         $postcodeObj = new Postcode();
@@ -36,9 +36,9 @@ Class Address_Lookup{
 			/*****new parameters for updated api of postcodeanywhere*****/
 			$Key = 'JJ36-KU94-DC22-FN63';
 			$Text = $output->sPostcode;
-			$Container = "";
+			$Container = ($container) ? $container : "";
 			$Origin = "";
-			$Countries = ($countryCode=='UK') ? "GB" : $countryCode;
+			$Countries = ($countryCode=='UK') ? "GBR" : $countryCode;
 			$Limit = "";
 			$Language = 'English';
 			$pa = new Capture_Interactive_Find_v1_00($Key, $Text, $Container, $Origin, $Countries, $Limit, $Language);
