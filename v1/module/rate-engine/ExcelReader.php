@@ -31,7 +31,6 @@ class ExcelReader {
     //put your code here
     function __construct() {
         $this->_exceReader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx;
-        //$this->_spredSheet = $this->_exceReader->load($_FILES['file']['tmp_name']);
         $this->_reateEngineModel = new RateEngineModel();
     }
 
@@ -57,7 +56,7 @@ class ExcelReader {
         return $this;
     }
 
-    public function readZones($companyid, $carrierId) {
+    public function readZones( $carrierId) {
         $data = $this->changeSheetByName("Zone")
                 ->loadData()
                 ->getData();
@@ -71,25 +70,25 @@ class ExcelReader {
             $queryData[$i - 1]['newName'] = $d[1];
             $queryData[$i - 1]['action'] = $d[2];
             if ($d[2] == 'New') {
-                $this->_reateEngineModel->addZone($d[0], $companyid, $carrierId);
+                $this->_reateEngineModel->addZone($d[0],  $carrierId);
             } elseif ($d[2] == 'Update') {
-                $this->_reateEngineModel->updateZoneByName($d[0], $d[1], $companyid, $carrierId);
+                $this->_reateEngineModel->updateZoneByName($d[0], $d[1],  $carrierId);
             }
         }
         exit;
     }
 
-    public function readZoneDefinations($companyId, $carrierId) {
+    public function readZoneDefinations( $carrierId) {
         $data = $this->changeSheetByName("Zone Definations")
                 ->loadData()
                 ->getData();
         $queryData = [];
-        $this->_reateEngineModel->deleteZoneDetails($companyId, $carrierId);
+        $this->_reateEngineModel->deleteZoneDetails( $carrierId);
         foreach ($data as $i => $d) {
-            if (trim($d[0]) == '') {
+            if (trim($d[0]) == '' || strlen($d[3])>2) {
                 break;
             }
-            $zone = $this->_reateEngineModel->getZoneByName($companyId, $carrierId, $d[0]);
+            $zone = $this->_reateEngineModel->getZoneByName( $carrierId, $d[0]);
             $queryData[$i - 1]['zone_id'] = $zone['id'];
             $queryData[$i - 1]['city'] = $d[1];
             $queryData[$i - 1]['post_code'] = $d[2];
@@ -101,7 +100,7 @@ class ExcelReader {
         }
     }
 
-    public function readRateDetails($companyId, $carrierId) {
+    public function readRateDetails( $carrierId) {
         $rateTypes = $this->_reateEngineModel->getRateTypes();
         $data = $this->changeSheetByName("Rate Details")
                 ->loadData()
@@ -125,7 +124,7 @@ class ExcelReader {
                 ];
                 break;
             }
-            $fromZone = $this->_reateEngineModel->getZoneByName($companyId, $carrierId, $d[2]);
+            $fromZone = $this->_reateEngineModel->getZoneByName( $carrierId, $d[2]);
             if (!$fromZone) {
                 $error = [
                     'error_type' => 'Zone',
@@ -133,7 +132,7 @@ class ExcelReader {
                 ];
                 break;
             }
-            $toZone = $this->_reateEngineModel->getZoneByName($companyId, $carrierId, $d[3]);
+            $toZone = $this->_reateEngineModel->getZoneByName( $carrierId, $d[3]);
             if (!$toZone) {
                 $error = [
                     'error_type' => 'Zone',
@@ -160,8 +159,7 @@ class ExcelReader {
             $queryData[$i - 1]['additional_cost'] = $d[7];
             $queryData[$i - 1]['additional_base_unit'] = $d[8];
             $queryData[$i - 1]['rate_unit_id'] = $unit['id'];
-            $queryData[$i - 1]['company_id'] = $companyId;
-//            $queryString .= "(".implode(',', $queryData[$i-1]);
+            $queryData[$i - 1]['company_id'] = 0;
         }
         if(count($error)){
            return $error; 

@@ -28,8 +28,7 @@ class RateApiController {
     public static function initRoutes($app) {
         $app->post('/rate-engine/getRate', function() use ($app) {
             $r = json_decode($app->request->getBody());
-//            print_r($r);
-            verifyRequiredParams(array('access_token', 'company_id'), $r);
+            verifyRequiredParams(array('access_token'), $r);
             $controller = new RateApiController;
             $controller->breakRequest($r);
         });
@@ -43,14 +42,14 @@ class RateApiController {
         foreach ($carriers as $c) {
             foreach ($c->account as $a) {
                 $ca = $this->_reateEngineModel
-                        ->fetchCarrierByAccountNumber($a->credentials->account_number, $param->company_id);
+                        ->fetchCarrierByAccountNumber($a->credentials->account_number);
                 if ($ca) {
                     $this->_responseData['accountInfo'][$c->name][] = $ca;
 
                     $fromZone = $this->_reateEngineModel
-                            ->searchZone($fromAddress, $ca['company_id'], $ca['courier_id']);
+                            ->searchZone($fromAddress,  $ca['courier_id']);
                     $toZone = $this->_reateEngineModel
-                            ->searchZone($toAddress, $ca['company_id'], $ca['courier_id']);
+                            ->searchZone($toAddress, $ca['courier_id']);
                     $this->_responseData['zone'][$c->name]['fromZone'] = $fromZone;
                     $this->_responseData['zone'][$c->name]['toZone'] = $toZone;
                 } else {
@@ -69,20 +68,7 @@ class RateApiController {
         header('Content-Type: application/json');
         exit(json_encode($this->_responseData));
     }
-
-    public function getFormatedData() {
-        $data = [
-            'rate' => [
-                'carrier_name' => [
-                    'account_number' => [
-                        'service_name' => [
-                        ]
-                    ]
-                ]
-            ]
-        ];
-    }
-
+    
     public function getRates($param) {
         $rateList = [];
         if (!isset($param['zone']))
@@ -90,7 +76,7 @@ class RateApiController {
         foreach ($param['zone'] as $name => $carrier) {
             if (count($carrier["fromZone"]) && count($carrier["toZone"])) {
                 $rates = $this->_reateEngineModel->searchPriceForZone(
-                        $param['zone'][$name]["fromZone"][0]['carrier_id'], $param['zone'][$name]["fromZone"][0]['id'], $param['zone'][$name]["toZone"][0]['id']);
+                        $param['zone'][$name]["fromZone"]['carrier_id'], $param['zone'][$name]["fromZone"]['id'], $param['zone'][$name]["toZone"]['id']);
                 $this->_responseData['rate'][$name] = $rates;
             } else {
                 
@@ -98,8 +84,8 @@ class RateApiController {
         }
     }
 
-    public function addressToZone($address, $companyId) {
-        $availabeZones = $this->_reateEngineModel->searchZone($address, $companyId);
+    public function addressToZone($address,$carrierId) {
+        $availabeZones = $this->_reateEngineModel->searchZone($address,$carrierId);
         $filtered = [];
         foreach ($availabeZones as $zone) {
             $filtered[$zone->level][] = $zone;
@@ -123,25 +109,40 @@ class RateApiController {
             $time += $transitInfo->transit_time;
             $drops += $transitInfo->number_of_drops;
         }
-        if (!isset($param['zone']))
+        if (!isset($this->_responseData['rate']))
             return FALSE;
         foreach ($this->_responseData['rate'] as $name => $d) {
             foreach ($d as $k => $p) {
                 switch ($p["rate_type"]) {
                     case 'Weight':
                         $this->_responseData['rate'][$name][$k]['final_cost'] = $this->filterRateFormRange($p, $packagesWeight);
+                        if($this->_responseData['rate'][$name][$k]['final_cost']==NULL){
+                            unset($this->_responseData['rate'][$name][$k]);
+                        }
                         break;
                     case 'Box':
                         $this->_responseData['rate'][$name][$k]['final_cost'] = $this->filterRateFormRange($p, $packagesCount);
+                        if($this->_responseData['rate'][$name][$k]['final_cost']==NULL){
+                            unset($this->_responseData['rate'][$name][$k]);
+                        }
                         break;
                     case 'Time':
                         $this->_responseData['rate'][$name][$k]['final_cost'] = $this->filterRateFormRange($p, $time);
+                        if($this->_responseData['rate'][$name][$k]['final_cost']==NULL){
+                            unset($this->_responseData['rate'][$name][$k]);
+                        }
                         break;
                     case 'Distance':
                         $this->_responseData['rate'][$name][$k]['final_cost'] = $this->filterRateFormRange($p, $distance);
+                        if($this->_responseData['rate'][$name][$k]['final_cost']==NULL){
+                            unset($this->_responseData['rate'][$name][$k]);
+                        }
                         break;
                     case 'Drop Rate':
                         $this->_responseData['rate'][$name][$k]['final_cost'] = $this->filterRateFormRange($p, $drops);
+                        if($this->_responseData['rate'][$name][$k]['final_cost']==NULL){
+                            unset($this->_responseData['rate'][$name][$k]);
+                        }
                         break;
                 }
             }
@@ -149,16 +150,19 @@ class RateApiController {
     }
 
     public function filterRateFormRange($priceInfo, $units) {
-        if ($priceInfo["end_unit"] >= $units && $priceInfo["start_unit"] <= $units) {
-            return $priceInfo["rate"];
-        } else if ($priceInfo["additional_base_unit"] > 0) {
-            $extra = $units - $priceInfo["end_unit"];
-            $chargableUnits = $extra / $priceInfo["additional_base_unit"];
-            $remaining = $extra % $priceInfo["additional_base_unit"];
-            if ($remaining > 0) {
-                $chargableUnits++;
+        if ($priceInfo["end_unit"] > $units && $priceInfo["start_unit"] <= $units) {
+            $extra = $units - ($priceInfo["end_unit"]-1);
+            if($extra>0){
+                $chargableUnits = $extra / $priceInfo["additional_base_unit"];
+                $remaining = $extra % $priceInfo["additional_base_unit"];
+                if ($remaining > 0) {
+                    $chargableUnits++;
+                }
+                return $priceInfo["rate"] + ($priceInfo["additional_cost"] * $chargableUnits);
             }
-            return $priceInfo["rate"] + ($priceInfo["additional_cost"] * $chargableUnits);
+            return $priceInfo["rate"];
+        }else{
+            return NULL;
         }
     }
 
