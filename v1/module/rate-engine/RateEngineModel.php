@@ -94,6 +94,9 @@ class RateEngineModel {
 
     public function searchZone($address, $carrierId) {
         if ($address->country == 'GB') {
+            if ($address->zip == trim($address->zip) && strpos($address->zip, ' ') == false) {
+                $address->zip = substr_replace($address->zip, ' ', -3, -3);
+            };
             $query = "SELECT ZD.*,ZF.name,ZF.carrier_id FROM " . DB_PREFIX . "zone_details AS ZD"
                     . " LEFT JOIN " . DB_PREFIX . "zone_info AS ZF ON ZF.id=ZD.zone_id WHERE "
                     . " (ZD.city = '" . $address->city . "' "
@@ -189,14 +192,18 @@ class RateEngineModel {
     }
 
     public function searchUkPost($rec, $zip) {
+        if ($zip == trim($zip) && strpos($zip, ' ') == false) {
+            $zip = substr_replace($zip, ' ', -3, -3);
+        };
+
         for ($i = strlen($zip); $i >= 2; $i--) {
-            foreach ($rec as $r) {
-                echo $r['post_code'] . '=' . substr($zip, 0, $i) . '****';
+            foreach ($rec as $r) {                //print_r($r);
                 if ($r['post_code'] == substr($zip, 0, $i)) {
                     return $r;
                 }
             }
         }
+//        exit;
         return [];
     }
 
