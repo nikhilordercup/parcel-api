@@ -1882,6 +1882,8 @@ class View_Support extends Icargo{
           $pcaLookup = new Address_Lookup();
           $addresses = $pcaLookup->lookup($this->shipment_postcode,$this->country_code);
           if($addresses["status"]=="success"){
+			  $container = json_decode(json_encode((array)$addresses['data']), TRUE);
+			  $addresses = $pcaLookup->lookup($this->shipment_postcode,$this->country_code,$container[0]['id'][0]);
 			  $records = array();
                 foreach($addresses["data"] as $key => $list)
                 {

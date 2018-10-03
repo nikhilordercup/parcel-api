@@ -701,6 +701,7 @@ class Capture_Interactive_Find_v1_00
         $url .= "&Language=" . urlencode($this->Language);
         //Make the request to Postcode Anywhere and parse the XML returned
         $file = simplexml_load_file($url);
+		
 
         //Check for an error, if there is one then throw an exception
 
