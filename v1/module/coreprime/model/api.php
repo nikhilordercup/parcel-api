@@ -50,7 +50,7 @@ class Coreprime_Model_Api
                 AND CSER.service_code = '$service_code'";
         return $this->_db->getRowRecord($sql);
     }
-    function getCustomerSamedayServiceData($customer_id,$company_id,$courier_id)
+    /* function getCustomerSamedayServiceData($customer_id,$company_id,$courier_id)
     {
         $sql = "SELECT CSER.service_code 
                 FROM " . DB_PREFIX . "company_vs_customer_vs_services  AS CUSTSER
@@ -58,9 +58,20 @@ class Coreprime_Model_Api
                 where CUSTSER.company_id = '$company_id'  AND CUSTSER.company_customer_id = '$customer_id' AND CUSTSER.courier_id = '$courier_id'
                 AND CSER.service_type = 'SAMEDAY'
                 AND CUSTSER.status = '1'
-                AND CSER.status = '1'";
+                AND CSER.status = '1'";		
+        return $this->_db->getAllRecords($sql);
+    } */
+	
+	function getCustomerSamedayServiceData($customer_id,$company_id,$courier_id)
+    {
+        $sql = "SELECT CSER.service_code,CSER.service_type 
+                FROM ".DB_PREFIX."courier_vs_services AS CSER
+                INNER JOIN ".DB_PREFIX."company_vs_customer_vs_services AS CUSTSER ON CSER.id = CUSTSER.service_id
+				INNER JOIN ".DB_PREFIX."courier_vs_company AS CCT ON CCT.id = CUSTSER.courier_id
+				WHERE  CSER.status = '1' AND CSER.service_type = 'SAMEDAY' AND CUSTSER.company_customer_id = '$customer_id' AND CUSTSER.company_id = '$company_id' AND CCT.courier_id = '$courier_id' AND CUSTSER.status = '1'";		
         return $this->_db->getAllRecords($sql);
     }
+	
      public
     function getCarrierIdByCode($companyId,$customerid,$account)
     {  
