@@ -53,36 +53,34 @@ final class Nextday extends Booking
         //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if (count($carrier) > 0) {
             foreach ($carrier as $key => $item) {
-                if($item['internal']!=1){
-					$accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
-					$carrier[$key]["account_id"] = $accountId;
-					
-					foreach ($this->_param->parcel as $parceldata) {
-						$checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id, $parceldata->package_code, $item['carrier_code'], $flowType);
-						if (count($checkPackageSpecificService) > 0) {
-							foreach ($checkPackageSpecificService as $serviceData) {
-								$carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
-							}
-						} else {
-							//$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
-							$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
-							//print_r($services);die;
-							if (count($services) > 0) {
-								foreach ($services as $service) {
-									$carrier[$key]["services"][$service["service_code"]] = $service;
-								}
-							} else {
-								unset($carrier[$key]);
-							}
-						}
-					}
-				}
+                
+                $accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
+                $carrier[$key]["account_id"] = $accountId;
+                
+                foreach ($this->_param->parcel as $parceldata) {
+                    $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id, $parceldata->package_code, $item['carrier_code'], $flowType);
+                    if (count($checkPackageSpecificService) > 0) {
+                        foreach ($checkPackageSpecificService as $serviceData) {
+                            $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
+                        }
+                    } else {
+                        //$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);                        
+                        $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
+                        //print_r($services);die;
+                        if (count($services) > 0) {
+                            foreach ($services as $service) {
+                                $carrier[$key]["services"][$service["service_code"]] = $service;
+                            }
+                        } else {
+                            unset($carrier[$key]);
+                        }
+                    }
+                }
             }
             
             $collectionIndex = 0;
             $collectionList  = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
             if (count($collectionList) > 0) {
-				//$carrierInfo = array();
                 foreach ($collectionList as $item) {
                     if (strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])) {
                         $item['highlight_class'] = '';
@@ -96,17 +94,8 @@ final class Nextday extends Booking
                         foreach ($item["services"] as $service) {
                             array_push($serviceItems, $service["service_code"]);
                         }
-                        $result[$item["carrier_code"]]["name"] = $item["carrier_code"];
-						$result[$item["carrier_code"]]["account"][] = array(
-                                    "credentials" => array(
-                                        "username" => $item["username"],
-                                        "password" => $item["password"],
-                                        "account_number" => $item["account_number"]
-                                    ),
-                                    "services" => implode(",", $serviceItems),
-                                    "pickup_scheduled" => $isRegularPickup
-                                );
-                       /*  array_push($result, array(
+                        
+                        array_push($result, array(
                             "name" => $item["carrier_code"],
                             "account" => array(
                                 array(
@@ -119,18 +108,14 @@ final class Nextday extends Booking
                                     "pickup_scheduled" => $isRegularPickup
                                 )
                             )
-                        )); */
-						
+                        ));
                         $this->carrierList[$item["account_number"]] = $item;
                     }
                 }
                 if (count($result) > 0) {
-					/* foreach($carrierInfo as $info){
-						array_push($result, $info);
-					} */
                     return array(
                         "status" => "success",
-                        "data" => array_values($result)
+                        "data" => $result
                     );
                 }
                 return array(
@@ -204,6 +189,7 @@ final class Nextday extends Booking
                                 $surchargeWithCcfPrice = 0;
                                 $surchargePrice        = 0;
                                 $service->collected_by = $this->carrierList[$accountNumber]["collected_by"];
+                                
                                 foreach ($service->collected_by as $collected_key => $collected_item) {
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice        = 0;
@@ -389,7 +375,6 @@ final class Nextday extends Booking
                                 }
                                 
                                 $service->carrier_info = array(
-								    "highlight_class" => $this->carrierList[$accountNumber]["highlight_class"],
                                     "carrier_id" => $this->carrierList[$accountNumber]["carrier_id"],
                                     "name" => $this->carrierList[$accountNumber]["name"],
                                     "icon" => $this->carrierList[$accountNumber]["icon"],
@@ -433,7 +418,7 @@ final class Nextday extends Booking
     private function _setPostRequest() //print_r($this->_param);die;
     {
         $this->data   = array();
-        $carrierLists = $this->_getCustomerCarrierAccount();
+        $carrierLists = $this->_getCustomerCarrierAccount();        
         if ($carrierLists["status"] == "success") {
             $key          = 0;
             $isDocument   = '';
@@ -514,8 +499,8 @@ final class Nextday extends Booking
                 return array("status"=>"error", "message"=>$this->data["message"]);
             }
        }
-    
-    public function saveBooking()
+
+   public function saveBooking()
     {
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if ($accountStatus["status"] == "error") {
@@ -762,5 +747,6 @@ final class Nextday extends Booking
     {
         return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
     }
+    
 }
 ?>

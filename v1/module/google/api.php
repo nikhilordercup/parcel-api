@@ -163,7 +163,7 @@
                 {
                 foreach($items as $key2 => $item)
                     {
-                    if(count($item)>0)
+                    if(count((array)$item)>0)
                         {
                         if($key=="collection_postcodes")
                             {
@@ -269,8 +269,8 @@
                 "destination"=>$destination,
                 "waypoints"=>$waypoints,
                 "total_waiting_time"=>array_sum($total_waiting_time),
-                "number_of_collections"=>count($param->collection_postcodes),
-                "number_of_drops"=>count($param->delivery_postcodes),
+                "number_of_collections"=>count((array)$param->collection_postcodes),
+                "number_of_drops"=>count((array)$param->delivery_postcodes),
                 "transit_distance"=>$transit_distance, 
                 "transit_time"=>$transit_time, 
                          
