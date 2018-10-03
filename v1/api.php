@@ -1911,13 +1911,7 @@ $app->post('/getAllShipmentsCarrier', function() use ($app) {
     $response = $obj->getAllCarrier($r);
     echoResponse(200, $response);
 });
-$app->post('/getAllShipmentsCarrier', function() use ($app) {
-    $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('access_token','company_id','user_id'),$r);
-    $obj = new allShipments($r);
-    $response = $obj->getAllCarrier($r);
-    echoResponse(200, $response);
-});
+
 $app->post('/getAllMasterCouriers', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','user_id'),$r);
