@@ -404,7 +404,7 @@ public function payinvoices($param){
               $datastatus =  $this->_manageAccounts($param->customer_id,$param->company_id,$param->payamount,$param->invoice_reference,'PAYINVOICE','INVOICE PAYMENT');
               if($datastatus['status']=='success'){
                   $this->db->commitTransaction();
-                   return array('status'=>true,'message'=>$param->invoice_reference.' Paid','reference'=>$param->invoice_reference);
+                   return array('status'=>true,'message'=>$param->invoice_reference.' Paid','reference'=>$param->invoice_reference, 'available_credit' => $datastatus['available_credit']);
               }else{
                   $this->db->rollBackTransaction();
                   return array('status'=>"false",'message'=>'fail','code'=>'SERR11');
@@ -443,7 +443,7 @@ public function _manageAccounts($customer_id,$company_id,$amount,$invoiceRef,$pa
          $condition     = "user_id = '".$customer_id."'";
          $updatestatus  = $this->modelObj->editContent('customer_info',array('available_credit'=>$creditbalanceData['balance']),$condition); 
          if($updatestatus){
-              return array("status"=>"success", "message"=>"Invoice paid");
+              return array("status"=>"success", "message"=>"Invoice paid", 'available_credit'=>$creditbalanceData['balance']);
           }
       }
       return array("status"=>"error", "message"=>"payment not saved");
@@ -464,11 +464,17 @@ public function prepaidrecharge($param){
       $datastatus =  $this->_manageAccounts($param->customer,$param->company_id,$param->payamount,$param->payment_reference,'RECHARGE',$param->paymode);
       if($datastatus['status']=='success'){
           $this->db->commitTransaction();
-           return array('status'=>true,'message'=>"Account recharged successfully.");
+           return array('status'=>true,'message'=>"Account recharged successfully.", 'available_credit'=>$datastatus['available_credit']);
       }else{
           $this->db->rollBackTransaction();
           return array('status'=>"false",'message'=>'fail','code'=>'SERR11');
       }
+   }   
+   
+    public function checkInvoiceNumber($param){        
+        $shipmentsData = $this->modelObj->checkInvoiceNumberUnpaid($param);
+        return array('status' => ($shipmentsData) ? 'success' : 'error', 'data'=>$shipmentsData);
+        return $shipmentsData;
    }   
 }
 ?>
