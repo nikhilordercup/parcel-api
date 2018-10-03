@@ -494,11 +494,12 @@ $app->post('/pickupbycontroller', function() use ($app) {
 $app->post('/deliveredbycontroller', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('access_token','email','company_id','shipment_ticket','comment'/*,'next_date','next_time'*/,'next_date_time','contact_name','shipment_route_id'),$r);
-    $datetime = strtotime($r->next_date_time);
-	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email,'company_id'=>$r->company_id,'shipment_ticket'=>$r->shipment_ticket,'comment'=>
-	$r->comment,'next_date'=>date('Y-m-d',$datetime),'next_time'=>date('h:i:s',$datetime),'contact_name'=>$r->contact_name,'shipment_route_id'=>$r->shipment_route_id,'warehouse_id'=>$r->warehouse_id));
-	$records = $obj->deliveredbycontrollerAction();
+	verifyRequiredParams(array('access_token','email','company_id','shipment_ticket',/*'comment','next_date','next_time','next_date_time','contact_name',*/'shipment_route_id'),$r);
+	$datetime = strtotime($r->next_date_time);
+
+	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email,'company_id'=>$r->company_id,'shipment_ticket'=>$r->shipment_ticket,/*'comment'=>
+	$r->comment,'next_date'=>date('Y-m-d',$datetime),'next_time'=>date('h:i:s',$datetime),'contact_name'=>$r->contact_name,*/'shipment_route_id'=>$r->shipment_route_id,'warehouse_id'=>$r->warehouse_id));
+	$records = $obj->deliveredbycontrollerAction(array("date"=>$r->next_date_time, "contact_name"=>$r->contact_name,"comment"=>$r->comment));
 	echoResponse(200, $records);
 });
 $app->post('/returntowarehouse', function() use ($app) {  /*will work furthur*/
@@ -976,7 +977,7 @@ $app->post('/configuration/update-forms', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('company_id','access_token'),$r);
     $obj = new FormConfiguration();
-    $response=$obj->updateFormConfiguration($r->company_id,$r->extra_data,$r->form_config);
+    $response=$obj->updateFormConfiguration($r->company_id,$r->form_config);
     echoResponse(200, $response);
 });
 $app->post('/configuration/fetch-forms', function() use($app){
@@ -986,8 +987,8 @@ $app->post('/configuration/fetch-forms', function() use($app){
     $response=$obj->listFormConfiguration($r->company_id);
     $res=[];
     if(!is_null($response)){
-        $res['config_data']=json_decode(($response['config_data']));
-        $res['form_data']=json_decode(stripcslashes($response['extra_data']));
+        //$res['config_data']=json_decode(($response['config_data']));
+        $res['form_data']=json_decode(stripcslashes($response['config_data']));
     }
     echoResponse(200, $res);
 });
