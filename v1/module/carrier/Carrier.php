@@ -197,7 +197,7 @@ class Carrier{
 		$requestArr = array();
 		$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
 		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
-		if($labelInfo[0]['label_json']!=''){
+		if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' ){
 			$labelArr = json_decode($labelInfo[0]['label_json']);
                         
 			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
