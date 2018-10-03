@@ -67,5 +67,5 @@ class Settings_Model {
         $records = $this->db->getAllRecords($sql);
         return  $records;  
      }
-  }
+}
 ?>

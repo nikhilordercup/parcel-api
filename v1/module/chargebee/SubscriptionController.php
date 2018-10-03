@@ -409,6 +409,5 @@ class SubscriptionController {
         } catch (Exception $ex){
             exit($ex->getMessage());
         }
-    }
-    
+    }   
 }

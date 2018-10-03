@@ -165,4 +165,3 @@ $app->post('/listAllPlanForCustomerRegistration', function() use ($app){
     $countryData = $db->getAllRecords("SELECT * FROM " . DB_PREFIX ."countries");
     echoResponse(200, array("planData"=>$planData,"countryData"=>$countryData));
 });
-

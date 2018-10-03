@@ -245,7 +245,9 @@ class Booking extends Icargo
             $data['shipment_executionOrder'] = $execution_order;
 
             $data['customer_id'] = $param1->customer_id;
-
+	    
+	    $data['search_string'] = "";
+	    
             /********Search string used for pickups (DHL, FEDEX etc) ***********/
             $sStr["postcode"]      = $addressInfo->postcode;
             $sStr["address_line1"] = $addressInfo->address_line1;
@@ -278,49 +280,7 @@ class Booking extends Icargo
         }
     }
 
-    protected
-
-    function _saveParcelOLD($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type){
-        $parcel = (object)$parcel;
-        $parcelTicketNumber = $this->modelObj->generateParcelTicketNumber($company_id);
-        $parcelData = array();
-        $parcelData['shipment_id'] = $shipment_id;
-
-        $parcelData['instaDispatch_Identity'] = $shipment_ticket ;
-        $parcelData['instaDispatch_pieceIdentity'] = $shipment_ticket;
-        $parcelData['instaDispatch_jobIdentity'] = $shipment_ticket;
-        $parcelData['instaDispatch_loadIdentity'] = $shipment_ticket;
-        $parcelData['shipment_ticket'] = $shipment_ticket;
-
-        $parcelData['package']       = $parcel->package_code;
-        $parcelData['parcel_ticket'] = $parcelTicketNumber;
-        $parcelData['parcel_weight'] = $parcel->weight;
-        $parcelData['parcel_height'] = $parcel->height;
-        $parcelData['parcel_length'] = $parcel->length;
-        $parcelData['parcel_width']  = $parcel->width;
-        //$parcelData["quantity"]      = $parcel->quantity;
-        $parcelData['parcel_type']   = $parcel_type;//($valuedata['purposeTypeName'] == 'Collection') ? 'P' : 'D';
-
-        $parcelData['dataof'] = $company_code;
-        $parcelData['status'] = '1';
-        /* add some new data for same day*/
-        $parcelData['docketNumber'] = $shipment_ticket;
-        $parcelData['customerReference'] = "";
-        $parcelData['objectIdentity'] = $shipment_ticket;
-        $parcelData['availabilityTypeId'] = 0;
-        $parcelData['availabilityTypeCode'] = "UNKN";
-        $parcelData['company_id'] = $company_id;
-        $parcelData['warehouse_id'] = $warehouse_id;
-
-        $parcel_id = $this->modelObj->saveParcel($parcelData);
-
-        if($parcel_id){
-            return array("status"=>"success", "parcel_id"=>$parcel_id);
-        }else{
-            return array("status"=>"error", "message"=>"Parcel not saved");
-        }
-    }
-
+    
     protected
 
     function _saveParcel($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type,$loadidentity){
@@ -372,7 +332,7 @@ class Booking extends Icargo
 
     protected
 
-    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail){       
+    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail,$serviceId){       
 		
         $service_data = array();
 
@@ -395,7 +355,7 @@ class Booking extends Icargo
             $service_data["courier_commission_type"] = $serviceOpted->rate->info->operator;
             $service_data["courier_commission"] = $serviceOpted->rate->info->ccf_value;
             $service_data["courier_commission_value"] = $serviceOpted->rate->info->price;
-
+            $service_data["accountkey"] = isset( $serviceOpted->rate->act_number) ? $serviceOpted->rate->act_number : '';
             $service_data["base_price"] = $serviceOpted->rate->info->original_price;
             $service_data["surcharges"] = $surchargeAndTaxValue["total_surcharge_value"];
             $service_data["taxes"] = $surchargeAndTaxValue["total_tax_value"];
@@ -420,7 +380,10 @@ class Booking extends Icargo
             $service_data["service_request_string"] = $this->serviceRequestString;
             $service_data["service_response_string"] = $this->serviceResponseString;
             
-            $service_data["is_insured"] = ($otherDetail['is_insured'] == true) ? 1 : 0;;
+            $customerData = $this->getBookedShipmentsCustomerInfo($customer_id);
+	        $service_data['customer_type'] = $customerData['customer_type']; 
+	    
+	        $service_data["is_insured"] = ($otherDetail['is_insured'] == true) ? 1 : 0;;
             $service_data["reason_for_export"] = $otherDetail['reason_for_export'];
             $service_data["tax_status"] = $otherDetail['tax_status'];
             $service_data["terms_of_trade"] =  $otherDetail['terms_of_trade'];
@@ -431,7 +394,7 @@ class Booking extends Icargo
             $service_data["label_json"] =  '';
             
             $service_data["status"] = $booking_status;
-                                    
+            $service_data["booked_service_id"] = $serviceId;
             $service_id = $this->modelObj->saveShipmentService($service_data);
             if($service_id>0){
                 return array("status"=>"success", "message"=>"shipment service saved", "service_id"=>$service_id);
@@ -741,7 +704,6 @@ class Booking extends Icargo
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec ($ch);
-
         curl_close ($ch);
         return $server_output;
     }
@@ -827,5 +789,56 @@ class Booking extends Icargo
     function getUserInfo($user_id){
         return $this->modelObj->getUserInfo($user_id);
     }
+    
+    protected
+
+    function _getCustomerAccountBalence($customer_id,$bookShipPrice){
+        $available_credit = $this->modelObj->getCustomerAccountBalence($customer_id);
+        if(($available_credit["available_credit"] <= 0  ) || ($available_credit["available_credit"] < $bookShipPrice) ){
+            return array("status"=>"error", "message"=>"you don't have sufficient balance,your current balance is ".$available_credit["available_credit"]." .","available_credit"=>$available_credit['available_credit']);
+        }
+        return array("status"=>"success", "message"=>"sufficient balance.","available_credit"=>$available_credit['available_credit']);
+    }
+    
+    
+    protected
+
+    function _manageAccounts($priceServiceid,$load_identity, $customer_id,$company_id){
+          $priceData = $this->modelObj->getBookedShipmentsPrice($priceServiceid,$customer_id);
+          if(isset($priceData["grand_total"])){
+                 $creditbalanceData = array();
+                 $creditbalanceData['customer_id']          = $customer_id;
+                 $creditbalanceData['customer_type']        = $priceData['customer_type'];
+                 $creditbalanceData['company_id']           = $company_id;
+                 $creditbalanceData['payment_type']         = 'DEBIT';
+                 $creditbalanceData['pre_balance']          = $priceData["available_credit"];
+                 $creditbalanceData['amount']               = $priceData["grand_total"];
+                 $creditbalanceData['balance']              = $priceData["available_credit"] - $priceData["grand_total"];
+                 $creditbalanceData['create_date']          = date("Y-m-d");
+                 $creditbalanceData['payment_reference']    = $load_identity;
+                 $creditbalanceData['payment_desc']         = 'BOOK A SHIPMENT';
+                 $creditbalanceData['payment_for']          = 'BOOKSHIP';
+                 $addHistory = $this->modelObj->saveAccountHistory($creditbalanceData);
+                  if($addHistory>0){
+                      $condition = "user_id = '".$customer_id."'";
+                      $updateStatus = $this->modelObj->editAccountBalance(array('available_credit'=>$creditbalanceData['balance']),$condition); 
+                      if($updateStatus){
+                          return array("status"=>"success", "message"=>"Price Update save");
+                      }
+                  }
+        }
+        return array("status"=>"error", "message"=>"shipment service not saved");
+    }
+    
+     protected
+
+    function _getCarrierCode($carrier_id){
+       return $this->modelObj->getCarrierCode($carrier_id);
+    }
+    public function getBookedShipmentsCustomerInfo($customerId){
+        $sql = "SELECT C.customer_type,C.available_credit FROM " . DB_PREFIX . "customer_info as C
+                WHERE  C.user_id = '$customerId'";
+        return $this->db->getRowRecord($sql);
+    } 
 }
 ?>
