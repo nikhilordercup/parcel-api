@@ -55,12 +55,12 @@ class Customer extends Icargo{
                 $this->modelObj->addContent('company_users',array('user_id'=>$customer_id,'company_id'=>$param->company_id,'warehouse_id'=>$param->warehouse_id,'status'=>"1",'update_date'=>date("Y-m-d h:i:s", strtotime('now'))));
                     
                 $customerinfo  = array();
-                $customerinfo['ccf'] = isset($param->customer->ccf)?$param->customer->ccf:0.00;
-                $customerinfo['ccf_operator_service'] = isset($param->customer->ccf_operator)?$param->customer->ccf_operator:'NONE';
-                $customerinfo['ccf_operator_surcharge'] = isset($param->customer->surcharge_operator)?$param->customer->surcharge_operator:'NONE';
+                $customerinfo['ccf'] = (isset($param->customer->ccf) && $param->customer->ccf !='')?$param->customer->ccf:0.00;
+                $customerinfo['ccf_operator_service'] = (isset($param->customer->ccf_operator) && ($param->customer->ccf_operator !=''))?$param->customer->ccf_operator:'NONE';
+                $customerinfo['ccf_operator_surcharge'] = (isset($param->customer->surcharge_operator) && ($param->customer->surcharge_operator !=''))?$param->customer->surcharge_operator:'NONE';
                 $customerinfo['apply_ccf'] = "1";
                 $customerinfo['user_id'] = $customer_id;
-                $customerinfo['surcharge'] = isset($param->customer->surcharge)?$param->customer->surcharge:0.00;
+                $customerinfo['surcharge'] = (isset($param->customer->surcharge) && ($param->customer->surcharge !=''))?$param->customer->surcharge:0.00;
                 $customerinfo['address_id'] = "0";
                 $customerinfo['customer_type'] = $param->customer->type;
                 $customerinfo['accountnumber'] = $this->generateCustomerAccount($param->companyname,$customer_id);
@@ -1398,5 +1398,156 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
                         ,'data'=>$pdfData,'customer'=>$customerdata,'companyimg'=>$src);
         return $result;
 	}
- }
+    
+     public function checkCustomerData($param){
+         $tempdata = $param->data;
+         $errorBucket = array();
+         $successBucket = array();
+         $param->uid = '0TEST00'; 
+         $param->customer        = (object)array('country'=>(object)array());
+         $param->customerbilling = (object)array('country'=>(object)array()); 
+         $param->customerpickup  = (object)array('country'=>(object)array()); 
+         unset($param->data);
+         foreach($tempdata as $key=>$dataOfCustomers){
+             $isErrorRow = false;
+             if(!isset($dataOfCustomers->customername) || $dataOfCustomers->customername==''){
+                 $dataOfCustomers->status = "Company Name is missing "; $isErrorRow = true; 
+             }elseif(!isset($dataOfCustomers->email) || $dataOfCustomers->email=='' || !(filter_var($dataOfCustomers->email, FILTER_VALIDATE_EMAIL))){
+                  $dataOfCustomers->status = "Email is missing"; $isErrorRow = true;     
+             }elseif(!isset($dataOfCustomers->customertype) || ($dataOfCustomers->customertype=='') || !in_array($dataOfCustomers->customertype,array('POSTPAID','PREPAID'))){
+                  $dataOfCustomers->status = "Customer type is missing or invalid"; $isErrorRow = true; 
+                
+             }elseif(!isset($dataOfCustomers->creditlimit) || $dataOfCustomers->creditlimit=='' || !is_numeric($dataOfCustomers->creditlimit)){
+                  $dataOfCustomers->status = "Credit limit is missing or invalid"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->availablebalance) || $dataOfCustomers->availablebalance=='' || !is_numeric($dataOfCustomers->availablebalance)){
+                  $dataOfCustomers->status = "Available balance is missing or invalid"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->invoicecycle) || $dataOfCustomers->invoicecycle=='' || !is_numeric($dataOfCustomers->invoicecycle)){
+                  $dataOfCustomers->status = "Invoice cycle is missing or invalid"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->password) || $dataOfCustomers->password==''){
+                  $dataOfCustomers->status = "Password is missing"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->chargefrombase) || $dataOfCustomers->chargefrombase=='' || !in_array($dataOfCustomers->chargefrombase,array('YES','NO'))){
+                  $dataOfCustomers->status = "Charge from base is missing or invalid"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->taxexempt) || $dataOfCustomers->taxexempt=='' || !in_array($dataOfCustomers->taxexempt,array('YES','NO'))){
+                  $dataOfCustomers->status = "Tax exempt is missing or invalid"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->countryname) || $dataOfCustomers->countryname==''){
+                  $dataOfCustomers->status = "Country Name is missing or invalid"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->address1) || $dataOfCustomers->address1==''){
+                  $dataOfCustomers->status = "Address1 is missing"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->countrycode) || $dataOfCustomers->countrycode=='' || !$this->isExistCountryCode($dataOfCustomers->countrycode)){
+                  $dataOfCustomers->status = "Country code is missing or invalid"; $isErrorRow = true; 
+                  
+             }elseif(!isset($dataOfCustomers->state) || $dataOfCustomers->state==''){
+                   $dataOfCustomers->status = "State is missing or invalid"; $isErrorRow = true; 
+                   
+             }elseif(isset($dataOfCustomers->postcode) && $dataOfCustomers->postcode!='' && !$this->isValidPostcode($dataOfCustomers->postcode,$dataOfCustomers->countrycode)){ //
+                  $dataOfCustomers->status = "postcode value is invalid"; $isErrorRow = true; 
+                  
+             }elseif(isset($dataOfCustomers->phone) && $dataOfCustomers->phone!='' && !$this->isValidPhone($dataOfCustomers->phone)){ //
+                  $dataOfCustomers->status = "phone value is invalid"; $isErrorRow = true; 
+                  
+             }elseif(isset($dataOfCustomers->ccf) && $dataOfCustomers->ccf!='' && !is_numeric($dataOfCustomers->ccf)){
+                  $dataOfCustomers->status = "ccf value is invalid"; $isErrorRow = true; 
+                  
+             }elseif(isset($dataOfCustomers->surcharge)  && $dataOfCustomers->surcharge!='' && !is_numeric($dataOfCustomers->surcharge)){
+                  $dataOfCustomers->status = "surcharge value is invalid"; $isErrorRow = true; 
+                  
+             }elseif(isset($dataOfCustomers->surchargeoperator) && ($dataOfCustomers->surchargeoperator!='') && (!in_array($dataOfCustomers->surchargeoperator,array('FLAT','PERCENTAGE')))){
+                  $dataOfCustomers->status = "surcharge operator value is invalid"; $isErrorRow = true; 
+                  
+             }elseif(isset($dataOfCustomers->ccfoperator) && ($dataOfCustomers->ccfoperator!='') && (!in_array($dataOfCustomers->ccfoperator,array('FLAT','PERCENTAGE')))){
+                  $dataOfCustomers->status = "ccf operator value is invalid"; $isErrorRow = true; 
+                  
+             }elseif(($this->registeronFirebase($dataOfCustomers->email,$dataOfCustomers->password))){
+                   $dataOfCustomers->status = "email already registered with icargo"; $isErrorRow = true; 
+                  
+             }else{
+             $param->customer->name                 = $dataOfCustomers->customername;
+             $param->customer->customer_email       = $dataOfCustomers->email;
+             $param->customer->type                 = $dataOfCustomers->customertype;
+             $param->customer->creditlimit          = $dataOfCustomers->creditlimit;
+             $param->customer->ccf_operator         = $dataOfCustomers->ccfoperator;
+             $param->customer->surcharge            = $dataOfCustomers->surcharge;
+             $param->customer->ccf                  = $dataOfCustomers->ccf;
+             $param->customer->surcharge_operator   = $dataOfCustomers->surchargeoperator;
+             $param->customer->availablebalance     = $dataOfCustomers->availablebalance;
+             $param->customer->invoicecycle         = $dataOfCustomers->invoicecycle;
+             $param->customer->password             = $dataOfCustomers->password;
+             $param->customer->charge_from_base     = $dataOfCustomers->chargefrombase;
+             $param->customer->tax_exempt           = $dataOfCustomers->taxexempt;
+             $param->customer->vatnumber            = $dataOfCustomers->vatnumber;
+             $param->customer->country->short_name  = $dataOfCustomers->countryname;
+                 
+             $param->customerbilling->address_1               = $dataOfCustomers->address1;
+             $param->customerbilling->country->short_name     = $dataOfCustomers->countryname;
+             $param->customerbilling->country->alpha3_code    = $dataOfCustomers->countrycode;
+             $param->customerbilling->state                   = $dataOfCustomers->state; 
+             
+             $param->customerbilling->address_2               = $dataOfCustomers->address2;
+             $param->customerbilling->city                    = $dataOfCustomers->city;
+             $param->customerbilling->name                    = $dataOfCustomers->person;
+             $param->customerbilling->phone                   = $dataOfCustomers->phone;
+             $param->customerbilling->postcode                = $dataOfCustomers->postcode;
+             
+                 
+             $param->customerpickup->address_1               = $dataOfCustomers->address1;
+             $param->customerpickup->country->short_name     = $dataOfCustomers->countryname;
+             $param->customerpickup->country->alpha3_code    = $dataOfCustomers->countrycode;
+             $param->customerpickup->state                   = $dataOfCustomers->state;
+            
+             $param->customerpickup->address_2               = $dataOfCustomers->address2;
+             $param->customerpickup->city                    = $dataOfCustomers->city;
+             $param->customerpickup->name                    = $dataOfCustomers->person;
+             $param->customerpickup->phone                   = $dataOfCustomers->phone;
+             $param->customerpickup->postcode                = $dataOfCustomers->postcode;
+             //print_r($param);die;
+             $customerData    =  $this->saveCustomer($param);
+             $successBucket[] = $customerData;
+             //Register on Firebase
+             //saveCarrierCustomerFirebaseInfo
+             }
+             if($isErrorRow){
+              $errorBucket[] =   $dataOfCustomers; 
+             }
+          }
+         
+       
+         
+      return array('edata'=>$errorBucket,'message'=>'Total '.count($successBucket).' customer created and '.count($errorBucket).' customer creation request failed.','status'=>'success');
+   }
+    public function isExistCountryCode($code){
+        return ($this->modelObj->checkCountryCodeExist($code) > 0)?true:false;
+    }
+     public function registeronFirebase($email,$password){
+        return ($this->modelObj->checkCustomerEmailExist($email) > 0)?true:false;
+    }
+    public function isValidPostcode($postcode,$countrycode){
+    $postcode = strtoupper(str_replace(' ','',$postcode));
+    if(preg_match("/(^[A-Z]{1,2}[0-9R][0-9A-Z]?[\s]?[0-9][ABD-HJLNP-UW-Z]{2}$)/i",$postcode) || preg_match("/(^[A-Z]{1,2}[0-9R][0-9A-Z]$)/i",$postcode))
+     {    
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+    public function isValidPhone($phone){
+     $filtered_phone_number = filter_var($phone, FILTER_SANITIZE_NUMBER_INT);
+     $phone_to_check = str_replace("-", "", $filtered_phone_number);
+     if (strlen($phone_to_check) < 10 || strlen($phone_to_check) > 14) {
+        return false;
+     } else {
+       return true;
+     }
+}
+   
+}
 ?>

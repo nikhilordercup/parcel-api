@@ -713,6 +713,15 @@ public function checkCustomerEmailExist($company_email){
                 ORDER BY A.id "; 
         $record = $this->db->getAllRecords($sql);
         return $record; 
-     }  
+     }
+public function checkCountryCodeExist($code){ 
+     $record = array();
+	 $sqldata ='count(1) as exist';
+     $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "countries AS t1
+             WHERE t1.alpha3_code  = '".$code."'";
+	 $record = $this->db->getOneRecord($sql);
+     return $record['exist'];      
+   }         
+
 }
 ?>
