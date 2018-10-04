@@ -59,7 +59,7 @@ class Booking_Model_Booking
                 . "INNER JOIN `" . DB_PREFIX . "courier_vs_company` AS CCT ON CCST.company_id=CCT.company_id AND CCT.account_number='$account_number' "
                 . "INNER JOIN `" . DB_PREFIX . "courier_vs_services` AS CST ON CST.id=CSCT.service_id "
                 . $flowTypeJoin
-                . "WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.service_type='NEXTDAY' AND CCST.company_customer_id='$customer_id' AND CCST.courier_id='$carrier_id' ".$flowTypeCond;                        
+                . "WHERE CSCT.status= 1 AND CCST.status= 1 AND CST.status = 1 AND CST.service_type='NEXTDAY' AND CCST.company_customer_id='$customer_id' AND CCST.courier_id='$carrier_id' ".$flowTypeCond;
         return $this->_db->getAllRecords($sql);
     }
 
@@ -83,11 +83,11 @@ class Booking_Model_Booking
         $record = $this->_db->getRowRecord("SELECT version_id AS version_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'");
         return $record['version_id'];
     } */
-	
+
 	public
 
     function getAddressBySearchStringAndCustomerId($customer_id, $search_string){
-        $record = $this->_db->getRowRecord("SELECT version_id AS version_id,id as address_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'"); 
+        $record = $this->_db->getRowRecord("SELECT version_id AS version_id,id as address_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'");
         return $record;
     }
 
@@ -235,7 +235,7 @@ class Booking_Model_Booking
 
     public
 
-    function saveItemService($data){        
+    function saveItemService($data){
         $id = $this->_db->save("shipment_items", $data);
         return $id;
     }
@@ -300,17 +300,17 @@ class Booking_Model_Booking
         $sql = "SELECT ST.*, IC.alpha2_code FROM ".DB_PREFIX."shipment AS ST LEFT JOIN ".DB_PREFIX."countries AS IC ON IC.alpha3_code = ST.shipment_country_code WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT'";
         return $this->_db->getAllRecords($sql);
     }
-	
+
 	public function getDeliveryShipmentData($loadIdentity){
 		$sql = "SELECT * FROM  ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND instaDispatch_loadGroupTypeCode='NEXT' AND shipment_service_type='D'";
         return $this->_db->getRowRecord($sql);
 	}
-	
+
 	public function getPackageDataByLoadIdentity($loadIdentity){
 		$sql = "SELECT * FROM  ".DB_PREFIX."shipments_parcel AS PT WHERE PT.instaDispatch_loadIdentity='$loadIdentity' AND parcel_type='D'";
         return $this->_db->getAllRecords($sql);
 	}
-	
+
 	public function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity){
 		//$sql = "SELECT carrier_account_number FROM ".DB_PREFIX."shipment AS ST WHERE ST.instaDispatch_loadIdentity='$loadIdentity' AND shipment_service_type='D'";
         //$accountNumber = $this->_db->getOneRecord($sql);
@@ -319,27 +319,27 @@ class Booking_Model_Booking
 		//$credentailData['account_number'] = $accountNumber['carrier_account_number'];
 		return $credentailData;
 	}
-	
+
 	public function getServiceDataByLoadIdentity($loadIdentity){
 		$sql = "SELECT SST.service_name,SST.currency,CST.service_code FROM ".DB_PREFIX."shipment_service AS SST INNER JOIN ".DB_PREFIX."courier_vs_services AS CST ON SST.service_name = CST.service_name WHERE SST.load_identity='$loadIdentity'";
 		return $this->_db->getRowRecord($sql);
 	}
-	
+
 	public function getLabelByLoadIdentity($loadIdentity){
 		$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code FROM ".DB_PREFIX."shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
 		return $this->_db->getAllRecords($sql);
 	}
 
-	
+
 	public function saveLabelDataByLoadIdentity($labelArr,$loadIdentity){
 		return $this->_db->update("shipment_service",$labelArr,"load_identity='".$loadIdentity."'");
 	}
-	
+
 	public function getBookingStatusByLoadidentity($loadIdentity){
 		$sql = "SELECT status as booking_status FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity='$loadIdentity'";
 		return $this->_db->getRowRecord($sql);
 	}
-	
+
 	public function deleteBookingDataByLoadIdentity($loadIdentity){
 		$service_id = $this->_db->getRowRecord("SELECT id FROM ".DB_PREFIX."shipment_service AS SST WHERE SST.load_identity='$loadIdentity'");
 		//delete from shipment table
@@ -355,33 +355,33 @@ class Booking_Model_Booking
 			$deleteShipmentCollection = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_collection WHERE service_id=".$service_id['id']."");
 			//delete from shipment service table
 			$deleteShipmentService = $this->_db->delete("DELETE FROM ".DB_PREFIX."shipment_service WHERE load_identity='$loadIdentity'");
-			
+
 			return array("status"=>"success","message"=>"shipment deleted successfully");
 		}else{
 			return array("status"=>"error","message"=>"error while deleting shipment");
 		}
 	}
-	
+
 	public function updateBookingStatus($statusArr,$loadIdentity){
 		return $this->_db->update("shipment_service",$statusArr,"load_identity='".$loadIdentity."'");
 	}
-	
+
 	public function getAutoPrintStatusByCustomerId($customerId){
 		$sql = "SELECT auto_label_print as auto_label_print FROM ".DB_PREFIX."customer_info AS CI WHERE CI.user_id=".$customerId."";
 		return $this->_db->getRowRecord($sql);
 	}
-	
+
 	//get collection start time by carrier code,address_id and customer_id
 	public function getCollectionStartTime($addressId,$customerId,$carrierCode){
 		$sql = "SELECT collection_start_time as collection_start_time,collection_end_time as collection_end_time FROM ".DB_PREFIX."address_carrier_time AS ACT WHERE ACT.address_id=".$addressId." AND ACT.customer_id=".$customerId." AND ACT.carrier_code='".$carrierCode."'";
 		return $this->_db->getRowRecord($sql);
 	}
-	
+
 	public function checkPackageSpecificService($company_id,$package_code,$carrier_code){
 		$sql = "SELECT PST.service_code as service_code,CST.service_name as service_name FROM ".DB_PREFIX."package_service AS PST INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON PST.service_code = CST.service_code WHERE PST.package_code='$package_code' AND PST.carrier_code='$carrier_code' AND PST.company_id=$company_id";
 		return $this->_db->getAllRecords($sql);
 	}
-	
+
     public
 
     function getCustomerInfo($user_id){
@@ -393,55 +393,55 @@ class Booking_Model_Booking
     function getUserInfo($user_id){
         return $this->_db->getRowRecord("SELECT email FROM " . DB_PREFIX . "users AS UT WHERE UT.id='$user_id'");
     }
-    
+
     public function checkExistingPickupForShipment($customerId, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity)
-    {        
-        $sql = "SELECT IP.* FROM " . DB_PREFIX . "pickups AS IP WHERE IP.user_id='$userId' AND IP.customer_id='$customerId' AND carrier_id='$carrierId' AND pickup_date='$collectionDate' AND search_string='$searchString'";        
-        $pickUps = $this->_db->getAllRecords($sql);        
+    {
+        $sql = "SELECT IP.* FROM " . DB_PREFIX . "pickups AS IP WHERE IP.user_id='$userId' AND IP.customer_id='$customerId' AND carrier_id='$carrierId' AND pickup_date='$collectionDate' AND search_string='$searchString'";
+        $pickUps = $this->_db->getAllRecords($sql);
         $fullMatch = false;
         $pickupId = 0;
         $allPickup = array();
         $results = array();
-        
-        if(count($pickUps) ) {            
-            foreach ($pickUps as $pickUp) {               
+
+        if(count($pickUps) ) {
+            foreach ($pickUps as $pickUp) {
                 if( strtolower($pickUp['name']) == strtolower($contactName) && strtolower($pickUp['company_name']) == strtolower($companyName) ) {
                     (!$fullMatch) ? ( $allPickup = array() ) : '';
                     (!$pickupId) ? ( $pickupId = $pickUp['id'] ) : '';
                     $results = array('full_match' => '1');
                     $allPickup[] = $pickUp;
-                    $fullMatch = true;                    
+                    $fullMatch = true;
                 } else if( !$fullMatch ) {
                     $results = array('full_match' => '0');
                     $allPickup[] = $pickUp;
                 }
-            }             
-            
+            }
+
             $results['data'] = $allPickup;
             $results['search'] = 1;
             $results['shipment_id'] = $loadIdentity;
-                        
-            if( count($allPickup) == 1 && $pickupId ) {                
-                $results['assign'] = 1; 
-                $results['data'] = array();                
+
+            if( count($allPickup) == 1 && $pickupId ) {
+                $results['assign'] = 1;
+                $results['data'] = array();
                 //$loadIdentity of collection (P - pickup)
                 //echo "UPDATE " . DB_PREFIX . "shipment SET pickup_id = '$pickupId' WHERE shipment_ticket = " . $loadIdentity;die;
-                $this->updateShipment($pickupId, $loadIdentity);                
+                $this->updateShipment($pickupId, $loadIdentity);
             } else {
                 $results['assign'] = 0;
-            }                     
-            
+            }
+
         } else {
             $results = array( 'search' => 0, 'full_match' => 0, 'data' => $allPickup, 'assign' => 0 , 'shipment_id' => $loadIdentity);
-        }               
+        }
         return $results;
     }
-    
+
     public function updateShipment($pickupId, $loadIdentity) {
         $flag = $this->_db->updateData("UPDATE " . DB_PREFIX . "shipment SET pickup_id = '$pickupId' WHERE shipment_ticket = '$loadIdentity'");
         return $flag ;
     }
-    
+
     public function getCompanyInfo($companyId) {
         return $this->_db->getRowRecord("SELECT IU.* FROM " . DB_PREFIX . "users AS IU WHERE IU.id='$companyId'");
     }
@@ -464,31 +464,31 @@ class Booking_Model_Booking
                 INNER JOIN " . DB_PREFIX . "customer_info as C on S.customer_id = C.user_id
                 WHERE S.id = '$priceServiceid' AND C.user_id = '$customerId'";
         return $this->_db->getRowRecord($sql);
-    } 
+    }
     public
 
     function saveAccountHistory($data){
         $his_id = $this->_db->save("accountbalancehistory", $data);
         return $his_id;
     }
-    
+
   public
 
     function editAccountBalance($data,$condition){
         $status = $this->_db->update("customer_info", $data,$condition);
         return $status;
-    }  
+    }
   public
     function getCarrierCode($carrier_id){
         $sql = "SELECT code AS carrier_code  FROM " . DB_PREFIX . "courier WHERE id = '$carrier_id'";
         return $this->_db->getRowRecord($sql);
     }
-    
+
  public
 
     function getBookedShipmentsCustomerInfo($customer_id){
         $sql = "SELECT customer_type FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customer_id'";
         return $this->_db->getRowRecord($sql);
-    }  
+    }
 }
 ?>

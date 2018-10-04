@@ -123,7 +123,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         
         /**********start of static data from requet json ***************/
         $response['extra']           = array(
-            "service_key" => "1",
+            "service_key" => $serviceInfo['service_code'],
             "long_length" => "",
             "bookin" => "",
             "exchange_on_delivery" => "",

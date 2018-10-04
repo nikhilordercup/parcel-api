@@ -17,13 +17,16 @@ class Module_Addressbook_Addressbook extends Icargo{
     {
         $response = array();
 		//added by kavita for search button 19march2018
+		$param->country_code = '';
+		$param->country_code = ($param->country_code=='') ? 'GB' : $param->country_code;
 	    if(isset($param->origin) && $param->origin=='api')
-	    {
+	    { 
 	        $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookup($param->search_postcode);
-
+            $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
             if($addresses["status"]=="success")
-            {
+            {   
+		        $container = json_decode(json_encode((array)$addresses['data']), TRUE);
+				$addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
                 foreach($addresses["data"] as $key => $list)
                 {
@@ -42,9 +45,11 @@ class Module_Addressbook_Addressbook extends Icargo{
         if(!$records)
         {
             $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookup($param->search_postcode);
+            $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
             if($addresses["status"]=="success")
-            {
+            {   
+		        $container = json_decode(json_encode((array)$addresses['data']), TRUE);
+				$addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
                 foreach($addresses["data"] as $key => $list)
                 {
@@ -117,7 +122,8 @@ class Module_Addressbook_Addressbook extends Icargo{
     function searchAddressById($param){
         if($param->address_origin=="api"){
             $pcaLookup = new Address_Lookup();
-            $addresses = $pcaLookup->lookupByID((int)$param->id);
+            //$addresses = $pcaLookup->lookupByID((int)$param->id);
+			$addresses = $pcaLookup->lookupByID("$param->id");
             if($addresses["status"]=="success"){
                 $data = $addresses["data"][0];
                 return array("status"=>"success", "data"=>array(

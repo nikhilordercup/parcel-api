@@ -51,8 +51,8 @@ class Controller extends Icargo{
 		//return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->user_id." AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
 	}
 	
-	public function getControllerDataByCompanyAndWarehouseId($param){            
-        return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->company_id." AND t2.warehouse_id = ".$param->warehouse_id." AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
+	public function getControllerDataByCompanyAndWarehouseId($param){
+        return $this->_parentObj->db->getAllRecords("SELECT DISTINCT(t1.id), t2.user_id as user_id,name,email,phone,address_1,address_2,city,postcode FROM ".DB_PREFIX."users AS t1 LEFT JOIN ".DB_PREFIX."company_users AS t2 ON t1.id = t2.user_id where t2.company_id = ".$param->company_id." AND (t2.warehouse_id = ".$param->warehouse_id." OR t2.warehouse_id = 0) AND (t1.user_level=2 OR t1.user_level=3) group by t1.email");
     }
 
 	public function getControllerCompanyData($param){
@@ -91,6 +91,7 @@ class Controller extends Icargo{
 
     function _getUserByCustomerId($customer_id){
         $sql = "SELECT UT.id as id, UT.name as name, email as email,UT.is_default AS is_default FROM " . DB_PREFIX . "users AS UT INNER JOIN `" . DB_PREFIX . "user_address` AS UAT ON UAT.user_id=UT.id WHERE UT.user_level=6 AND UT.parent_id='$customer_id' AND UT.status=1";
+		//echo $sql;die;
         return $this->_parentObj->db->getAllRecords($sql);
     }
 
@@ -242,7 +243,6 @@ class Controller extends Icargo{
         foreach($customerLists as $key=>$item){
             $userLists = $this->_getUserByCustomerId($item["id"]);
 
-
             if($userLists){
                 $customerLists[$key]["default_user_id"] = $item["id"];
                 $customerLists[$key]["users"][] = array("id"=>$item["id"],"name"=>$item["name"],"email"=>$item["email"],"is_default"=>0,"collection_address"=>$this->_getCustomerCollectionAddressByCustomerId($item["id"]));
@@ -265,7 +265,7 @@ class Controller extends Icargo{
                 $customerLists[$key]["users"][] = $userLists;
             }
         }
-        //print_r($customerLists);
+        
         return $customerLists;
     }
 
