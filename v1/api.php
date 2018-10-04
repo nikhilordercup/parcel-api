@@ -475,7 +475,7 @@ $app->post('/getFirebaseDataForCardedShipment', function() use ($app) {
 $app->post('/cardedbycontroller', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	
+
 	verifyRequiredParams(array('access_token','email','company_id','shipment_ticket',/*'comment','next_date','next_time','next_date_time',*/'failure_status','shipment_route_id'),$r);
 
 	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email,'company_id'=>$r->company_id,'shipment_ticket'=>$r->shipment_ticket,/*'comment'=>
@@ -986,11 +986,13 @@ $app->post('/configuration/fetch-forms', function() use($app){
     verifyRequiredParams(array('company_id','access_token'),$r);
     $obj = new FormConfiguration();
     $response=$obj->listFormConfiguration($r->company_id);
-    $res=[];
+
     if(!is_null($response)){
-        //$res['config_data']=json_decode(($response['config_data']));
-        $res['form_data']=json_decode(stripcslashes($response['config_data']));
-    }
+        $res['form_data']=json_decode($response['config_data']);
+    }else{
+			  $formObj = new Default_Form();
+				$res['form_data'] = json_decode($formObj->getForm());
+		}
     echoResponse(200, $res);
 });
 $app->post('/configuration/fetch-all', function() use($app){
