@@ -223,7 +223,8 @@ class Module_Coreprime_Api extends Icargo
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
         $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
-        if($data->status=="error"){
+       
+        if(isset($data->status) and $data->status=="error"){
           return $data;
         }else{
           return array("status" => "success","rate"=>$data,"availiable_balence" => $available_credit['available_credit']);
