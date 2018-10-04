@@ -253,5 +253,34 @@ class AllInvoice_Model
         $record = $this->db->getAllRecords($sql);
         return $record;
      }
+     
+    public function checkInvoiceNumberUnpaid($param){
+        $record = array();
+        $cond = [];
+        $param = (array)$param;
+        ( isset( $param['invoice_number'] ) && $param['invoice_number'] ) ? ( $cond[] = 'I.invoice_reference = "'.$param['invoice_number'].'"' ) : '';
+        ( isset( $param['customer_id'] ) && $param['customer_id'] ) ? ( $cond[] = 'I.customer_id = "'.$param['customer_id'] . '"' ) : '';
+        ( isset( $param['company_id'] ) && $param['company_id'] ) ? ( $cond[] = 'I.company_id = "'.$param['company_id'].'"' ) : '';
+        ( isset( $param['amount'] ) && $param['amount'] ) ? ( $cond['total_ammount'] = 'I.total_ammount = '.$param['amount'] ) : '';
+        ( $cond ) ? ($cond[] = "I.invoice_status='UNPAID' ") : '';
+        
+        if($cond) {
+            $where  = implode(" AND ", $cond);
+            //$sql = "SELECT total_ammount, invoice_reference FROM " . DB_PREFIX . "invoices WHERE $where";    
+        
+            $sqldata = 'I.incoice_pdf,I.invoice_reference,I.total_ammount as total_amount,I.raised_on,
+                    I.deu_date as due_on,I.from,I.to,I.voucer as voucher,
+                    I.tot_shipmets as shipments,I.tot_item as item,I.invoice_status as status,
+                    CI.accountnumber as shipment_customer_account,CI.billing_full_name as customer,CI.user_id as customer_id';
+            
+            $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "invoices AS I
+                        LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = I.customer_id
+                        WHERE  $where ";                   
+            
+            $record = $this->db->getRowRecord($sql);
+        }        
+        return $record;
+     }
+
    }
 ?>

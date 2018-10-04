@@ -16,7 +16,7 @@ class Postcode {
 		}
 	}
 	
-	private function is_valid_postcode($p,$countryCode) { 
+	private function is_valid_postcode($p,$countryCode) {
 		$postcodeRegEx = $this->country_specific_reg_exp($countryCode);
 		return preg_match($postcodeRegEx, $p);
 	}
