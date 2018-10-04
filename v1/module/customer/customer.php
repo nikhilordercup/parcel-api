@@ -1507,25 +1507,25 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
              $param->customerpickup->name                    = $dataOfCustomers->person;
              $param->customerpickup->phone                   = $dataOfCustomers->phone;
              $param->customerpickup->postcode                = $dataOfCustomers->postcode;
-             //print_r($param);die;
              $customerData    =  $this->saveCustomer($param);
-             $successBucket[] = $customerData;
-             //Register on Firebase
-             //saveCarrierCustomerFirebaseInfo
+             if($customerData['status']=='success'){
+                 $customer_id           = $customerData['customer_id'];
+                 $customerAccountData   = $this->saveCustomerAccount($param->company_id,$customer_id);
+                 $successBucket[]       = $customerData;
+             }else{
+                 $errorBucket[] =   $dataOfCustomers;
+               }
              }
              if($isErrorRow){
               $errorBucket[] =   $dataOfCustomers; 
              }
-          }
-         
-       
-         
+          }  
       return array('edata'=>$errorBucket,'message'=>'Total '.count($successBucket).' customer created and '.count($errorBucket).' customer creation request failed.','status'=>'success');
    }
     public function isExistCountryCode($code){
         return ($this->modelObj->checkCountryCodeExist($code) > 0)?true:false;
     }
-     public function registeronFirebase($email,$password){
+    public function registeronFirebase($email,$password){
         return ($this->modelObj->checkCustomerEmailExist($email) > 0)?true:false;
     }
     public function isValidPostcode($postcode,$countrycode){
@@ -1548,6 +1548,53 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
        return true;
      }
 }
-   
-}
+    public function saveCustomerAccount($company_id,$customerId){
+      $allAccount =   $this->modelObj->getAllAccountOfCompany($company_id);
+      if(count($allAccount)>0){
+          foreach($allAccount as $key=>$valdata){
+                  $data = array();
+                  $data['status'] = 1; 
+                  $data['company_id'] = $company_id; 
+                  $data['company_courier_account_id']   = $valdata['courier_account_id']; 
+                  $data['account_number']               = $valdata['account_number']; 
+                  $data['courier_id']                   = $valdata['courier_id']; 
+                  $data['customer_id'] = $customerId; 
+                  $data['create_date'] = date('Y-m-d'); 
+                  $data['created_by'] = $company_id;
+                  $satatusId = $this->modelObj->addContent('courier_vs_company_vs_customer',$data);
+                  $allServices =   $this->modelObj->getAllAccountServices($company_id,$valdata['courier_account_id']);
+                    if(count($allServices)>0){
+                        foreach($allServices as $skey=>$svaldata){
+                              $sdata = array();
+                              $sdata['status'] = 1; 
+                              $sdata['company_id'] = $company_id; 
+                              $sdata['company_customer_id'] = $customerId; 
+                              $sdata['courier_id'] = $valdata['courier_account_id']; 
+                              $sdata['company_service_id'] = $svaldata['id']; 
+                              $sdata['service_id'] = $svaldata['service_id']; 
+                              $sdata['create_date'] = date('Y-m-d'); 
+                              $sdata['create_by'] = $company_id;
+                              $satatusId = $this->modelObj->addContent('company_vs_customer_vs_services',$sdata);
+                        }
+                    }
+               
+                $allSurcharges =   $this->modelObj->getAllAccountSurcharges($company_id,$valdata['courier_account_id']);
+                if(count($allSurcharges)>0){
+                        foreach($allSurcharges as $surkey=>$survaldata){
+                              $surdata = array();
+                              $surdata['status'] = 1; 
+                              $surdata['company_id'] = $company_id; 
+                              $surdata['company_customer_id'] = $customerId; 
+                              $surdata['courier_id'] = $valdata['courier_account_id']; 
+                              $surdata['company_surcharge_id'] = $survaldata['id']; 
+                              $surdata['surcharge_id'] = $survaldata['surcharge_id']; 
+                              $surdata['create_date'] = date('Y-m-d'); 
+                              $surdata['create_by'] = $company_id;
+                              $satatusId = $this->modelObj->addContent('company_vs_customer_vs_surcharge',$surdata);
+                         }
+                      }
+                   }
+                } 
+            }
+    }
 ?>
