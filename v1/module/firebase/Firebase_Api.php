@@ -4,20 +4,19 @@ use Kreait\Firebase\ServiceAccount;
 
 class Firebase_Api{
     public static $_fbDatabase = NULL;
-
+    public $firebase = NULL;
     public
 
     function __construct(){
         if(self::$_fbDatabase==null){
             $serviceAccount = ServiceAccount::fromJsonFile($this->_getFbCredential());
-            $firebase = (new Factory)
+            $this->firebase = (new Factory)
                 ->withServiceAccount($serviceAccount)
                 // The following line is optional if the project id in your credentials file
                 // is identical to the subdomain of your Firebase project. If you need it
                 ->withDatabaseUri($this->_getFirebaseDb())
                 ->create();
-
-            self::$_fbDatabase = $firebase->getDatabase();
+            self::$_fbDatabase = $this->firebase->getDatabase();
         }
         $this->database = self::$_fbDatabase;
     }
@@ -35,7 +34,11 @@ class Firebase_Api{
         else
             return 'https://idriver-1476714038443.firebaseio.com/';
     }
-    
+
+    public function getFirebase(){
+      return $this->firebase;
+    }
+
     public
 
     function save($url, $data){

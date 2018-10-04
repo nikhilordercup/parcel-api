@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "chargebee/chargebee-php",
-            "version": "v2.5.4",
+            "version": "v2.5.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/chargebee/chargebee-php.git",
-                "reference": "c33bed2fee7947db4a9a1867877748bc67001cb0"
+                "reference": "8ce6eee36f2c4197525a4ea1d4e4fcb3d6891648"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/c33bed2fee7947db4a9a1867877748bc67001cb0",
-                "reference": "c33bed2fee7947db4a9a1867877748bc67001cb0",
+                "url": "https://api.github.com/repos/chargebee/chargebee-php/zipball/8ce6eee36f2c4197525a4ea1d4e4fcb3d6891648",
+                "reference": "8ce6eee36f2c4197525a4ea1d4e4fcb3d6891648",
                 "shasum": ""
             },
             "type": "library",
@@ -38,7 +38,7 @@
                 "recurring billing",
                 "subscription billing"
             ],
-            "time": "2018-09-12T14:02:34+00:00"
+            "time": "2018-10-03T14:51:17+00:00"
         },
         {
             "name": "dompdf/dompdf",
@@ -469,16 +469,16 @@
         },
         {
             "name": "google/cloud-storage",
-            "version": "v1.8.0",
+            "version": "v1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-cloud-php-storage.git",
-                "reference": "cec977f75387a7e991a5f36afdc5a28fcc6d6b6d"
+                "reference": "7ff570f273b61568944f777c1cf443e8d52048a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-cloud-php-storage/zipball/cec977f75387a7e991a5f36afdc5a28fcc6d6b6d",
-                "reference": "cec977f75387a7e991a5f36afdc5a28fcc6d6b6d",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-storage/zipball/7ff570f273b61568944f777c1cf443e8d52048a1",
+                "reference": "7ff570f273b61568944f777c1cf443e8d52048a1",
                 "shasum": ""
             },
             "require": {
@@ -515,7 +515,7 @@
                 "Apache-2.0"
             ],
             "description": "Cloud Storage Client for PHP",
-            "time": "2018-09-27T19:41:35+00:00"
+            "time": "2018-10-01T14:07:51+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
