@@ -127,7 +127,9 @@ SELECT  S.warehouse_id as warehouse_id,
                     SST.isInvoiced as isInvoiced,
 					          SST.status as cancel_status,
 					          SST.label_json as label_json,
-                    SST.tracking_code as current_status';
+                    SST.tracking_code as current_status,
+                    SST.customer_reference1 AS customer_reference1,
+                    SST.customer_reference2 AS customer_reference2'; 
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id

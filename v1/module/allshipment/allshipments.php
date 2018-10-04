@@ -47,10 +47,11 @@ class allShipments extends Icargo
 
         $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
 
+        $html .= (isset($param->data->customer_reference1) && ($param->data->customer_reference1 != '')) ? ' AND S.customer_reference1 LIKE "%' . $param->data->customer_reference1 . '%" ' : '';
+
+        $html .= (isset($param->data->customer_reference2) && ($param->data->customer_reference2 != '')) ? ' AND S.customer_reference2 LIKE "%' . $param->data->customer_reference2 . '%" ' : '';
 
         $html .= (isset($param->data->service) && ($param->data->service != '')) ? ' AND S.service_name = "' . $param->data->service . '" ' : '';
-
-
 
         $html .= (isset($param->data->shipment_status) && ($param->data->shipment_status != 'select')) ? ' AND  S.tracking_code = "' . $param->data->shipment_status . '"' : '';
 
@@ -178,6 +179,8 @@ class allShipments extends Icargo
               							$data['cancel_status']      = $pickupData['cancel_status'];
                             $data['collection_reference'] = "";
                             $data['shipment_status']    = $pickupData['current_status'];
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2']; 
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -222,6 +225,8 @@ class allShipments extends Icargo
 							$data['cancel_status'] = $pickupData['cancel_status'];
 							$data['shipment_status']        = $pickupData['current_status'];
                             $data['collection_reference'] = $collectionReference;
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
