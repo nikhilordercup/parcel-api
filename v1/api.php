@@ -2315,6 +2315,18 @@ $app->post('/downloadAccountStatements', function() use ($app) {
 	echoResponse(200, $response);
 });
 
+$app->post('/checkCustomerData', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id'),$r);
+	$response = $obj->checkCustomerData($r);
+	echoResponse(200, $response);
+});
+
+
+    
+    
+    
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
