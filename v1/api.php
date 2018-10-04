@@ -475,11 +475,12 @@ $app->post('/getFirebaseDataForCardedShipment', function() use ($app) {
 $app->post('/cardedbycontroller', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-	verifyRequiredParams(array('access_token','email','company_id','shipment_ticket','comment',/*'next_date','next_time',*/'next_date_time','failure_status','shipment_route_id'),$r);
-    $datetime = strtotime($r->next_date_time);
-	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email,'company_id'=>$r->company_id,'shipment_ticket'=>$r->shipment_ticket,'comment'=>
-	$r->comment,'next_date'=>date('Y-m-d',$datetime),'next_time'=>date('h:i:s',$datetime),'failure_status'=>$r->failure_status,'shipment_route_id'=>$r->shipment_route_id,'warehouse_id'=>$r->warehouse_id));
-	$records = $obj->cardedbycontrollerAction();
+	
+	verifyRequiredParams(array('access_token','email','company_id','shipment_ticket',/*'comment','next_date','next_time','next_date_time',*/'failure_status','shipment_route_id'),$r);
+
+	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email,'company_id'=>$r->company_id,'shipment_ticket'=>$r->shipment_ticket,/*'comment'=>
+	$r->comment,'next_date'=>date('Y-m-d',$datetime),'next_time'=>date('h:i:s',$datetime),*/'failure_status'=>$r->failure_status,'shipment_route_id'=>$r->shipment_route_id,'warehouse_id'=>$r->warehouse_id));
+	$records = $obj->cardedbycontrollerAction(array("date"=>$r->next_date_time, "comment"=>$r->comment));
 	echoResponse(200, $records);
 });
 $app->post('/pickupbycontroller', function() use ($app) {

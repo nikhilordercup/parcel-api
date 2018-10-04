@@ -1258,14 +1258,22 @@ class View_Support extends Icargo{
         }
     }
 
-    public function cardedbycontrollerAction(){
+    public function cardedbycontrollerAction($param){
+			if (ctype_space($param["date"]) || empty($param["date"])) {
+				$param["date"] = date("Y-m-d H:i");
+			}
+			$date = strtotime($param["date"]);
 		$company_id 		= $this->company_id;
 		$ticketids 			= '"' .$this->shipment_ticket. '"';
 
-		$comments 			= $this->comment;
-		$nextdate 			= $this->next_date;
-        $firebasedata       = array();
-		$nexttime 			= $this->next_time;
+		$comments 			= $param["comment"];
+
+		$nextdate 			= date("Y-m-d", $date);
+		$nexttime 			= date("H:i:s", $date);
+
+		//$nextdate 			= $this->next_date;
+    $firebasedata       = array();
+		//$nexttime 			= $this->next_time;
 		$failure_status 	= $this->failure_status;
 		$shipment_route_id 	= $this->shipment_route_id;
 		$route_data         = $this->modelObj->_get_assigned_route_detail($shipment_route_id);
@@ -1282,6 +1290,7 @@ class View_Support extends Icargo{
         $firebaseData = $firebaseObj->getShipmentFromRoute();
 
 		$getAllTicket       = explode(',',$ticketids);
+
         foreach ($getAllTicket as $eachTicket) {
 			$eachShipmentDetails = $this->modelObj->getShipmentStatusDetails($eachTicket);
 			$shipData                                 = array();
@@ -1364,7 +1373,7 @@ class View_Support extends Icargo{
             $status     = $this->modelObj->editContent("driver_shipment", $driverShipment, $condition);
         }
 
-        $this->saveTrackingStatus($getAllTicket);
+			$this->saveTrackingStatus($ticketids/*$getAllTicket*/);
         Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>"", "user_type"=>"Controller"));
 
 		$checkMoreShipmentofthisRouteDriver = $this->modelObj->moreShipExistinThisRouteforDriverFromOperation($driverid, $shipment_route_id);
