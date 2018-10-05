@@ -721,7 +721,40 @@ public function checkCountryCodeExist($code){
              WHERE t1.alpha3_code  = '".$code."'";
 	 $record = $this->db->getOneRecord($sql);
      return $record['exist'];      
-   }         
+   }  
+  public function  getAllAccountOfCompany($companyId){  
+        $record = array();
+        $sqldata = 'A.id as courier_account_id,A.account_number,A.courier_id';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_company as A
+                WHERE A.company_id = '" .$companyId ."'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     }
+     public function  getAllAccountServices($companyId,$courierAccountId){  
+        $record = array();
+        $sqldata = 'A.*';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_services_vs_company as A
+                WHERE A.company_id = '" .$companyId ."'
+                AND A.courier_id = '" .$courierAccountId ."'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     } 
+        public function  getAllAccountSurcharges($companyId,$courierAccountId){  
+        $record = array();
+        $sqldata = 'A.*';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_surcharge_vs_company as A
+                WHERE A.company_id = '" .$companyId ."'
+                AND A.courier_id = '" .$courierAccountId ."'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     } 
+    
+    
+    
+   
 
 }
 ?>
