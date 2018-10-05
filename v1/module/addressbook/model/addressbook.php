@@ -51,9 +51,8 @@ class Addressbook_Model extends Icargo{
 	
 	public function searchAddressByAddressId($param) 
 	{
-		$sql = "SELECT * FROM `" . DB_PREFIX ."address_book` where `id` = ".$param['address_id']."";
-		return $this->_db->getRowRecord($sql);
-
+		$sql = "SELECT * FROM `" . DB_PREFIX ."address_book` WHERE `id` = '".$param['address_id']."'";
+        return $this->_db->getRowRecord($sql);
 	}
 	
 	public

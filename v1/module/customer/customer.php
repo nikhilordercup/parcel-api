@@ -1465,7 +1465,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
              }elseif(isset($dataOfCustomers->ccfoperator) && ($dataOfCustomers->ccfoperator!='') && (!in_array($dataOfCustomers->ccfoperator,array('FLAT','PERCENTAGE')))){
                   $dataOfCustomers->status = "ccf operator value is invalid"; $isErrorRow = true; 
                   
-             }elseif(($this->registeronFirebase($dataOfCustomers->email,$dataOfCustomers->password))){
+             }elseif(!($this->registeronFirebase($dataOfCustomers->email,$dataOfCustomers->password))){
                    $dataOfCustomers->status = "email already registered with icargo"; $isErrorRow = true; 
                   
              }else{
@@ -1526,7 +1526,24 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         return ($this->modelObj->checkCountryCodeExist($code) > 0)?true:false;
     }
     public function registeronFirebase($email,$password){
-        return ($this->modelObj->checkCustomerEmailExist($email) > 0)?true:false;
+        try{
+          $fb = new Firebase_Api();
+          $firebase = $fb->getFirebase();
+          $userProperties = [
+              'email' => $email,
+              'emailVerified' => false,
+              //'phoneNumber' => '+919540925227',
+              'password' => $password,
+              //'displayName' => 'Roopesh',
+              //'photoUrl' => 'http://app-tree.co.uk/icargoN/assets/img/iCargo-Logo.png',
+              'disabled' => false,
+          ];
+          $status = $firebase->getAuth()->createUser($userProperties);
+          $this->newUid = $status->uid;
+          return true;
+        }catch(Exception $e){
+          return false;
+        }
     }
     public function isValidPostcode($postcode,$countrycode){
     $postcode = strtoupper(str_replace(' ','',$postcode));
@@ -1549,6 +1566,7 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
      }
 }
     public function saveCustomerAccount($company_id,$customerId){
+      $this->saveCarrierCustomerFirebaseInfo((object)array('uid'=>$this->newUid,'customer_id'=>$customerId));
       $allAccount =   $this->modelObj->getAllAccountOfCompany($company_id);
       if(count($allAccount)>0){
           foreach($allAccount as $key=>$valdata){
