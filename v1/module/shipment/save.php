@@ -1690,11 +1690,11 @@ class shipment extends Library{
                     $shipmentService->transit_time_text = $data->transit_time_text;
                     $shipmentService->transit_distance_text = $data->transit_distance_text;
                     $shipmentService->load_identity = $loadIdentity;
-										$shipmentService->service_request_string = '';
-										$shipmentService->service_response_string = '';
-
-										$shipmentService->customer_reference1 = $data->customer_reference1;
-										$shipmentService->customer_reference2 = $data->customer_reference2;
+					$shipmentService->service_request_string = '';
+					$shipmentService->service_response_string = '';
+                                        
+                    $shipmentService->customer_reference1 = (isset($data->customer_reference1)) ? $data->customer_reference1 : "";
+                    $shipmentService->customer_reference2 = (isset($data->customer_reference2)) ? $data->customer_reference2 : "";
 
                     unset($shipmentService->message);
                     //save shipment price breakdown

@@ -571,6 +571,9 @@ final class Nextday extends Booking
                 'is_insured' => isset($this->_param->is_insured) ? $this->_param->is_insured : false
             );
 
+            $this->_param->customer_reference1 = (isset($this->_param->customer_reference1)) ? $this->_param->customer_reference1 : "";
+            $this->_param->customer_reference2 = (isset($this->_param->customer_reference2)) ? $this->_param->customer_reference2 : ""; 
+
             $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id, "pending", $otherDetail,$serviceId,$this->_param->customer_reference1,$this->_param->customer_reference2);
             $this->_saveInfoReceived($loadIdentity);
             if ($serviceStatus["status"] == "error") {
