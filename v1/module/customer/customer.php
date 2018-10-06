@@ -4,7 +4,7 @@ class Customer extends Icargo{
     public $modelObj = null;
 	private $_user_id;
 	protected $_parentObj;
-	   
+	public $fb  = null;
 	private function _setUserId($v){
 		$this->_user_id = $v;
 	}
@@ -15,7 +15,8 @@ class Customer extends Icargo{
 	
 	public function __construct($data){
 		$this->_parentObj = parent::__construct(array("email"=>$data->email, "access_token"=>$data->access_token));
-        $this->modelObj  = Customer_Model::getInstanse();  
+        $this->modelObj  = Customer_Model::getInstanse();
+        $this->fb       = new Firebase_Api();
 	}
 	
 	
@@ -1527,8 +1528,8 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
     }
     public function registeronFirebase($email,$password){
         try{
-          $fb = new Firebase_Api();
-          $firebase = $fb->getFirebase();
+          //$fb = new Firebase_Api();
+          $firebase = $this->fb->getFirebase();
           $userProperties = [
               'email' => $email,
               'emailVerified' => false,

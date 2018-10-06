@@ -46,6 +46,7 @@ class allShipments extends Icargo
         $html .= (isset($param->data->amount) && ($param->data->amount != '')) ? ' AND S.amount =  ' . $param->data->amount . ' ' : '';
 
         $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
+        
 
         $html .= (isset($param->data->customer_reference1) && ($param->data->customer_reference1 != '')) ? ' AND S.customer_reference1 LIKE "%' . $param->data->customer_reference1 . '%" ' : '';
 
@@ -68,7 +69,7 @@ class allShipments extends Icargo
         $html2 .= (isset($param->data->globalcollectiondatefilter) && ($param->data->globalcollectiondatefilter != '')) ? 'AND (S.shipment_required_service_date BETWEEN "' . $dates2[0] . '" AND "' . $dates2[1] . '")' : '';
 
 
-        if ($html2 != '' && $html == '') { // Only Serch Two's Data coming
+        if ($html2 != '' && $html == '') {  // Only Serch Two's Data coming
             $identityarray     = array();
             $limitstr          = "LIMIT " . $param->datalimitpre . ", " . $param->datalimitpost . "";
             $shipmentsDataDrop = $this->modelObj->getAllShipmentsIdentity($html2, $limitstr);
@@ -194,6 +195,7 @@ class allShipments extends Icargo
                         $data['deliverypostcode'] = $lastDeliveryarray['shipment_postcode'];
                         $data['delivery']         = $lastDeliveryarray['shipment_postcode'] . ', ' . $lastDeliveryarray['shipment_customer_country'];
                     }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
                     $returndata[] = $data;
                 }
                 if (key($innerval) == 'NEXT') {
@@ -240,6 +242,7 @@ class allShipments extends Icargo
                         krsort($deliveryPostcode);
                         $data['delivery'] = end($deliveryPostcode);
                     }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
                     $returndata[] = $data;
                 }
             }
