@@ -219,7 +219,7 @@ EOD;
 
     // Http response code
     $app->status($status_code);
- 
+
     // setting response content type to json
     //$app->contentType('application/json');
 
@@ -227,7 +227,7 @@ EOD;
     //echo json_encode($response);
 }
 
-function encodeJwtData($data) { 
+function encodeJwtData($data) {
     $privateKey = <<<EOD
 -----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQC8kGa1pSjbSYZVebtTRBLxBz5H4i2p/llLCrEeQhta5kaQu/Rn
@@ -262,4 +262,4 @@ function rootPath(){
     return dirname(dirname(dirname(__FILE__)));
 }
 
-$app->run(); 
+$app->run();
