@@ -37,7 +37,7 @@ class Addressbook_Model extends Icargo{
     function _searchAddress($search_str, $customer_id)
     {
 		$search_str = strtolower(str_replace(" ","",$search_str));
-        $sql = "SELECT * FROM `" . DB_PREFIX ."address_book` where `search_string` LIKE '%$search_str%' AND `customer_id` = '$customer_id' AND `status` = 1";
+      $sql = "SELECT * FROM `" . DB_PREFIX ."address_book` where `search_string` LIKE '%$search_str%' AND `customer_id` = '$customer_id' AND `status` = 1";
         return $this->_db->getAllRecords($sql);
         
     }

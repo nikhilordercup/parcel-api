@@ -10,7 +10,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         $this->modelObj = new Booking_Model_Booking();
     }
 
-    private function _getLabel($loadIdentity, $json_data) //print_r($json_data);die;
+    /* private function _getLabel($loadIdentity, $json_data) //print_r($json_data);die;
     {   //return array( "status" => "success",'file_path'=>'label','label_tracking_number'=>'0000','label_files_png'=>'test.png','label_json'=>'{}');
      
         $images       = array();
@@ -67,7 +67,92 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             );
         }
         
+    } */
+	
+	
+	private function _getLabel($loadIdentity, $json_data)
+    {  
+        $obj = new Carrier_Coreprime_Request();
+        $label = $obj->_postRequest("label", $json_data);
+        $labelArr     = json_decode($label);
+		$this->loadIdentity = $loadIdentity;
+        if (isset($labelArr->label)) {
+            $pdf_base64 = $labelArr->label->base_encode;
+            $this->allImagesString = explode(',', $pdf_base64);
+            $this->files     = explode(",", $labelArr->label->file_url);
+            
+            $label_path = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/label/';
+			$this->labelPath = $label_path.$loadIdentity.'/ukmail/';
+			
+			$fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            
+            if (!file_exists($label_path . $loadIdentity . '/ukmail/')) {
+                $oldmask = umask(0);
+                mkdir($label_path . $loadIdentity . '/ukmail/', 0777, true);
+                umask($oldmask);
+            }
+            
+			$labelStatus = $this->saveImages()->joinImages();	
+			if($labelStatus){
+				unset($labelArr->label->base_encode); 
+				return array(
+					"status" => "success",
+					"message" => "label generated successfully",
+					"file_path" => $fileUrl . "/label/" . $this->loadIdentity . '/ukmail/' . $this->loadIdentity . '.pdf',
+					"label_tracking_number" => $labelArr->label->tracking_number,
+					"label_files_png" => implode(',', $this->images),
+					"label_file_pdf" => $fileUrl . "/label/" . $this->loadIdentity . '/ukmail/' . $this->loadIdentity . '.pdf',
+					"label_json" => json_encode($labelArr)
+				);
+			}else{
+				return array(
+					"status" => "error",
+					"message" => "Label generation error, pdf not created successfully"
+				);
+			}   
+        } else {
+            return array(
+                "status" => "error",
+                "message" => $labelArr->error
+            );
+        }
+        
     }
+	
+	public function saveImages(){
+		$this->images = array();
+        foreach($this->files as $key=>$file){
+            $file = str_replace('pdf','png',$file);
+            $img = str_replace('data:image/png;base64,', '', $this->allImagesString[$key]);
+            $img = str_replace(' ', '+', $img);
+            $data = base64_decode($img);
+            $file = $this->labelPath . uniqid() . '.png';
+            $success = file_put_contents($file, $data);
+			header('Content-Type: application/image');
+            array_push($this->images, $file);
+        }
+        return $this;
+    }
+	
+	
+	private function joinImages(){
+		$mpdf = new mPDF('c','A4-L');
+		foreach($this->images as $image) {
+			$size = getimagesize ($image);
+			$width = $size[0];
+			$height = $size[1];
+			$mpdf->Image($image,60,50,$width,$height,'png','',true, true);
+			$mpdf->AddPage('');
+			$mpdf->Ln();
+		}
+		try{
+			$mpdf->Output("$this->labelPath$this->loadIdentity.pdf","F");
+			return true;
+		}catch(Exception $e){
+			return false;
+		}
+		/* return $mpdf; */ //because mpdf returns empty response
+	}
     
     public function getShipmentDataFromCarrier($loadIdentity)
     {
