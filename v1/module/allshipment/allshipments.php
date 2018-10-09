@@ -13,7 +13,7 @@ class allShipments extends Icargo
     }
 
     public function getallshipments($param)
-    {
+    {   //print_r($param);die;
         $html  = '';
         $html2 = '';
         $html3 = '';
@@ -46,7 +46,10 @@ class allShipments extends Icargo
         $html .= (isset($param->data->amount) && ($param->data->amount != '')) ? ' AND S.amount =  ' . $param->data->amount . ' ' : '';
 
         $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
+        
+        $html .= (isset($param->data->shipment_status) && ($param->data->shipment_status != '')) ? ' AND S.shipment_status = "' . $param->data->shipment_status . '" ' : '';
 
+       
         $html .= (isset($param->data->customer_reference1) && ($param->data->customer_reference1 != '')) ? ' AND S.customer_reference1 LIKE "%' . $param->data->customer_reference1 . '%" ' : '';
 
         $html .= (isset($param->data->customer_reference2) && ($param->data->customer_reference2 != '')) ? ' AND S.customer_reference2 LIKE "%' . $param->data->customer_reference2 . '%" ' : '';
@@ -194,6 +197,7 @@ class allShipments extends Icargo
                         $data['deliverypostcode'] = $lastDeliveryarray['shipment_postcode'];
                         $data['delivery']         = $lastDeliveryarray['shipment_postcode'] . ', ' . $lastDeliveryarray['shipment_customer_country'];
                     }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
                     $returndata[] = $data;
                 }
                 if (key($innerval) == 'NEXT') {
@@ -240,6 +244,7 @@ class allShipments extends Icargo
                         krsort($deliveryPostcode);
                         $data['delivery'] = end($deliveryPostcode);
                     }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
                     $returndata[] = $data;
                 }
             }
