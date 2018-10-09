@@ -1459,7 +1459,7 @@ class allShipments extends Icargo
             $carrier_code = $param->carrier_code;
             if(strtolower($carrier_code) == 'dhl') {
                 return $this->_updateShipmentCancel($param);
-            } else {
+            }elseif(strtolower($carrier_code) == 'ukmail') {
                 $cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
                 $cancelShipment = json_decode($cancelShipment);
                 if(isset($cancelShipment->void_consignment)){
@@ -1468,6 +1468,9 @@ class allShipments extends Icargo
                    // return array("status"=>"error","message"=>$cancelShipment->error);
                     return array("status"=>"error","message"=>"cancel request not completed by carrier");
                 }
+            }else{
+                 return $this->_updateShipmentCancel($param);
+                 return array("status"=>"success","message"=>"cancel request completed by carrier");
             }
 	}
 
@@ -1816,7 +1819,7 @@ class allShipments extends Icargo
                     $tempdata['carrier_code']   = $shipment_type['code'];
                     $courierStatus = $this->cancelShipmentByLoadIdentity((object)$tempdata);
                     if($courierStatus['status']!='error'){
-                        $returnData[]       = $param->job_identity;
+                        $returnData[]       = $param->job_identity[0];
                         $requestStatus = $this->cancelJobRequest($valdata,$company_id,$userId,$param);
                         if($requestStatus['status']!='error'){
                              return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
@@ -1855,7 +1858,7 @@ class allShipments extends Icargo
               }
                 //$returnData       = $param->job_identity;
                 $condition        = "load_identity = '" . $valdata . "'";
-                $status1          = $this->modelObj->editContent("shipment_service", array('status'=>'cancel'), $condition);
+                $status1          = $this->modelObj->editContent("shipment_service", array('status'=>'cancel','tracking_code'=>'CANCELLED'), $condition);
                 $condition        = "instaDispatch_loadIdentity = '" . $valdata . "'";
                 $status2          = $this->modelObj->editContent("shipment", array('current_status'=>'Cancel'), $condition);
                 return array("status"=>"success", "message"=>"cancel successfull");
