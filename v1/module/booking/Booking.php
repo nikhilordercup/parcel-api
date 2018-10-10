@@ -92,6 +92,7 @@ class Booking extends Icargo
     protected
 
     function _saveAddressData($data, $customer_id){
+		$commonObj = new Common();
         $data = (object)$data;
         $postcode = ($data->country->alpha3_code == 'GBR') ? ( $this->postcodeObj->validate($data->postcode) ) : true;
         if($postcode) {
@@ -113,8 +114,10 @@ class Booking extends Icargo
             $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = "";
-
-            $param["search_string"] = str_replace(' ','',implode('',$param));;
+			
+			$addressData = array("address_1"=>$param['address_line1'],"address_2"=>$param['address_line2'],"name"=>$param['first_name'],"city"=>$param['city'],"state"=>$param['state'],"company_id"=>$param['company_name'],"country"=>$param['country'],"email"=>$param['contact_email'],"postcode"=>$param['postcode']);
+			
+            $param["search_string"] = $commonObj->getAddressBookSearchString((object)$addressData);//str_replace(' ','',implode('',$param));;
 
             $param["country_id"]    = $data->country->id;
 
