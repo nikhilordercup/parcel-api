@@ -9,6 +9,8 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
     {
         $this->modelObj = new Booking_Model_Booking();
     }
+
+	
 	
 	private function _getLabel($loadIdentity, $json_data)
     {  
@@ -73,7 +75,6 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         }
         return $this;
     }
-	
 	
 	private function joinImages(){
 		$mpdf = new mPDF('c','A4-L');

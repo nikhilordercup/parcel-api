@@ -996,7 +996,7 @@ class Sameday extends  Booking
             $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
             $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
             $data['shipment_customer_city'] = (isset($param["city"])) ? $param["city"]: "";
-            $data['shipment_postcode'] = (isset($param["postcode"])) ? $this->postcodeObj->validate($param["postcode"]) : "";
+            $data['shipment_postcode'] = (isset($param["postcode"])) ? $this->postcodeObj->format_uk_postcode($param["postcode"]) : "";
             $data['shipment_customer_country'] = (isset($param["country"])) ? $param["country"] : "";
             $data['shipment_instruction'] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
