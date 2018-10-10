@@ -96,20 +96,43 @@ final class Nextday extends Booking
                             array_push($serviceItems, $service["service_code"]);
                         }
                         
-                        array_push($result, array(
-                            "name" => $item["carrier_code"],
-                            "account" => array(
-                                array(
-                                    "credentials" => array(
-                                        "username" => $item["username"],
-                                        "password" => $item["password"],
-                                        "account_number" => $item["account_number"]
-                                    ),
-                                    "services" => implode(",", $serviceItems),
-                                    "pickup_scheduled" => $isRegularPickup
-                                )
-                            )
-                        ));
+						if( strtolower( $item["carrier_code"] ) == 'dhl' ) {
+							
+							array_push($result, array(
+								"name" => $item["carrier_code"],
+								"account" => array(
+									array(
+										"credentials" => array(
+											"username" => $item["username"],
+											"password" => $item["password"],
+											"account_number" => $item["account_number"]
+										),
+										"services" => implode(",", $serviceItems),
+										"pickup_scheduled" => $isRegularPickup,
+										"inxpress" => false,
+										"other_reseller_account" => false
+									)
+								)
+							));
+							
+						} else {
+							
+							array_push($result, array(
+								"name" => $item["carrier_code"],
+								"account" => array(
+									array(
+										"credentials" => array(
+											"username" => $item["username"],
+											"password" => $item["password"],
+											"account_number" => $item["account_number"]
+										),
+										"services" => implode(",", $serviceItems),
+										"pickup_scheduled" => $isRegularPickup
+									)
+								)
+							));
+						}
+																		                      
                         $this->carrierList[$item["account_number"]] = $item;
                     }
                 }
