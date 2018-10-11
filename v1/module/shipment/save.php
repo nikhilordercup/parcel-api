@@ -1449,6 +1449,7 @@ class shipment extends Library{
     private
 
     function _save_address($address){
+		$commonObj = new Common();
         $postcode = $this->postcodeObj->validate($address["postcode"]);
 		$postcode = $postcode[0];
         if($postcode){
@@ -1477,8 +1478,10 @@ class shipment extends Library{
             $data["iso_code"] = (isset($address["country"])) ? addslashes($this->_getCountryAlpha3Code($address["country"])) : "";
 
             $data["company_name"] = (isset($address["company_name"])) ? addslashes($address["company_name"]) : "";
-
-            $data["search_string"] = str_replace(' ','',implode('',$data));
+			
+            $addressData = array("address_1"=>$data['address_line1'],"address_2"=>$data['address_line2'],"name"=>$data['first_name'],"city"=>$data['city'],"state"=>$data['state'],"company_id"=>$data['company_name'],"country"=>$data['country'],"email"=>$data['contact_email'],"postcode"=>$data['postcode']);
+			
+            $data["search_string"] = $commonObj->getAddressBookSearchString((object)$addressData);//str_replace(' ','',implode('',$data));
 
             $data["latitude"] = $address["latitude"];
             $data["longitude"] = $address["longitude"];

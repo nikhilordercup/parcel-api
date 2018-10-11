@@ -132,13 +132,13 @@ class Driver extends Icargo{
 			$param->password = passwordHash::hash($param->password);
 			$param->user_level = 4;
 			$param->register_in_firebase = 1;
-            $data = array('parent_id'=>$param->company_id,'name'=>$param->name,'contact_name'=>$param->name,'phone'=>$param->phone,'email'=>$param->user_email,'password'=>$param->password,'address_1'=>$param->address_1,'address_2'=>$param->address_2,'city'=>$param->city,'postcode'=>$param->postcode,'user_level'=>$param->user_level,'uid'=>$param->uid,'register_in_firebase'=>$param->register_in_firebase,'state'=>$param->state,'country'=>$param->country);
+            $data = array('parent_id'=>$param->company_id,'name'=>$param->name,'contact_name'=>$param->name,'phone'=>$param->phone,'email'=>$param->user_email,'password'=>$param->password,'address_1'=>$param->address_1,'address_2'=>$param->address_2,'city'=>$param->city,'postcode'=>$param->postcode,'user_level'=>$param->user_level,'uid'=>$param->uid,'register_in_firebase'=>$param->register_in_firebase,'state'=>$param->state,'country'=>$param->country->short_name);
 
 			//$driver_id = $this->_parentObj->db->insertIntoTable($param, $column_names, DB_PREFIX."users");
             $driver_id = $this->_parentObj->db->save("users", $data);
 
 			if ($driver_id != NULL) {
-				$relationData = array('company_id'=>$param->company_id,'warehouse_id'=>$param->warehouse_id,'user_id'=>$driver_id);
+				$relationData = array('company_id'=>$param->company_id,'warehouse_id'=>$param->warehouse->id,'user_id'=>$driver_id);
 				$column_names = array('company_id','warehouse_id','user_id');
 				$relationTblEntry = $this->_parentObj->db->insertIntoTable($relationData, $column_names, DB_PREFIX."company_users");
 				$assignVehicle = $this->_parentObj->db->save("driver_vehicle",array('driver_id'=>$driver_id,'vehicle_id'=>$param->vehicle_id->id,'vehicle_category_id'=>$param->vehicle_id->vehicle_category_id));
@@ -175,7 +175,7 @@ class Driver extends Icargo{
 	}
 
 	public function editDriver($param){
-        $updateData = $this->_parentObj->db->updateData("UPDATE ".DB_PREFIX."users SET name='".$param->name."',phone='".$param->phone."',address_1='".$param->address_1."',address_2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country."' WHERE id = ".$param->id."");
+        $updateData = $this->_parentObj->db->updateData("UPDATE ".DB_PREFIX."users SET name='".$param->name."',phone='".$param->phone."',address_1='".$param->address_1."',address_2='".$param->address_2."',postcode='".$param->postcode."',city='".$param->city."',state='".$param->state."',country='".$param->country->short_name."' WHERE id = ".$param->id."");
 		$assignVehicleUpdate = $this->_parentObj->db->updateData("UPDATE `".DB_PREFIX."driver_vehicle` SET `vehicle_id` = ".$param->vehicle_id->id.",`vehicle_category_id` = ".$param->vehicle_id->vehicle_category_id." WHERE `driver_id` = ".$param->id."");
 		if ($updateData != NULL) {
             $response["status"] = "success";
