@@ -38,18 +38,5 @@ class Auth_provider{
     public function signOut(){
       print_r($this->getFirebase()->getAuth()->signOut());die;
     }
-
-    /*public function login($email, $password){
-        $obj = $this->getFirebase()->createUserWithEmailAndPassword($email, $password);
-        print_r($obj);die;
-    }
-
-    public function forgotPassword($email){
-
-    }
-
-    public function signupUser($email, $password){
-
-    }*/
 }
 ?>
