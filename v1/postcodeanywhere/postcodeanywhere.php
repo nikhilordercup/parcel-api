@@ -678,7 +678,7 @@ class Capture_Interactive_Find_v1_00
 
     private $Data; //Holds the results of the query
 
-    function Capture_Interactive_Find_v1_00($Key, $Text, $Container, $Origin, $Countries, $Limit, $Language)
+    function __construct($Key, $Text, $Container, $Origin, $Countries, $Limit, $Language)
     {
         $this->Key = $Key;
         $this->Text = $Text;
@@ -761,7 +761,7 @@ class Capture_Interactive_Retrieve_v1_00
     private $Field20Format; //
     private $Data; //Holds the results of the query
 
-    function Capture_Interactive_Retrieve_v1_00($Key, $Id, $Field1Format, $Field2Format, $Field3Format, $Field4Format, $Field5Format, $Field6Format, $Field7Format, $Field8Format, $Field9Format, $Field10Format, $Field11Format, $Field12Format, $Field13Format, $Field14Format, $Field15Format, $Field16Format, $Field17Format, $Field18Format, $Field19Format, $Field20Format)
+    function __construct($Key, $Id, $Field1Format, $Field2Format, $Field3Format, $Field4Format, $Field5Format, $Field6Format, $Field7Format, $Field8Format, $Field9Format, $Field10Format, $Field11Format, $Field12Format, $Field13Format, $Field14Format, $Field15Format, $Field16Format, $Field17Format, $Field18Format, $Field19Format, $Field20Format)
     {
         $this->Key = $Key;
         $this->Id = $Id;
