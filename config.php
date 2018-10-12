@@ -2,12 +2,12 @@
 /*
  * Database configuration
  */
-define('DB_USERNAME', 'icargo_live_v3_1');
-define('DB_PASSWORD', 'icargo_live_345');
+define('DB_USERNAME', 'icargoN');
+define('DB_PASSWORD', 'icargoN');
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'icargo_live_v3_1');
+define('DB_NAME', 'icargoN');
 define('DB_PREFIX', 'icargo_'); 
-define('LABEL_URL', '/live/');  
+define('LABEL_URL', '/dev/');  
 ?>
 
 

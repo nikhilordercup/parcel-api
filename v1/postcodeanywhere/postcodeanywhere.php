@@ -18,8 +18,8 @@ abstract class postcodeAnywhere {
 	public $iErrorID = null;
 	public $sErrorMessage = null;
 	public $sPostcode = '';
-	
-	
+
+
 	protected $iTop;  //The maximum number of rows to return.
 	protected $sOrderBy; //A list of columns to order the results by.
 	protected $sFilter = 'None';  //A SQL-style WHERE filter to apply to the result. Name LIKE 'a%'
@@ -30,7 +30,7 @@ abstract class postcodeAnywhere {
 	protected $aUrl = array();
 
 	public function __construct() {
-		
+
 	}
 
 	protected abstract function run();
@@ -55,7 +55,7 @@ abstract class postcodeAnywhere {
 	 * Set the username of the postcodeanywhere account
 	 *
 	 * @param string $sUsername The username of the account
-     * 
+     *
 	 * @return postcodeanywhere
 	 */
 	public function setUsername($sUsername = null) {
@@ -87,7 +87,7 @@ abstract class postcodeAnywhere {
 	 * Sets the key for the request
 	 *
 	 * @param string $sKey The licence key of your account
-     
+
 	 * @return postcodeanywhere
 	 */
 	public function setLicenceKey($sKey) {
@@ -245,7 +245,7 @@ abstract class postcodeAnywhere {
 
 	/**
 	 * Sends the GET request to PostcodeAnywhere
-	 * 
+	 *
 	 * @param string $sUrl The URL to retrieve the PCA results from
      *
 	 * @return boolean
@@ -274,7 +274,7 @@ abstract class postcodeAnywhere {
 
 	/**
 	 * Build the URL to send the address request
-	 * 
+	 *
 	 * @return string
 	 */
 	protected function buildUrl() {
@@ -291,7 +291,7 @@ abstract class postcodeAnywhere {
 		$aUrl = [];
 		foreach ($this->aUrl AS $sKey => $sValue) {
 			$sValue = trim($sValue);
-			
+
 			if (strlen($sValue) > 0) {
 				$aUrl[] = $sKey . '=' . urlencode($sValue);
 			}
@@ -318,9 +318,9 @@ class interactiveFind extends postcodeanywhere {
 
 	/**
 	 * Sets the searchterm the interactive find will look for
-	 * 
+	 *
 	 * @param string $sSearchTerm The term to search on
-	 * 
+	 *
 	 * @return \interactiveFind
 	 */
 	public function setSearchTerm($sSearchTerm) {
@@ -341,7 +341,7 @@ class interactiveFind extends postcodeanywhere {
 		//Specific
 		$this->aUrl['Filter'] = $this->sFilter;
 		$this->aUrl['SearchTerm'] = $this->sSearchTerm;
-        
+
 		//Make the request
 		$oXML = $this->fetchXML($this->buildUrl());
 
@@ -372,7 +372,7 @@ class interactiveFind extends postcodeanywhere {
 
 /**
  * Find an address using a UK postcode
- * 
+ *
  * @see http://www.postcodeanywhere.co.uk/support/webservices/PostcodeAnywhere/Interactive/FindByPostcode/v1/default.aspx
  */
 class interactiveFindByPostcode extends postcodeanywhere {
@@ -385,7 +385,7 @@ class interactiveFindByPostcode extends postcodeanywhere {
 
 	/**
 	 * Fetch possible address based on the postcode (Free?)
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function run() {
@@ -448,7 +448,7 @@ class interactiveRetrieveByID extends postcodeanywhere {
 		$this->aUrl = array();
 		$this->aUrl['Id'] = (int) $this->iAddressID;
 		$oXML = $this->fetchXML($this->buildUrl());
-		
+
 		//Check for an error
 		if ($oXML->Columns->attributes()->Items == 4 && $oXML->Columns->Column->attributes()->Name == 'Error') {
 			$this->setError((string) $oXML->Rows->Row['Description'] . ' - ' . $oXML->Rows->Row['Cause']);
@@ -459,7 +459,7 @@ class interactiveRetrieveByID extends postcodeanywhere {
 		if (empty($oXML->Rows)) {
 			return false;
 		}
-	
+
 		foreach ($oXML->Rows->Row as $item) {
 			$aData[] = array(
 				'udprn' => (int) $item->attributes()->Udprn,
@@ -518,7 +518,7 @@ class interactiveRetrieveByAddress extends postcodeanywhere {
 
 	/**
 	 * Sets the address of the address were looking for
-	 * 
+	 *
 	 * @param string $sAddress The address to search for
      *
 	 * @throws Exception
@@ -527,13 +527,13 @@ class interactiveRetrieveByAddress extends postcodeanywhere {
 		if (strlen($sAddress) === 0) {
 			throw new Exception('Invalid Address String');
 		}
-		
+
 		$this->sAddress = $sAddress;
 	}
-	
+
 	/**
 	 * Sets the companny name of the address were looking for
-	 * 
+	 *
 	 * @param string $sCompany The company name to search for
      *
 	 * @throws Exception
@@ -542,14 +542,14 @@ class interactiveRetrieveByAddress extends postcodeanywhere {
 		if (strlen($sCompany) === 0) {
 			throw new Exception('Invalid Company String');
 		}
-		
+
 		$this->sCompany = $sCompany;
 	}
-	
-	
+
+
 	/**
 	 * Perform search for address using company name and/or address
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function run() {
@@ -701,7 +701,7 @@ class Capture_Interactive_Find_v1_00
         $url .= "&Language=" . urlencode($this->Language);
         //Make the request to Postcode Anywhere and parse the XML returned
         $file = simplexml_load_file($url);
-		
+
 
         //Check for an error, if there is one then throw an exception
 
@@ -830,7 +830,7 @@ class Capture_Interactive_Retrieve_v1_00
             }
         }
     }
-    
+
     function HasData()
     {
       if ( !empty($this->Data) )
@@ -838,7 +838,7 @@ class Capture_Interactive_Retrieve_v1_00
           return $this->Data;
         }
         return false;
-    }   
+    }
 }
 
 ?>
