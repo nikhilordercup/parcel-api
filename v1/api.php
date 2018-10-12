@@ -2399,3 +2399,8 @@ GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
 SubscriptionController::initRoutes($app);
+$app->post('/test', function() use ($app){
+	$obj = new Custom_Label();
+	$obj->test();
+	
+});

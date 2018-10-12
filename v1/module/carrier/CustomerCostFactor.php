@@ -115,13 +115,13 @@ class CustomerCostFactor
         }
 
         $serviceCcfPrice = isset($service_ccf_price["price"]) ? $service_ccf_price["price"] : '0';
-        
+
         $service_ccf_price["price_with_ccf"] = number_format( $serviceCcfPrice + $serviceprice, 2);
         return $service_ccf_price;
     }
 
     public function calculateSurchargeCcf($surcharge_code, $customer_id, $company_id, $courier_id, $price)
-    { 
+    {
         $surchargeCcf = $this->modelObj->getCcfOfCarrierSurcharge($surcharge_code, $customer_id, $company_id, $courier_id);
 
         if ($surchargeCcf) {

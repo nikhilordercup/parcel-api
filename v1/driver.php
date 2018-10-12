@@ -131,14 +131,15 @@ $app->post('/adddriver', function() use ($app) {
 	require_once 'passwordHash.php';
 	$r = json_decode($app->request->getBody());
 	$obj = new Driver($r);
-	$obj->addDriver($r->driver);
+	$response = $obj->addDriver($r->driver);
+	echoResponse(200, $response);
 });
 
 $app->post('/editdriver', function() use ($app) {
     $response = array();
 	$r = json_decode($app->request->getBody());
 	$obj = new Driver($r);
-	$response = $obj->editDriver($r);
+	$response = $obj->editDriver($r->driver);
     echoResponse(200, $response);
 });
 

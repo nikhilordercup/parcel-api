@@ -368,8 +368,8 @@ class Quotation extends Icargo
                     "__delivery_postcode__",
                     "__service_detail__",
                     "__quote_expiry__",
-                    "__courier_name__",
-                    "__img_src__"
+                    "__courier_name__"/* ,
+                    "__img_src__" */
                 ) , array(
                     $quoteSave['quote_number'],
                     $serviceData['collection_date'],
@@ -377,8 +377,8 @@ class Quotation extends Icargo
                     $delivery_postcode,
                     $service_detail_str,
                     $quoteExpiry,
-                    $courierData['name'],
-                    "http://app-tree.co.uk/icargoN/assets/img/pnp_logo.png"
+                    $courierData['name']/* ,
+                    "http://app-tree.co.uk/icargoN/assets/img/pnp_logo.png" */
                 ) , $template["template_html"]);
                 $status = $emailObj->sendMail(array(
                     "recipient_name_and_email" => array(
