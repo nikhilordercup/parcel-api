@@ -48,7 +48,7 @@ class Module_Coreprime_Api extends Icargo
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
-        return $server_output;
+        return $server_output; 
     }
     private
     function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse,$is_tax_exempt)
@@ -142,7 +142,7 @@ class Module_Coreprime_Api extends Icargo
     }
     public
     function getAllServices($param)
-    {
+    {   print_r($param);die;
         $available_credit = $this->_getCustomerAccountBalence($param->customer_id);
         $response_filter_type = "min";
         $param->customer_id = $param->customer_id;
@@ -152,7 +152,8 @@ class Module_Coreprime_Api extends Icargo
         $isTaxExempt    = $this->modelObj->getTaxExemptStatus($param->customer_id);
         $waypointCount = 0;
         if (isset($param->waypoint_lists)) {
-            $waypointCount = count($param->waypoint_lists);
+            //$waypointCount = count($param->waypoint_lists);
+            $waypointCount = count($param->delivery_postcodes);
         }
         $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
         $is_tax_exempt = ($isTaxExempt['tax_exempt']=='YES')?true:false;//  true;
@@ -222,6 +223,9 @@ class Module_Coreprime_Api extends Icargo
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
+        
+        print_r($post_data);die;
+        
         $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
 
         if(isset($data->status) && ($data->status=="error")){
