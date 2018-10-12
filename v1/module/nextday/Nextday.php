@@ -234,17 +234,11 @@ final class Nextday extends Booking
                             array_push($serviceItems, $service["service_code"]);
                         }
                         $result[$item["carrier_code"]]["name"] = $item["carrier_code"];
-						if( strtolower( $item["carrier_code"] ) == 'dhl' ) {
-						$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"]),
-																	"services" => implode(",", $serviceItems),
-																	"pickup_scheduled" => $isRegularPickup,
-																	"inxpress" => false,
-																	"other_reseller_account" => false);
-						}else{
-							$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"]),
-																		"services" => implode(",", $serviceItems),
-																		"pickup_scheduled" => $isRegularPickup);
-						}
+                        if( strtolower( $item["carrier_code"] ) == 'dhl' ) {
+                            $result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"], "inxpress" => false, "other_reseller_account" => false), "services" => implode(",", $serviceItems), "pickup_scheduled" => $isRegularPickup);
+                        }else{
+                            $result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"]), "services" => implode(",", $serviceItems), "pickup_scheduled" => $isRegularPickup);
+                        }
                         $this->carrierList[$item["account_number"]] = $item;
                     }
                 }
