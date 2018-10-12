@@ -1,6 +1,6 @@
 <?php
-/* error_reporting(E_ALL);
-ini_set("display_errors", 1); */
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
 
 ini_set('date.timezone', 'Europe/London');
 
@@ -145,6 +145,7 @@ require_once 'module/tracking/Create_Tracking.php';
 
 require_once 'module/service_provider/ServiceProvider.php';
 require_once 'module/service_provider/model/ServiceProviderModel.php';
+require_once 'module/custom_labels/Custom_Label.php';
 
 //Country file included
 require_once 'module/country/model/country.php';
@@ -222,7 +223,7 @@ EOD;
 
     // Http response code
     $app->status($status_code);
- 
+
     // setting response content type to json
     //$app->contentType('application/json');
 
@@ -230,7 +231,7 @@ EOD;
     //echo json_encode($response);
 }
 
-function encodeJwtData($data) { 
+function encodeJwtData($data) {
     $privateKey = <<<EOD
 -----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQC8kGa1pSjbSYZVebtTRBLxBz5H4i2p/llLCrEeQhta5kaQu/Rn
@@ -265,4 +266,4 @@ function rootPath(){
     return dirname(dirname(dirname(__FILE__)));
 }
 
-$app->run(); 
+$app->run();

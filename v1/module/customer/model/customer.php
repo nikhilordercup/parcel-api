@@ -794,10 +794,5 @@ public function checkCountryCodeExist($code){
         $record = $this->db->getAllRecords($sql);
         return $record; 
      } 
-    
-    
-    
-   
-
 }
 ?>
