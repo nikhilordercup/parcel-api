@@ -2402,5 +2402,5 @@ SubscriptionController::initRoutes($app);
 $app->post('/test', function() use ($app){
 	$obj = new Custom_Label();
 	$obj->test();
-	
+
 });

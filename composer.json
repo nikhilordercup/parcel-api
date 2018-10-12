@@ -4,12 +4,13 @@
 		"phpmailer/phpmailer": "^6.0",
 		"chargebee/chargebee-php": "*",
 		"firebase/php-jwt": "^5.0",
-		"setasign/fpdf": "^1.8",
-		"setasign/fpdi": "^2.0",
+
+    "setasign/fpdf": "^1.8",
+		"setasign/fpdi": "1.6.2",
 		"sngrl/php-firebase-cloud-messaging": "dev-master",
                 "dompdf/dompdf": "^0.8.2",
 		"kreait/firebase-php": "^4.0",
-	    	"mpdf/mpdf": "*",
-         "easypost/easypost-php": "~3.0"
+	    	"mpdf/mpdf": "dev-development",
+        "easypost/easypost-php": "~3.0"
 	}
 }

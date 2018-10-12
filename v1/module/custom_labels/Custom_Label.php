@@ -1,6 +1,8 @@
 <?php
-require_once "../vendor/mpdf/mpdf/mpdf.php";
-require_once "../v1/module/firebase/Firebase_Api.php";
+
+$path = "../vendor/autoload.php";
+
+
 
 class Custom_Label{
     public function test(){
@@ -126,25 +128,17 @@ Level 3 subitem
 <input type="reset" name="submit" value="Reset" />
 </form>
 ';
-$mpdf = new mpdf([
-  'mode' => 'c',
-  'margin_left' => 32,
-  'margin_right' => 25,
-  'margin_top' => 27,
-  'margin_bottom' => 25,
-  'margin_header' => 16,
-  'margin_footer' => 13
-]);
-$mpdf->SetDisplayMode('fullpage');
-$mpdf->list_indent_first_level = 0; // 1 or 0 - whether to indent the first level of a list
+$path = "../assets/outputpdf";
 
+        ob_clean();
+        $pdf = new mPDF('c','A4-L');
+        $pdf->SetHTMLHeader('<div class="container"> <h3>TAX INVOICE</h3></div>');
+        $pdf->SetDisplayMode('fullpage');
+        $pdf->writeHTML('<div class="container"> <h3>TAX INVOICE</h3></div>');
 
-$stylesheet = file_get_contents("../vendor/mpdf/mpdf/progbar.css");
-$mpdf->WriteHTML($stylesheet, 1); // The parameter 1 tells that this is css/style only and no body/html/text
-
-      //$mpdf->WriteHTML($html, 2);
-      //$mpdf->Output();
-
+        $filename = "$path/test.pdf";
+        echo $filename;
+        $pdf->Output($filename,'D');
     }
 
 }
