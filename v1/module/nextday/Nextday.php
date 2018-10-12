@@ -547,17 +547,12 @@ final class Nextday extends Booking
                                         "message" => $service->rate->error
                                     );
                                 }
-
                                 //set tax number format
-                                if (isset($service->taxes)) {
-                                    if (isset($service->taxes->total_tax)) {
-                                        $service->taxes->total_tax = number_format($service->taxes->total_tax, 2);
-                                    }
-                                    if (isset($service->taxes->tax_percentage)) {
-                                        $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
-                                    }
+                                if (isset($service->rate->total_tax)) {                                    
+                                    if (isset($service->rate->total_tax)) {                                        
+                                        @$service->taxes->total_tax = number_format($service->rate->total_tax, 2);
+                                    }                                    
                                 }
-
                                 //calculate surcharge ccf
                                 $surchargeWithCcfPrice = 0;
                                 $surchargePrice        = 0;
