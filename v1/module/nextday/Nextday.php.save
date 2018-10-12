@@ -95,7 +95,6 @@ final class Nextday extends Booking
                         foreach ($item["services"] as $service) {
                             array_push($serviceItems, $service["service_code"]);
                         }
-                        
                         array_push($result, array(
                             "name" => $item["carrier_code"],
                             "account" => array(
