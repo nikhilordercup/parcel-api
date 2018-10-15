@@ -980,7 +980,21 @@ $mpdf->Output($path, "F");
  $obj = new Design1_Label();
 
  $labels = $obj->createLable($load_identity);
- print_r($labels);
+
+ $mpdf=new \Mpdf\Mpdf($config);
+ $mpdf->SetDisplayMode('fullpage');
+ $mpdf->list_indent_first_level = 0; // 1 or 0 - whether to indent the first level of a list
+ // Load a stylesheet
+ $stylesheet = file_get_contents('../v1/module/custom_labels/mpdfstyletables.css');
+ $mpdf->WriteHTML($stylesheet, 1); // The parameter 1 tells that this is css/style only and no body/html/text
+
+ foreach($labels as $label){
+   $mpdf->WriteHTML($label,2);
+   $mpdf->AddPage();
+ }
+
+ $mpdf->Output($path, "F");
+
 /*$mpdf=new \Mpdf\Mpdf($config);
 $mpdf->SetDisplayMode('fullpage');
 $mpdf->list_indent_first_level = 0; // 1 or 0 - whether to indent the first level of a list

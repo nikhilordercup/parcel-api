@@ -113,12 +113,14 @@ class Label{
 
   }
 
-  protected function findConsigneePostcode(){
-
+  protected function findConsigneePostcode($param){
+    $record = $this->modelObj->getConsigneePostcode($param["shipment_ticket"]);
+    return $record;
   }
 
-  protected function findConsigneeCountry(){
-
+  protected function findConsigneeCountry($param){
+    $record = $this->modelObj->getConsigneeCountry($param["shipment_ticket"]);
+    return $record;
   }
 
   protected function findCompanyUrl(){
@@ -183,7 +185,8 @@ class Label{
   }
 
   protected function formateCompanyLogo($param){
-    $path = "../assets/logo";
+
+    $path = Library::_getInstance()->base_url()."/assets/logo";
     $logo = $param["logo"];
     return "$path/$logo";
   }
@@ -200,12 +203,12 @@ class Label{
 
   }
 
-  protected function formateConsigneePostcode(){
-
+  protected function formateConsigneePostcode($param){
+    return $param["shipment_postcode"];
   }
 
-  protected function formateConsigneeCountry(){
-
+  protected function formateConsigneeCountry($param){
+    return $param["shipment_country"];
   }
 
   protected function formateCompanyUrl(){

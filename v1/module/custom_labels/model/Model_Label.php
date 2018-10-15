@@ -51,6 +51,16 @@ class Model_Label{
   public function getBarcodeNo(){
 
   }
+
+  public function getConsigneePostcode($shipment_ticket){
+    $sql = "SELECT shipment_postcode FROM " . DB_PREFIX . "shipment WHERE shipment_ticket LIKE '$shipment_ticket'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getConsigneeCountry($shipment_ticket){
+    $sql = "SELECT shipment_customer_country AS shipment_country FROM " . DB_PREFIX . "shipment WHERE shipment_ticket LIKE '$shipment_ticket'";
+    return $this->_db->getRowRecord($sql);
+  }
 }
 
 ?>
