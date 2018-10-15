@@ -19,7 +19,14 @@ final class Nextday extends Booking
         $this->collectionModel = Collection::_getInstance(); //new Collection();
     }
 
-    private function _getJobCollectionList($carriers, $address)
+    /* private function _getJobCollectionList($carriers, $address)
+    {
+        $jobCollectionList    = $this->collectionModel->getJobCollectionList($carriers, $address, $this->_param->customer_id, $this->_param->company_id, $this->_param->collection_date);
+        $this->regular_pickup = $jobCollectionList["regular_pickup"];
+        return $jobCollectionList["carrier_list"];
+    } */
+
+	 private function _getJobCollectionList($carriers, $address)
     {
         $jobCollectionList    = $this->collectionModel->getJobCollectionList($carriers, $address, $this->_param->customer_id, $this->_param->company_id, $this->_param->collection_date);
 		$data = array('carrier_list'=>array());
@@ -30,7 +37,7 @@ final class Nextday extends Booking
         return $data["carrier_list"];
     }
 
-   /* private function _getCustomerCarrierAccount()
+    /*private function _getCustomerCarrierAccount()
     {
         $result = array();
         //print_r($this->_param);
@@ -57,7 +64,7 @@ final class Nextday extends Booking
         //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if (count($carrier) > 0) {
             foreach ($carrier as $key => $item) {
-                if($item['internal']!=1){
+                //if($item['internal']!=1){
 					$accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
 					$carrier[$key]["account_id"] = $accountId;
 
@@ -80,7 +87,7 @@ final class Nextday extends Booking
 							}
 						}
 					}
-				}
+				//}
             }
 
             $collectionIndex = 0;
@@ -99,9 +106,9 @@ final class Nextday extends Booking
                         foreach ($item["services"] as $service) {
                             array_push($serviceItems, $service["service_code"]);
                         }
-                        
+
 						if( strtolower( $item["carrier_code"] ) == 'dhl' ) {
-							
+
 							array_push($result, array(
 								"name" => $item["carrier_code"],
 								"account" => array(
@@ -112,15 +119,13 @@ final class Nextday extends Booking
 											"account_number" => $item["account_number"]
 										),
 										"services" => implode(",", $serviceItems),
-										"pickup_scheduled" => $isRegularPickup,
-										"inxpress" => false,
-										"other_reseller_account" => false
+										"pickup_scheduled" => $isRegularPickup
 									)
 								)
 							));
-							
+
 						} else {
-							
+
 							array_push($result, array(
 								"name" => $item["carrier_code"],
 								"account" => array(
@@ -136,7 +141,7 @@ final class Nextday extends Booking
 								)
 							));
 						}
-																		                      
+
                         $this->carrierList[$item["account_number"]] = $item;
                     }
                 }
@@ -160,8 +165,9 @@ final class Nextday extends Booking
             "status" => "error",
             "message" => "Carrier not configured"
         );
-    }
-	*/
+    }*/
+
+
 	private function _getCustomerCarrierAccount()
     {
         $result = array();
@@ -217,7 +223,6 @@ final class Nextday extends Booking
 
             $collectionIndex = 0;
             $collectionList  = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
-			//print_r($collectionList);die;
             if (count($collectionList) > 0) {
 				//$carrierInfo = array();
                 foreach ($collectionList as $item) {
@@ -235,11 +240,8 @@ final class Nextday extends Booking
                         }
                         $result[$item["carrier_code"]]["name"] = $item["carrier_code"];
 						if( strtolower( $item["carrier_code"] ) == 'dhl' ) {
-						$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"]),
-																	"services" => implode(",", $serviceItems),
-																	"pickup_scheduled" => $isRegularPickup,
-																	"inxpress" => false,
-																	"other_reseller_account" => false);
+							$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"], "inxpress" => false,
+							"other_reseller_account" => false), "services" => implode(",", $serviceItems), "pickup_scheduled" => $isRegularPickup);
 						}else{
 							$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"]),
 																		"services" => implode(",", $serviceItems),
@@ -249,9 +251,7 @@ final class Nextday extends Booking
                     }
                 }
                 if (count($result) > 0) {
-					/* foreach($carrierInfo as $info){
-						array_push($result, $info);
-					} */
+
                     return array(
                         "status" => "success",
                         "data" => array_values($result)
@@ -272,7 +272,7 @@ final class Nextday extends Booking
             "message" => "Carrier not configured"
         );
     }
-	
+
     private function _getCarrierInfo($data)
     {
         foreach ($data as $carrier_code => $lists) {
@@ -331,7 +331,7 @@ final class Nextday extends Booking
                                 $surchargeWithCcfPrice = 0;
                                 $surchargePrice        = 0;
                                 $service->collected_by = $this->carrierList[$accountNumber]["collected_by"];
-                                
+
                                 foreach ($service->collected_by as $collected_key => $collected_item) {
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice        = 0;
@@ -404,7 +404,7 @@ final class Nextday extends Booking
             }
         }
     }
-    
+
 
     /*     * **********UKMAIL Service list (Start from Here) ********* */
 
@@ -446,7 +446,7 @@ final class Nextday extends Booking
                                 $surchargeWithCcfPrice = 0;
                                 $surchargePrice        = 0;
                                 $service->collected_by = $this->carrierList[$accountNumber]["collected_by"];
-                                
+
                                 foreach ($service->collected_by as $collected_key => $collected_item) {
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice        = 0;
@@ -675,7 +675,7 @@ final class Nextday extends Booking
     private function _setPostRequest() //print_r($this->_param);die;
     {
         $this->data   = array();
-        $carrierLists = $this->_getCustomerCarrierAccount();        
+        $carrierLists = $this->_getCustomerCarrierAccount();
         if ($carrierLists["status"] == "success") {
             $key          = 0;
             $isDocument   = '';
@@ -745,7 +745,6 @@ final class Nextday extends Booking
         $this->_setPostRequest();
             if($this->data["status"]=="success"){
                 $requestStr      = json_encode($this->data);
-				//print_r($requestStr);die;
                 $responseStr     = $this->_postRequest($requestStr);
                 $response        = json_decode($responseStr);
                 $response        = $this->_getCarrierInfo($response->rate);
@@ -968,7 +967,7 @@ final class Nextday extends Booking
                     "auto_print" => ""
                 );
             }
-        } 
+        }
             else {
             $deleteBooking = $this->_deleteBooking($loadIdentity);
             if ($deleteBooking) {
@@ -994,8 +993,8 @@ final class Nextday extends Booking
                     'carrier_code' => strtolower($carrier_code)
                 );
         }
-    
-    
+
+
     }
 
     public function getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData = array())
@@ -1028,6 +1027,6 @@ final class Nextday extends Booking
     {
         return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
     }
-    
+
 }
 ?>
