@@ -113,7 +113,7 @@ class Master extends Icargo{
       return  $data;  
     } */
 	
-    public function getAllCourierServices($param)
+   /*  public function getAllCourierServices($param)
     {  
 	    $result = array();
         $sql = "SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,
@@ -139,14 +139,58 @@ class Master extends Icargo{
             foreach($flowtype as $flowType){
                      $result[$key]['flow_type'][] = $flowType['flow_type'];
             }
-			/* if(isset($result[$key]['flow_type'])){
-				$result[$key]['flow_type'] = implode(',',$result[$key]['flow_type']);
-			}else{
-				$result[$key]['flow_type'] = '';
-			} */
         }              
        return array_values($result);  
-    } 	
+    } */ 	
+	
+	public function findServiceAccountByServiceAndCourierId($service_id,$courier_id)
+		{
+			$sql = "SELECT CCT.account_number AS account_number";
+			$sql .= " FROM `" . DB_PREFIX . "courier_vs_company` AS CCT";
+			$sql .= " INNER JOIN `" . DB_PREFIX . "courier_vs_services_vs_company` AS CSCT ON CCT.id=CSCT.courier_id";
+			$sql .= " WHERE CSCT.service_id='$service_id' AND CSCT.courier_id='$courier_id'";
+			$record = $this->_parentObj->db->getRowRecord($sql);
+			return $record["account_number"];
+		}
+
+		public function findServiceFlowTypeByAccountNo($service, $account_id)
+		{
+		    $sql = "SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = $service AND t1.account_number='$account_id'";
+				return $this->_parentObj->db->getAllRecords($sql);
+		}
+
+    public function getAllCourierServices($param)
+    {
+	    $result = array();
+			$sql = "SELECT CSCT.id,CSCT.company_service_ccf AS ccf,CSCT.company_ccf_operator AS ccf_operator,CSCT.company_service_code AS custom_service_code,CSCT.company_service_name AS custom_service_name,CSCT.status,CSCT.service_id AS service_id, CST.service_name,CST.service_code,CST.service_icon,CST.service_description,CT.name as courier_name,CT.code as courier_code,CSCT.courier_id";
+			$sql .= " FROM " . DB_PREFIX . "courier_vs_services_vs_company as CSCT";
+			$sql .= " INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON CSCT.service_id = CST.id";
+			$sql .= " INNER JOIN " . DB_PREFIX . "courier AS CT ON CT.id = CST.courier_id";
+			$sql .= " WHERE CSCT.company_id=$this->_company_id";
+
+			$data  = $this->_parentObj->db->getAllRecords($sql);
+
+			foreach($data as $item){
+					$accountNo = $this->findServiceAccountByServiceAndCourierId($item["service_id"],$item["courier_id"]);
+					$key = $item["service_name"]."__SEPARATOR__".$item["service_code"]."__SEPARATOR__".$accountNo;
+					$item["account_number"] = $accountNo;
+					$result[$key] =  $item;
+			}
+			foreach( $result as $key=>$val){
+			  $result[$key]['flow_type'] = array();
+			  $result[$key]['action'] = 'editServiceAccount';
+			  $result[$key]['actioncode'] = 'INNER';
+			  $result[$key]['status'] = ($val['status']==1)? true : false;
+			  $flowtype = $this->findServiceFlowTypeByAccountNo($val['service_id'], $val['account_number']);
+			  foreach($flowtype as $flowType){
+				  $result[$key]['flow_type'][] = $flowType['flow_type'];
+			  }
+			}
+
+      return array_values($result);
+    }
+	
+	
 	/* public function getAllCourierSurcharge($param){
          $data  = $this->_parentObj->db->getAllRecords("
          SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator
@@ -482,7 +526,9 @@ class Master extends Icargo{
                       $tempservices['service_id'] = $vals['service_id'];
                       $tempservices['courier_id'] = $id;
                       $tempservices['company_id'] = $param->company_id;   
-                      $this->_parentObj->db->save("courier_vs_services_vs_company", $tempservices);  
+                      $insertData = $this->_parentObj->db->save("courier_vs_services_vs_company", $tempservices);  
+					  if($insertData)
+						$this->_parentObj->db->save("service_flow_type", array("service_id"=>$tempservices['service_id'],"account_number"=>$param->account_number,"flow_type"=>"Domestic"));  
                     }
                 }
                 // Create Surcharge

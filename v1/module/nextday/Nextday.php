@@ -19,14 +19,25 @@ final class Nextday extends Booking
         $this->collectionModel = Collection::_getInstance(); //new Collection();
     }
 
-    private function _getJobCollectionList($carriers, $address)
+    /* private function _getJobCollectionList($carriers, $address)
     {
         $jobCollectionList    = $this->collectionModel->getJobCollectionList($carriers, $address, $this->_param->customer_id, $this->_param->company_id, $this->_param->collection_date);
         $this->regular_pickup = $jobCollectionList["regular_pickup"];
         return $jobCollectionList["carrier_list"];
+    } */
+	
+	 private function _getJobCollectionList($carriers, $address)
+    {
+        $jobCollectionList    = $this->collectionModel->getJobCollectionList($carriers, $address, $this->_param->customer_id, $this->_param->company_id, $this->_param->collection_date);
+		$data = array('carrier_list'=>array());
+		foreach($jobCollectionList['carrier_list'] as $key=>$value){
+				$data['carrier_list'][$value['account_number']] = $value;
+		}
+        $this->regular_pickup = $jobCollectionList["regular_pickup"];
+        return $data["carrier_list"];
     }
 
-    private function _getCustomerCarrierAccount()
+    /*private function _getCustomerCarrierAccount()
     {
         $result = array();
         //print_r($this->_param);
@@ -53,7 +64,7 @@ final class Nextday extends Booking
         //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if (count($carrier) > 0) {
             foreach ($carrier as $key => $item) {
-                if($item['internal']!=1){
+                //if($item['internal']!=1){ 
 					$accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
 					$carrier[$key]["account_id"] = $accountId;
 
@@ -76,7 +87,7 @@ final class Nextday extends Booking
 							}
 						}
 					}
-				}
+				//}
             }
 
             $collectionIndex = 0;
@@ -108,9 +119,7 @@ final class Nextday extends Booking
 											"account_number" => $item["account_number"]
 										),
 										"services" => implode(",", $serviceItems),
-										"pickup_scheduled" => $isRegularPickup,
-										"inxpress" => false,
-										"other_reseller_account" => false
+										"pickup_scheduled" => $isRegularPickup
 									)
 								)
 							));
@@ -140,6 +149,112 @@ final class Nextday extends Booking
                     return array(
                         "status" => "success",
                         "data" => $result
+                    );
+                }
+                return array(
+                    "status" => "error",
+                    "message" => "Service not configured"
+                );
+            }
+            return array(
+                "status" => "error",
+                "message" => "Collection list not configured"
+            );
+        }
+        return array(
+            "status" => "error",
+            "message" => "Carrier not configured"
+        );
+    }*/
+	
+	
+	private function _getCustomerCarrierAccount()
+    {
+        $result = array();
+        //print_r($this->_param);
+        foreach ($this->_param->collection as $collection) {
+            $collectionCountry = $collection->country;
+        }
+        foreach ($this->_param->delivery as $delivery) {
+            $deliveryCountry = $delivery->country;
+        }
+        $customerInfo = $this->modelObj->getCompanyInfo($this->_param->company_id);
+        $homeCountry  = strtolower($customerInfo['country']);
+        $flowType     = 'Domestic';
+
+        if ($collectionCountry->id == $deliveryCountry->id) {
+            $flowType = 'Domestic';
+        } else if ($homeCountry == strtolower($collectionCountry->short_name) && $homeCountry != strtolower($deliveryCountry->short_name)) {
+            $flowType = 'Export';
+        } else if ($homeCountry == strtolower($deliveryCountry->short_name) && $homeCountry != strtolower($collectionCountry->short_name)) {
+            $flowType = 'Import';
+        }
+        //echo $flowType;die;
+
+        $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
+        //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
+        if (count($carrier) > 0) {
+            foreach ($carrier as $key => $item) {
+                //if($item['internal']!=1){
+					$accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
+					$carrier[$key]["account_id"] = $accountId;
+
+					foreach ($this->_param->parcel as $parceldata) {
+						$checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id, $parceldata->package_code, $item['carrier_code'], $flowType);
+						if (count($checkPackageSpecificService) > 0) {
+							foreach ($checkPackageSpecificService as $serviceData) {
+								$carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
+							}
+						} else {
+							//$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $item["carrier_id"], $item["account_number"]);
+							$services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
+							//print_r($services);die;
+							if (count($services) > 0) {
+								foreach ($services as $service) {
+									$carrier[$key]["services"][$service["service_code"]] = $service;
+								}
+							} else {
+								unset($carrier[$key]);
+							}
+						}
+					}
+				//}
+            }
+
+            $collectionIndex = 0;
+            $collectionList  = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
+            if (count($collectionList) > 0) {
+				//$carrierInfo = array();
+                foreach ($collectionList as $item) {
+                    if (strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])) {
+                        $item['highlight_class'] = '';
+                    } else {
+                        $item['highlight_class'] = 'highlighted-datetime';
+                    }
+                    if (count($item["services"]) > 0) {
+                        $serviceItems    = array();
+                        $isRegularPickup = ($item["is_regular_pickup"] == "no") ? "1" : "0";
+
+                        foreach ($item["services"] as $service) {
+                            array_push($serviceItems, $service["service_code"]);
+                        }
+                        $result[$item["carrier_code"]]["name"] = $item["carrier_code"];
+						if( strtolower( $item["carrier_code"] ) == 'dhl' ) {
+							$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"], "inxpress" => false, 
+							"other_reseller_account" => false), "services" => implode(",", $serviceItems), "pickup_scheduled" => $isRegularPickup);
+						}else{
+							$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"]),
+																		"services" => implode(",", $serviceItems),
+																		"pickup_scheduled" => $isRegularPickup);
+						}
+                        $this->carrierList[$item["account_number"]] = $item;
+                    }
+                }
+                if (count($result) > 0) {
+					
+                    return array(
+                        "status" => "success",
+                        "data" => array_values($result)
                     );
                 }
                 return array(

@@ -152,7 +152,8 @@ class Module_Coreprime_Api extends Icargo
         $isTaxExempt    = $this->modelObj->getTaxExemptStatus($param->customer_id);
         $waypointCount = 0;
         if (isset($param->waypoint_lists)) {
-            $waypointCount = count($param->waypoint_lists);
+            //$waypointCount = count($param->waypoint_lists); // per drop
+            $waypointCount = $param->delivery_postcodes_count; // per shipment
         }
         $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
         $is_tax_exempt = ($isTaxExempt['tax_exempt']=='YES')?true:false;//  true;
