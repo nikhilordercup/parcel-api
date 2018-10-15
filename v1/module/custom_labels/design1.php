@@ -4,7 +4,7 @@ require_once "Label.php";
 final class Design1_Label extends Label{
   public $html = '<table>
     <tr>
-      <td>__BARCODE__</td>
+      <td colspan="2" align="center"><barcode code="__BARCODE__" type="RM4SCC" height="0.66" text="1" /></td>
     </tr>
 
     <tr>

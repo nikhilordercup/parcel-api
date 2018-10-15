@@ -123,12 +123,14 @@ class Label{
     return $record;
   }
 
-  protected function findCompanyUrl(){
-
+  protected function findCompanyUrl($param){
+    $record = $this->modelObj->getCompanyUrl($param["company_id"]);
+    return $record;
   }
 
-  protected function findBarcode($load_identity){
-
+  protected function findBarcode($param){
+    $record = $this->modelObj->getBarcodeNo($param["load_identity"]);
+    return $record;
   }
 
   /*Format data*/
@@ -211,13 +213,12 @@ class Label{
     return $param["shipment_country"];
   }
 
-  protected function formateCompanyUrl(){
-
+  protected function formateCompanyUrl($param){
+    return $param["url"];
   }
 
-  protected function formateBarcode($load_identity){
-
+  protected function formateBarcode($param){
+    return $param["tracking_number"];
   }
-
 }
 ?>

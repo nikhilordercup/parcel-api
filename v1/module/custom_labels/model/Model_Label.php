@@ -39,8 +39,9 @@ class Model_Label{
     return $this->_db->getRowRecord($sql);
   }
 
-  public function getUrl(){
-
+  public function getCompanyUrl($company_id){
+    $sql = "SELECT url FROM " . DB_PREFIX . "configuration WHERE company_id = '$company_id'";
+    return $this->_db->getRowRecord($sql);
   }
 
   public function getCompanyLogo($company_id){
@@ -48,8 +49,9 @@ class Model_Label{
     return $this->_db->getRowRecord($sql);
   }
 
-  public function getBarcodeNo(){
-
+  public function getBarcodeNo($load_identity){
+    $sql = "SELECT label_tracking_number AS tracking_number FROM " . DB_PREFIX . "shipment_service WHERE load_identity LIKE '$load_identity'";
+    return $this->_db->getRowRecord($sql);
   }
 
   public function getConsigneePostcode($shipment_ticket){
