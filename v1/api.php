@@ -2400,7 +2400,11 @@ CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
 SubscriptionController::initRoutes($app);
 $app->post('/test', function() use ($app){
+	$r = json_decode($app->request->getBody());
+
+	verifyRequiredParams(array('load_identity'),$r);
+
 	$obj = new Custom_Label();
-	$obj->test();
+	$obj->test($r->load_identity);
 
 });

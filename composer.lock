@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "69b7aeeb80fd91591cdd751af6ee6d65",
+    "content-hash": "2b974600580aa87542723d2e461c0548",
     "packages": [
         {
             "name": "chargebee/chargebee-php",
@@ -1092,16 +1092,16 @@
         },
         {
             "name": "mpdf/mpdf",
-            "version": "dev-development",
+            "version": "v7.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mpdf/mpdf.git",
-                "reference": "fb339f4ef1e584d72b820a06e7139a72eb2851b7"
+                "reference": "2ed29c3a59fa23e77052e9d7fa7e31c707fb7502"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mpdf/mpdf/zipball/fb339f4ef1e584d72b820a06e7139a72eb2851b7",
-                "reference": "fb339f4ef1e584d72b820a06e7139a72eb2851b7",
+                "url": "https://api.github.com/repos/mpdf/mpdf/zipball/2ed29c3a59fa23e77052e9d7fa7e31c707fb7502",
+                "reference": "2ed29c3a59fa23e77052e9d7fa7e31c707fb7502",
                 "shasum": ""
             },
             "require": {
@@ -1156,7 +1156,7 @@
                 "php",
                 "utf-8"
             ],
-            "time": "2018-10-09T09:45:16+00:00"
+            "time": "2018-09-19T09:58:39+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",
@@ -1968,8 +1968,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "sngrl/php-firebase-cloud-messaging": 20,
-        "mpdf/mpdf": 20
+        "sngrl/php-firebase-cloud-messaging": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
