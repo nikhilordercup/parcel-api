@@ -74,7 +74,7 @@ class Authentication{
     
 	public function process(){
 		$response = array();
-		$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code` FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1");
+		$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1");
 		if ($user != NULL) {
 			//if(passwordHash::check_password($user['password'],$this->_getPassword())){
 				$access_token = $this->_setAccessToken($user['id']);
@@ -119,6 +119,7 @@ class Authentication{
 						$response['company_list'] = $this->_getCompanyList(array("user_id"=>$user['parent_id']));
 						$response['warehouse_list'] = $this->_getWarehouseList(array("company_id"=>$company_id,'user_id'=>$user['id'],"user_level"=>$user["user_level"]));
 						$response['collection_address'] = $this->_getUserCollectionAddress($user['id']);
+						$response['customer_info'] = $this->_getCustomerDetail($user['id']);
 						$response['parent_id'] = $user['parent_id'];
 						//$response['default_warehouse_id'] = $response['warehouse_list'][0]['warehouse_id'];
 						//$response['default_warehouse'] = $response['warehouse_list'][0]['warehouse_name'];
@@ -149,6 +150,8 @@ class Authentication{
                     $response['access_token'] = $access_token;
                     $response['uid'] = $user['uid'];
                     $response['user_code'] = $user['code'];
+                    $response['profile_image'] = $user['profile_image'];
+                    $response['profile_path'] = $user['profile_path'];
                 }else {
 					$response['status'] = "error";
 					$response['message'] = 'Authentication Failure!';
@@ -181,10 +184,15 @@ class Authentication{
       return $return;
     }
 	
-	private function _getUserCollectionAddress($customer_id){
-		$data = $this->db->getRowRecord("SELECT * FROM ".DB_PREFIX."user_address where user_id=".$customer_id." AND default_address='Y'");
-		$user_address = $this->db->getRowRecord("SELECT AT.customer_id AS user_id, AT.address_line1 as address_line1, AT.address_line2 as address_line2, AT.postcode as postcode, AT.city as city, AT.country as country, AT.latitude as latitude, AT.longitude as longitude, AT.state as state, AT.company_name as company_name,AT.company_name as company_name,AT.name,AT.phone,AT.email FROM " . DB_PREFIX . "address_book AS AT WHERE AT.id='".$data['address_id']."'");
-		return $user_address;
-	}
+    private function _getUserCollectionAddress($customer_id){
+            $data = $this->db->getRowRecord("SELECT * FROM ".DB_PREFIX."user_address where user_id=".$customer_id." AND default_address='Y'");
+            $user_address = $this->db->getRowRecord("SELECT AT.customer_id AS user_id, AT.address_line1, AT.address_line2, AT.postcode, AT.city, AT.country, AT.latitude, AT.longitude, AT.state, AT.company_name, AT.company_name,AT.name,AT.phone,AT.email, AT.iso_code, CO.alpha2_code, CO.alpha3_code FROM " . DB_PREFIX . "address_book AS AT INNER JOIN ".DB_PREFIX."countries AS CO ON ( CO.id=AT.country_id OR CO.alpha3_code=AT.iso_code) WHERE AT.id='".$data['address_id']."'");
+            return $user_address;
+    }
+
+    private function _getCustomerDetail($customer_id){
+        $customerInfo = $this->db->getRowRecord("SELECT * FROM ".DB_PREFIX."customer_info where user_id='".$customer_id."' ");
+        return $customerInfo;
+    }
 }
 ?>

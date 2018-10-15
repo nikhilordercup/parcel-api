@@ -127,7 +127,7 @@ public function getAllCouriersofCustomerAccount($componyId,$customerId){
 	 return $record;
     } */
 	
-	public function getAllCourierServicesForCustomer($company_id/* ,$courier_id */){
+	/* public function getAllCourierServicesForCustomer($company_id){
      $record = array();
 	 $sqldata ='L.id,L.service_id,L.courier_id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,
                 L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,B.account_number as account_number';
@@ -136,11 +136,38 @@ public function getAllCouriersofCustomerAccount($componyId,$customerId){
               INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id  AND B.company_id = ".$company_id." 
               INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id 
               WHERE L.company_id = ".$company_id."
-              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1";
+              AND C.status = 1 AND B.status = 1 AND A.status = 1 AND  L.status = 1 group by L.id";
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;
-    }
+    } */
+	public function getAllCourierServicesForCustomer($company_id){
+	 $result = array();
+			$sql = "SELECT CSCT.id,CSCT.company_service_ccf AS ccf,CSCT.company_ccf_operator AS ccf_operator,CSCT.company_service_code AS custom_service_code,CSCT.company_service_name AS custom_service_name,CSCT.status,CSCT.service_id AS service_id, CST.service_name,CST.service_code,CST.service_icon,CST.service_description,CT.name as courier_name,CT.code as courier_code,CSCT.courier_id";
+			$sql .= " FROM " . DB_PREFIX . "courier_vs_services_vs_company as CSCT";
+			$sql .= " INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON CSCT.service_id = CST.id";
+			$sql .= " INNER JOIN " . DB_PREFIX . "courier AS CT ON CT.id = CST.courier_id";
+			$sql .= " WHERE CSCT.company_id=$company_id AND CSCT.status=1";
+			$data  = $this->db->getAllRecords($sql);
+			
+			foreach($data as $item){
+					$accountNo = $this->findServiceAccountByServiceAndCourierId($item["service_id"],$item["courier_id"]);
+					$key = $item["service_name"]."__SEPARATOR__".$item["service_code"]."__SEPARATOR__".$accountNo;
+					$item["account_number"] = $accountNo;
+					$result[$key] =  $item;
+			}
 
+			return $result;
+	}
+	
+	public function findServiceAccountByServiceAndCourierId($service_id,$courier_id)
+		{
+			$sql = "SELECT CCT.account_number AS account_number";
+			$sql .= " FROM `" . DB_PREFIX . "courier_vs_company` AS CCT";
+			$sql .= " INNER JOIN `" . DB_PREFIX . "courier_vs_services_vs_company` AS CSCT ON CCT.id=CSCT.courier_id";
+			$sql .= " WHERE CSCT.service_id='$service_id' AND CSCT.courier_id='$courier_id'";
+			$record = $this->db->getRowRecord($sql);
+			return $record["account_number"];
+		}
     
 public function checkServiceExistFromCustomerAccount($service_id,$company_service_id,$courier_id,$company_id,$company_customer_id){ 
      $record = array();
@@ -235,7 +262,7 @@ public function getCustomerBillingAddress($company_customer_id){
 	 return $record;   
     }    
     
-public function getAllAllowedCourierServicesofCompanyCustomer($service_id,$company_service_id,$courier_id,$company_id,$company_customer_id){ 
+	public function getAllAllowedCourierServicesofCompanyCustomer($service_id,$company_service_id,$courier_id,$company_id,$company_customer_id){ 
      $record = array();
 	 $sqldata ='t1.*';
      $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "company_vs_customer_vs_services AS t1
@@ -244,10 +271,26 @@ public function getAllAllowedCourierServicesofCompanyCustomer($service_id,$compa
              AND t1.courier_id  = '".$courier_id."' 
              AND t1.company_service_id  = '".$company_service_id."'
              AND t1.service_id  = '".$service_id."'";
+	//echo $sql;die;		 
      $record = $this->db->getRowRecord($sql);
 	 return $record;  
   
-   }   
+   }
+	
+/* public function getAllAllowedCourierServicesofCompanyCustomer($service_id,$company_service_id,$courier_id,$company_id,$company_customer_id){ 
+     $record = array();
+	 $sqldata ='t1.*';
+     $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "company_vs_customer_vs_services AS t1
+             WHERE t1.company_customer_id  = '".$company_customer_id."' 
+             AND t1.company_id  = '".$company_id."'
+             AND t1.courier_id  = '".$courier_id."' 
+             AND t1.company_service_id  = '".$company_service_id."'
+             AND t1.service_id  = '".$service_id."'";
+	//echo $sql;die;		 
+     $record = $this->db->getRowRecord($sql);
+	 return $record;  
+  
+   }    */
     
   public function getAllAllowedCourierSurchargeofCompanyCustomer($surcharge_id,$company_surcharge_id,$courier_id,$company_id,$company_customer_id){
      $record = array();
@@ -621,11 +664,14 @@ public function checkCustomerEmailExist($company_email){
         return $this->db->updateData("UPDATE ".DB_PREFIX."customer_tokens SET title = '$param->title',description = '$param->description',url = '$param->url' WHERE token_id = '$param->descid'");
     }
    public function downloadAccountStatements($customerId,$from,$to,$company_id){
+       $from = date('Y-m-d', strtotime($from));
+       $to = date('Y-m-d', strtotime($to));
+               
         $sql = "SELECT *  FROM ".DB_PREFIX."accountbalancehistory as ABT  
                 where ABT.customer_id = ".$customerId." 
                 AND  ABT.company_id = ".$company_id."  
                 AND  DATE_FORMAT(create_date,'%Y-%m-%d') BETWEEN '$from' AND '$to'
-                order by id DESC";
+                order by id DESC";        
         $records = $this->db->getAllRecords($sql);
 	    return $records;
     }
@@ -710,6 +756,43 @@ public function checkCustomerEmailExist($company_email){
                 ORDER BY A.id "; 
         $record = $this->db->getAllRecords($sql);
         return $record; 
-     }  
+     }
+public function checkCountryCodeExist($code){ 
+     $record = array();
+	 $sqldata ='count(1) as exist';
+     $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "countries AS t1
+             WHERE t1.alpha3_code  = '".$code."'";
+	 $record = $this->db->getOneRecord($sql);
+     return $record['exist'];      
+   }  
+  public function  getAllAccountOfCompany($companyId){  
+        $record = array();
+        $sqldata = 'A.id as courier_account_id,A.account_number,A.courier_id';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_company as A
+                WHERE A.company_id = '" .$companyId ."'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     }
+     public function  getAllAccountServices($companyId,$courierAccountId){  
+        $record = array();
+        $sqldata = 'A.*';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_services_vs_company as A
+                WHERE A.company_id = '" .$companyId ."'
+                AND A.courier_id = '" .$courierAccountId ."'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     } 
+        public function  getAllAccountSurcharges($companyId,$courierAccountId){  
+        $record = array();
+        $sqldata = 'A.*';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_surcharge_vs_company as A
+                WHERE A.company_id = '" .$companyId ."'
+                AND A.courier_id = '" .$courierAccountId ."'
+                ORDER BY A.id "; 
+        $record = $this->db->getAllRecords($sql);
+        return $record; 
+     } 
 }
 ?>

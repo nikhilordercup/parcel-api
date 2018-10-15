@@ -7,7 +7,7 @@ class Postcode {
 		return preg_match($postcodeRegEx, $p);
 	}
 	
-	private function format_uk_postcode($p) { return $p; 
+	public function format_uk_postcode($p) {
 		if ($this->is_valid_uk_postcode($p)) { 
 			$postcodeRegEx = "/(^[A-Z]{1,2}[0-9]{1,2})([0-9][A-Z]{2}$)/i";
 			return preg_replace($postcodeRegEx,"$1 $2", $p); 
@@ -16,12 +16,12 @@ class Postcode {
 		}
 	}
 	
-	private function is_valid_postcode($p,$countryCode) { 
+	private function is_valid_postcode($p,$countryCode) {
 		$postcodeRegEx = $this->country_specific_reg_exp($countryCode);
 		return preg_match($postcodeRegEx, $p);
 	}
 
-	private function format_postcode($p,$countryCode) {
+	private function format_postcode($p,$countryCode) { 
 		if ($this->is_valid_postcode($p,$countryCode)) {
 			$postcodeRegEx = $this->country_specific_reg_exp($countryCode);
 			return array($p,$postcodeRegEx);

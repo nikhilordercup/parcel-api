@@ -17,8 +17,10 @@ class Module_Addressbook_Addressbook extends Icargo{
     {
         $response = array();
 		//added by kavita for search button 19march2018
-		$param->country_code = '';
-		$param->country_code = ($param->country_code=='') ? 'GB' : $param->country_code;
+		if(isset($param->country_code))
+			$param->country_code = ($param->country_code=='') ? 'GB' : $param->country_code;
+		else
+			$param->country_code = 'GB';
 	    if(isset($param->origin) && $param->origin=='api')
 	    { 
 	        $pcaLookup = new Address_Lookup();

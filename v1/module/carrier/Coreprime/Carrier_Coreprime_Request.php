@@ -25,10 +25,7 @@ Class Carrier_Coreprime_Request{
     Public
 
     function _postRequest($url, $data_string){ 
-        $this->apiConn = "stagging";
-        if(ENV=='live')
-            $this->apiConn = "live";
-        
+        $this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";                   
 
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];

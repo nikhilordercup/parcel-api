@@ -475,7 +475,9 @@ $app->post('/getFirebaseDataForCardedShipment', function() use ($app) {
 $app->post('/cardedbycontroller', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
-
+    if(!isset($r->comment)){
+        $r->comment = "";
+    }
 	verifyRequiredParams(array('access_token','email','company_id','shipment_ticket',/*'comment','next_date','next_time','next_date_time',*/'failure_status','shipment_route_id'),$r);
 
 	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email,'company_id'=>$r->company_id,'shipment_ticket'=>$r->shipment_ticket,/*'comment'=>
@@ -497,6 +499,12 @@ $app->post('/deliveredbycontroller', function() use ($app) {
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('access_token','email','company_id','shipment_ticket',/*'comment','next_date','next_time','next_date_time','contact_name',*/'shipment_route_id'),$r);
 	$datetime = strtotime($r->next_date_time);
+    if(!isset($r->contact_name)){
+        $r->contact_name = "";
+    }
+    if(!isset($r->comment)){
+        $r->comment = "";
+    }
 
 	$obj = new View_Support(array('access_token'=>$r->access_token, 'email'=>$r->email,'company_id'=>$r->company_id,'shipment_ticket'=>$r->shipment_ticket,/*'comment'=>
 	$r->comment,'next_date'=>date('Y-m-d',$datetime),'next_time'=>date('h:i:s',$datetime),'contact_name'=>$r->contact_name,*/'shipment_route_id'=>$r->shipment_route_id,'warehouse_id'=>$r->warehouse_id));
@@ -2304,7 +2312,6 @@ $app->post('/prepaidrecharge', function() use ($app) {
     $response = $obj->prepaidrecharge($r);
     echoResponse(200, $response);
 });
-
 $app->post('/downloadAccountStatements', function() use ($app) {
     $r = json_decode($app->request->getBody());
 	$obj = new Customer($r);
@@ -2312,8 +2319,92 @@ $app->post('/downloadAccountStatements', function() use ($app) {
 	$response = $obj->downloadAccountStatements($r);
 	echoResponse(200, $response);
 });
+$app->post('/getProfileInfo', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new Company($r);
+    $response = $obj->getUserProfileInfo($r);
+    echoResponse(200, $response);
+});
 
+$app->post('/updateProfile', function() use ($app){
+    $response = array();
+    $r = (object)$app->request->post();
+    $obj = new Company($r);
+    $response = $obj->updateUserInfo($r);
+    echoResponse(200, $response);
+});
+$app->post('/createStripeCustomer', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->createStripeCustomer($r);
+    echoResponse(200, $response);
+});
+$app->post('/getStripeCustomer', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->getStripeCustomer($r);
+    echoResponse(200, $response);
+});
+$app->post('/saveCustomerToken', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->saveCustomerToken($r);
+    echoResponse(200, $response);
+});
+$app->post('/getCustomerServiceProvider', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->getCustomerServiceProvider($r);
+    //print_r($response); die;
+    echoResponse(200, $response);
+});
+$app->post('/getServiceProviderById', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->getServiceProviderById($r);
+    //print_r($response); die;
+    echoResponse(200, $response);
+});
+$app->post('/saveCustomerTransaction', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->saveCustomerTransaction($r);
+    //print_r($response); die;
+    echoResponse(200, $response);
+});
+$app->post('/checkInvoiceNumber', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token','company_id'),$r);
+    $obj = new Invoice($r);
+    $response = $obj->checkInvoiceNumber($r);
+    //print_r($response); die;
+    echoResponse(200, $response);
+});
+$app->post('/checkCustomerData', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+	$obj = new Customer($r);
+	verifyRequiredParams(array('access_token','company_id'),$r);
+	$response = $obj->checkCustomerData($r);
+	echoResponse(200, $response);
+});
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
 SubscriptionController::initRoutes($app);
+$app->post('/test', function() use ($app){
+	$r = json_decode($app->request->getBody());
+
+	verifyRequiredParams(array('load_identity'),$r);
+
+	$obj = new Custom_Label();
+	$obj->test($r->load_identity);
+
+});
