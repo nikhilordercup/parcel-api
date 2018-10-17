@@ -57,7 +57,7 @@ final class Nextday extends Booking
 
                 foreach ($this->_param->parcel as $parceldata) {
                     $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id, $parceldata->package_code, $item['carrier_code'], $flowType);
-                
+
                     if (count($checkPackageSpecificService) > 0) {
                         foreach ($checkPackageSpecificService as $serviceData) {
                             $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
@@ -617,7 +617,7 @@ final class Nextday extends Booking
         $this->_setPostRequest();
         if ($this->data["status"] == "success") {
             $requestStr  = json_encode($this->data);
-            $responseStr = $this->_postRequest($requestStr);
+            $responseStr = $this->_postRequest($this->data);
             $response    = json_decode($responseStr);
             $response    = $this->_getCarrierInfo($response->rate);
             if (isset($response->status) and $response->status = "error") {

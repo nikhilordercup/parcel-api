@@ -1,27 +1,10 @@
 <?php
 class Booking extends Icargo
 {
-    private $_environment = array(
-        "live" =>  array(
-            "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImRldmVsb3BlcnNAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Njk5MzU0N30.cpm3XYPcLlwb0njGDIf8LGVYPJ2xJnS32y_DiBjSCGI",
-            "access_url" => "http://occore.ordercup.com/api/v1/rate"
-        ),
-        "stagging" =>  array(
-            "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Im1hcmdlc2guc29uYXdhbmVAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Mzk2ODgxMX0.EJc4SVQXIwZibVuXFxkTo8UjKvH8S9gWyuFn9bsi63g",
-            "access_url" => "http://occore.ordercup1.com/api/v1/rate"
-        )
-    );
-
     public
 
     function __construct($data){
-        $this->_parentObj = parent::__construct(array("email" => $data["email"], "access_token" => $data["access_token"]));
-		$this->apiConn = "stagging";
-		if(ENV=='live')
-			$this->apiConn = "live";
-
-        $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
-        $this->access_url = $this->_environment[$this->apiConn]["access_url"];
+        $this->coreprimeObj = new Module_Coreprime_Api((object)array("email" => $data["email"], "access_token" => $data["access_token"]));
 
         $this->modelObj = new Booking_Model_Booking();
 
@@ -596,20 +579,8 @@ class Booking extends Icargo
 
     protected
 
-    function _postRequest($data_string){
-        $ch = curl_init($this->access_url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Authorization: '.$this->authorization_token,
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($data_string))
-        );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec ($ch);
-        curl_close ($ch);
-        return $server_output;
+    function _postRequest($data){
+        return $this->coreprimeObj->_postRequest($data);
     }
 
     protected
