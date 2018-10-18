@@ -694,7 +694,7 @@ class Booking extends Icargo
                  $creditbalanceData['payment_desc']         = 'BOOK A SHIPMENT';
                  $creditbalanceData['payment_for']          = 'BOOKSHIP';
                  $addHistory = $this->modelObj->saveAccountHistory($creditbalanceData);
-                  if($addHistory>0){
+                 if($addHistory>0){
                       $condition = "user_id = '".$customer_id."'";
                       $updateStatus = $this->modelObj->editAccountBalance(array('available_credit'=>$creditbalanceData['balance']),$condition);
                       if($updateStatus){
@@ -711,9 +711,7 @@ class Booking extends Icargo
        return $this->modelObj->getCarrierCode($carrier_id);
     }
     public function getBookedShipmentsCustomerInfo($customerId){
-        $sql = "SELECT C.customer_type,C.available_credit FROM " . DB_PREFIX . "customer_info as C
-                WHERE  C.user_id = '$customerId'";
-        return $this->db->getRowRecord($sql);
+       return $this->modelObj->getBookedShipmentsCustomerInfo($customerId);
     }
 }
 ?>
