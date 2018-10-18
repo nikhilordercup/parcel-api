@@ -80,7 +80,7 @@ class allShipments extends Icargo
 
             $shipmentsData = $this->modelObj->getAllShipments($html3);
         }
-        if ($html2 == '' && $html != '') { // Only Serch One's Data coming
+        if ($html2 == '' && $html != '') {// Only Serch One's Data coming
             $identityarray = array();
             $limitstr      = "LIMIT " . $param->datalimitpre . ", " . $param->datalimitpost . "";
             $shipmentsData = $this->modelObj->getAllShipmentsDrop($param->warehouse_id, $param->company_id, $limitstr, $html);
@@ -88,6 +88,7 @@ class allShipments extends Icargo
             foreach ($shipmentsData as $data) {
                 $identityarray[] = $data['instaDispatch_loadIdentity'];
             }
+
             $html3 .= " AND S.instaDispatch_loadIdentity  IN(" . '"' . implode('","', $identityarray) . '"' . ") ";
             $shipmentsData = $this->modelObj->getAllShipments($html3 . $html2);
 
@@ -122,12 +123,11 @@ class allShipments extends Icargo
             $limitstr      = "LIMIT " . $param->datalimitpre . ", " . $param->datalimitpost . "";
             $shipmentsData = $this->modelObj->getAllShipmentsDrop($param->warehouse_id, $param->company_id, $limitstr, $html);
 
-
-
             $identityarray = array();
             foreach ($shipmentsData as $data) {
                 $identityarray[] = $data['instaDispatch_loadIdentity'];
             }
+
             $html3 .= " AND S.instaDispatch_loadIdentity  IN(" . '"' . implode('","', $identityarray) . '"' . ") ";
             $shipmentsData = $this->modelObj->getAllShipments($html3 . $html2);
         }
@@ -182,6 +182,7 @@ class allShipments extends Icargo
                             $data['shipment_status']    = $pickupData['current_status'];
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
                             $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -214,7 +215,7 @@ class allShipments extends Icargo
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
                             $data['carrier']	   = $pickupData['carrier'];
-							              $data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
+							              $data['carrier_icon']= $pickupData['carrier_icon'];
                             $data['amount']      = $pickupData['shipment_customer_price'];
                             $data['booked_by']   = $pickupData['booked_by'];
                             $data['isInvoiced']  = $pickupData['isInvoiced'];
@@ -223,12 +224,13 @@ class allShipments extends Icargo
                             $data['recurring']   = $pickupData['booked_by_recurring'];
                             $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
-							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
-							$data['cancel_status'] = $pickupData['cancel_status'];
-							$data['shipment_status']        = $pickupData['current_status'];
+              							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+              							$data['cancel_status'] = $pickupData['cancel_status'];
+              							$data['shipment_status']        = $pickupData['current_status'];
                             $data['collection_reference'] = $collectionReference;
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
                             $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
@@ -1925,18 +1927,7 @@ class allShipments extends Icargo
                 return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$records);
             }
         }
-        /*if(is_array($param->job_identity) && count($param->job_identity)>0){
-            $trackingDetail = $this->modelObj->getShipmentTrackingByLoadIdentity($param->job_identity[0]);
-            //$trackingDetail = $this->modelObj->getShipmentTrackingDetails($param->job_identity[0]);
-            if(count($trackingDetail)>0){
-                //
-            }else{
-                return   array("status"=>"fail", "message"=>"tracking details not found","error_code"=>"ERROR0080");
-            }
-        }else{
-            return   array("status"=>"fail", "message"=>"Please pass valid identity");
-        }
-        return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$trackingDetail);*/
+
     }
 
     public function checkEligibleforRecurring($param){
@@ -1955,6 +1946,14 @@ class allShipments extends Icargo
         }
      }
 
+     private function _findShipmentInstructionByLoadIdentity($load_identity){
+        $shipmentInstructions = $this->modelObj->findShipmentInstructionByLoadIdentity($load_identity);
+        $records = array();
+        foreach($shipmentInstructions as $instruction){
+            array_push($records, $instruction["shipment_instruction"]);
+        }
+        return $records;
+     }
 
 }
 ?>

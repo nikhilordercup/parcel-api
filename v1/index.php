@@ -1,6 +1,6 @@
 <?php
-//error_reporting(E_ALL);
-//ini_set("display_errors", 1);
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
 ini_set('date.timezone', 'Europe/London');
 
 require_once 'constant.php';
@@ -181,7 +181,7 @@ function verifyRequiredParams($required_fields,$request_params) {
     }
 }
 
-function echoResponse($status_code, $response) {print_r($response);die;
+function echoResponse($status_code, $response) {//print_r($response);die;
     $app = \Slim\Slim::getInstance();
 
     $privateKey = <<<EOD
