@@ -46,7 +46,7 @@ class allShipments extends Icargo
         $html .= (isset($param->data->amount) && ($param->data->amount != '')) ? ' AND S.amount =  ' . $param->data->amount . ' ' : '';
 
         $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
-        
+
 
         $html .= (isset($param->data->customer_reference1) && ($param->data->customer_reference1 != '')) ? ' AND S.customer_reference1 LIKE "%' . $param->data->customer_reference1 . '%" ' : '';
 
@@ -181,7 +181,7 @@ class allShipments extends Icargo
                             $data['collection_reference'] = "";
                             $data['shipment_status']    = $pickupData['current_status'];
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
-                            $data['customer_reference2']    = $pickupData['customer_reference2']; 
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }

@@ -181,7 +181,7 @@ function verifyRequiredParams($required_fields,$request_params) {
     }
 }
 
-function echoResponse($status_code, $response) {//print_r($response);die;
+function echoResponse($status_code, $response) {print_r($response);die;
     $app = \Slim\Slim::getInstance();
 
     $privateKey = <<<EOD

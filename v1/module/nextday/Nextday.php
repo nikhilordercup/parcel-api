@@ -51,19 +51,19 @@ final class Nextday extends Booking
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
 
         if (count($carrier) > 0) {
+            $flowType = strtolower($flowType);
             foreach ($carrier as $key => $item) {
                 $accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
                 $carrier[$key]["account_id"] = $accountId;
 
                 foreach ($this->_param->parcel as $parceldata) {
-                    $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id, $parceldata->package_code, $item['carrier_code'], $flowType);
+                    $checkPackageSpecificService = $this->modelObj->checkPackageSpecificService($this->_param->company_id, $parceldata->package_code, $item['carrier_code']);
 
                     if (count($checkPackageSpecificService) > 0) {
                         foreach ($checkPackageSpecificService as $serviceData) {
                             $carrier[$key]["services"][$serviceData["service_code"]] = $serviceData;
                         }
                     } else {
-                        $flowType = strtolower($flowType);
                         $services = $this->modelObj->getCustomerCarrierServices($this->_param->customer_id, $accountId, $item["account_number"], $flowType);
                         if (count($services) > 0) {
                             foreach ($services as $service) {
@@ -671,6 +671,7 @@ final class Nextday extends Booking
         $carrier_account_number = $this->_param->service_opted->collection_carrier->account_number; //$this->_param->service_opted->collected_by[0]->account_number;
         $is_internal            = $this->_param->service_opted->collection_carrier->is_internal; //$this->_param->service_opted->collected_by[0]->is_internal;
         $searchString           = $companyName = $contactName = '';
+
         foreach ($this->_param->collection as $key => $item) {
             $execution_order++;
             $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
@@ -678,7 +679,7 @@ final class Nextday extends Booking
                 $this->rollBackTransaction();
                 return $addressInfo;
             }
-            $shipmentStatus        = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "COLL", "NEXT", "P", $execution_order, $carrier_account_number, $is_internal);
+            $shipmentStatus        = $this->_saveShipment($this->_param, $this->_param->collection->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "COLL", "NEXT", "P", $execution_order, $carrier_account_number, $is_internal, $item->pickup_instruction);
             /********Search string used for pickups (DHL, FEDEX etc) ***********/
             $sStr["postcode"]      = $item->postcode;
             $sStr["address_line1"] = $item->address_line1;
@@ -758,7 +759,7 @@ final class Nextday extends Booking
                 return $addressInfo;
             }
             $this->_param->delivery->$key->load_identity = $loadIdentity;
-            $shipmentStatus                              = $this->_saveShipment($this->_param, $this->_param->delivery->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "DELV", "NEXT", "D", $execution_order, $carrier_account_number, $is_internal);
+            $shipmentStatus                              = $this->_saveShipment($this->_param, $this->_param->delivery->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "DELV", "NEXT", "D", $execution_order, $carrier_account_number, $is_internal, $item->pickup_instruction);
             if ($shipmentStatus["status"] == "error") {
                 $this->rollBackTransaction();
                 return $shipmentStatus;

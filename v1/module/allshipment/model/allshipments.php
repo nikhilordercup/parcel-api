@@ -107,7 +107,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     S.instaDispatch_loadGroupTypeCode,
                     S.shipment_service_type,
                     S.current_status,
-					S.shipment_create_date,
+					          S.shipment_create_date,
                     S.shipment_required_service_date,
                     S.shipment_required_service_starttime,
                     S.shipment_postcode AS shipment_postcode,
@@ -140,6 +140,7 @@ SELECT  S.warehouse_id as warehouse_id,
                     WHERE 1 = 1
                     ".$filter."
                     ORDER BY  FIELD(\"S.shipment_service_type\",\"P\",\"D\"),S.shipment_id DESC";
+        echo $sql;die;
         $record = $this->db->getAllRecords($sql);
         return $record;
     }

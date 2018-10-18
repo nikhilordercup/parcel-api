@@ -134,7 +134,7 @@ class Booking extends Icargo
 
     protected
 
-    function _saveShipment($param1, $param2, $parcel, $address_info, $warehouse_id, $company_id, $company_code, $service_date, $collection_end_at, $load_group_type_code, $job_type_code, $load_group_type_name, $shipment_service_type, $execution_order, $carrier_account_number=null, $is_internal=0){
+    function _saveShipment($param1, $param2, $parcel, $address_info, $warehouse_id, $company_id, $company_code, $service_date, $collection_end_at, $load_group_type_code, $job_type_code, $load_group_type_name, $shipment_service_type, $execution_order, $carrier_account_number=null, $is_internal=0, $shipment_instruction=""){
         $param1 = (object)$param1;
         $param2 = (object)$param2;
         $addressInfo = (object)$address_info;
@@ -205,7 +205,7 @@ class Booking extends Icargo
             $data['shipment_isDutiable'] = "false";
             $data['error_flag'] = "0";
 
-            $data['shipment_xml_reference'] = "";//$param["file_name"];
+            $data['shipment_xml_reference'] = "";
 
             $data['shipment_total_attempt'] = '0';
             $data['parent_id'] = (isset($param["parent_id"])) ? $param["parent_id"] : 0;
@@ -232,7 +232,7 @@ class Booking extends Icargo
 
             $data['customer_id'] = $param1->customer_id;
 
-	    $data['search_string'] = "";
+	          $data['search_string'] = "";
 
             /********Search string used for pickups (DHL, FEDEX etc) ***********/
             $sStr["postcode"]      = $addressInfo->postcode;
@@ -253,6 +253,8 @@ class Booking extends Icargo
             $data["carrier_account_number"] = ($carrier_account_number!=null) ? $carrier_account_number : "";
 
             $data["is_internal"] = $is_internal;
+
+            $data["shipment_instruction"] = $shipment_instruction;
 
             $shipmentId = $this->modelObj->saveShipment($data);
 
