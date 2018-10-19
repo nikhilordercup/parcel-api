@@ -104,7 +104,9 @@ class AllShipment_Model
 					          SST.label_json as label_json,
                     SST.tracking_code as current_status,
                     SST.customer_reference1 AS customer_reference1,
-                    SST.customer_reference2 AS customer_reference2';
+                    SST.customer_reference2 AS customer_reference2,
+                    SST.create_date AS booking_date,
+                    SCT.collection_date_time AS collection_date_time';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
@@ -112,6 +114,7 @@ class AllShipment_Model
                     LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity = S.instaDispatch_loadIdentity
                     LEFT JOIN " . DB_PREFIX . "courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
                     LEFT JOIN " . DB_PREFIX . "courier AS COUR ON COUR.id = COMCOUR.courier_id
+                    LEFT JOIN " . DB_PREFIX . "shipment_collection AS SCT ON SCT.service_id = SST.id
                     WHERE 1 = 1
                     ".$filter."
                     ORDER BY  FIELD(\"S.shipment_service_type\",\"P\",\"D\"),S.shipment_id DESC";

@@ -182,6 +182,10 @@ class allShipments extends Icargo
                             $data['shipment_status']    = $pickupData['current_status'];
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
                             $data['customer_reference2']    = $pickupData['customer_reference2'];
+
+                            $data['booking_date']    = Library::_getInstance()->get_date_time_format($pickupData['booking_date']);
+                            $data['collection_date']    = Library::_getInstance()->get_date_time_format($pickupData['collection_date_time']);
+
                             $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
@@ -230,6 +234,8 @@ class allShipments extends Icargo
                             $data['collection_reference'] = $collectionReference;
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
                             $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']    = Library::_getInstance()->get_date_time_format($pickupData['booking_date']);
+                            $data['collection_date']    = Library::_getInstance()->get_date_time_format($pickupData['collection_date_time']);
                             $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }

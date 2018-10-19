@@ -263,6 +263,12 @@
             return date("h:i", strtotime($time));
         }
 
+        public function get_date_time_format($time){
+          $date = $this->date_format($time);
+          $time = $this->time_format($time);
+          return "$date $time";
+        }
+
         public function base_url()
         {
             return sprintf(
