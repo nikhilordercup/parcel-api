@@ -106,7 +106,8 @@ class AllShipment_Model
                     SST.customer_reference1 AS customer_reference1,
                     SST.customer_reference2 AS customer_reference2,
                     SST.create_date AS booking_date,
-                    SCT.collection_date_time AS collection_date_time';
+                    SCT.collection_date_time AS collection_date_time,
+                    SST.label_tracking_number AS tracking_no';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = S.customer_id
                     LEFT JOIN " . DB_PREFIX . "users AS UTT ON UTT.id = S.customer_id
@@ -123,14 +124,8 @@ class AllShipment_Model
     }
 
     public function getAllShipmentsIdentity($filter='',$limitstr){
-      $record = array();
-      $sqldata = 'DISTINCT(S.instaDispatch_loadIdentity)';
-      $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
-              WHERE (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')
-		AND (S.instaDispatch_loadGroupTypeCode  = 'SAME' OR S.instaDispatch_loadGroupTypeCode  = 'NEXT')
-              ".$filter."
-              ".$limitstr."
-              ";
+        $record = array();
+        $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS instaDispatch_loadIdentity FROM " . DB_PREFIX . "shipment AS S WHERE (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca') AND (S.instaDispatch_loadGroupTypeCode  = 'SAME' OR S.instaDispatch_loadGroupTypeCode  = 'NEXT') $filter $limitstr";
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
@@ -467,6 +462,16 @@ class AllShipment_Model
          return  $record;
 	 }
 
+   public function getAllCarrierCodeAndName($companyid){
+       $record = array();
+       $sqldata =' DISTINCT t2.code AS id,t2.name';
+       $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "courier_vs_company AS t1
+              LEFT JOIN " . DB_PREFIX . "courier AS t2 on t1.courier_id = t2.id
+              WHERE t1.company_id = '$companyid'";
+       $record = $this->db->getAllRecords($sql);
+       return  $record;
+  }
+
 	//get status from shipment service table_name
 	 public function getStatusByLoadIdentity($load_identity){
 		//$record = $this->db->getOneRecord("SELECT status  FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '". $load_identity ."'");
@@ -662,10 +667,34 @@ class AllShipment_Model
     }
 
     public function findShipmentInstructionByLoadIdentity($load_identity){
-        $sql = "SELECT ST.shipment_instruction AS shipment_instruction FROM " . DB_PREFIX . "shipment AS ST WHERE instaDispatch_loadIdentity='$load_identity' ORDER BY FIELD(shipment_service_type, 'P','D')";
+        $sql = "SELECT ST.shipment_instruction AS shipment_instruction, shipment_service_type AS shipment_service_type, shipment_postcode AS postcode FROM " . DB_PREFIX . "shipment AS ST WHERE instaDispatch_loadIdentity='$load_identity' ORDER BY FIELD(shipment_service_type, 'P','D')";
         $record = $this->db->getAllRecords($sql);
         return  $record;
     }
 
+    public function getAllShipmentTicket($filter, $start, $end){
+        $sql = "SELECT shipment_ticket FROM " . DB_PREFIX . "shipment AS ST";
+        $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=ST.instaDispatch_loadIdentity";
+        $sql .= " WHERE $filter LIMIT $start, $end";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+    }
+
+    public function getAllShipmentsNishant($ticket_string){
+        $record = array();
+        $sql = "SELECT S.instaDispatch_loadIdentity,S.icargo_execution_order,S.shipment_service_type,S.instaDispatch_loadGroupTypeCode,S.shipment_service_type,S.current_status,S.shipment_create_date,S.shipment_required_service_date,S.shipment_required_service_starttime,S.shipment_postcode AS shipment_postcode,S.shipment_address1 AS address_line1,S.shipment_address2 AS address_line2,S.shipment_customer_country AS shipment_customer_country,CI.accountnumber as shipment_customer_account,UTT.name as shipment_customer_name,(SST.base_price + SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,SST.service_name as shipment_service_name,SST.is_hold as is_hold,SST.is_recurring as is_recurring,SST.booked_by_recurring as booked_by_recurring,COUR.name as carrier,COUR.icon as carrier_icon,UT.name as booked_by,SST.isInvoiced as isInvoiced,SST.tracking_code as cancel_status,SST.label_json as label_json,SST.tracking_code as current_status,SST.customer_reference1 AS customer_reference1,SST.customer_reference2 AS customer_reference2,SST.create_date AS booking_date,SCT.collection_date_time AS collection_date_time,SST.label_tracking_number AS tracking_no
+        FROM icargo_shipment AS S
+        LEFT JOIN icargo_customer_info AS CI ON CI.user_id = S.customer_id
+        LEFT JOIN icargo_users AS UTT ON UTT.id = S.customer_id
+        LEFT JOIN icargo_users AS UT ON UT.id = S.booked_by
+        LEFT JOIN icargo_shipment_service AS SST ON SST.load_identity = S.instaDispatch_loadIdentity
+        LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
+        LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
+        LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
+        WHERE S.shipment_ticket IN ('$ticket_string')
+        ORDER BY S.instaDispatch_loadIdentity, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+    }
   }
 ?>
