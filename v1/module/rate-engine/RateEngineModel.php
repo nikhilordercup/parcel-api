@@ -33,19 +33,24 @@ class RateEngineModel {
     }
 
     public function getServiceData($carrierId) {
-        return $this->_db->getAllRecords("SELECT service_name,service_code FROM " . DB_PREFIX . "courier_vs_services");
+        return $this->_db->getAllRecords("SELECT service_name,service_code FROM " . DB_PREFIX . "courier_vs_services WHERE courier_id=$carrierId");
     }
 
-    public function getRateData($carrierId) {
-        $sql = "SELECT  CS.service_name ,RT.name as rate_type, FZ.name as from_zone, "
-                . "TZ.name as to_zone, RI.start_unit, RI.end_unit, RI.rate, "
-                . "RI.additional_cost,  RI.additional_base_unit, RUT.name "
-                . "FROM `icargo_rate_info` AS RI LEFT JOIN icargo_courier_vs_services AS CS "
-                . "ON RI.service_id=CS.id LEFT JOIN icargo_rate_types AS RT "
-                . "ON RI.rate_type_id  = RT.id LEFT JOIN icargo_zone_info AS FZ "
-                . "ON RI.from_zone_id = FZ.id LEFT JOIN icargo_zone_info AS TZ "
-                . "ON RI.to_zone_id = TZ.id LEFT JOIN icargo_rate_units AS RUT "
-                . "ON RI.rate_unit_id=RUT.id WHERE RI.carrier_id=$carrierId ";
+    public function getRateData($carrierId, $accounts) {
+        if ($accounts != "") {
+            $sql = "SELECT  CS.service_name ,RT.name as rate_type, FZ.name as from_zone, "
+                    . "TZ.name as to_zone, RI.start_unit, RI.end_unit, RI.rate, "
+                    . "RI.additional_cost,  RI.additional_base_unit, RUT.name, CVC.account_number  "
+                    . "FROM `icargo_rate_info` AS RI LEFT JOIN icargo_courier_vs_services AS CS "
+                    . "ON RI.service_id=CS.id LEFT JOIN icargo_rate_types AS RT "
+                    . "ON RI.rate_type_id  = RT.id LEFT JOIN icargo_zone_info AS FZ "
+                    . "ON RI.from_zone_id = FZ.id LEFT JOIN icargo_zone_info AS TZ "
+                    . "ON RI.to_zone_id = TZ.id LEFT JOIN icargo_rate_units AS RUT "
+                    . "ON RI.rate_unit_id=RUT.id LEFT JOIN icargo_courier_vs_company AS CVC "
+                    . "ON RI.account_id=CVC.id WHERE RI.carrier_id=$carrierId AND "
+                    . "RI.account_id IN ($accounts) ";
+        }
+//        exit($sql);
         return $this->_db->getAllRecords($sql);
     }
 
@@ -61,11 +66,6 @@ class RateEngineModel {
                 . "WHERE ZI.carrier_id=$carrierId ";
         return $this->_db->getAllRecords($sql);
     }
-
-//    public function getZoneByName($companyId, $carrierId, $name) {
-//        $sql = "SELECT * FROM " . DB_PREFIX . "zone_info WHERE name='$oldName' AND company_id=$companyId AND carrier_id=$carrierId";
-//        return $this->_db->getOneRecord($sql);
-//    }
 
     public function updateZoneByName($oldName, $name, $carrierId) {
         $sql = "UPDATE " . DB_PREFIX . "zone_info SET name='$name' WHERE name='$oldName'  AND carrier_id=$carrierId";
@@ -169,10 +169,14 @@ class RateEngineModel {
     }
 
     public function getZoneByName($carrierId, $name) {
-        $query = "SELECT Z.* FROM " . DB_PREFIX . "zone_info AS Z "
-                . "WHERE Z.name='$name' AND Z.carrier_id=$carrierId ";
-        //print_r($query);
-        return $this->_db->getOneRecord($query);
+        $query = "SELECT * FROM " . DB_PREFIX . "zone_info  "
+                . "WHERE name='$name' AND carrier_id=$carrierId ";
+        try {
+            return $this->_db->getOneRecord($query);
+        } catch (Exception $ex) {
+            echo $query;
+            exit($ex->getMessage());
+        }
     }
 
     public function getUnitByName($name) {
@@ -182,13 +186,31 @@ class RateEngineModel {
     }
 
     public function addNewRate($carrierId, $rates) {
-        $deleteQuery = "DELETE FROM " . DB_PREFIX . "rate_info WHERE  carrier_id=$carrierId";
-        $this->_db->delete($deleteQuery);
+        foreach ($rates as $k => $r) {           
+            $account = $this->_db->getOneRecord("SELECT id FROM " . DB_PREFIX . "courier_vs_company WHERE "
+                    . " courier_id=$carrierId AND account_number=" . $r['account_number']);
+            
+            if (!$account) {
+                return [
+                    'error' => true,
+                    'message' => 'Account number not found:' . $r['account_number']
+                ];
+            }
+            $deleteQuery = "DELETE FROM " . DB_PREFIX . "rate_info "
+                    . "WHERE  carrier_id=$carrierId AND account_id=" . $account['id'];
+            $this->_db->delete($deleteQuery);
+            $rates[$k]['account_id'] = $account['id'];
+        }
         $this->_db->startTransaction();
         foreach ($rates as $r) {
+            unset($r['account_number']);
             $this->_db->save('rate_info', $r);
         }
         $this->_db->commitTransaction();
+        return [
+            'error' => FALSE,
+            'message' => 'success'
+        ];
     }
 
     public function searchUkPost($rec, $zip) {
@@ -203,8 +225,74 @@ class RateEngineModel {
                 }
             }
         }
-//        exit;
         return [];
+    }
+
+    public function getServices($courierId = 0, $companyId = 0) {
+        if ($courierId > 0 && $companyId > 0) {
+            $query = "SELECT CSC.service_id,CS.service_name "
+                    . "FROM " . DB_PREFIX . "courier_vs_services_vs_company  AS CSC "
+                    . "LEFT JOIN " . DB_PREFIX . "courier_vs_company AS CC "
+                    . "ON CC.id=CSC.courier_id "
+                    . "LEFT JOIN " . DB_PREFIX . "courier_vs_services AS CS "
+                    . "ON CS.id=CSC.service_id "
+                    . "WHERE CC.courier_id=$courierId AND CSC.company_id=$companyId ";
+        } else if ($courierId > 0 && $companyId == 0) {
+            $query = "SELECT * FROM " . DB_PREFIX . "courier_vs_services_vs_company "
+                    . "WHERE courier_id=$courierId  ";
+        } else if ($courierId == 0 && $companyId > 0) {
+            $query = "SELECT * FROM " . DB_PREFIX . "courier_vs_services_vs_company "
+                    . "WHERE  company_id=$companyId ";
+        } else if ($courierId == 0 && $companyId == 0) {
+            $query = "SELECT * FROM " . DB_PREFIX . "courier_vs_services_vs_company ";
+        }
+        return $this->_db->getAllRecords($query);
+    }
+
+    public function getCompanyAccounts($courierId, $companyId) {
+        $query = "SELECT * FROM " . DB_PREFIX . "courier_vs_company WHERE courier_id=$courierId "
+                . "AND company_id=$companyId";
+        return $this->_db->getAllRecords($query);
+    }
+    public function addSurcharge($data,$carrierId,$services,$accounts,$surcharege){
+        foreach ($accounts as $a){
+            foreach($services as $s){
+                $this->deleteIfExist($carrierId, $a, $s);
+                $t=[
+                    'carrier_id'=>$carrierId,
+                    'service_id'=>$s, 
+                    'account_id'=>$a, 
+                    'surcharge'=>$surcharege, 
+                    'surcharge_rules'=>json_encode($data)
+                ];
+                $this->_db->save('surcharges', $t);
+            }
+        }
+        
+    }
+    public function fetchSurcharge($carrierId,$services,$accounts,$surcharege){
+        $query="SELECT S.id, C.name AS carrierName,CS.service_name AS serviceName, A.account_number AS accountNumber,"
+                . " S.surcharge, S.surcharge_rules AS surchargeRule "
+                . "FROM ".DB_PREFIX."surcharges AS S "
+                . "LEFT JOIN ".DB_PREFIX."courier AS C ON S.carrier_id=C.id "
+                . "LEFT JOIN ".DB_PREFIX."courier_vs_services AS CS ON S.service_id=CS.id "
+                . "LEFT JOIN ".DB_PREFIX."courier_vs_company AS A ON S.account_id=A.id "
+                . "WHERE carrier_id=$carrierId AND account_id IN (".implode(',', $accounts).") ";
+        if($services && count($services)){
+            $query .=" AND service_id IN (".implode(',', $services).") ";
+        }
+        if($surcharege){
+            $query .= " AND surcharge=$surcharege";
+        }
+        return $this->_db->getAllRecords($query);
+    }
+    public function deleteSurcharge($id){
+        return $this->_db->delete("DELETE FROM ".DB_PREFIX."surcharges WHERE id=$id");
+    }
+    public function deleteIfExist($carrierId,$accountId,$serviceId){
+        return $this->_db->delete("DELETE FROM ".DB_PREFIX."surcharges WHERE carrier_id=$carrierId "
+                . "AND account_id=$accountId AND service_id=$serviceId");
+        
     }
 
 }

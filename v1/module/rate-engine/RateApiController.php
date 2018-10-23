@@ -70,9 +70,10 @@ class RateApiController {
     }
     
     public function getRates($param) {
-        $rateList = [];
-        if (!isset($param['zone']))
+//        $rateList = [];
+        if (!isset($param['zone'])){
             return FALSE;
+        }
         foreach ($param['zone'] as $name => $carrier) {
             if (count($carrier["fromZone"]) && count($carrier["toZone"])) {
                 $rates = $this->_reateEngineModel->searchPriceForZone(

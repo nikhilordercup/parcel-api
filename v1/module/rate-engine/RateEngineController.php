@@ -38,24 +38,28 @@ class RateEngineController {
     }
 
     public static function initRoutes($app) {
-        $app->get('/getCsv/:companyId/:carrierId/:flag', function($companyId, $carrierId, $flag) use ($app) {
+        $app->post('/getCsv', function () use ($app) {
+            $carrierId = $app->request->post('carrier_id');
+            $flag = $app->request->post('file_type');
+            $accounts = $app->request->post('account_id');
+
             self::createInstance();
             self::$_rateEngine->cleanExcel();
             switch ($flag) {
                 case 'zone': {
-                        self::$_rateEngine->addZoneData( $carrierId);
+                        self::$_rateEngine->addZoneData($carrierId);
                         break;
                     }
                 case 'zone-details': {
-                        self::$_rateEngine->addZoneDefinations( $carrierId);
+                        self::$_rateEngine->addZoneDefinations($carrierId);
                         break;
                     }
                 case 'rate-details': {
-                        self::$_rateEngine->addRateDetails( $carrierId);
+                        self::$_rateEngine->addRateDetails($carrierId, $accounts);
                         break;
                     }
                 case 'services': {
-                        self::$_rateEngine->addServiceData( $carrierId);
+                        self::$_rateEngine->addServiceData($carrierId);
                         break;
                     }
                 case 'countries': {
@@ -78,6 +82,43 @@ class RateEngineController {
             self::createInstance();
             self::$_rateEngine->updateWithExcel();
         });
+        $app->post('/rate-engine/get-services-accounts', function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->getServiceAndAccounts($r);
+        });
+        $app->post("/saveSurcharge", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->saveSurcharge($r);
+            echoResponse(200, []);
+        });
+
+        $app->post("/getSurcharge", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            $data = self::$_rateEngine->getSurcharge($r);
+            echoResponse(200, $data);
+        });
+        
+        $app->post("/deleteSurcharge", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            $data = self::$_rateEngine->deleteSurcharge($r);
+            echoResponse(200, $data);
+        });
+    }
+
+    public function getServiceAndAccounts($request) {
+        $companyId = $request->company_id;
+        $courierId = $request->courier_id;
+        $accounts = $this->_rateEngineModel->getCompanyAccounts($courierId, $companyId);
+        $services = $this->_rateEngineModel->getServices($courierId, $companyId);
+        $data = [
+            'services' => $services,
+            'account' => $accounts
+        ];
+        echoResponse(200, $data);
     }
 
     public function addCountryData() {
@@ -98,10 +139,10 @@ class RateEngineController {
         return $this;
     }
 
-    public function addZoneData( $carrierId) {
+    public function addZoneData($carrierId) {
         $zoneHeader = ['Zone Name', 'Update Name', 'Action'];
         $zones = $this->_rateEngineModel
-                ->getZoneData( $carrierId);
+                ->getZoneData($carrierId);
         $this->_excelBuilder->addSheet("Zone")
                 ->changeSheetByName("Zone")
                 ->addHeader($zoneHeader)
@@ -120,23 +161,23 @@ class RateEngineController {
         return $this;
     }
 
-    public function addServiceData( $carrierId) {
+    public function addServiceData($carrierId) {
         $rateTypeHeader = ['Service Name', 'Service Code'];
         $this->_excelBuilder->addSheet("Service List")
                 ->changeSheetByName("Service List")
                 ->addHeader($rateTypeHeader)
                 ->addData($this->_rateEngineModel
-                        ->getServiceData( $carrierId));
+                        ->getServiceData($carrierId));
         return $this;
     }
 
-    public function addRateDetails( $carrierId) {
+    public function addRateDetails($carrierId, $accounts) {
         $rateDetailsHeader = ['Service', 'Rate Type', 'From Zone', 'To Zone', 'Start Unit',
-            'End Unit', 'Rate', 'Additional Cost', 'Additional Base Unit', 'Unit'];
+            'End Unit', 'Rate', 'Additional Cost', 'Additional Base Unit', 'Unit', 'Account'];
         $unitList = $this->getRateUnitList();
         $rateTypes = $this->getRateTypeList();
         $data = $this->_rateEngineModel
-                ->getRateData( $carrierId);
+                ->getRateData($carrierId, $accounts);
         $this->_excelBuilder->addSheet("Rate Details")
                 ->changeSheetByName("Rate Details")
                 ->addHeader($rateDetailsHeader)
@@ -181,16 +222,15 @@ class RateEngineController {
         return implode(',', $list);
     }
 
-    public function addZoneDefinations( $carrierId) {
+    public function addZoneDefinations($carrierId) {
         $zoneDefinationHeader = ['Zone', 'City', 'Post Code', 'Alpha 2', 'Flow Type',
             "Volume Base", 'Level'];
         $levels = 'City,Post Code,Country';
         $flowTypes = 'Domastic,International';
-        $zoneDefination = $this->_rateEngineModel->getZoneDefinations( $carrierId);
-//        print_r($zoneDefination);exit;
+        $zoneDefination = $this->_rateEngineModel->getZoneDefinations($carrierId);
         $this->_excelBuilder->addSheet("Zone Definations")
                 ->changeSheetByName("Zone Definations")
-                ->addHeader($zoneDefinationHeader)                
+                ->addHeader($zoneDefinationHeader)
                 ->addSelectOption('G', $levels, count($zoneDefination))
                 ->addSelectOption('E', $flowTypes, count($zoneDefination))
                 ->addData($zoneDefination);
@@ -201,25 +241,49 @@ class RateEngineController {
         switch ($_POST['fileType']) {
             case 'zoneExcel': {
                     $this->_excelReader->loadExcelFromPost()
-                            ->readZones( $_POST['carrierId']);
+                            ->readZones($_POST['carrierId']);
                     break;
                 }
             case 'zoneDetailsExcel': {
                     $this->_excelReader->loadExcelFromPost()
-                            ->readZoneDefinations( $_POST['carrierId']);
+                            ->readZoneDefinations($_POST['carrierId']);
                     break;
                 }
             case 'rateExcel': {
                     $d = $this->_excelReader->loadExcelFromPost()
-                            ->readRateDetails( $_POST['carrierId']);
+                            ->readRateDetails($_POST['carrierId']);
+
                     if (isset($d['error'])) {
                         echo json_encode($d);
-                    }else{
+                    } else {
                         $this->_rateEngineModel->addNewRate($_POST['carrierId'], $d);
                     }
                     break;
                 }
         }
+    }
+
+    public function saveSurcharge($d) {
+        $carrierId = $d->carrier;
+        $services = $d->services;
+        $accounts = $d->accounts;
+        $surcharege = $d->surcharge;
+        $this->_rateEngineModel->addSurcharge($d, $carrierId, $services, $accounts, $surcharege);
+    }
+
+    public function getSurcharge($d) {
+        $carrierId = $d->carrier??NULL;
+        $services = $d->services ?? NULL;
+        $accounts = $d->accounts ?? [];
+        $surcharege = $d->surcharge ?? NULL;
+        if (!count($accounts)) {
+            return [];
+        }
+        return $this->_rateEngineModel
+                        ->fetchSurcharge($carrierId, $services, $accounts, $surcharege);
+    }
+    public function deleteSurcharge($d){
+        return $this->_rateEngineModel->deleteSurcharge($d->id);
     }
 
 }

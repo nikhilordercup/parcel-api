@@ -107,7 +107,8 @@ class ExcelReader {
                 ->getData();
         $queryData = [];
         $error = [];
-        foreach ($data as $i => $d) {
+        
+        foreach ($data as $i => $d) {            
             $service = $this->_reateEngineModel->getServiceByName($d[0]);
             if (!$service) {
                 $error = [
@@ -116,6 +117,7 @@ class ExcelReader {
                 ];
                 break;
             }
+            
             $rateTypes = $this->_reateEngineModel->getRateTypeByName($d[1]);
             if (!$rateTypes) {
                 $error = [
@@ -159,10 +161,10 @@ class ExcelReader {
             $queryData[$i - 1]['additional_cost'] = $d[7];
             $queryData[$i - 1]['additional_base_unit'] = $d[8];
             $queryData[$i - 1]['rate_unit_id'] = $unit['id'];
-            $queryData[$i - 1]['company_id'] = 0;
+            $queryData[$i-1]['account_number']=$d[10];
         }
         if(count($error)){
-           return $error; 
+           return ['error'=>$error]; 
         }else{
             return $queryData;
         }

@@ -48,6 +48,14 @@ class Master extends Icargo{
              'description'=>'Surcharge description going here',
              'action'=>'surcharge',
              'actioncode'=>'getAllCourierSurcharge'
+       );
+      $data[] = array(  
+             'id'=>'1',
+             'name'=>'Rates',
+             'code'=>'RATES',
+             'description'=>'Rate description going here',
+             'action'=>'surcharge',
+             'actioncode'=>'rates'
        );  
      /* $data[] = array(
              'id'=>'1',

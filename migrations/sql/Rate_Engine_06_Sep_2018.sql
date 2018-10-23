@@ -21,7 +21,6 @@ CREATE TABLE `icargo_zone_info`
 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 `modifed_at` TIMESTAMP NULL ,
 `carrier_id` INT NOT NULL,
-`company_id` INT NOT NULL,
  PRIMARY KEY (`id`)) ENGINE = MyISAM;
 
 
@@ -38,14 +37,13 @@ CREATE TABLE `icargo_rate_info`
 `additional_cost` VARCHAR(250) NOT NULL , 
 `additional_base_unit` VARCHAR(250) NOT NULL , 
 `rate_unit_id` INT NOT NULL,
-`company_id` INT NOT NULL,
+`account_id` INT NOT NULL,
 PRIMARY KEY (`id`)) ENGINE = MyISAM;
 
 
 CREATE TABLE `icargo_zone_details` 
 ( `id` INT NOT NULL AUTO_INCREMENT , 
 `zone_id` INT NOT NULL ,
-`company_id` INT NOT NULL, 
 `city` VARCHAR(250) NOT NULL , 
 `post_code` VARCHAR(250) NOT NULL , 
 `country` VARCHAR(250) NOT NULL , 
@@ -64,6 +62,13 @@ CREATE TABLE `icargo_rate_units`
 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
  `modifed_at` TIMESTAMP NULL ,
  PRIMARY KEY (`id`)) ENGINE = MyISAM;
+
+CREATE TABLE `icargo_surcharges` 
+( `id` BIGINT NOT NULL AUTO_INCREMENT , `carrier_id` INT NOT NULL , 
+`service_id` INT NOT NULL , `account_id` INT NOT NULL , 
+`surcharge` INT NOT NULL , `surcharge_rules` TEXT NOT NULL , 
+`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , 
+PRIMARY KEY (`id`)) ENGINE = MyISAM;
 
 
 
