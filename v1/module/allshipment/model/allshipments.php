@@ -481,7 +481,6 @@ class AllShipment_Model
 
     public function getCurrentTrackingStatusByLoadIdentity($load_identity){
         return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SMT.name AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON SMT.code=SST.tracking_code WHERE load_identity = '$load_identity'");
-        //return $this->db->getRowRecord("SELECT SST.tracking_code AS tracking_code, SST.tracking_code AS code_translation FROM " . DB_PREFIX . "shipment_service AS SST WHERE SST.load_identity = '$load_identity'");
     }
     public function getCustomerInfo($customerId){
        $record = array();
@@ -673,9 +672,12 @@ class AllShipment_Model
     }
 
     public function getAllShipmentTicket($filter, $start, $end){
-        $sql = "SELECT shipment_ticket FROM " . DB_PREFIX . "shipment AS ST";
-        $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=ST.instaDispatch_loadIdentity";
-        $sql .= " WHERE $filter LIMIT $start, $end";
+        $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS load_Identity FROM " . DB_PREFIX . "shipment AS S";
+        $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=S.instaDispatch_loadIdentity";
+        $sql .= " WHERE $filter ";
+        $sql .= " AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')";
+        $sql .= " AND (`S`.`instaDispatch_loadGroupTypeCode` = 'SAME' OR `S`.`instaDispatch_loadGroupTypeCode` = 'NEXT')";
+        $sql .= " LIMIT $start, $end";
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
@@ -691,7 +693,7 @@ class AllShipment_Model
         LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
         LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
         LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
-        WHERE S.shipment_ticket IN ('$ticket_string')
+        WHERE S.instaDispatch_loadIdentity IN ('$ticket_string')
         ORDER BY S.instaDispatch_loadIdentity, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
         $record = $this->db->getAllRecords($sql);
         return $record;

@@ -1346,7 +1346,8 @@ $app->post('/getallshipments', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
     $obj = new allShipments($r);
-    $response = $obj->getallshipments((object)array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'datalimitpre'=>$r->datalimitpre,'datalimitpost'=>$r->datalimitpost,'data'=>$r->data));
+    //$response = $obj->getallshipments((object)array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'datalimitpre'=>$r->datalimitpre,'datalimitpost'=>$r->datalimitpost,'data'=>$r->data));
+		$response = $obj->getallshipments($r);
     echoResponse(200, $response);
 });
 

@@ -15,27 +15,86 @@ class allShipments extends Icargo
     public function getallshipments($param)
     {
         $filterShipment = array();
-        if(isset($param->data->customer)){
-            $filterShipment["customer_filter"] = "S.customer_id = '" . $param->data->customer . "'";
+        if(isset($param->data)){
+            if(isset($param->data->customer)){
+                if(!is_array($param->data->customer))
+                    $param->data->customer = array($param->data->customer);
+
+                $customer_id_string = implode("','", $param->data->customer);
+                $filterShipment["customer_filter"] = "S.customer_id = '" . $customer_id_string . "'";
+            }
+
+            if(isset($param->warehouse_id)){
+                $filterShipment["warehouse_filter"] = "S.warehouse_id = '" . $param->warehouse_id . "'";
+            }
+
+            if(isset($param->data->job_identity)){
+                $filterShipment["job_filter"] = "S.instaDispatch_loadIdentity = '" . $param->data->job_identity . "'";
+            }
+
+            if(isset($param->data->job_type)){
+                $filterShipment["job_type_filter"] = "S.shipment_type = '" . $param->data->job_identity . "'";
+            }
+
+            if(isset($param->data->carrier)){
+                $filterShipment["carrier_filter"] = "S.carrier_code = '" . $param->data->carrier . "'";
+            }
+
+            if(isset($param->data->shipment_status)){
+                $filterShipment["shipment_status_filter"] = "SST.tracking_code = '" . $param->data->shipment_status . "'";
+            }
+
+            if(isset($param->data->service)){
+                $filterShipment["service_filter"] = "SST.service_name = '" . $param->data->service . "'";
+            }
+
+            if(isset($param->data->globalbookingdatefilter)){
+                $data = explode("/", $param->data->globalbookingdatefilter);
+                $startDate = $data[0];
+                $endDate   = $data[1];
+                $filterShipment["booking_date_filter"] = "(S.shipment_create_date BETWEEN '$startDate' AND '$endDate')";
+            }
+
+            if(isset($param->data->globalcollectiondatefilter)){
+                $data = explode("/", $param->data->globalcollectiondatefilter);
+                $startDate = $data[0];
+                $endDate   = $data[1];
+                $filterShipment["collection_date_filter"] = "(S.shipment_required_service_date BETWEEN '$startDate' AND '$endDate')";
+            }
+
+            if(isset($param->data->isInvoiced)){
+                $filterShipment["invoice_filter"] = "SST.isInvoiced = '" . $param->data->isInvoiced . "'";
+            }
+
+            if(isset($param->company_id)){
+                $filterShipment["company_filter"] = "S.company_id = '" . $param->company_id . "'";
+            }
         }
 
-        if(isset($param->warehouse_id)){
-            $filterShipment["warehouse_filter"] = "AND S.warehouse_id = '" . $param->warehouse_id . "'";
+        $filterString = 1;
+        if(count($filterShipment)>0){
+            $filterString = implode(" AND ", $filterShipment);
         }
 
-        if(isset($param->data->job_identity)){
-            $filterShipment["job_filter"] = "AND S.instaDispatch_loadIdentity = '" . $param->data->job_identity . "'";
+        $limitstr      = "LIMIT $param->datalimitpre , $param->datalimitpost";
+
+        $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
+        //
+        $filterLoadIdentity = array();
+
+        foreach($items as $item){
+            if(!in_array($item["load_Identity"], $filterLoadIdentity))
+                array_push($filterLoadIdentity, $item["load_Identity"]);
         }
 
-        if(isset($param->data->job_type)){
-            $filterShipment["job_type_filter"] = "AND S.shipment_type = '" . $param->data->job_identity . "'";
-        }
+        $loadIdentityString = implode("','", $filterLoadIdentity);
 
-        print_r($filterShipment);
-        print_r($param);die;
+        $shipmentsData = $this->modelObj->getAllShipmentsNishant($loadIdentityString);
+        $shipmentsData = $this->_prepareShipmentsNishant($shipmentsData);
+        return $shipmentsData;
     }
 
-    public function getallshipmentsBKP($param)
+    /*public function getallshipments($param)
     {
         $html  = '';
         $html2 = '';
@@ -157,15 +216,15 @@ class allShipments extends Icargo
 
         $shipmentsPrepareData = $this->_prepareShipments($shipmentsData);
         return $shipmentsPrepareData;
-    }
+    }*/
 
     private function _getCurrentTrackingStatusByLoadIdentity($load_identity){
         $currentTrackingStatus = $this->modelObj->getCurrentTrackingStatusByLoadIdentity($load_identity);
         return $currentTrackingStatus["code_translation"];
     }
 
-    private function _prepareShipments($shipmentsData)
-    {//print_r($shipmentsData);//tracking_no
+    /*private function _prepareShipments($shipmentsData)
+    {//tracking_no
         $dataArray  = array();
         $returndata = array();
         foreach ($shipmentsData as $key => $val) {
@@ -200,6 +259,123 @@ class allShipments extends Icargo
                             $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             $data['pickup_date']        = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
               							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+              							$data['cancel_status']      = $pickupData['cancel_status'];
+                            $data['collection_reference'] = "";
+                            $data['shipment_status']    = $pickupData['current_status'];
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            $shipmentstatus[]           = $pickupData['current_status'];
+                        }
+                    }
+                    if (array_key_exists('D', $innerval['SAME'])) {
+                        $temp = array();
+                        foreach ($innerval['SAME']['D'] as $key => $row) {
+                            $temp[$key] = $row['icargo_execution_order'];
+                        }
+                        array_multisort($temp, SORT_ASC, $innerval['SAME']['D']);
+                        $lastDeliveryarray        = end($innerval['SAME']['D']);
+                        $data['deliverypostcode'] = $lastDeliveryarray['shipment_postcode'];
+                        $data['delivery']         = $lastDeliveryarray['shipment_postcode'] . ', ' . $lastDeliveryarray['shipment_customer_country'];
+                    }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
+                    $returndata[] = $data;
+                }
+                if (key($innerval) == 'NEXT') {
+                    $data['action'] = 'nextday';
+                    if (array_key_exists('P', $innerval['NEXT'])) {
+                        foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
+                            $labelArr = json_decode($pickupData['label_json']);
+
+                            if(is_object($labelArr) && count( (array)$labelArr)>0){
+                                $collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
+                            }else{
+                                $collectionReference = "";
+                            }
+
+                            $data['customer']    = $pickupData['shipment_customer_name'];
+                            $data['account']     = $pickupData['shipment_customer_account'];
+                            $data['service']     = $pickupData['shipment_service_name'];
+                            $data['carrier']	   = $pickupData['carrier'];
+							              $data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
+                            $data['amount']      = $pickupData['shipment_customer_price'];
+                            $data['booked_by']   = $pickupData['booked_by'];
+                            $data['isInvoiced']  = $pickupData['isInvoiced'];
+                            $data['is_hold']     = $pickupData['is_hold'];
+                            $data['is_recurring'] = $pickupData['is_recurring'];
+                            $data['recurring']   = $pickupData['booked_by_recurring'];
+                            $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
+                            $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
+							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+							$data['cancel_status'] = $pickupData['cancel_status'];
+							$data['shipment_status']        = $pickupData['current_status'];
+                            $data['collection_reference'] = $collectionReference;
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            $shipmentstatus[]    = $pickupData['current_status'];
+                        }
+                    }
+                    if (array_key_exists('D', $innerval['NEXT'])) {
+                        krsort($innerval['NEXT']['D']);
+                        $deliveryPostcode = array();
+                        foreach ($innerval['NEXT']['D'] as $deliverykey => $deliveryData) {
+                            $deliveryPostcode[$deliveryData['icargo_execution_order']] = $deliveryData['shipment_postcode'] . ', ' . $deliveryData['shipment_customer_country'];
+                            $shipmentstatus[]                                          = $deliveryData['current_status'];
+                        }
+                        krsort($deliveryPostcode);
+                        $data['delivery'] = end($deliveryPostcode);
+                    }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
+                    $returndata[] = $data;
+                }
+            }
+        }
+        return $returndata;
+    }*/
+
+    private function _prepareShipmentsNishant($shipmentsData)
+    {
+        $dataArray  = array();
+        $returndata = array();
+        foreach ($shipmentsData as $key => $val) {
+            $dataArray[$val['instaDispatch_loadIdentity']][strtoupper($val['instaDispatch_loadGroupTypeCode'])][$val['shipment_service_type']][] = $val;
+        }
+        if (count($dataArray) > 0) {
+            foreach ($dataArray as $innerkey => $innerval) {
+                $data                 = array();
+                $data['job_identity'] = $innerkey;
+                $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
+                $data['job_type']     = key($innerval);
+                $shipmentstatus       = array();
+                $data['delivery']     = $innerkey;
+                $jobIdentity          = $innerkey;
+                if (key($innerval) == 'SAME') {
+                    $data['action'] = 'sameday';
+                    if (array_key_exists('P', $innerval['SAME'])) {
+                        foreach ($innerval['SAME']['P'] as $pickupkey => $pickupData) {
+                            $data['customer']           = $pickupData['shipment_customer_name'];
+                            $data['account']            = $pickupData['shipment_customer_account'];
+                            $data['service']            = $pickupData['shipment_service_name'];
+                            $data['carrier']            = $pickupData['carrier'];
+							              $data['carrier_icon']       = $pickupData['carrier_icon'];
+                            $data['amount']             = $pickupData['shipment_customer_price'];
+                            $data['booked_by']          = $pickupData['booked_by'];
+                            $data['isInvoiced']         = $pickupData['isInvoiced'];
+                            $data['is_hold']            = $pickupData['is_hold'];
+                            $data['is_recurring']       = $pickupData['is_recurring'];
+                            $data['recurring']          = $pickupData['booked_by_recurring'];
+                            $data['show']               = 'y';
+                            $data['collectionpostcode'] = $pickupData['shipment_postcode'];
+                            $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
+                            $data['pickup_date']        = Library::_getInstance()->date_format($pickupData['shipment_required_service_date']) . '  ' . Library::_getInstance()->time_format($pickupData['shipment_required_service_starttime']);
+              							$data['create_date']        = Library::_getInstance()->date_format($pickupData['shipment_create_date']);
               							$data['cancel_status']      = $pickupData['cancel_status'];
                             $data['collection_reference'] = "";
                             $data['shipment_status']    = $pickupData['current_status'];
@@ -1428,7 +1604,7 @@ class allShipments extends Icargo
     }
 
      public function getAllCarrier($param){
-         $data =  $this->modelObj->getAllCarrier($param->company_id);
+         $data =  $this->modelObj->getAllCarrierCodeAndName($param->company_id);
           return $data;
 	}
 
@@ -1993,15 +2169,16 @@ class allShipments extends Icargo
         );
         $shipmentInstructions = array();
         $items = $this->modelObj->findShipmentInstructionByLoadIdentity($load_identity);
-
         foreach($items as $item){
             if(!isset($shipmentInstructions[$service[$item["shipment_service_type"]]])){
                 $shipmentInstructions[$service[$item["shipment_service_type"]]] = array();
             }
-            array_push($shipmentInstructions[$service[$item["shipment_service_type"]]], array(
-                "shipment_instruction" => $item["shipment_instruction"],
-                "postcode" => $item["postcode"],
-            ));
+            if((isset($item["shipment_instruction"])) and !empty($item["shipment_instruction"])){
+                array_push($shipmentInstructions[$service[$item["shipment_service_type"]]], array(
+                    "shipment_instruction" => $item["shipment_instruction"],
+                    "postcode" => $item["postcode"],
+                ));
+            }
         }
         return $shipmentInstructions;
     }
