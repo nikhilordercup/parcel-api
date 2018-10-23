@@ -445,10 +445,10 @@ class AllShipment_Model
 	 }
     public function getAllowedAllServices($companyid){
          $record = array();
-         $sqldata =' DISTINCT COUSER.service_name';
+         $sqldata =' DISTINCT COUSER.service_name AS service_name';
          $sql = "SELECT ".$sqldata." FROM " . DB_PREFIX . "courier_vs_services_vs_company AS t1
                 LEFT JOIN " . DB_PREFIX . "courier_vs_services AS COUSER ON COUSER.id = t1.service_id
-                WHERE t1.company_id = '".$companyid."'";
+                WHERE t1.company_id = '".$companyid."' ORDER BY service_name";
          $record = $this->db->getAllRecords($sql);
          return  $record;
 	 }
