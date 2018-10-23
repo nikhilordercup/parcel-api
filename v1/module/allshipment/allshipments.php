@@ -16,12 +16,13 @@ class allShipments extends Icargo
     {
         $filterShipment = array();
         if(isset($param->data)){
+
             if(isset($param->data->customer)){
                 if(!is_array($param->data->customer))
                     $param->data->customer = array($param->data->customer);
 
-                $customer_id_string = implode("','", $param->data->customer);
-                $filterShipment["customer_filter"] = "S.customer_id = '" . $customer_id_string . "'";
+                $customer_id_string = implode("','", array_filter($param->data->customer));
+                $filterShipment["customer_filter"] = "S.customer_id IN('" . $customer_id_string . "')";
             }
 
             if(isset($param->warehouse_id)){
@@ -29,11 +30,11 @@ class allShipments extends Icargo
             }
 
             if(isset($param->data->job_identity)){
-                $filterShipment["job_filter"] = "S.instaDispatch_loadIdentity = '" . $param->data->job_identity . "'";
+                $filterShipment["job_identity_filter"] = "S.instaDispatch_loadIdentity = '" . $param->data->job_identity . "'";
             }
 
             if(isset($param->data->job_type)){
-                $filterShipment["job_type_filter"] = "S.shipment_type = '" . $param->data->job_identity . "'";
+                $filterShipment["job_type_filter"] = "S.instaDispatch_loadGroupTypeCode = '" . $param->data->job_type . "'";
             }
 
             if(isset($param->data->carrier)){
@@ -45,7 +46,11 @@ class allShipments extends Icargo
             }
 
             if(isset($param->data->service)){
-                $filterShipment["service_filter"] = "SST.service_name = '" . $param->data->service . "'";
+                if(!is_array($param->data->service))
+                    $param->data->service = array($param->data->service);
+
+                $service_string = implode("','", $param->data->service);
+                $filterShipment["service_filter"] = "SST.service_name IN('$service_string')";
             }
 
             if(isset($param->data->globalbookingdatefilter)){
@@ -69,17 +74,97 @@ class allShipments extends Icargo
             if(isset($param->company_id)){
                 $filterShipment["company_filter"] = "S.company_id = '" . $param->company_id . "'";
             }
+
+            if(isset($param->data->collection_date_filter)){
+                if(isset($param->data->collection_date_filter->start_date) AND !empty($param->data->collection_date_filter->start_date)){
+                    $start_date = $param->data->collection_date_filter->start_date;
+
+                    if(!isset($param->data->collection_date_filter->end_date) OR empty($param->data->collection_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->collection_date_filter->end_date) AND !empty($param->data->collection_date_filter->end_date)){
+                    $end_date = $param->data->collection_date_filter->end_date;
+
+                    if(!isset($param->data->collection_date_filter->start_date) OR empty($param->data->collection_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["collection_date_filter"] = "(S.shipment_required_service_date BETWEEN '$start_date' AND '$end_date') AND S.shipment_service_type='P'";
+                }
+            }
+
+            if(isset($param->data->delivery_date_filter)){
+                if(isset($param->data->delivery_date_filter->start_date) AND !empty($param->data->delivery_date_filter->start_date)){
+                    $start_date = $param->data->delivery_date_filter->start_date;
+
+                    if(!isset($param->data->collection_date_filter->end_date) OR empty($param->data->delivery_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->delivery_date_filter->end_date) AND !empty($param->data->delivery_date_filter->end_date)){
+                    $end_date = $param->data->delivery_date_filter->end_date;
+
+                    if(!isset($param->data->delivery_date_filter->start_date) OR empty($param->data->delivery_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["delivery_date_filter"] = "(S.shipment_required_service_date BETWEEN '$start_date' AND '$end_date') AND S.shipment_service_type='D'";
+                }
+            }
+
+            if(isset($param->data->booking_date_filter)){
+                if(isset($param->data->booking_date_filter->start_date) AND !empty($param->data->booking_date_filter->start_date)){
+                    $start_date = $param->data->booking_date_filter->start_date;
+
+                    if(!isset($param->data->booking_date_filter->end_date) OR empty($param->data->booking_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->booking_date_filter->end_date) AND !empty($param->data->booking_date_filter->end_date)){
+                    $end_date = $param->data->booking_date_filter->end_date;
+
+                    if(!isset($param->data->booking_date_filter->start_date) OR empty($param->data->booking_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["booking_date_filter"] = "(SST.create_date BETWEEN '$start_date' AND '$end_date')";
+                }
+            }
+
+            if(isset($param->data->postcode)){
+                $filterShipment["postcode_filter"] = "S.shipment_postcode = '" . $param->data->postcode . "'";
+            }
+
+            if(isset($param->data->amount) AND !empty($param->data->amount)){
+                $filterShipment["postcode_filter"] = "SST.grand_total = '" . $param->data->amount . "'";
+            }
+
+            if(isset($param->data->customer_reference1) AND !empty($param->data->customer_reference1)){
+                $filterShipment["customer_reference1_filter"] = "SST.customer_reference1 LIKE '%" . $param->data->customer_reference1 . "%'";
+            }
+
+            if(isset($param->data->customer_reference2) AND !empty($param->data->customer_reference2)){
+                $filterShipment["customer_reference2_filter"] = "SST.customer_reference2 LIKE '%" . $param->data->customer_reference2 . "%'";
+            }
+
         }
 
         $filterString = 1;
         if(count($filterShipment)>0){
             $filterString = implode(" AND ", $filterShipment);
         }
-
-        $limitstr      = "LIMIT $param->datalimitpre , $param->datalimitpost";
+        //print_r($param->data);
+        //print_r($filterString);die;
 
         $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
-        //
+        //print_r($items);die;
         $filterLoadIdentity = array();
 
         foreach($items as $item){
