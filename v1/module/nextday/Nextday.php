@@ -30,7 +30,7 @@ final class Nextday extends Booking
         return $data["carrier_list"];
     }
 	
-	private function _getCustomerCarrierAccount()
+	/*private function _getCustomerCarrierAccount()
     {
         $result = array();
         //print_r($this->_param);
