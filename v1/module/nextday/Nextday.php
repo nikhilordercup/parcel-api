@@ -1,5 +1,4 @@
 <?php
-
 final class Nextday extends Booking
 {
 
@@ -30,7 +29,7 @@ final class Nextday extends Booking
         return $data["carrier_list"];
     }
 
-	private function _getCustomerCarrierAccount()
+	/*private function _getCustomerCarrierAccount()
     {
         $result = array();
         //print_r($this->_param);
@@ -138,7 +137,6 @@ final class Nextday extends Booking
 	private function _getCustomerCarrierAccount()
     {
         $result = array();
-        //print_r($this->_param);
         foreach ($this->_param->collection as $collection) {
             $collectionCountry = $collection->country;
         }
@@ -878,7 +876,12 @@ final class Nextday extends Booking
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail   = (strtolower($carrier_code) == 'dhl') ? $this->_param->service_opted->rate : array();
         $this->commitTransaction();
-         if((strtolower($carrier_code) != 'pnp')){
+        if((strtolower($carrier_code) == 'pnp')){
+          //call custom label
+            $customLabel = new Custom_Label();
+            $customLabel->createLabel($loadIdentity);
+        }
+        if((strtolower($carrier_code) != 'pnp')){
              $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
             if ($labelInfo['status'] == 'success') {
             /*************save label data in db****************************************/

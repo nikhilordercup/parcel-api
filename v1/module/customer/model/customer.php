@@ -140,10 +140,7 @@ public function getAllCouriersofCustomerAccount($componyId,$customerId){
 	 $record = $this->db->getAllRecords($sql);
 	 return $record;
     } */
-<<<<<<< HEAD
 
-=======
->>>>>>> 35da64ac25c3f139cb50c0875c07d2ace16749ef
 	public function getAllCourierServicesForCustomer($company_id){
 	 $result = array();
 			$sql = "SELECT CSCT.id,CSCT.company_service_ccf AS ccf,CSCT.company_ccf_operator AS ccf_operator,CSCT.company_service_code AS custom_service_code,CSCT.company_service_name AS custom_service_name,CSCT.status,CSCT.service_id AS service_id, CST.service_name,CST.service_code,CST.service_icon,CST.service_description,CT.name as courier_name,CT.code as courier_code,CSCT.courier_id";
@@ -159,16 +156,9 @@ public function getAllCouriersofCustomerAccount($componyId,$customerId){
 					$item["account_number"] = $accountNo;
 					$result[$key] =  $item;
 			}
-<<<<<<< HEAD
-
 			return $result;
 	}
 
-=======
-			return $result;
-	}
-	
->>>>>>> 35da64ac25c3f139cb50c0875c07d2ace16749ef
 	public function findServiceAccountByServiceAndCourierId($service_id,$courier_id)
 		{
 			$sql = "SELECT CCT.account_number AS account_number";
@@ -789,10 +779,5 @@ public function checkCountryCodeExist($code){
         $record = $this->db->getAllRecords($sql);
         return $record;
      }
-
-
-
-
-
 }
 ?>

@@ -3,7 +3,7 @@ require_once "design1/design1.php";
 require_once "design2/design2.php";
 
 class Custom_Label{
-    public function test($load_identity){
+    public function createLabel($load_identity){
       $html = '<h1>mPDF</h1>
 <h2>Tables</h2>
 <h3>CSS Styles</h3>
@@ -1000,22 +1000,6 @@ $mpdf->Output($path, "F");
  }
 
  $mpdf->Output($path, "F");
-
-/*$mpdf=new \Mpdf\Mpdf($config);
-$mpdf->SetDisplayMode('fullpage');
-$mpdf->list_indent_first_level = 0; // 1 or 0 - whether to indent the first level of a list
-// LOAD a stylesheet
-$stylesheet = file_get_contents('../v1/module/custom_labels/mpdfstyletables.css');
-$mpdf->WriteHTML($stylesheet,1); // The parameter 1 tells that this is css/style only and no body/html/text
-$mpdf->WriteHTML($html);
-$mpdf->Output($path, "F");
-
-/*$mpdf = new \Mpdf\Mpdf();
-$stylesheet = file_get_contents("../v1/module/custom_labels/pdf.css");
-$mpdf->WriteHTML($stylesheet,1);
-$mpdf->WriteHTML($html);
-$mpdf->Output($path, "F");*/
-
     }
 
 }
