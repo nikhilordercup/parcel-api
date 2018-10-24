@@ -38,11 +38,20 @@ class allShipments extends Icargo
             }
 
             if(isset($param->data->carrier)){
-                $filterShipment["carrier_filter"] = "S.carrier_code = '" . $param->data->carrier . "'";
+                if(!is_array($param->data->carrier))
+                    $param->data->carrier = array($param->data->carrier);
+
+                $carrier_string = implode("','", array_filter($param->data->carrier));
+                $filterShipment["carrier_filter"] = "S.carrier_code IN ('" . $carrier_string . "')";
             }
 
             if(isset($param->data->shipment_status)){
-                $filterShipment["shipment_status_filter"] = "SST.tracking_code = '" . $param->data->shipment_status . "'";
+                if(!is_array($param->data->shipment_status))
+                    $param->data->shipment_status = array($param->data->shipment_status);
+
+                $shipment_status_string = implode("','", array_filter($param->data->shipment_status));
+
+                $filterShipment["shipment_status_filter"] = "SST.tracking_code  IN('" . $shipment_status_string . "')";
             }
 
             if(isset($param->data->service)){

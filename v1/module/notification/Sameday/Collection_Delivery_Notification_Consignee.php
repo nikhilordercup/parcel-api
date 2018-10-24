@@ -26,9 +26,12 @@ class Collection_Delivery_Notification_Consignee
     function send($param){
         $libraryObj = new Library();
 
+        $company_address = "";
         //get company detail
         $company_info = $this->_getModelInstance()->getCompanyInfo($param["company_id"]);
-        $company_address = implode(",<br>",array_filter($company_info));
+        if($company_info){
+            $company_address = implode(",<br>",array_filter($company_info));
+        }
 
         //get shipment detail
         $shipmentData = $this->_getModelInstance()->getShipmentDetailByShipmentTicket($param["shipment_ticket"]);
@@ -85,7 +88,7 @@ class Collection_Delivery_Notification_Consignee
         if(!$emailSentStatus){
             foreach($notificationData as $item){
                 if($item["trigger_type"]=="email"){
-                    
+
                     $template_msg = str_replace(array("__customer_name__","__shipment_ticket__","__driver_name__","__company_address__","__date_time__","__shipment_postcode__","__address_line_1__","__contact_person_name__","__contact_persion_email_id__","__shipment_tracking_link__","__reason_of_failure__"), array($shipmentData["shipment_customer_name"],$shipmentData["shipment_ticket"],$driver_info["name"],$company_address,$dateTime,$shipmentData["shipment_postcode"],$shipmentData["shipment_address1"],$shipmentData["shipment_customer_name"],$shipmentData["shipment_customer_email"],'<a href="'.$tracking_url.'">click here</a>',$reasonOffailure), $item["template"]);
 
                     $status = $emailObj->sendMail(array("recipient_name_and_email"=>array(array("name"=>$shipmentData["shipment_customer_name"],"email"=>$shipmentData["shipment_customer_email"])),"template_msg"=>$template_msg, "subject_msg"=>$subject_msg));
@@ -112,7 +115,7 @@ class Collection_Delivery_Notification_Consignee
         if(!$emailSentStatus){
             array_push($nextShipmentTickets, $deliveryShipments["shipment_ticket"]);
         }
-      
+
         if($nextShipmentTickets){
             $recepientEmail = $this->_getModelInstance()->getRecepientEmailByShipmentTicket(implode("','", $nextShipmentTickets));
             array_push($nextRecipientNameAndEmail, array("name"=>$recepientEmail["customer_name"],"email"=>$recepientEmail["customer_email"],"shipment_ticket"=>$recepientEmail["shipment_ticket"]));
