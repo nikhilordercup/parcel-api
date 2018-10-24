@@ -49,22 +49,7 @@ class Master extends Icargo{
              'action'=>'surcharge',
              'actioncode'=>'getAllCourierSurcharge'
        );
-     /* $data[] = array(
-             'id'=>'1',
-             'name'=>'Shipment Status',
-             'code'=>'SHIPMENTSTATUS',
-             'description'=>'Shipment status description going here',
-             'action'=>'shipmentstatus',
-             'actioncode'=>'getAllShipmentsStatus'
-       );
-       $data[] = array(
-             'id'=>'1',
-             'name'=>'Invoice Status',
-             'code'=>'INVOICESTATUS',
-             'description'=>'Invoice status description going here',
-             'action'=>'invoicestatus',
-             'actioncode'=>'getAllInvoiceStatus'
-       ); */
+
       return  $data;
     }
 
@@ -80,69 +65,6 @@ class Master extends Icargo{
       return  $data;
     }
 
-
-
-   /*
-    public function getAllInvoiceStatus($param){
-        $data =   $this->_parentObj->db->getAllRecords("SELECT t1.* FROM ".DB_PREFIX."invoice_master AS t1 WHERE  t1.status = '1'");
-      return  $data;
-	}
-    public function getAllShipmentsStatus($param){
-        $data =   $this->_parentObj->db->getAllRecords("SELECT t1.* FROM ".DB_PREFIX."shipments_master AS t1 WHERE  t1.status ='1'");
-      return  $data;
-	}
-    */
-
-
-     /* public function getAllCourierServices($param){
-         $data  = $this->_parentObj->db->getAllRecords("
-         SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,L.company_service_name as custom_service_name,L.status,L.service_id as service_id
-         FROM ".DB_PREFIX."courier_vs_services_vs_company as L
-         INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id
-         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
-         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid."");
-       foreach( $data as $key=>$val){
-           $data[$key]['action'] = 'editServiceAccount';
-           $data[$key]['actioncode'] = 'INNER';
-           $data[$key]['status'] = ($val['status']==1)?true:false;
-		   $flowtype = $this->_parentObj->db->getAllRecords("SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = ".$val['service_id']." ");
-		   foreach($flowtype as $flowType){
-			    $data[$key]['flow_type'][] = $flowType['flow_type'];
-		   }
-       }
-      return  $data;
-    } */
-
-   /*  public function getAllCourierServices($param)
-    {
-	    $result = array();
-        $sql = "SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,
-            L.company_service_name as custom_service_name,L.status,L.service_id as service_id,B.account_number as account_number
-            FROM ".DB_PREFIX."courier_vs_services_vs_company as L
-            INNER JOIN ".DB_PREFIX."courier_vs_services AS A ON L.service_id = A.id
-            INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id."
-            INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id."
-            AND L.courier_id in (SELECT id FROM icargo_courier_vs_company WHERE company_id= ".$this->_company_id." AND status=1)";
-        $data  = $this->_parentObj->db->getAllRecords($sql);
-
-		foreach($data as $item){
-			$key = $item["service_name"]."__SEPARATOR__".$item["service_code"]."__SEPARATOR__".$item["account_number"];
-			$result[$key] =  $item;
-		}
-        foreach( $result as $key=>$val)
-        {
-		    $result[$key]['flow_type'] = array();
-            $result[$key]['action'] = 'editServiceAccount';
-            $result[$key]['actioncode'] = 'INNER';
-            $result[$key]['status'] = ($val['status']==1)?true:false;
-            $flowtype = $this->_parentObj->db->getAllRecords("SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = ".$val['service_id']." AND t1.account_number='".$val['account_number']."'");
-            foreach($flowtype as $flowType){
-                     $result[$key]['flow_type'][] = $flowType['flow_type'];
-            }
-        }
-       return array_values($result);
-    } */
-
 	public function findServiceAccountByServiceAndCourierId($service_id,$courier_id)
 		{
 			$sql = "SELECT CCT.account_number AS account_number";
@@ -153,11 +75,11 @@ class Master extends Icargo{
 			return $record["account_number"];
 		}
 
-		public function findServiceFlowTypeByAccountNo($service, $account_id)
-		{
-		    $sql = "SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = $service AND t1.account_number='$account_id'";
-				return $this->_parentObj->db->getAllRecords($sql);
-		}
+	public function findServiceFlowTypeByAccountNo($service, $account_id)
+	{
+		$sql = "SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = $service AND t1.account_number='$account_id'";
+			return $this->_parentObj->db->getAllRecords($sql);
+	}
 
     public function getAllCourierServices($param)
     {
@@ -189,22 +111,6 @@ class Master extends Icargo{
 
       return array_values($result);
     }
-
-
-	/* public function getAllCourierSurcharge($param){
-         $data  = $this->_parentObj->db->getAllRecords("
-         SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator
-         FROM ".DB_PREFIX."courier_vs_surcharge_vs_company as L
-         INNER JOIN ".DB_PREFIX."courier_vs_surcharge AS A ON L.surcharge_id = A.id
-         INNER JOIN ".DB_PREFIX."courier_vs_company AS B ON B.courier_id = A.courier_id AND B.company_id = ".$this->_company_id." AND B.account_number = '".$param->account_number."'
-         INNER JOIN ".DB_PREFIX."courier as C on C.id = A.courier_id WHERE L.company_id = ".$this->_company_id." AND  L.courier_id = ".$param->viewid." ");
-       foreach( $data as $key=>$val){
-           $data[$key]['action'] = 'editSurchargeAccount';
-           $data[$key]['actioncode'] = 'INNER';
-           $data[$key]['status'] = ($val['status']==1)?true:false;
-       }
-      return  $data;
-    } */
 
 	public function getAllCourierSurcharge($param){
          $data  = $this->_parentObj->db->getAllRecords("

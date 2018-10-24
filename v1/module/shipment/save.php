@@ -1623,7 +1623,7 @@ class shipment extends Library{
 
     function bookSameDayShipment($data)
     {
-				$carrier_id = $data->service_detail->otherinfo->courier_id;
+		$carrier_id = $data->service_detail->otherinfo->courier_id;
 
         //check customer is enable or not  shipment_instruction
         $customerStatus = $this->db->getRowRecord("SELECT status FROM ".DB_PREFIX."users WHERE id = '$data->customer_id' AND status=1");

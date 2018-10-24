@@ -96,9 +96,9 @@ class Booking extends Icargo
             $param["last_name"]     = "";
             $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
-            $param["company_name"]  = "";
+            $param["company_name"]  = (isset($data->company_name)) ? $data->company_name : "";
 
-			$addressData = array("address_1"=>$param['address_line1'],"address_2"=>$param['address_line2'],"name"=>$param['first_name'],"city"=>$param['city'],"state"=>$param['state'],"company_id"=>$param['company_name'],"country"=>$param['country'],"email"=>$param['contact_email'],"postcode"=>$param['postcode']);
+			$addressData = array("company_name"=>$param["company_name"],"address_1"=>$param['address_line1'],"address_2"=>$param['address_line2'],"name"=>$param['first_name'],"city"=>$param['city'],"state"=>$param['state'],"company_id"=>$param['company_name'],"country"=>$param['country'],"email"=>$param['contact_email'],"postcode"=>$param['postcode']);
 
             $param["search_string"] = $commonObj->getAddressBookSearchString((object)$addressData);//str_replace(' ','',implode('',$param));;
 
