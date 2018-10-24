@@ -1091,7 +1091,6 @@ class shipment extends Library{
             $data['carrier_code'] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
             $data['carrier_account_number'] = (isset($param["carrier_account_number"])) ? $param["carrier_account_number"] : "";
 
-
             //save address first then save shipment detail with address id
             $shipmentId = $this->db->save("shipment", $data);
 
@@ -1478,9 +1477,9 @@ class shipment extends Library{
             $data["iso_code"] = (isset($address["country"])) ? addslashes($this->_getCountryAlpha3Code($address["country"])) : "";
 
             $data["company_name"] = (isset($address["company_name"])) ? addslashes($address["company_name"]) : "";
-			
+
             $addressData = array("address_1"=>$data['address_line1'],"address_2"=>$data['address_line2'],"name"=>$data['first_name'],"city"=>$data['city'],"state"=>$data['state'],"company_id"=>$data['company_name'],"country"=>$data['country'],"email"=>$data['contact_email'],"postcode"=>$data['postcode']);
-			
+
             $data["search_string"] = $commonObj->getAddressBookSearchString((object)$addressData);//str_replace(' ','',implode('',$data));
 
             $data["latitude"] = $address["latitude"];
@@ -1594,7 +1593,7 @@ class shipment extends Library{
         $_data["shipment_required_service_date"] = (isset($_data["shipment_required_service_date"])) ? date("Y-m-d",strtotime($_data["shipment_required_service_date"])) : "1970-01-01";
         $_data["customer_id"] = (isset($param["customer_id"])) ? $param["customer_id"] : "0";
         $_data["collection_user_id"] = (isset($param["collection_user_id"])) ? $param["collection_user_id"] : "0";
-		$_data["userid"] = (isset($param["userid"])) ? $param["userid"] : "0";
+				$_data["userid"] = (isset($param["userid"])) ? $param["userid"] : "0";
         $_data["shipment_instruction"] = (isset($param["shipment_instruction"])) ? $param["shipment_instruction"] : "";
 
         $_data["carrier_code"] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
@@ -1695,7 +1694,7 @@ class shipment extends Library{
                     $shipmentService->load_identity = $loadIdentity;
 					$shipmentService->service_request_string = '';
 					$shipmentService->service_response_string = '';
-                                        
+
                     $shipmentService->customer_reference1 = (isset($data->customer_reference1)) ? $data->customer_reference1 : "";
                     $shipmentService->customer_reference2 = (isset($data->customer_reference2)) ? $data->customer_reference2 : "";
 

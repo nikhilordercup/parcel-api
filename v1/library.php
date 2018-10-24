@@ -23,9 +23,9 @@
 		}
 
         public function put_file_content(){
-			
-		} 
-		
+
+		}
+
 		public function generateCheckDigit($base_val){
 			$result = "";
 			$weight = array(
@@ -45,7 +45,7 @@
 				/* Calculate product and accumulate. */
 				$sum+= (int)substr($reversed_base_val, $i, 1) * $weight[$i];
 				}
-	
+
 			/* Determine check digit, and concatenate to base value. */
 			$remainder = $sum % 11;
 			switch ($remainder)
@@ -53,20 +53,20 @@
 			case 0:
 				$result = 0;
 				break;
-	
+
 			case 1:
 				$result = 0;
 				break;
-	
+
 			default:
 				$check_digit = 11 - $remainder;
 				$result = $check_digit;
 				break;
 				}
-	
+
 			return $result;
 		}
-		
+
 		public function get_address_by_postcode($postcode,$lat=false,$long=false){//recommended by nikhil sir for same day booking
 			$curl_handle=curl_init();
 			curl_setopt($curl_handle, CURLOPT_URL,"https://api.postcodes.io/postcodes/$postcode");
@@ -82,7 +82,7 @@
 				return array("status"=>"error", "data"=>$json);
 			}
 		}
-		
+
 		public function get_lat_long_by_address($address){
             $address = urlencode($address);
             $api_url = "http://maps.googleapis.com/maps/api/geocode/json?address=$address&sensor=false";
@@ -113,17 +113,17 @@
                  return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
             }
 		}
-		
+
         public function get_lat_long_by_address_for_resolve_route($address){
             $address = urlencode($address);
             $api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$this->google_api_key";
             $query   = $this->get_curlresponse($api_url);
             if($query!='Error'){
-                $json = json_decode($query); 
+                $json = json_decode($query);
                 if($json->status=="OK"){
                    $postcodeValid = false;
                     foreach($json->results[0]->address_components as $val){
-                       if(in_array('country',$val->types)){ 
+                       if(in_array('country',$val->types)){
                            $countryCode = str_replace(' ','',$val->short_name);
                            $postcodeValid = ($countryCode =='GB')?true:false;
                        }
@@ -162,18 +162,18 @@
             $request = curl_getinfo($ch, CURLINFO_HEADER_OUT);
             $error = curl_error($ch);
             curl_close($ch);
-			
+
             return $output;*/
           }catch(Exception $e){
 			  print_r($e);die;
              return 'Error';//array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
           }
       }
-		
+
 		public function get_lat_long_by_postcode($address){
 			$address = urlencode($address);
             $api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$this->google_api_key";
-            //$api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address&sensor=false";   
+            //$api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address&sensor=false";
             $query   = $this->get_curlresponse($api_url);
 
             //return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
@@ -212,17 +212,17 @@
                  return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
             }
 		}
-        
+
         public function multiple_destinations_distance_and_duration($param){
 			$direction = isset($param['order']) ? strtolower($param['order']) : 'asc';
 			$mode = $param["mode"];
 			$key = $this->google_api_key;
             $origin = urlencode($param['origin']);
             $destinations = urlencode(implode("|",$param['destinations']));
-			$dateTimeZone = new DateTimeZone("Europe/London"); 
+			$dateTimeZone = new DateTimeZone("Europe/London");
 			$dateTime = new DateTime(date("Y-m-d H:i:s",$param["departure_time"]), $dateTimeZone);
-			$timeOffset = $dateTimeZone->getOffset($dateTime); // New time since epoch according to timezone 
-			$newTime = time() + $timeOffset; 
+			$timeOffset = $dateTimeZone->getOffset($dateTime); // New time since epoch according to timezone
+			$newTime = time() + $timeOffset;
 			$departure_time = strtotime(date("Y-m-d H:i:s",$newTime));
             //$departure_time = $param["departure_time"];
             $api_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=$origin&destinations=$destinations&departure_time=$departure_time&traffic_model=best_guess&mode=$mode&key=$key";
@@ -252,24 +252,30 @@
                 return array("status"=>"error","message"=>$e->getMessage());
             }
 		}
-        
+
         public function date_format($date)
         {
             return date("d-m-Y", strtotime($date));
         }
-        
+
         public function time_format($time)
         {
             return date("h:i", strtotime($time));
         }
-        
+
+        public function get_date_time_format($time){
+          $date = $this->date_format($time);
+          $time = $this->time_format($time);
+          return "$date $time";
+        }
+
         public function base_url()
         {
             return sprintf(
                 "%s://%s%s",
                 isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http',
                 $_SERVER['SERVER_NAME'],
-                substr($_SERVER['REQUEST_URI'],0,strpos($_SERVER['REQUEST_URI'],"api"))//$_SERVER['REQUEST_URI']
+                substr($_SERVER['REQUEST_URI'],0,strpos($_SERVER['REQUEST_URI'],"/v1"))//$_SERVER['REQUEST_URI']
             );
         }
 
@@ -293,7 +299,7 @@
             }
             return $url;
         }
-        
+
         public function get_address_by_latlong($lat,$long){
             $api_url = "http://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long=true";
             $query   = $this->get_curlresponse($api_url);
