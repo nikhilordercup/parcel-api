@@ -113,7 +113,7 @@ class Master extends Icargo{
       return  $data;  
     } */
 	
-    /* public function getAllCourierServices($param)
+   /*  public function getAllCourierServices($param)
     {  
 	    $result = array();
         $sql = "SELECT L.id, A.service_name,A.service_code,A.service_icon,A.service_description,C.name as courier_name,C.code as courier_code,L.company_service_ccf as ccf,L.company_ccf_operator as ccf_operator,L.company_service_code as custom_service_code,
@@ -140,10 +140,9 @@ class Master extends Icargo{
             foreach($flowtype as $flowType){
                      $result[$key]['flow_type'][] = $flowType['flow_type'];
             }
-			
-        }              
+        }                        
        return array_values($result);  
-    } 	 */
+    } */ 	
 	
 	public function findServiceAccountByServiceAndCourierId($service_id,$courier_id)
 		{
@@ -155,11 +154,11 @@ class Master extends Icargo{
 			return $record["account_number"];
 		}
 
-		public function findServiceFlowTypeByAccountNo($service, $account_id)
-		{
-		    $sql = "SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = $service AND t1.account_number='$account_id'";
-				return $this->_parentObj->db->getAllRecords($sql);
-		}
+	public function findServiceFlowTypeByAccountNo($service, $account_id)
+	{
+		$sql = "SELECT t1.flow_type FROM ".DB_PREFIX."service_flow_type AS t1  WHERE t1.service_id = $service AND t1.account_number='$account_id'";
+			return $this->_parentObj->db->getAllRecords($sql);
+	}
 
     public function getAllCourierServices($param)
     {
@@ -191,9 +190,7 @@ class Master extends Icargo{
 
       return array_values($result);
     }
-	
-	
-	
+
 	/* public function getAllCourierSurcharge($param){
          $data  = $this->_parentObj->db->getAllRecords("
          SELECT L.id, A.surcharge_name,A.surcharge_code,A.surcharge_icon,A.surcharge_description,C.name as courier_name,C.code as courier_code,L.company_surcharge_surcharge as surcharge,L.company_surcharge_code as custom_surcharge_code,L.company_surcharge_name as custom_surcharge_name,L.status,L.company_ccf_operator as ccf_operator

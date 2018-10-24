@@ -18,8 +18,8 @@ final class Nextday extends Booking
 
         $this->collectionModel = Collection::_getInstance(); //new Collection();
     }
-
-    private function _getJobCollectionList($carriers, $address)
+	
+	private function _getJobCollectionList($carriers, $address)
     {
         $jobCollectionList    = $this->collectionModel->getJobCollectionList($carriers, $address, $this->_param->customer_id, $this->_param->company_id, $this->_param->collection_date);
 		$data = array('carrier_list'=>array());
@@ -29,8 +29,8 @@ final class Nextday extends Booking
         $this->regular_pickup = $jobCollectionList["regular_pickup"];
         return $data["carrier_list"];
     }
-
-   /* private function _getCustomerCarrierAccount()
+	
+	private function _getCustomerCarrierAccount()
     {
         $result = array();
         //print_r($this->_param);
@@ -57,7 +57,7 @@ final class Nextday extends Booking
         //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if (count($carrier) > 0) {
             foreach ($carrier as $key => $item) {
-                if($item['internal']!=1){
+                //if($item['internal']!=1){
 					$accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
 					$carrier[$key]["account_id"] = $accountId;
 
@@ -80,12 +80,13 @@ final class Nextday extends Booking
 							}
 						}
 					}
-				}
+				//}
             }
 
             $collectionIndex = 0;
             $collectionList  = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
             if (count($collectionList) > 0) {
+				//$carrierInfo = array();
                 foreach ($collectionList as $item) {
                     if (strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])) {
                         $item['highlight_class'] = '';
@@ -99,51 +100,23 @@ final class Nextday extends Booking
                         foreach ($item["services"] as $service) {
                             array_push($serviceItems, $service["service_code"]);
                         }
-                        
+                        $result[$item["carrier_code"]]["name"] = $item["carrier_code"];
 						if( strtolower( $item["carrier_code"] ) == 'dhl' ) {
-							
-							array_push($result, array(
-								"name" => $item["carrier_code"],
-								"account" => array(
-									array(
-										"credentials" => array(
-											"username" => $item["username"],
-											"password" => $item["password"],
-											"account_number" => $item["account_number"]
-										),
-										"services" => implode(",", $serviceItems),
-										"pickup_scheduled" => $isRegularPickup,
-										"inxpress" => false,
-										"other_reseller_account" => false
-									)
-								)
-							));
-							
-						} else {
-							
-							array_push($result, array(
-								"name" => $item["carrier_code"],
-								"account" => array(
-									array(
-										"credentials" => array(
-											"username" => $item["username"],
-											"password" => $item["password"],
-											"account_number" => $item["account_number"]
-										),
-										"services" => implode(",", $serviceItems),
-										"pickup_scheduled" => $isRegularPickup
-									)
-								)
-							));
+							$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"], "inxpress" => false, 
+							"other_reseller_account" => false), "services" => implode(",", $serviceItems), "pickup_scheduled" => $isRegularPickup);
+						}else{
+							$result[$item["carrier_code"]]["account"][] = array("credentials" => array("username" => $item["username"],"password" => $item["password"],"account_number" => $item["account_number"]),
+																		"services" => implode(",", $serviceItems),
+																		"pickup_scheduled" => $isRegularPickup);
 						}
-																		                      
                         $this->carrierList[$item["account_number"]] = $item;
                     }
                 }
                 if (count($result) > 0) {
+					
                     return array(
                         "status" => "success",
-                        "data" => $result
+                        "data" => array_values($result)
                     );
                 }
                 return array(

@@ -155,7 +155,6 @@ public function getAllCouriersofCustomerAccount($componyId,$customerId){
 					$item["account_number"] = $accountNo;
 					$result[$key] =  $item;
 			}
-
 			return $result;
 	}
 	

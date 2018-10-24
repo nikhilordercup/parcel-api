@@ -82,9 +82,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 			$size = getimagesize ($image);
 			$width = $size[0];
 			$height = $size[1];
-			$mpdf->WriteHTML('');
 			$mpdf->Image($image,60,50,$width,$height,'png','',true, true);
-			$mpdf->AddPage('');
 			$mpdf->Ln();
 		}
 		try{
