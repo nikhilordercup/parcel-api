@@ -1956,5 +1956,103 @@ class allShipments extends Icargo
      }
 
 
+       public function dashboardFilter() {
+        /* Today  tomorrow  This week  Last week  This Month  Last Month This quarter Last Quarter Custom Range */
+        $curDate = date('Y-m-d');
+        if( $data->filter == 'today') {
+            $startDate = $endDate = $curDate;
+        }
+        else if( $data->filter == 'tomorrow') {
+            $startDate = $endDate = date('Y-m-d', strtotime($curDate,'+1D'));            
+        }
+        else if( $data->filter == 'tweek') {
+            $d = strtotime("today");
+            $start_week = strtotime("last sunday midnight",$d);
+            $end_week = strtotime("next saturday",$d);
+            $startDate = date("Y-m-d",$start_week); 
+            $endDate = date("Y-m-d",$end_week);  
+        }    
+        else if( $data->filter == 'lweek') {
+            $previous_week = strtotime("-1 week +1 day");
+
+            $start_week = strtotime("last sunday midnight",$previous_week);
+            $end_week = strtotime("next saturday",$start_week);
+
+            $startDate = date("Y-m-d",$start_week);
+            $endDate = date("Y-m-d",$end_week);
+
+            //echo $start_week.' '.$end_week ;
+        }
+        else if( $data->filter == 'tmonth') {
+            $startDate = date("Y-m-01");
+            $endDate = date("Y-m-d");
+        }
+        else if( $data->filter == 'lmonth') {
+            $startDate = date('Y-m-d',strtotime('first day of last month'));
+            $lastDate = date('Y-m-d',strtotime('last day of last month'));
+        }
+        else if( $data->filter == 'tquarter') {
+            $current_month = date('m');
+            $current_year = date('Y');
+            if($current_month>=1 && $current_month<=3)
+            {
+              $startDate = strtotime('1-January-'.$current_year);  // timestamp or 1-Januray 12:00:00 AM
+              $endDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM means end of 31 March
+            }
+            else  if($current_month>=4 && $current_month<=6)
+            {
+              $startDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM
+              $endDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM means end of 30 June
+            }
+            else  if($current_month>=7 && $current_month<=9)
+            {
+              $startDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM
+              $endDate = strtotime('1-October-'.$current_year);  // timestamp or 1-October 12:00:00 AM means end of 30 September
+            }
+            else  if($current_month>=10 && $current_month<=12)
+            {
+              $startDate = strtotime('1-October-'.$current_year);  // timestamp or 1-October 12:00:00 AM
+              $endDate = strtotime('1-January-'.($current_year+1));  // timestamp or 1-January Next year 12:00:00 AM means end of 31 December this year
+            }
+        }
+        else if( $data->filter == 'lquarter') {
+            $current_month = date('m');
+            $current_year = date('Y');
+
+            if($current_month>=1 && $current_month<=3)
+            {
+                $startDate = strtotime('1-October-'.($current_year-1));  // timestamp or 1-October Last Year 12:00:00 AM
+                $endDate = strtotime('1-January-'.$current_year);  // // timestamp or 1-January  12:00:00 AM means end of 31 December Last year
+            } 
+            else if($current_month>=4 && $current_month<=6)
+            {
+                $startDate = strtotime('1-January-'.$current_year);  // timestamp or 1-Januray 12:00:00 AM
+                $endDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM means end of 31 March
+            }
+            else  if($current_month>=7 && $current_month<=9)
+            {
+                $startDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM
+                $endDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM means end of 30 June
+            }
+            else  if($current_month>=10 && $current_month<=12)
+            {
+                $startDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM
+                $endDate = strtotime('1-October-'.$current_year);  // timestamp or 1-October 12:00:00 AM means end of 30 September
+            }
+        }
+                   
+    }
+
+    public function dashboardCarrierVsShipmemt($data = array()) {
+        if( empty( $data->custom_range ) ) {
+            $dateRange = $this->dashboardFilter($data->filter);
+        } else {
+            $startDate = date('Y-m-d', strtotime($date->start_date));
+            $endDate = date('Y-m-d', strtotime($date->end_date));
+        }
+        
+        $where = "shipment_date='$curDate'";
+        
+    }
 }
 ?>

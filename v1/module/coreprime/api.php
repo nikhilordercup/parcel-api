@@ -48,7 +48,7 @@ class Module_Coreprime_Api extends Icargo
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
-        return $server_output;
+        return $server_output; 
     }
     private
     function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse,$is_tax_exempt)
@@ -223,8 +223,9 @@ class Module_Coreprime_Api extends Icargo
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
+        
         $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
-
+        
         if(isset($data->status) && ($data->status=="error")){
           return $data;
         }else{

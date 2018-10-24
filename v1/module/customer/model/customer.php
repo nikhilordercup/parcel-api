@@ -517,6 +517,9 @@ public function checkCustomerEmailExist($company_email){
     }
 	
 	public function setDefaultAddress($param){
+		if(isset($param->address_list->id))
+			$param->address_list->address_id = $param->address_list->id;
+		
 		$addressExist = $this->isExist("user_id='".$param->userid."' AND address_id=".$param->address_list->address_id."","user_address");
 		if($addressExist){
 			 $defaultExist = $this->isExist("user_id='".$param->userid."' AND default_address='Y'","user_address");
