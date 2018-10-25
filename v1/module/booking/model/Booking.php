@@ -440,14 +440,10 @@ class Booking_Model_Booking
 
     public
 
-    function getCarrierCollectionStartTime($companyId, $carrierId, $accountNo, $userName, $password)
+    function checkCarrierCollectionStartTime($companyId, $carrierId, $accountNo, $userName, $password, $collectionTime)
     {
-        $sql = "SELECT collection_start_at as collection_start_time,collection_end_at as collection_end_time FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.company_id='$companyId' AND CCT.account_number='$accountNo' AND CCT.username='$userName' AND CCT.password='$password' AND CCT.courier_id='$carrierId'";
+        $sql = "SELECT COUNT(1) AS num_count FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.company_id='$companyId' AND CCT.account_number='$accountNo' AND CCT.username='$userName' AND CCT.password='$password' AND CCT.courier_id='$carrierId' AND ('$collectionTime' >= `collection_start_at` AND '$collectionTime' <= `collection_end_at`)";
         $record = $this->_db->getRowRecord($sql);
-        //print_r($record);
-        //if(!$record){
-        //    echo 453;echo $sql;die;
-        //}
         return $record;
     }
 
@@ -456,6 +452,15 @@ class Booking_Model_Booking
     function checkCollectionTime($addressId, $customerId, $carrierCode, $collectionTime)
     {
         $sql = "SELECT collection_start_time AS collection_start_time, collection_end_time AS collection_end_time FROM " . DB_PREFIX . "address_carrier_time AS ACT WHERE ACT.address_id=" . $addressId . " AND ACT.customer_id=" . $customerId . " AND ACT.carrier_code='" . $carrierCode . "' AND '$collectionTime' >= `collection_start_time` AND '$collectionTime' <= `collection_end_time`";
+        $record = $this->_db->getRowRecord($sql);
+        return $record;
+    }
+
+    public
+
+    function findCarrierCollectionStartTime($companyId, $carrierId, $accountNo, $userName, $password)
+    {
+        $sql = "SELECT collection_start_at AS collection_start_time, collection_end_at AS collection_end_time FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.company_id='$companyId' AND CCT.account_number='$accountNo' AND CCT.username='$userName' AND CCT.password='$password' AND CCT.courier_id='$carrierId'";
         $record = $this->_db->getRowRecord($sql);
         return $record;
     }

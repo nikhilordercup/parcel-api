@@ -17,7 +17,6 @@ final Class Collection
         {
             self::$_collectionObj = new Collection();
         }
-
         return self::$_collectionObj;
     }
 
@@ -64,8 +63,12 @@ final Class Collection
         $this->companyId = $company_id;
         $this->today = date("Y-m-d", strtotime("now"));
         $this->collectionDateTimestamp = strtotime($collection_date);
-        $this->collectionDate = date("Y-m-d H:i", $this->collectionDateTimestamp);
+        //BKP $this->collectionDate = date("Y-m-d H:i", $this->collectionDateTimestamp);
+
+        $this->collectionDate = date("Y-m-d", $this->collectionDateTimestamp);
         $this->collectionTime = date("H:i", $this->collectionDateTimestamp);
+        $this->collectionDateTime = date("Y-m-d H:i", $this->collectionDateTimestamp);
+
         $this->_getCollectionAddressString();
         $this->_findList();
         return array(
@@ -106,7 +109,6 @@ final Class Collection
             if (isset($this->internalCarrier))
             {
                 array_push($result, $this->internalCarrier);
-                array_push($result, $this->internalCarrier);
             }
         }
 
@@ -128,7 +130,7 @@ final Class Collection
     }
 
     private
-    function _nextCollectionTime($collection_start_at, $collection_end_at, $collection_date = null)
+    function _nextCollectionTimeBKP($collection_start_at, $collection_end_at, $collection_date = null)
     {
         $todayStartTimeTimestamp = strtotime($this->today . ' ' . $collection_start_at);
         $todayEndTimeTimestamp = strtotime($this->today . ' ' . $collection_end_at);
@@ -161,6 +163,23 @@ final Class Collection
                 $nextCollectionDateTime = $nextCollectionDateTime . ' ' . $collection_start_at;
                 return $this->_nextCollectionTime($collection_start_at, $collection_end_at, $nextCollectionDateTime);
             }
+        }
+        return $nextCollectionDate;
+    }
+
+    private
+
+    function _nextCollectionTime($collection_start_at, $collection_end_at, $collection_date = null)
+    {
+        if ($this->_isWeekend($collection_date))
+        {
+            $nextMonday = date("Y-m-d", strtotime("next monday"));
+            $nextCollectionDate = date("Y-m-d H:i", strtotime("$nextMonday $collection_start_at"));
+            $nextCollectionDate = "$nextCollectionDate";
+        }
+        else
+        {
+            $nextCollectionDate = $collection_date;
         }
         return $nextCollectionDate;
     }
@@ -202,16 +221,24 @@ final Class Collection
         $this->_findCollectionAddressIsRegularPickup($defaultCollectionAddress);
         foreach($list as $item)
         {
-
             // first check current date then only check time between collection start time and collection end posix_times
-            if(strtotime($this->collectionDate) == strtotime($this->today)){
+            if(strtotime($this->collectionDate) >= strtotime($this->today)){
                 //address
                 $startTimeFound = $this->modelObj->checkCollectionTime($defaultCollectionAddress['address_id'], $this->customerId, $item['carrier_code'], $this->collectionTime);
                 if($startTimeFound){
-                    $collectionDateTime = $this->_nextCollectionTime($startTimeFound["collection_start_time"], $startTimeFound["collection_end_time"]);
-                } else{
-                      $collectionTimeFound = $this->modelObj->getCarrierCollectionStartTime($this->companyId, $item['carrier_id'], $item["account_number"], $item["username"], $item["password"]);
-                      $collectionDateTime = $this->_nextCollectionTime($collectionTimeFound["collection_start_time"], $collectionTimeFound["collection_end_time"]);
+                    $collectionDateTime = $this->_nextCollectionTime($startTimeFound["collection_start_time"], $startTimeFound["collection_end_time"], $this->collectionDateTime);
+                }
+                else{
+                    $collectionDateTime = $this->modelObj->findCarrierCollectionStartTime($this->companyId, $item['carrier_id'], $item["account_number"], $item["username"], $item["password"]);
+                    $collectionTime = $this->modelObj->checkCarrierCollectionStartTime($this->companyId, $item['carrier_id'], $item["account_number"], $item["username"], $item["password"],$this->collectionTime);
+                    if($collectionTime["num_count"]>0){
+                        $collectionDateTime = $this->_nextCollectionTime($collectionDateTime["collection_start_time"], $collectionDateTime["collection_end_time"], $this->collectionDateTime);
+                    } else {
+                        $nextDate = date("Y-m-d", strtotime($this->collectionDate . ' +1 day'));
+                        $nextDate = "$nextDate $this->collectionTime";
+                        $collectionStartTime = $collectionDateTime["collection_start_time"];
+                        $collectionDateTime = $this->_nextCollectionTime($collectionDateTime["collection_start_time"], $collectionDateTime["collection_end_time"], $nextDate);
+                    }
                 }
             }
 
