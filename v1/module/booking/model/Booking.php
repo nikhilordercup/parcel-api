@@ -429,12 +429,35 @@ class Booking_Model_Booking
 
     // get collection start time by carrier code,address_id and customer_id
 
-    public
+    /*public
 
     function getCollectionStartTime($addressId, $customerId, $carrierCode)
     {
         $sql = "SELECT collection_start_time as collection_start_time,collection_end_time as collection_end_time FROM " . DB_PREFIX . "address_carrier_time AS ACT WHERE ACT.address_id=" . $addressId . " AND ACT.customer_id=" . $customerId . " AND ACT.carrier_code='" . $carrierCode . "'";
-        return $this->_db->getRowRecord($sql);
+        $record = $this->_db->getRowRecord($sql);
+        return $record;
+    }*/
+
+    public
+
+    function getCarrierCollectionStartTime($companyId, $carrierId, $accountNo, $userName, $password)
+    {
+        $sql = "SELECT collection_start_at as collection_start_time,collection_end_at as collection_end_time FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.company_id='$companyId' AND CCT.account_number='$accountNo' AND CCT.username='$userName' AND CCT.password='$password' AND CCT.courier_id='$carrierId'";
+        $record = $this->_db->getRowRecord($sql);
+        //print_r($record);
+        //if(!$record){
+        //    echo 453;echo $sql;die;
+        //}
+        return $record;
+    }
+
+    public
+
+    function checkCollectionTime($addressId, $customerId, $carrierCode, $collectionTime)
+    {
+        $sql = "SELECT collection_start_time AS collection_start_time, collection_end_time AS collection_end_time FROM " . DB_PREFIX . "address_carrier_time AS ACT WHERE ACT.address_id=" . $addressId . " AND ACT.customer_id=" . $customerId . " AND ACT.carrier_code='" . $carrierCode . "' AND '$collectionTime' >= `collection_start_time` AND '$collectionTime' <= `collection_end_time`";
+        $record = $this->_db->getRowRecord($sql);
+        return $record;
     }
 
     public

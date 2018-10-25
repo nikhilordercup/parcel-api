@@ -65,6 +65,7 @@ final Class Collection
         $this->today = date("Y-m-d", strtotime("now"));
         $this->collectionDateTimestamp = strtotime($collection_date);
         $this->collectionDate = date("Y-m-d H:i", $this->collectionDateTimestamp);
+        $this->collectionTime = date("H:i", $this->collectionDateTimestamp);
         $this->_getCollectionAddressString();
         $this->_findList();
         return array(
@@ -83,7 +84,14 @@ final Class Collection
         $this->companyId = $company_id;
         $this->today = date("Y-m-d", strtotime("now"));
         $this->collectionDateTimestamp = strtotime($collection_date);
-        $this->collectionDate = date("Y-m-d H:i", $this->collectionDateTimestamp);
+        //BKP $this->collectionDate = date("Y-m-d H:i", $this->collectionDateTimestamp);
+
+        $this->collectionDateTime = date("Y-m-d H:i", $this->collectionDateTimestamp);
+
+        $this->collectionDate = date("Y-m-d", $this->collectionDateTimestamp);
+        $this->collectionTime = date("H:i", $this->collectionDateTimestamp);
+        $this->currentTime = date("H:i", strtotime("now"));
+
         $this->_getCollectionAddressString();
         $this->_findCourier($this->carriers);
         $result = array();
@@ -124,7 +132,7 @@ final Class Collection
     {
         $todayStartTimeTimestamp = strtotime($this->today . ' ' . $collection_start_at);
         $todayEndTimeTimestamp = strtotime($this->today . ' ' . $collection_end_at);
-        $collection_date = ($collection_date != null) ? $collection_date : $this->collectionDate;
+        $collection_date = ($collection_date != null) ? $collection_date : $this->collectionDateTime;
         $collectionDateTimestamp = strtotime($collection_date);
         $nextCollectionDate = "";
         if ($this->_isWeekend($collection_date))
@@ -136,7 +144,9 @@ final Class Collection
         else
         {
             $nextDateStamp = strtotime(date("Y-m-d " . $collection_start_at, strtotime('+1 day', strtotime($collection_date)))); //strtotime($collection_date);
-            $colletionDateStamp = strtotime($this->collectionDate);
+            //BKP $colletionDateStamp = strtotime($this->collectionDate);
+            $colletionDateStamp = strtotime($this->collectionDateTime);
+
             if (($collectionDateTimestamp >= $todayStartTimeTimestamp) AND ($collectionDateTimestamp <= $todayEndTimeTimestamp))
             {
                 $nextCollectionDate = date("Y-m-d H:i", $colletionDateStamp);
@@ -152,11 +162,11 @@ final Class Collection
                 return $this->_nextCollectionTime($collection_start_at, $collection_end_at, $nextCollectionDateTime);
             }
         }
-
         return $nextCollectionDate;
     }
 
     private
+
     function _prepareCollectionList($item)
     {
         $collectionStartTimeStamp = strtotime($item["collection_start_at"]);
@@ -183,93 +193,94 @@ final Class Collection
     }
 
     private
+
     function _findCourier($list)
     {
         $this->carrierList = array();
         $defaultCollectionAddress = $this->modelObj->getDefaultCollectionAddress($this->customerId);
+
         $this->_findCollectionAddressIsRegularPickup($defaultCollectionAddress);
         foreach($list as $item)
         {
-            //if (isset($item["services"]))
-            //{
-                // get carrier time for customer
-                $collectionStartTime = $this->modelObj->getCollectionStartTime($defaultCollectionAddress['address_id'], $this->customerId, $item['carrier_code']);
-                if ($collectionStartTime == '') $collectionDateTime = $this->_nextCollectionTime($item["collection_start_at"], $item["collection_end_at"]);
-                else $collectionDateTime = $this->_nextCollectionTime($collectionStartTime["collection_start_time"], $collectionStartTime["collection_end_time"]);
-                $item["is_regular_pickup"] = $this->isRegularPickup;
-                $item["collection_date_time"] = $collectionDateTime;
-                $collectionList = $this->_prepareCollectionList($item);
-                if ($item["pickup"] == 1 || $this->isRegularPickup == "yes" || $this->skipPickupProcess == true)
-                {
 
-                    // collected by carrier itself
-
-                    $collectionList["collected_by"][] = array(
-                        "carrier_code" => $collectionList["carrier_code"],
-                        "account_number" => $collectionList["account_number"],
-                        "is_internal" => $collectionList["internal"],
-                        "name" => $collectionList["name"],
-                        "icon" => $collectionList["icon"],
-                        "pickup_surcharge" => $collectionList["pickup_surcharge"],
-                        "collection_date_time" => $collectionList["collection_date_time"],
-                        "collection_start_at" => $collectionList["collection_start_at"],
-                        "collection_end_at" => $collectionList["collection_end_at"],
-                        "is_regular_pickup" => $this->isRegularPickup,
-                        "carrier_id" => $collectionList["carrier_id"],
-                        "pickup" => $collectionList["pickup"]
-                    );
+            // first check current date then only check time between collection start time and collection end posix_times
+            if(strtotime($this->collectionDate) == strtotime($this->today)){
+                //address
+                $startTimeFound = $this->modelObj->checkCollectionTime($defaultCollectionAddress['address_id'], $this->customerId, $item['carrier_code'], $this->collectionTime);
+                if($startTimeFound){
+                    $collectionDateTime = $this->_nextCollectionTime($startTimeFound["collection_start_time"], $startTimeFound["collection_end_time"]);
+                } else{
+                      $collectionTimeFound = $this->modelObj->getCarrierCollectionStartTime($this->companyId, $item['carrier_id'], $item["account_number"], $item["username"], $item["password"]);
+                      $collectionDateTime = $this->_nextCollectionTime($collectionTimeFound["collection_start_time"], $collectionTimeFound["collection_end_time"]);
                 }
+            }
 
-                if (isset($this->internalCarrier))
-                {
-                    $collectionList["collected_by"][] = array(
-                        "carrier_code" => $this->internalCarrier["carrier_code"],
-                        "account_number" => $this->internalCarrier["account_number"],
-                        "is_internal" => $this->internalCarrier["internal"],
-                        "name" => $this->internalCarrier["name"],
-                        "icon" => $this->internalCarrier["icon"],
-                        "pickup_surcharge" => $this->internalCarrier["pickup_surcharge"],
-                        "collection_date_time" => $this->internalCarrier["collection_date_time"],
-                        "collection_start_at" => $this->internalCarrier["collection_start_at"],
-                        "collection_end_at" => $this->internalCarrier["collection_end_at"],
-                        "is_regular_pickup" => $this->isRegularPickup,
-                        "carrier_id" => $this->internalCarrier["carrier_id"],
-                        "pickup" => $this->internalCarrier["pickup"]
-                    );
-                }
+            $item["is_regular_pickup"] = $this->isRegularPickup;
+            $item["collection_date_time"] = $collectionDateTime;
 
-                $this->collectionList[] = $collectionList;
-                $this->carrierList[$item["account_number"]] = $item;
-            //}
+            $collectionList = $this->_prepareCollectionList($item);
+            if ($item["pickup"] == 1 || $this->isRegularPickup == "yes" || $this->skipPickupProcess == true)
+            {
+                // collected by carrier itself
+                $collectionList["collected_by"][] = array(
+                    "carrier_code" => $collectionList["carrier_code"],
+                    "account_number" => $collectionList["account_number"],
+                    "is_internal" => $collectionList["internal"],
+                    "name" => $collectionList["name"],
+                    "icon" => $collectionList["icon"],
+                    "pickup_surcharge" => $collectionList["pickup_surcharge"],
+                    "collection_date_time" => $collectionList["collection_date_time"],
+                    "collection_start_at" => $collectionList["collection_start_at"],
+                    "collection_end_at" => $collectionList["collection_end_at"],
+                    "is_regular_pickup" => $this->isRegularPickup,
+                    "carrier_id" => $collectionList["carrier_id"],
+                    "pickup" => $collectionList["pickup"]
+                );
+            }
+
+            if (isset($this->internalCarrier))
+            {
+                $collectionList["collected_by"][] = array(
+                    "carrier_code" => $this->internalCarrier["carrier_code"],
+                    "account_number" => $this->internalCarrier["account_number"],
+                    "is_internal" => $this->internalCarrier["internal"],
+                    "name" => $this->internalCarrier["name"],
+                    "icon" => $this->internalCarrier["icon"],
+                    "pickup_surcharge" => $this->internalCarrier["pickup_surcharge"],
+                    "collection_date_time" => $this->internalCarrier["collection_date_time"],
+                    "collection_start_at" => $this->internalCarrier["collection_start_at"],
+                    "collection_end_at" => $this->internalCarrier["collection_end_at"],
+                    "is_regular_pickup" => $this->isRegularPickup,
+                    "carrier_id" => $this->internalCarrier["carrier_id"],
+                    "pickup" => $this->internalCarrier["pickup"]
+                );
+            }
+
+            $this->collectionList[] = $collectionList;
+            $this->carrierList[$item["account_number"]] = $item;
         }
     }
 
     private
+
     function _findInternalCourier()
     {
         $internalCarrier = $this->_getInternalCarrier();
         if (count($internalCarrier) > 0)
         {
-
             // step 1
-
             if (count($this->_findInOperationalArea()) > 0)
             {
-
                 // step 2
                 // find customer default collection address
-
                 $defaultCollectionAddress = $this->modelObj->getCustomerDefaultCollectionAddress($this->customerId);
                 $this->_findCollectionAddressIsRegularPickup($defaultCollectionAddress);
                 $pickupSurcharge = 0;
                 if ($this->isRegularPickup == "no")
                 {
-
                     // add pickup surcharge
-
                     $pickupSurcharge = $internalCarrier["pickup_surcharge"];
                 }
-
                 $collectionDateTime = $this->_nextCollectionTime($internalCarrier["collection_start_at"], $internalCarrier["collection_end_at"]);
                 $internalCarrier["pickup_surcharge"] = $pickupSurcharge;
                 $internalCarrier["collection_date_time"] = $collectionDateTime;
