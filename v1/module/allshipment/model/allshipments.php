@@ -355,13 +355,17 @@ SELECT  S.warehouse_id as warehouse_id,
 
      public function getAllSurchargeOfCarrier($carrierId,$companyId){
        $record = array();
-         $sqldata = 'S.surcharge_id,S.company_surcharge_name';
+         $sqldata = 'COUR.surcharge_name,COUR.surcharge_code,S.id as surcharge_id,S.company_surcharge_name,S.company_surcharge_code';
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_surcharge_vs_company AS S
+                 LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge COUR ON S.surcharge_id = COUR.id
                 WHERE S.company_id = '" . $companyId . "' AND S.courier_id = '" . $carrierId . "' AND S.status = 1";
         $record = $this->db->getAllRecords($sql);
         return $record;
       }
 
+    
+    
+    
    /*  public function getCcfOfCarrierSurcharge($surchargeId,$company_id,$customer_id,$courier_id)
     {
         $sql = "
@@ -726,6 +730,9 @@ SELECT  S.warehouse_id as warehouse_id,
          RECJOB.recurring_date AS recurring_date,
          RECJOB.recurring_time AS recurring_time,
          RECJOB.recurring_month_date AS recurring_month_date,
+         RECJOB.last_booking_date AS last_booked_date,
+         RECJOB.last_booking_time AS last_booked_time,
+         RECJOB.last_booking_reference AS last_booked_ref,
          RECJOB.status AS status';
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS RECJOB
          where RECJOB.company_id  = '$companyId' AND RECJOB.load_identity  = '$loadidentity' ";
@@ -805,6 +812,47 @@ SELECT  S.warehouse_id as warehouse_id,
         $record = $this->db->getRowRecord($sql);
         return  $record;
     }
-
-  }
+   public function getAllServicesOfCarrier($carrierId,$companyId,$servicetype){ 
+         $record = array();
+         $sqldata = 'C.service_name,C.service_code,S.service_id,S.company_service_name,S.company_service_code,C.flow_type';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_services_vs_company AS S
+                INNER JOIN " . DB_PREFIX . "courier_vs_services as C on S.service_id = C.id
+                WHERE S.company_id = '" . $companyId . "' AND S.courier_id = '" . $carrierId . "'  AND C.service_type = '" . $servicetype . "' AND S.status = 1";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+      }
+    public function getCarriersofCompany($companyId){
+         $record = array();
+         $sqldata = 'L.id as autocarrier_id,L.courier_id,C.name,C.code,L.account_number,C.icon,
+                     L.collection_start_at,L.collection_end_at,L.pickup_surcharge,L.pickup,L.is_internal';
+         /*$sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_company  as L
+                INNER JOIN " . DB_PREFIX . "courier as C on L.courier_id = C.id
+                WHERE L.company_id = '" . $companyId . "' AND C.is_self = 'YES'";*/
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_company  as L
+                INNER JOIN " . DB_PREFIX . "courier as C on L.courier_id = C.id
+                WHERE L.company_id = '" . $companyId . "'";
+        $record = $this->db->getAllRecords($sql);
+        
+        
+        
+            
+        return $record;
+      }
+     public function getNextDayCarriersofCompany($companyId){
+         $record = array();
+         $sqldata = 'L.id as autocarrier_id,L.courier_id,C.name,C.code,L.account_number,C.icon,
+                     L.collection_start_at,L.collection_end_at,L.pickup_surcharge,L.pickup,L.is_internal';
+        /* $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_company  as L
+                INNER JOIN " . DB_PREFIX . "courier as C on L.courier_id = C.id
+                WHERE L.company_id = '" . $companyId . "' AND C.is_self != 'YES'";
+        */
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_company  as L
+                INNER JOIN " . DB_PREFIX . "courier as C on L.courier_id = C.id
+                WHERE L.company_id = '" . $companyId . "'";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+      }
+    
+        
+    }
 ?>

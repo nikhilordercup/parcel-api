@@ -505,5 +505,16 @@ class Booking_Model_Booking
         $sql = "SELECT customer_type FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customer_id'";
         return $this->_db->getRowRecord($sql);
     }
+    
+     public function getCarriersofCompany($companyId){
+         $record = array();
+         $sqldata = 'L.id as autocarrier_id,L.courier_id,C.name,C.code,L.account_number,C.icon,
+                     L.collection_start_at,L.collection_end_at,L.pickup_surcharge,L.pickup,L.is_internal';
+         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_company  as L
+                INNER JOIN " . DB_PREFIX . "courier as C on L.courier_id = C.id
+                WHERE L.company_id = '" . $companyId . "' AND C.is_self = 'YES'";
+        $record = $this->_db->getAllRecords($sql);
+        return $record;
+      }
 }
 ?>

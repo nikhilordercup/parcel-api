@@ -170,13 +170,11 @@
           }
       }
 		
-		public function get_lat_long_by_postcode($address){
+		public function get_lat_long_by_postcode($address){  //print_r($address);
 			$address = urlencode($address);
             $api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$this->google_api_key";
             //$api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address&sensor=false";   
             $query   = $this->get_curlresponse($api_url);
-
-            //return array("latitude"=>0.00, "longitude"=>0.00, 'geo_location'=>array(),"status"=>"error");
             if($query!='Error'){
                 $json = json_decode($query);
                 if($json->status=="OK"){
@@ -187,6 +185,9 @@
                        if(in_array('postal_code',$val->types)){
                            $postdata = str_replace(' ','',$val->long_name);
                            $addressdatadata = str_replace(' ','',urldecode($address));
+                           if(strpos( $addressdatadata, ',' ) !== false) { 
+                                $addressdatadata = explode('-',explode(',',$addressdatadata)[1])[0];
+                            }
                            if($postdata==$addressdatadata){
                                $latitude = $address_components->geometry->location->lat;
                                $long     = $address_components->geometry->location->lng;
@@ -196,6 +197,7 @@
                        }
                     }
                    }
+                   
                 if($postcodeValid) {
                      //return array("latitude"=>$json->results[0]->geometry->location->lat, "longitude"=>$json->results[0]->geometry->location->lng, 'geo_location'=>$json,"status"=>"success") ;
                      return array("latitude"=>$latitude, "longitude"=>$long, 'geo_location'=>$json,"status"=>"success");

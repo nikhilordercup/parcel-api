@@ -98,6 +98,7 @@ class AllInvoice_Model
                 AND S.shipment_service_type = 'P'
                 AND A.is_hold = 'NO'
                 AND CI.customer_type = 'POSTPAID'
+                group by A.load_identity
                 ORDER BY A.customer_id"; 
         $record = $this->db->getAllRecords($sql);
         return $record; 

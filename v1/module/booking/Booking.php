@@ -332,7 +332,7 @@ class Booking extends Icargo
 
     protected
 
-    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail,$serviceId, $cust_ref1, $cust_ref2){
+    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail,$serviceId, $cust_ref1, $cust_ref2,$ismanualbooking,$manualbookingreference){
 
         $service_data = array();
 
@@ -381,9 +381,9 @@ class Booking extends Icargo
             $service_data["service_response_string"] = $this->serviceResponseString;
 
             $customerData = $this->getBookedShipmentsCustomerInfo($customer_id);
-	          $service_data['customer_type'] = $customerData['customer_type'];
+	        $service_data['customer_type'] = $customerData['customer_type'];
 
-	          $service_data["is_insured"] = ($otherDetail['is_insured'] == true) ? 1 : 0;;
+	        $service_data["is_insured"] = ($otherDetail['is_insured'] == true) ? 1 : 0;;
             $service_data["reason_for_export"] = $otherDetail['reason_for_export'];
             $service_data["tax_status"] = $otherDetail['tax_status'];
             $service_data["terms_of_trade"] =  $otherDetail['terms_of_trade'];
@@ -396,7 +396,9 @@ class Booking extends Icargo
             $service_data["status"] = $booking_status;
             $service_data["customer_reference1"] = $cust_ref1;
             $service_data["customer_reference2"] = $cust_ref2;
-            
+            $service_data["is_manualbooking"] = $ismanualbooking;
+            $service_data["manualbooking_ref"] = $manualbookingreference;
+            $service_data["booked_service_id"] = $serviceOpted->rate->info->service_id;
             $service_id = $this->modelObj->saveShipmentService($service_data);
             if($service_id>0){
                 return array("status"=>"success", "message"=>"shipment service saved", "service_id"=>$service_id);

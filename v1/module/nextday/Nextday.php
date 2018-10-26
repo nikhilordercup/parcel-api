@@ -609,7 +609,9 @@ final class Nextday extends Booking
                 $requestStr      = json_encode($this->data);
                 $responseStr     = $this->_postRequest($requestStr);
                 $response        = json_decode($responseStr);
+                //print_r($response);die;
                 $response        = $this->_getCarrierInfo($response->rate);
+                //print_r($response);die;
                 if(isset($response->status) and $response->status="error"){
                     return array("status"=>"error", "message"=>$response->message);
                 }
@@ -618,14 +620,30 @@ final class Nextday extends Booking
                 return array("status"=>"error", "message"=>$this->data["message"]);
             }
        }
-
+    function searchNextdayCarrierAndPriceManual($manualReq){
+        $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
+        if($accountStatus["status"]=="error"){
+              return $accountStatus;
+        }
+        $available_credit = $this->_getCustomerAccountBalence($this->_param->customer_id,0.00);
+       
+           $response        = $this->_getCarrierInfoManual($manualReq);
+                if(isset($response->status) and $response->status="error"){
+                    return array("status"=>"error", "message"=>$response->message);
+                }
+                return array("status"=>"success",  "message"=>"Rate found","service_request_string"=>"","service_response_string"=>base64_encode(json_encode($response)), "data"=>$response, "service_time"=>date("H:i", strtotime($this->_param->collection_date)),"service_date"=>date("d/M/Y", strtotime($this->_param->collection_date)),"availiable_balence" => $available_credit['available_credit']);
+          
+       }
+    
     public function saveBooking()
-    {
+    {   
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
 
         if ($accountStatus["status"] == "error") {
             return $accountStatus;
         }
+        $this->_param->manualbookingreference = (isset($this->_param->manualbookingreference) && $this->_param->manualbookingreference!='')?$this->_param->manualbookingreference:'';
+        
         $bookingShipPrice = $this->_param->service_opted->collection_carrier->customer_price_info->grand_total;
         $available_credit = $this->_getCustomerAccountBalence($this->_param->customer_id,$bookingShipPrice);
         if($available_credit["status"]=="error"){
@@ -696,7 +714,7 @@ final class Nextday extends Booking
 
 
 
-            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id, "pending", $otherDetail,$serviceId,$this->_param->customer_reference1,$this->_param->customer_reference2);
+            $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id, "pending", $otherDetail,$serviceId,$this->_param->customer_reference1,$this->_param->customer_reference2,$this->_param->ismanualbooking,$this->_param->manualbookingreference);
             $this->_saveInfoReceived($loadIdentity);
             if ($serviceStatus["status"] == "error") {
                 $this->rollBackTransaction();
@@ -761,13 +779,24 @@ final class Nextday extends Booking
                 }
             }
         }
+       
+     
+     
         /*************call label generation method*********************************/
         $allData      = $this->_param;
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail   = (strtolower($carrier_code) == 'dhl') ? $this->_param->service_opted->rate : array();
         $this->commitTransaction();
-         if((strtolower($carrier_code) != 'pnp')){
-             $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
+       
+        
+        
+        
+        
+        
+        
+        
+         if((strtolower($carrier_code) != 'pnp') && $this->_param->manualbookingreference==''){
+            $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
             if ($labelInfo['status'] == 'success') {
             /*************save label data in db****************************************/
             $labelData = array(
@@ -845,7 +874,8 @@ final class Nextday extends Booking
                 "file_path" => ""
             );
         }
-         }else{
+         }
+        else{
              return array(
                     "status" => "success",
                     "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
@@ -890,5 +920,175 @@ final class Nextday extends Booking
         return $this->modelObj->deleteBookingDataByLoadIdentity($loadIdentity);
     }
     
+    public function _getCarrierInfoManual($param){
+        $selectedCarrier = json_decode($param->manualprice->selectedcarrier,1);
+        $selectedService = json_decode($param->manualprice->selected_service,1);
+        $servicePrice    = $param->manualprice->service_price;
+        $taxval          = $param->manualprice->taxval;
+        $surcharges      = array();
+        $surchargesPrice = array();
+        $returnarray     = array();
+        $accountdata     = array();
+        $servicedata     = array();
+        if(isset($param->manualprice->newsurcharges) and count($param->manualprice->newsurcharges)>0){
+          foreach($param->manualprice->newsurcharges as $key=>$val){
+            $surcharges[$key] = json_decode($val,1);  
+          }
+        }
+        if(isset($param->manualprice->newsurchargesprice) and count($param->manualprice->newsurchargesprice)>0){
+         foreach($param->manualprice->newsurchargesprice as $key=>$val){
+            $surchargesPrice[$key] = json_decode($val,1);  
+          }
+        }
+        $returnarray[$selectedCarrier['code']] = array();
+        $accountdata[$selectedCarrier['account_number']] = array();
+        $servicedata[$selectedService['service_code']]  = array();
+        $getInternalCarrier  = $this->modelObj->getCarriersofCompany($param->company_id);
+        $innerData = array();
+        $surchargesDetails = array('surcharges'=>array());
+        $innerData['rate']['flow_type'] = $selectedService['flow_type'];
+        $innerData['rate']['price'] = $servicePrice;
+        $innerData['rate']['rate_type'] = '';
+        $innerData['rate']['act_number'] = $selectedCarrier['account_number'];
+        $innerData['rate']['message'] = '';
+        $innerData['rate']['currency'] = '';
+        $innerData['rate']['info'] = 
+           array(
+                'original_price'  =>$servicePrice,
+                'ccf_value'  =>0,
+                'operator'  =>'FLAT',
+                'price'  =>'0',
+                'company_service_code'  =>$selectedService['company_service_code'],
+                'company_service_name'  =>$selectedService['company_service_name'],
+                'courier_service_code'  =>$selectedService['service_code'],
+                'courier_service_name'  =>$selectedService['service_name'],
+                'level'  =>0,
+                'service_id'  =>$selectedService['service_id'],
+                'price_with_ccf'  =>$servicePrice
+            );
+        $innerData['service_options']['dimensions'] = 
+            array(
+                'length' =>'9999',
+                'width' =>'9999',
+                'height' =>'9999',
+                'unit' =>'CM'
+            );
+        $innerData['service_options']['weight'] = 
+            array(
+                'weight' =>'9999',
+                'unit' =>'KG'
+             );
+        $innerData['service_options']['time'] = 
+            array(
+                'max_waiting_time' =>'',
+                'unit' =>''
+             );
+        $innerData['service_options']['category'] = '';
+        $innerData['service_options']['charge_from_base'] = '';
+        $innerData['service_options']['icon'] = $selectedCarrier['icon'];
+        $innerData['service_options']['max_delivery_time'] = '';
+        $innerData['service_times'] = array('last_booking_time'=>'','last_pickup_time'=>'');
+        $totalSurcharge = 0;
+        if(count($surcharges)>0){
+            foreach($surcharges as $keysur=>$valsur){
+                $innerData['surcharges'][$valsur['surcharge_code']] = $surchargesPrice[$keysur];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['original_price'] = $surchargesPrice[$keysur];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['surcharge_value'] = 0;
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['operator'] = 'FLAT';
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['price'] = 0;
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['price_with_ccf'] = $surchargesPrice[$keysur];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['company_surcharge_code'] = $valsur['company_surcharge_code'];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['company_surcharge_name'] = $valsur['company_surcharge_name'];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['courier_surcharge_code'] = $valsur['surcharge_code'];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['courier_surcharge_name'] = $valsur['surcharge_name'];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['level'] = 0;
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['surcharge_id'] = $valsur['surcharge_id'];
+                $surchargesDetails['surcharges'][$valsur['surcharge_code']]['carrier_id'] = $selectedCarrier['courier_id'];
+          }
+            $totalSurcharge = array_sum($innerData['surcharges']);
+        }
+        $taxprice = number_format((($servicePrice + $totalSurcharge)*$taxval/100),2);
+        $innerData['taxes'] = array('total_tax'=>$taxprice,'tax_percentage'=>$taxval);
+        $tempCollectedBy = array();
+        $tempCollectedBy['carrier_code']  = $selectedCarrier['code'];
+        $tempCollectedBy['account_number']  = $selectedCarrier['account_number'];
+        $tempCollectedBy['is_internal']  = $selectedCarrier['is_internal'];
+        $tempCollectedBy['name']  = $selectedCarrier['name'];
+        $tempCollectedBy['icon']  = $selectedCarrier['icon'];
+        $tempCollectedBy['pickup_surcharge']  = $selectedCarrier['pickup_surcharge'];
+        $tempCollectedBy['collection_date_time']  = $param->collection_date;
+        $tempCollectedBy['collection_start_at']  = $selectedCarrier['collection_start_at'];
+        $tempCollectedBy['collection_end_at']  = $selectedCarrier['collection_end_at'];
+        $tempCollectedBy['is_regular_pickup']  = 'yes';
+        $tempCollectedBy['carrier_id']  = $selectedCarrier['courier_id'];
+        $tempCollectedBy['pickup']  = $selectedCarrier['pickup'];
+        $tempCollectedBy['surcharges']  = $surchargesDetails['surcharges'];
+        $tempCollectedBy['carrier_price_info'] = 
+                array(
+                    'price'=>$servicePrice,
+                    'surcharges'=>$totalSurcharge,
+                    'taxes'=>$taxprice,
+                    'grand_total'=>number_format(($servicePrice + $totalSurcharge + $taxprice),2)
+                );
+        $tempCollectedBy['customer_price_info'] = 
+                array(
+                    'price'=>$servicePrice,
+                    'surcharges'=>$totalSurcharge,
+                    'taxes'=>$taxprice,
+                    'grand_total'=>number_format(($servicePrice + $totalSurcharge + $taxprice),2)
+                ); 
+        $innerData['collected_by'][] = $tempCollectedBy;
+        // internal 
+        $tempCollectedBy = array();
+        $tempCollectedBy['carrier_code']  = $getInternalCarrier[0]['code'];
+        $tempCollectedBy['account_number']  = $getInternalCarrier[0]['account_number'];
+        $tempCollectedBy['is_internal']  = $getInternalCarrier[0]['is_internal'];
+        $tempCollectedBy['name']  = $getInternalCarrier[0]['name'];
+        $tempCollectedBy['icon']  = $getInternalCarrier[0]['icon'];
+        $tempCollectedBy['pickup_surcharge']  = $getInternalCarrier[0]['pickup_surcharge'];
+        $tempCollectedBy['collection_date_time']  = $param->collection_date;
+        $tempCollectedBy['collection_start_at']  = $getInternalCarrier[0]['collection_start_at'];
+        $tempCollectedBy['collection_end_at']  = $getInternalCarrier[0]['collection_end_at'];
+        $tempCollectedBy['is_regular_pickup']  = 'yes';
+        $tempCollectedBy['carrier_id']  = $getInternalCarrier[0]['courier_id'];
+        $tempCollectedBy['pickup']  = $getInternalCarrier[0]['pickup'];
+        $tempCollectedBy['surcharges']  = $surchargesDetails['surcharges'];
+        $tempCollectedBy['carrier_price_info'] = 
+                array(
+                    'price'=>$servicePrice,
+                    'surcharges'=>$totalSurcharge,
+                    'taxes'=>$taxprice,
+                    'grand_total'=>number_format(($servicePrice + $totalSurcharge + $taxprice),2)
+                );
+        $tempCollectedBy['customer_price_info'] = 
+                array(
+                    'price'=>$servicePrice,
+                    'surcharges'=>$totalSurcharge,
+                    'taxes'=>$taxprice,
+                    'grand_total'=>number_format(($servicePrice + $totalSurcharge + $taxprice),2)
+                );
+        $innerData['collected_by'][] = $tempCollectedBy;
+        $innerData['carrier_info'] = 
+                array(
+                        'highlight_class'=>'highlighted-datetime',
+                        'carrier_id' =>$selectedCarrier['courier_id'],
+                        'name' =>$selectedCarrier['name'],
+                        'icon' =>$selectedCarrier['icon'],
+                        'code' =>$selectedCarrier['code'],
+                        'description' =>'courier information goes here',
+                        'account_number' =>$selectedCarrier['account_number'],
+                        'is_internal' =>$selectedCarrier['is_internal']
+                     );
+        $innerData['service_info'] = 
+                  array(
+                        'code' =>$selectedService['service_code'],
+                        'name' =>$selectedService['service_name']
+                     );
+        $servicedata[$selectedService['service_code']][]  = $innerData;
+        $accountdata[$selectedCarrier['account_number']][] = $servicedata;
+        $returnarray[$selectedCarrier['code']][] = $accountdata;
+        return $returnarray;
+        // print_r($returnarray);die;
+      }
 }
 ?>

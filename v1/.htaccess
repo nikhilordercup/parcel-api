@@ -1,5 +1,5 @@
-RewriteEngine On 
-RewriteCond %{REQUEST_FILENAME} !-f 
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ %{ENV:BASE}index.php [QSA,L]
 php_flag display_startup_errors off
 php_flag display_errors off

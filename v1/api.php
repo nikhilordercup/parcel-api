@@ -625,7 +625,7 @@ $app->post('/importShipment', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id','warehouse_id','customer_id','user_level'),$r);
-	$obj = new shipment(array('file_name'=>$r->file_name,'job_type'=>$r->job_type,'tempdata'=>$r->tempdata,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'customer_id'=>$r->customer_id,'user_level'=>$r->user_level));
+	$obj = new shipment(array('file_name'=>$r->file_name,'job_type'=>$r->job_type,'tempdata'=>$r->tempdata,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'customer_id'=>$r->customer_id,'user_level'=>$r->user_level,'country_code'=>$r->country_code));
 	$status = $obj->importshipment();
 	echoResponse(200, $status);
 });
@@ -1042,7 +1042,14 @@ $app->post('/getAvailableServices', function() use($app){
     $response = $obj->getAllServices($r);
     echoResponse(200, $response);
 });
-
+$app->post('/getAvailableServices2', function() use($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('email','access_token','transit_distance','transit_time','number_of_collections','number_of_drops','total_waiting_time','service_date'),$r);
+    $obj = new Module_Coreprime_Api($r);
+    $response = $obj->getAllServices2($r);
+    echoResponse(200, $response);
+});
 $app->post('/searchAddress', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','customer_id','search_postcode'),$r);
@@ -1068,7 +1075,7 @@ $app->post('/searchAddressById', function() use($app){
 $app->post('/bookShipment', function() use($app){
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('service_date','transit_time','transit_distance','email','access_token','company_id','customer_id'),$r);
-    $obj = new shipment();
+    $obj = new shipment(array('country_code'=>$r->country_code));
     $response = $obj->bookSameDayShipment($r);
     echoResponse(200, $response);
 });
@@ -1654,7 +1661,16 @@ $app->post('/getNextdayAvailableCarrier', function() use ($app){
         echoResponse(200, $response);
     }
 });
-
+$app->post('/searchNextdayCarrierAndPriceManual', function() use ($app){
+	$r = json_decode($app->request->getBody());
+    $obj = new Nextday($r);
+    $response = $obj->searchNextdayCarrierAndPriceManual($r);
+    if($response["status"]=="error"){
+        echoResponse(500, $response);
+    }else{
+        echoResponse(200, $response);
+    }
+});
 $app->post('/bookNextDayJob', function() use ($app){
     //echo $app->request->getBody(); die;
     $r = json_decode($app->request->getBody());
@@ -2395,6 +2411,37 @@ $app->post('/checkCustomerData', function() use ($app) {
 	$response = $obj->checkCustomerData($r);
 	echoResponse(200, $response);
 });
+$app->post('/getCarrierSurcharge', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','courier_id','email','access_token'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getCarrierSurcharge($r);
+    echoResponse(200, $response);
+});
+$app->post('/getCarrierServices', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','courier_id','email','access_token'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getCarrierServices($r);
+    echoResponse(200, $response);
+});
+$app->post('/getCarriersofCompany', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','email','access_token'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getCarriersofCompany($r);
+    echoResponse(200, $response);
+});
+$app->post('/getNextDayCarriersofCompany', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','email','access_token'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getNextDayCarriersofCompany($r);
+    echoResponse(200, $response);
+});  
+
+
+    
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);

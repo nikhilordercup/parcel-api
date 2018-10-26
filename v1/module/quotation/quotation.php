@@ -579,12 +579,20 @@ class Quotation extends Icargo
             $quoteData["service_opted"] = json_decode($quoteData["service_opted"]);
             $quoteData["service_request_string"] = json_decode($quoteData["service_request_string"]);
             $quoteData["service_response_string"] = json_decode($quoteData["service_response_string"]);
+            $quoteData["availablebalance"]      = $this->_getCustomerAvailableBalance($quoteData["service_opted"]->customer_id);
             $quoteData["status"] = "success";
         }else{
             $quoteData["status"] = "error";
             $quoteData["message"] = "Quotation not found or expired";
         }
         return $quoteData;
+    }
+    private
+    function _getCustomerAvailableBalance($customer_id)
+    {
+        $record = $this->db->getRowRecord("SELECT available_credit FROM " . DB_PREFIX . "customer_info WHERE `user_id` = '$customer_id'");
+        $balance = $record['available_credit'];
+        return $balance;
     }
 }
 ?>

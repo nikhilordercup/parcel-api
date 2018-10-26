@@ -1229,7 +1229,7 @@ class allShipments extends Icargo
             $temp['recipient'] = $dataVal['contact_person'];
             $temp['comment']   = $dataVal['comment'];
             $temp['download']  = ($dataVal['pod_name'] == 'signature') ? 'true' : 'false';
-            $temp['action']     = str_replace('http','https',$dataVal['value']);
+            $temp['action']     = (strpos( $dataVal['value'], 'https' ) !== false)?$dataVal['value']:str_replace('http','https',$dataVal['value']);
             $temp['ticket']    = $dataVal['shipment_ticket'];
             $retrundata[]      = $temp;
         }
@@ -1761,6 +1761,9 @@ class allShipments extends Icargo
             $recurringInfoData[$key]['recurring_day'] = ($val['recurring_day']=='NONE')?'':$val['recurring_day'];
             $recurringInfoData[$key]['recurring_month_date'] = ($val['recurring_month_date']=='00')?'':$val['recurring_month_date'];
             $recurringInfoData[$key]['recurring_time'] = ($val['recurring_time']=='00:00:00')?'':$val['recurring_time'];
+            $recurringInfoData[$key]['last_booked_date'] = ($val['last_booked_date']=='1970-01-01')?'':$val['last_booked_date'];
+            $recurringInfoData[$key]['last_booked_time'] = ($val['last_booked_time']=='00:00:00')?'':$val['last_booked_time'];
+            $recurringInfoData[$key]['last_booked_ref'] = ($val['last_booked_ref']=='')?'':$val['last_booked_ref'];
             $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;
         }
          return $recurringInfoData;
@@ -1940,7 +1943,7 @@ class allShipments extends Icargo
         return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$trackingDetail);*/
     }
 
-    public function checkEligibleforRecurring($param){
+public function checkEligibleforRecurring($param){
         $loadidentity          =  '"'.implode('","',$param->job_identity).'"';
         $shipmentsInfoData     = $this->modelObj->checkEligibleforRecurring($loadidentity);
         if($shipmentsInfoData and $shipmentsInfoData['is_recurring']!=''){
@@ -1955,7 +1958,35 @@ class allShipments extends Icargo
             return array("status"=>"error", "message"=>"is_recurring error", "is_recurring"=>true);
         }
      }
-
-
+public function getCarrierSurcharge($param){
+        $returndata          = array();
+        if ($param->company_id != 0 and $param->courier_id != 0) {
+            $returndata = $this->modelObj->getAllSurchargeOfCarrier($param->courier_id, $param->company_id);
+        }
+        return $returndata;
+    }
+public function getCarrierServices($param){
+        $returndata          = array();
+        if ($param->company_id != 0 and $param->courier_id != 0 and $param->servicetype != '') {
+            $returndata = $this->modelObj->getAllServicesOfCarrier($param->courier_id, $param->company_id,$param->servicetype);
+        }
+        return $returndata;
+    }
+public function getCarriersofCompany($param){
+        $returndata          = array();
+        if ($param->company_id != 0) {
+            $returndata = $this->modelObj->getCarriersofCompany($param->company_id);
+        }
+        return $returndata;
+}
+public function getNextDayCarriersofCompany($param){
+        $returndata          = array();
+        if ($param->company_id != 0) {
+            $returndata = $this->modelObj->getNextDayCarriersofCompany($param->company_id);
+        }
+        return $returndata;
+}   
+    
+        
 }
 ?>
