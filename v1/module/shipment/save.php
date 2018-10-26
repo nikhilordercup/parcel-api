@@ -1455,6 +1455,7 @@ class shipment extends Library{
     private
 
     function _save_address($address){
+        $commonObj = new Common();
         $postcode = $this->postcodeObj->validate($address["postcode"],$this->country_code);
 		$postcode = $postcode[0];
         if($postcode){
