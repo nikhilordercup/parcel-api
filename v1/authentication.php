@@ -58,7 +58,7 @@ $app->post('/signUp', function() use ($app) {
             $relationTblEntry = $db->insertIntoTable($relationData, $column_names, DB_PREFIX."company_users");
 
             $db->save("configuration", array(
-                    "configuration_json"=>'{"username":"roopesh","password":"ROOPESH","port":"25","host":"LOCALHOST","maximum_allow_drop":"40","buffer_time":"100","maxbuffertimeperdrop":"000","maxbuffertimepershipment":"0","whscanautoatrue":"1","driverscanautoatrue":"1","regularattempt":"2","phonetypeattempt":"1"}',
+                    "configuration_json"=>'{"username":"roopesh","password":"ROOPESH","port":"25","host":"LOCALHOST","maximum_allow_drop":"40","buffer_time":"100","maxbuffertimeperdrop":"000","maxbuffertimepershipment":"0","whscanautoatrue":"1","driverscanautoatrue":"1","regularattempt":"2","phonetypeattempt":"1","round_trip":"NO","driving_mode":"BICYCLING"}',
                     "shipment_end_number"=>"00000000000",
                     "shipment_ticket_prefix"=>"ICARGOS$user",
                     "parcel_end_number"=>"00000000000",

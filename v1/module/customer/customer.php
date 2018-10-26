@@ -72,6 +72,9 @@ class Customer extends Icargo{
                 $customerinfo['charge_from_base'] = $param->customer->charge_from_base;
                 $customerinfo['tax_exempt'] = $param->customer->tax_exempt;
 
+                $customerinfo['round_trip'] = $param->customer->round_trip;
+                $customerinfo['driving_mode'] = $param->customer->driving_mode;
+
 
                 $this->modelObj->addContent('customer_info',$customerinfo);
             //if($customerinfo['customer_type']=='POSTPAID'){
@@ -675,7 +678,7 @@ class Customer extends Icargo{
             return $lastId;
    }
 
- public function editCustomerPersonalDetails($param){
+ public function editCustomerPersonalDetails($param){print_r($param);
      // start here
             $data = array(
                 "name"=>$param->customer->name,
@@ -703,6 +706,8 @@ class Customer extends Icargo{
             $customerinfo['charge_from_base'] = isset($param->customer->charge_from_base)?$param->customer->charge_from_base:'YES';
             $customerinfo['tax_exempt'] = isset($param->customer->tax_exempt)?$param->customer->tax_exempt:'YES';
             $customerinfo['auto_label_print'] = isset($param->customer->auto_label_print)?$param->customer->auto_label_print:'YES';
+            $customerinfo['round_trip'] = isset($param->customer->round_trip) ? $param->customer->round_trip : 'NO';
+            $customerinfo['driving_mode'] = isset($param->customer->driving_mode) ? $param->customer->driving_mode : 'BICYCLING';
             $condition = "user_id = '" . $param->customer_id . "'";
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);
 
