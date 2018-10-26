@@ -604,7 +604,7 @@ final class Nextday extends Booking
     }
 
     public function saveBooking()
-    {
+    {  
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if ($accountStatus["status"] == "error") {
             return $accountStatus;

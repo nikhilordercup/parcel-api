@@ -274,7 +274,7 @@ final Class Collection
                     "name" => $this->internalCarrier["name"],
                     "icon" => $this->internalCarrier["icon"],
                     "pickup_surcharge" => $this->internalCarrier["pickup_surcharge"],
-                    "collection_date_time" => $this->internalCarrier["collection_date_time"],
+                    "collection_date_time" => $collectionList["collection_date_time"],//$this->internalCarrier["collection_date_time"],
                     "collection_start_at" => $this->internalCarrier["collection_start_at"],
                     "collection_end_at" => $this->internalCarrier["collection_end_at"],
                     "is_regular_pickup" => $this->isRegularPickup,
