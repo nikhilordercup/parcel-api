@@ -78,7 +78,7 @@ final class Nextday extends Booking
             $collectionList  = $this->_getJobCollectionList($carrier, $this->_getAddress($this->_param->collection->$collectionIndex));
             if (count($collectionList) > 0) {
                 foreach ($collectionList as $item) {
-                    if (strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])) {
+                    if ((strtotime($this->_param->collection_date) > strtotime($item['collection_date_time'])) || (strtotime($this->_param->collection_date) == strtotime($item['collection_date_time']))) {
                         $item['highlight_class'] = '';
                     } else {
                         $item['highlight_class'] = 'highlighted-datetime';
@@ -750,10 +750,76 @@ final class Nextday extends Booking
         $rateDetail   = (strtolower($carrier_code) == 'dhl') ? $this->_param->service_opted->rate : array();
         $this->commitTransaction();
 
-        if ((strtolower($carrier_code) == 'pnp')) {
+        /*if ((strtolower($carrier_code) == 'pnp')) {
             $customLabel = new Custom_Label();  
             $customLabel->createLabel($loadIdentity);
+        }*/
+
+        $labelHttpPath = Library::_getInstance()->base_url().'/'.LABEL_FOLDER;
+
+        if ((strtolower($carrier_code) == 'pnp')) {
+            
+            $label_path = "$labelHttpPath/$loadIdentity/pnp/$loadIdentity.pdf";
+            $customLabel = new Custom_Label();
+            $customLabel->createLabel($loadIdentity);
+
+            $labelData     = array(
+                "label_file_pdf" => $label_path
+            );
+
+            $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
+
+            $statusArr = array(
+                "status" => "success"
+            );
+            $this->modelObj->updateBookingStatus($statusArr, $loadIdentity);
+
+            $autoPrint        = $this->modelObj->getAutoPrintStatusByCustomerId($this->_param->customer_id);
+            $checkPickupExist = array();
+            if ($saveLabelInfo) {
+                if (strtolower($carrier_code) == 'dhl') {
+                    $userId           = $this->_param->collection_user_id;
+                    $carrierId        = $this->_param->service_opted->carrier_info->carrier_id;
+                    $collectionDate   = date('Y-m-d', strtotime($this->_param->service_opted->collection_carrier->collection_date_time));
+                    $checkPickupExist = $this->modelObj->checkExistingPickupForShipment($this->_param->customer_id, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity);
+                }
+
+                Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array(
+                    "load_identity" => $loadIdentity,
+                    "company_id" => $this->_param->company_id,
+                    "warehouse_id" => $this->_param->warehouse_id,
+                    "customer_id" => $this->_param->customer_id
+                ));
+                Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotificationToCourier(array(
+                    "load_identity" => $loadIdentity,
+                    "company_id" => $this->_param->company_id,
+                    "warehouse_id" => $this->_param->warehouse_id,
+                    "customer_id" => $this->_param->customer_id
+                ));
+                return array(
+                    "status" => "success",
+                    "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+                    "file_path" => $label_path,
+                    "auto_print" => $autoPrint['auto_label_print'],
+                    'pickups' => $checkPickupExist,
+                    'carrier_code' => strtolower($carrier_code)
+                );
+            } else {
+                return array(
+                    "status" => "error",
+                    "message" => "Shipment not booked successfully,error while saving label!",
+                    "file_path" => "",
+                    "auto_print" => ""
+                );
+            }
         }
+
+
+
+
+
+
+
 
         if ((strtolower($carrier_code) != 'pnp')) {
             $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
