@@ -1,6 +1,8 @@
 <?php
 class Module_Coreprime_Api extends Icargo
 {
+    public static $coreprimeApiObj = NULL;
+
     private $_environment = array(
       "live" =>  array(
           "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImRldmVsb3BlcnNAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Njk5MzU0N30.cpm3XYPcLlwb0njGDIf8LGVYPJ2xJnS32y_DiBjSCGI",
@@ -28,13 +30,22 @@ class Module_Coreprime_Api extends Icargo
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];
     }
 
-    private
+    public
+
+    static function _getInstance()
+    {
+        if(self::$coreprimeApiObj===NULL)
+        {
+            self::$coreprimeApiObj = new Module_Coreprime_Api();
+        }
+        return self::$coreprimeApiObj;
+    }
+
+    public
 
     function _postRequest($data)
     {
         $data_string = json_encode($data);
-
-        //$data_string = '{"carriers":[{"name":"pnp","account":[{"credentials":{"username":"","password":"","account_number":"21232123"},"services":"standard_same_day,asap,one_hour"}]},{"name":"PlatinumLeicester","account":[{"credentials":{"username":"","password":"","account_number":"PL0001"},"services":"SV_PL,LV_PL,SV_PL,LV_PL"},{"credentials":{"username":"","password":"","account_number":"PL0001"},"services":"SV_PL,LV_PL,SV_PL,LV_PL"},{"credentials":{"username":"","password":"","account_number":"PL0001"},"services":"SSD_PL,SV_PL,LV_PL"}]}],"from":{"zip":"OX39 4PU","country":"GBR"},"to":{"zip":"OX39 4QU","country":"GBR"},"transit":[{"transit_distance":"0.40","transit_time":1,"number_of_collections":1,"number_of_drops":1,"total_waiting_time":0}],"ship_date":"2018-10-03 12:11","currency":"GBP","package":[{"packaging_type":"your_packaging"}],"extra":[],"insurance":[]}';
 
         $ch = curl_init($this->access_url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -48,7 +59,7 @@ class Module_Coreprime_Api extends Icargo
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
-        return $server_output;
+        return $server_output; 
     }
     private
     function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse,$is_tax_exempt)
@@ -152,7 +163,8 @@ class Module_Coreprime_Api extends Icargo
         $isTaxExempt    = $this->modelObj->getTaxExemptStatus($param->customer_id);
         $waypointCount = 0;
         if (isset($param->waypoint_lists)) {
-            $waypointCount = count($param->waypoint_lists);
+            $waypointCount = count($param->waypoint_lists); // per drop
+            //$waypointCount = $param->delivery_postcodes_count; // per shipment
         }
         $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
         $is_tax_exempt = ($isTaxExempt['tax_exempt']=='YES')?true:false;//  true;
@@ -222,6 +234,7 @@ class Module_Coreprime_Api extends Icargo
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
+        
         $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
         
         if(isset($data->status) && ($data->status=="error")){

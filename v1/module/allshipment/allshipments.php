@@ -13,7 +13,183 @@ class allShipments extends Icargo
     }
 
     public function getallshipments($param)
-    {   //print_r($param);die;
+    {
+        $filterShipment = array();
+        if(isset($param->data)){
+
+            if(isset($param->data->customer)){
+                if(!is_array($param->data->customer))
+                    $param->data->customer = array($param->data->customer);
+
+                $customer_id_string = implode("','", array_filter($param->data->customer));
+                $filterShipment["customer_filter"] = "S.customer_id IN('" . $customer_id_string . "')";
+            }
+
+            if(isset($param->warehouse_id)){
+                $filterShipment["warehouse_filter"] = "S.warehouse_id = '" . $param->warehouse_id . "'";
+            }
+
+            if(isset($param->data->job_identity)){
+                $filterShipment["job_identity_filter"] = "S.instaDispatch_loadIdentity = '" . $param->data->job_identity . "'";
+            }
+
+            if(isset($param->data->job_type)){
+                $filterShipment["job_type_filter"] = "S.instaDispatch_loadGroupTypeCode = '" . $param->data->job_type . "'";
+            }
+
+            if(isset($param->data->carrier)){
+                if(!is_array($param->data->carrier))
+                    $param->data->carrier = array($param->data->carrier);
+
+                $carrier_string = implode("','", array_filter($param->data->carrier));
+                $filterShipment["carrier_filter"] = "S.carrier_code IN ('" . $carrier_string . "')";
+            }
+
+            if(isset($param->data->shipment_status)){
+                if(!is_array($param->data->shipment_status))
+                    $param->data->shipment_status = array($param->data->shipment_status);
+
+                $shipment_status_string = implode("','", array_filter($param->data->shipment_status));
+
+                $filterShipment["shipment_status_filter"] = "SST.tracking_code  IN('" . $shipment_status_string . "')";
+            }
+
+            if(isset($param->data->service)){
+                if(!is_array($param->data->service))
+                    $param->data->service = array($param->data->service);
+
+                $service_string = implode("','", $param->data->service);
+                $filterShipment["service_filter"] = "SST.service_name IN('$service_string')";
+            }
+
+            if(isset($param->data->globalbookingdatefilter)){
+                $data = explode("/", $param->data->globalbookingdatefilter);
+                $startDate = $data[0];
+                $endDate   = $data[1];
+                $filterShipment["booking_date_filter"] = "(S.shipment_create_date BETWEEN '$startDate' AND '$endDate')";
+            }
+
+            if(isset($param->data->globalcollectiondatefilter)){
+                $data = explode("/", $param->data->globalcollectiondatefilter);
+                $startDate = $data[0];
+                $endDate   = $data[1];
+                $filterShipment["collection_date_filter"] = "(S.shipment_required_service_date BETWEEN '$startDate' AND '$endDate')";
+            }
+
+            if(isset($param->data->isInvoiced)){
+                $filterShipment["invoice_filter"] = "SST.isInvoiced = '" . $param->data->isInvoiced . "'";
+            }
+
+            if(isset($param->company_id)){
+                $filterShipment["company_filter"] = "S.company_id = '" . $param->company_id . "'";
+            }
+
+            if(isset($param->data->collection_date_filter)){
+                if(isset($param->data->collection_date_filter->start_date) AND !empty($param->data->collection_date_filter->start_date)){
+                    $start_date = $param->data->collection_date_filter->start_date;
+
+                    if(!isset($param->data->collection_date_filter->end_date) OR empty($param->data->collection_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->collection_date_filter->end_date) AND !empty($param->data->collection_date_filter->end_date)){
+                    $end_date = $param->data->collection_date_filter->end_date;
+
+                    if(!isset($param->data->collection_date_filter->start_date) OR empty($param->data->collection_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["collection_date_filter"] = "(S.shipment_required_service_date BETWEEN '$start_date' AND '$end_date') AND S.shipment_service_type='P'";
+                }
+            }
+
+            if(isset($param->data->delivery_date_filter)){
+                if(isset($param->data->delivery_date_filter->start_date) AND !empty($param->data->delivery_date_filter->start_date)){
+                    $start_date = $param->data->delivery_date_filter->start_date;
+
+                    if(!isset($param->data->collection_date_filter->end_date) OR empty($param->data->delivery_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->delivery_date_filter->end_date) AND !empty($param->data->delivery_date_filter->end_date)){
+                    $end_date = $param->data->delivery_date_filter->end_date;
+
+                    if(!isset($param->data->delivery_date_filter->start_date) OR empty($param->data->delivery_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["delivery_date_filter"] = "(S.shipment_required_service_date BETWEEN '$start_date' AND '$end_date') AND S.shipment_service_type='D'";
+                }
+            }
+
+            if(isset($param->data->booking_date_filter)){
+                if(isset($param->data->booking_date_filter->start_date) AND !empty($param->data->booking_date_filter->start_date)){
+                    $start_date = $param->data->booking_date_filter->start_date;
+
+                    if(!isset($param->data->booking_date_filter->end_date) OR empty($param->data->booking_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->booking_date_filter->end_date) AND !empty($param->data->booking_date_filter->end_date)){
+                    $end_date = $param->data->booking_date_filter->end_date;
+
+                    if(!isset($param->data->booking_date_filter->start_date) OR empty($param->data->booking_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["booking_date_filter"] = "(SST.create_date BETWEEN '$start_date' AND '$end_date')";
+                }
+            }
+
+            if(isset($param->data->postcode)){
+                $filterShipment["postcode_filter"] = "S.shipment_postcode = '" . $param->data->postcode . "'";
+            }
+
+            if(isset($param->data->amount) AND !empty($param->data->amount)){
+                $filterShipment["postcode_filter"] = "SST.grand_total = '" . $param->data->amount . "'";
+            }
+
+            if(isset($param->data->customer_reference1) AND !empty($param->data->customer_reference1)){
+                $filterShipment["customer_reference1_filter"] = "SST.customer_reference1 LIKE '%" . $param->data->customer_reference1 . "%'";
+            }
+
+            if(isset($param->data->customer_reference2) AND !empty($param->data->customer_reference2)){
+                $filterShipment["customer_reference2_filter"] = "SST.customer_reference2 LIKE '%" . $param->data->customer_reference2 . "%'";
+            }
+
+        }
+
+        $filterString = 1;
+        if(count($filterShipment)>0){
+            $filterString = implode(" AND ", $filterShipment);
+        }
+        //print_r($param->data);
+        //print_r($filterString);die;
+
+        $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
+        //print_r($items);die;
+        $filterLoadIdentity = array();
+
+        foreach($items as $item){
+            if(!in_array($item["load_Identity"], $filterLoadIdentity))
+                array_push($filterLoadIdentity, $item["load_Identity"]);
+        }
+
+        $loadIdentityString = implode("','", $filterLoadIdentity);
+
+        $shipmentsData = $this->modelObj->getAllShipmentsNishant($loadIdentityString);
+        $shipmentsData = $this->_prepareShipmentsNishant($shipmentsData);
+        return $shipmentsData;
+    }
+
+    /*public function getallshipments($param)
+    {
         $html  = '';
         $html2 = '';
         $html3 = '';
@@ -46,7 +222,7 @@ class allShipments extends Icargo
         $html .= (isset($param->data->amount) && ($param->data->amount != '')) ? ' AND S.amount =  ' . $param->data->amount . ' ' : '';
 
         $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
-        
+
 
        
         $html .= (isset($param->data->customer_reference1) && ($param->data->customer_reference1 != '')) ? ' AND S.customer_reference1 LIKE "%' . $param->data->customer_reference1 . '%" ' : '';
@@ -135,15 +311,15 @@ class allShipments extends Icargo
 
         $shipmentsPrepareData = $this->_prepareShipments($shipmentsData);
         return $shipmentsPrepareData;
-    }
+    }*/
 
     private function _getCurrentTrackingStatusByLoadIdentity($load_identity){
         $currentTrackingStatus = $this->modelObj->getCurrentTrackingStatusByLoadIdentity($load_identity);
         return $currentTrackingStatus["code_translation"];
     }
 
-    private function _prepareShipments($shipmentsData)
-    {
+    /*private function _prepareShipments($shipmentsData)
+    {//tracking_no
         $dataArray  = array();
         $returndata = array();
         foreach ($shipmentsData as $key => $val) {
@@ -182,7 +358,11 @@ class allShipments extends Icargo
                             $data['collection_reference'] = "";
                             $data['shipment_status']    = $pickupData['current_status'];
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
-                            $data['customer_reference2']    = $pickupData['customer_reference2']; 
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -230,6 +410,127 @@ class allShipments extends Icargo
                             $data['collection_reference'] = $collectionReference;
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
                             $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            $shipmentstatus[]    = $pickupData['current_status'];
+                        }
+                    }
+                    if (array_key_exists('D', $innerval['NEXT'])) {
+                        krsort($innerval['NEXT']['D']);
+                        $deliveryPostcode = array();
+                        foreach ($innerval['NEXT']['D'] as $deliverykey => $deliveryData) {
+                            $deliveryPostcode[$deliveryData['icargo_execution_order']] = $deliveryData['shipment_postcode'] . ', ' . $deliveryData['shipment_customer_country'];
+                            $shipmentstatus[]                                          = $deliveryData['current_status'];
+                        }
+                        krsort($deliveryPostcode);
+                        $data['delivery'] = end($deliveryPostcode);
+                    }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
+                    $returndata[] = $data;
+                }
+            }
+        }
+        return $returndata;
+    }*/
+
+    private function _prepareShipmentsNishant($shipmentsData)
+    {
+        $dataArray  = array();
+        $returndata = array();
+        foreach ($shipmentsData as $key => $val) {
+            $dataArray[$val['instaDispatch_loadIdentity']][strtoupper($val['instaDispatch_loadGroupTypeCode'])][$val['shipment_service_type']][] = $val;
+        }
+        if (count($dataArray) > 0) {
+            foreach ($dataArray as $innerkey => $innerval) {
+                $data                 = array();
+                $data['job_identity'] = $innerkey;
+                $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
+                $data['job_type']     = key($innerval);
+                $shipmentstatus       = array();
+                $data['delivery']     = $innerkey;
+                $jobIdentity          = $innerkey;
+                if (key($innerval) == 'SAME') {
+                    $data['action'] = 'sameday';
+                    if (array_key_exists('P', $innerval['SAME'])) {
+                        foreach ($innerval['SAME']['P'] as $pickupkey => $pickupData) {
+                            $data['customer']           = $pickupData['shipment_customer_name'];
+                            $data['account']            = $pickupData['shipment_customer_account'];
+                            $data['service']            = $pickupData['shipment_service_name'];
+                            $data['carrier']            = $pickupData['carrier'];
+							              $data['carrier_icon']       = $pickupData['carrier_icon'];
+                            $data['amount']             = $pickupData['shipment_customer_price'];
+                            $data['booked_by']          = $pickupData['booked_by'];
+                            $data['isInvoiced']         = $pickupData['isInvoiced'];
+                            $data['is_hold']            = $pickupData['is_hold'];
+                            $data['is_recurring']       = $pickupData['is_recurring'];
+                            $data['recurring']          = $pickupData['booked_by_recurring'];
+                            $data['show']               = 'y';
+                            $data['collectionpostcode'] = $pickupData['shipment_postcode'];
+                            $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
+                            $data['pickup_date']        = Library::_getInstance()->date_format($pickupData['shipment_required_service_date']) . '  ' . Library::_getInstance()->time_format($pickupData['shipment_required_service_starttime']);
+              							$data['create_date']        = Library::_getInstance()->date_format($pickupData['shipment_create_date']);
+              							$data['cancel_status']      = $pickupData['cancel_status'];
+                            $data['collection_reference'] = "";
+                            $data['shipment_status']    = $pickupData['current_status'];
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            $shipmentstatus[]           = $pickupData['current_status'];
+                        }
+                    }
+                    if (array_key_exists('D', $innerval['SAME'])) {
+                        $temp = array();
+                        foreach ($innerval['SAME']['D'] as $key => $row) {
+                            $temp[$key] = $row['icargo_execution_order'];
+                        }
+                        array_multisort($temp, SORT_ASC, $innerval['SAME']['D']);
+                        $lastDeliveryarray        = end($innerval['SAME']['D']);
+                        $data['deliverypostcode'] = $lastDeliveryarray['shipment_postcode'];
+                        $data['delivery']         = $lastDeliveryarray['shipment_postcode'] . ', ' . $lastDeliveryarray['shipment_customer_country'];
+                    }
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
+                    $returndata[] = $data;
+                }
+                if (key($innerval) == 'NEXT') {
+                    $data['action'] = 'nextday';
+                    if (array_key_exists('P', $innerval['NEXT'])) {
+                        foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
+                            $labelArr = json_decode($pickupData['label_json']);
+
+                            if(is_object($labelArr) && count( (array)$labelArr)>0){
+                                $collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
+                            }else{
+                                $collectionReference = "";
+                            }
+
+                            $data['customer']    = $pickupData['shipment_customer_name'];
+                            $data['account']     = $pickupData['shipment_customer_account'];
+                            $data['service']     = $pickupData['shipment_service_name'];
+                            $data['carrier']	   = $pickupData['carrier'];
+							              $data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
+                            $data['amount']      = $pickupData['shipment_customer_price'];
+                            $data['booked_by']   = $pickupData['booked_by'];
+                            $data['isInvoiced']  = $pickupData['isInvoiced'];
+                            $data['is_hold']     = $pickupData['is_hold'];
+                            $data['is_recurring'] = $pickupData['is_recurring'];
+                            $data['recurring']   = $pickupData['booked_by_recurring'];
+                            $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
+                            $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
+							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
+							$data['cancel_status'] = $pickupData['cancel_status'];
+							$data['shipment_status']        = $pickupData['current_status'];
+                            $data['collection_reference'] = $collectionReference;
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
@@ -1398,7 +1699,7 @@ class allShipments extends Icargo
     }
 
      public function getAllCarrier($param){
-         $data =  $this->modelObj->getAllCarrier($param->company_id);
+         $data =  $this->modelObj->getAllCarrierCodeAndName($param->company_id);
           return $data;
 	}
 
@@ -1958,6 +2259,7 @@ public function checkEligibleforRecurring($param){
             return array("status"=>"error", "message"=>"is_recurring error", "is_recurring"=>true);
         }
      }
+
 public function getCarrierSurcharge($param){
         $returndata          = array();
         if ($param->company_id != 0 and $param->courier_id != 0) {
@@ -1988,5 +2290,125 @@ public function getNextDayCarriersofCompany($param){
 }   
     
         
+
+
+
+       /*public function dashboardFilter() {
+        // Today  tomorrow  This week  Last week  This Month  Last Month This quarter Last Quarter Custom Range 
+        $curDate = date('Y-m-d');
+        if( $data->filter == 'today') {
+            $startDate = $endDate = $curDate;
+        }
+        else if( $data->filter == 'tomorrow') {
+            $startDate = $endDate = date('Y-m-d', strtotime($curDate,'+1D'));            
+        }
+        else if( $data->filter == 'tweek') {
+            $d = strtotime("today");
+            $start_week = strtotime("last sunday midnight",$d);
+            $end_week = strtotime("next saturday",$d);
+            $startDate = date("Y-m-d",$start_week); 
+            $endDate = date("Y-m-d",$end_week);  
+        }    
+        else if( $data->filter == 'lweek') {
+            $previous_week = strtotime("-1 week +1 day");
+
+            $start_week = strtotime("last sunday midnight",$previous_week);
+            $end_week = strtotime("next saturday",$start_week);
+
+            $startDate = date("Y-m-d",$start_week);
+            $endDate = date("Y-m-d",$end_week);
+
+            //echo $start_week.' '.$end_week ;
+        }
+        else if( $data->filter == 'tmonth') {
+            $startDate = date("Y-m-01");
+            $endDate = date("Y-m-d");
+        }
+        else if( $data->filter == 'lmonth') {
+            $startDate = date('Y-m-d',strtotime('first day of last month'));
+            $lastDate = date('Y-m-d',strtotime('last day of last month'));
+        }
+        else if( $data->filter == 'tquarter') {
+            $current_month = date('m');
+            $current_year = date('Y');
+            if($current_month>=1 && $current_month<=3)
+            {
+              $startDate = strtotime('1-January-'.$current_year);  // timestamp or 1-Januray 12:00:00 AM
+              $endDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM means end of 31 March
+            }
+            else  if($current_month>=4 && $current_month<=6)
+            {
+              $startDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM
+              $endDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM means end of 30 June
+            }
+            else  if($current_month>=7 && $current_month<=9)
+            {
+              $startDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM
+              $endDate = strtotime('1-October-'.$current_year);  // timestamp or 1-October 12:00:00 AM means end of 30 September
+            }
+            else  if($current_month>=10 && $current_month<=12)
+            {
+              $startDate = strtotime('1-October-'.$current_year);  // timestamp or 1-October 12:00:00 AM
+              $endDate = strtotime('1-January-'.($current_year+1));  // timestamp or 1-January Next year 12:00:00 AM means end of 31 December this year
+            }
+        }
+        else if( $data->filter == 'lquarter') {
+            $current_month = date('m');
+            $current_year = date('Y');
+
+            if($current_month>=1 && $current_month<=3)
+            {
+                $startDate = strtotime('1-October-'.($current_year-1));  // timestamp or 1-October Last Year 12:00:00 AM
+                $endDate = strtotime('1-January-'.$current_year);  // // timestamp or 1-January  12:00:00 AM means end of 31 December Last year
+            } 
+            else if($current_month>=4 && $current_month<=6)
+            {
+                $startDate = strtotime('1-January-'.$current_year);  // timestamp or 1-Januray 12:00:00 AM
+                $endDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM means end of 31 March
+            }
+            else  if($current_month>=7 && $current_month<=9)
+            {
+                $startDate = strtotime('1-April-'.$current_year);  // timestamp or 1-April 12:00:00 AM
+                $endDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM means end of 30 June
+            }
+            else  if($current_month>=10 && $current_month<=12)
+            {
+                $startDate = strtotime('1-July-'.$current_year);  // timestamp or 1-July 12:00:00 AM
+                $endDate = strtotime('1-October-'.$current_year);  // timestamp or 1-October 12:00:00 AM means end of 30 September
+            }
+        }
+                   
+    }
+
+    public function dashboardCarrierVsShipmemt($data = array()) {
+        if( empty( $data->custom_range ) ) {
+            $dateRange = $this->dashboardFilter($data->filter);
+        } else {
+            $startDate = date('Y-m-d', strtotime($date->start_date));
+            $endDate = date('Y-m-d', strtotime($date->end_date));
+        }
+        
+        $where = "shipment_date='$curDate'";
+	}*/
+    public function _findShipmentInstructionByLoadIdentity($load_identity){
+        $service = array(
+            "P" =>"collection",
+            "D" =>"delivery"
+        );
+        $shipmentInstructions = array();
+        $items = $this->modelObj->findShipmentInstructionByLoadIdentity($load_identity);
+        foreach($items as $item){
+            if(!isset($shipmentInstructions[$service[$item["shipment_service_type"]]])){
+                $shipmentInstructions[$service[$item["shipment_service_type"]]] = array();
+            }
+            if((isset($item["shipment_instruction"])) and !empty($item["shipment_instruction"])){
+                array_push($shipmentInstructions[$service[$item["shipment_service_type"]]], array(
+                    "shipment_instruction" => $item["shipment_instruction"],
+                    "postcode" => $item["postcode"],
+                ));
+            }
+        }
+        return $shipmentInstructions;
+    }
 }
 ?>

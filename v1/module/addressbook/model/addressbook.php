@@ -35,9 +35,9 @@ class Addressbook_Model extends Icargo{
     private
     
     function _searchAddress($search_str, $customer_id)
-    {
-		$search_str = strtolower(str_replace(" ","",$search_str));
-      $sql = "SELECT * FROM `" . DB_PREFIX ."address_book` where `search_string` LIKE '%$search_str%' AND `customer_id` = '$customer_id' AND `status` = 1";
+    {//print_r($search_str);die;
+		$search_str_modified = strtolower(str_replace(" ","",$search_str));
+        $sql = "SELECT * FROM `" . DB_PREFIX ."address_book` where (`search_string` LIKE '%$search_str%' OR `search_string` LIKE '%$search_str_modified%') AND `customer_id` = '$customer_id' AND `status` = 1";
         return $this->_db->getAllRecords($sql);
         
     }
@@ -51,15 +51,16 @@ class Addressbook_Model extends Icargo{
 	
 	public function searchAddressByAddressId($param) 
 	{
-		$sql = "SELECT * FROM `" . DB_PREFIX ."address_book` WHERE `id` = '".$param['address_id']."'";
-        return $this->_db->getRowRecord($sql);
+		$sql = "SELECT * FROM `" . DB_PREFIX ."address_book` where `id` = ".$param['address_id']."";
+		return $this->_db->getRowRecord($sql);
+
 	}
 	
 	public
 
     function searchAllDefaultWarehouseAddress($customer_id, $search_string){
-        $search_str = strtolower(str_replace(" ","",$search_string));
-        $sql = "SELECT * FROM `" . DB_PREFIX ."address_book` AS ABT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON UAT.address_id=ABT.id WHERE `ABT`.`search_string` LIKE '%$search_str%' AND `UAT`.`user_id` = '$customer_id' AND `UAT`.`warehouse_address`='Y' AND ABT.status = 1";
+        $search_str_modified = strtolower(str_replace(" ","",$search_string));
+        $sql = "SELECT * FROM `" . DB_PREFIX ."address_book` AS ABT INNER JOIN " . DB_PREFIX . "user_address AS UAT ON UAT.address_id=ABT.id WHERE (`ABT`.`search_string` LIKE '%$search_str%' OR `ABT`.`search_string` LIKE '%$search_str_modified%') AND `UAT`.`user_id` = '$customer_id' AND `UAT`.`warehouse_address`='Y' AND ABT.status = 1";
         return $this->_db->getAllRecords($sql);
     }
 }

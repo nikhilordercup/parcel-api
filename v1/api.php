@@ -1353,7 +1353,8 @@ $app->post('/getallshipments', function() use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id','warehouse_id'),$r);
     $obj = new allShipments($r);
-    $response = $obj->getallshipments((object)array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'datalimitpre'=>$r->datalimitpre,'datalimitpost'=>$r->datalimitpost,'data'=>$r->data));
+    //$response = $obj->getallshipments((object)array('company_id'=>$r->company_id,'access_token'=>$r->access_token,'warehouse_id'=>$r->warehouse_id,'datalimitpre'=>$r->datalimitpre,'datalimitpost'=>$r->datalimitpost,'data'=>$r->data));
+		$response = $obj->getallshipments($r);
     echoResponse(200, $response);
 });
 
@@ -1672,7 +1673,6 @@ $app->post('/searchNextdayCarrierAndPriceManual', function() use ($app){
     }
 });
 $app->post('/bookNextDayJob', function() use ($app){
-    //echo $app->request->getBody(); die;
     $r = json_decode($app->request->getBody());
     $obj = new Nextday($r);
     $response = $obj->saveBooking($r);
@@ -1703,27 +1703,6 @@ $app->post('/getParcelPackage', function() use ($app){
     $response = $obj->getPackages($r);
     echoResponse(200, $response);
 });
-
-/*$app->post('/getNextdayAvailableCarrier', function() use ($app){
-
-    echo '[{"ukmail":{"services":{"1":[{"rate":{"price":"4.5","rate_type":"Weight","message":null,"currency":"GBP"},"service_options":{"dimensions":{"length":9999,"width":9999,"height":9999,"unit":"CM"},"weight":{"weight":9999,"unit":"KG"},"time":{"max_waiting_time":null,"unit":null},"category":"","charge_from_base":null,"icon":"\/icons\/original\/missing.png","max_delivery_time":null,"service_name":"Next working day","service_code":"1","service_icon":null,"service_description":"Next working day description"},"surcharges":{"long_length_surcharge":0,"manual_handling_surcharge":0,"fuel_surcharge":0.16},"taxes":{"total_tax":0.466}}]},"carrier_info":{"carrier_code":"ukmail","carrier_name":"UkMail","carrier_icon":"assets\/images\/carrier\/dhl.png","carrier_description":"courier information goes here","carrier_id":"2"}}}]';die;
-
-    $r = json_decode($app->request->getBody());
-    $obj = new Nextday($r);
-    $response = $obj->searchNextdayAvailableCarrier();
-
-    if($response["status"]=="error"){
-        echoResponse(500, $response);
-    }else{
-        echoResponse(200, $response);
-    }
-});*/
-
-/*$app->post('/bookNextDayJob', function() use ($app){
-    $r = json_decode($app->request->getBody());
-    $obj = new Booking($r);
-    $obj->saveNextDayBooking($r);
-});*/
 
 $app->post('/savePackage', function() use ($app){
     $r = json_decode($app->request->getBody());
@@ -2340,69 +2319,69 @@ $app->post('/getProfileInfo', function() use ($app){
     $r = json_decode($app->request->getBody());
     $obj = new Company($r);
     $response = $obj->getUserProfileInfo($r);
-    echoResponse(200, $response);    
+    echoResponse(200, $response);
 });
 
-$app->post('/updateProfile', function() use ($app){    
+$app->post('/updateProfile', function() use ($app){
     $response = array();
-    $r = (object)$app->request->post();    
-    $obj = new Company($r);    
+    $r = (object)$app->request->post();
+    $obj = new Company($r);
     $response = $obj->updateUserInfo($r);
-    echoResponse(200, $response);    
+    echoResponse(200, $response);
 });
-$app->post('/createStripeCustomer', function() use ($app){    
-    $response = array();    
-    $r = json_decode($app->request->getBody());    
-    $obj = new ServiceProvider($r);    
-    $response = $obj->createStripeCustomer($r);    
-    echoResponse(200, $response);    
-});
-$app->post('/getStripeCustomer', function() use ($app){    
-    $response = array();    
-    $r = json_decode($app->request->getBody());    
-    $obj = new ServiceProvider($r);    
-    $response = $obj->getStripeCustomer($r);
-    echoResponse(200, $response);    
-});
-$app->post('/saveCustomerToken', function() use ($app){    
-    $response = array();    
-    $r = json_decode($app->request->getBody());    
-    $obj = new ServiceProvider($r);    
-    $response = $obj->saveCustomerToken($r);
-    echoResponse(200, $response);    
-});
-$app->post('/getCustomerServiceProvider', function() use ($app){    
-    $response = array();           
+$app->post('/createStripeCustomer', function() use ($app){
+    $response = array();
     $r = json_decode($app->request->getBody());
-    $obj = new ServiceProvider($r);    
+    $obj = new ServiceProvider($r);
+    $response = $obj->createStripeCustomer($r);
+    echoResponse(200, $response);
+});
+$app->post('/getStripeCustomer', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->getStripeCustomer($r);
+    echoResponse(200, $response);
+});
+$app->post('/saveCustomerToken', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
+    $response = $obj->saveCustomerToken($r);
+    echoResponse(200, $response);
+});
+$app->post('/getCustomerServiceProvider', function() use ($app){
+    $response = array();
+    $r = json_decode($app->request->getBody());
+    $obj = new ServiceProvider($r);
     $response = $obj->getCustomerServiceProvider($r);
     //print_r($response); die;
-    echoResponse(200, $response);    
+    echoResponse(200, $response);
 });
-$app->post('/getServiceProviderById', function() use ($app){    
-    $response = array();           
+$app->post('/getServiceProviderById', function() use ($app){
+    $response = array();
     $r = json_decode($app->request->getBody());
-    $obj = new ServiceProvider($r);    
+    $obj = new ServiceProvider($r);
     $response = $obj->getServiceProviderById($r);
     //print_r($response); die;
-    echoResponse(200, $response);    
+    echoResponse(200, $response);
 });
-$app->post('/saveCustomerTransaction', function() use ($app){    
-    $response = array();           
+$app->post('/saveCustomerTransaction', function() use ($app){
+    $response = array();
     $r = json_decode($app->request->getBody());
-    $obj = new ServiceProvider($r);    
+    $obj = new ServiceProvider($r);
     $response = $obj->saveCustomerTransaction($r);
     //print_r($response); die;
-    echoResponse(200, $response);    
+    echoResponse(200, $response);
 });
-$app->post('/checkInvoiceNumber', function() use ($app){    
-    $response = array();           
+$app->post('/checkInvoiceNumber', function() use ($app){
+    $response = array();
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','company_id'),$r);
-    $obj = new Invoice($r);    
+    $obj = new Invoice($r);
     $response = $obj->checkInvoiceNumber($r);
     //print_r($response); die;
-    echoResponse(200, $response);    
+    echoResponse(200, $response);
 });
 $app->post('/checkCustomerData', function() use ($app) {
     $r = json_decode($app->request->getBody());

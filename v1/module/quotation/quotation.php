@@ -127,7 +127,7 @@ class Quotation extends Icargo
         }
 
         foreach($data->delivery_shipment_address as $delivery_data)
-        {  
+        {
 		    $postcode = $postcodeObj->validate($delivery_data->postcode);
             $shipmentData = array(
                 "shipment_postcode" => $postcode[0],//$postcodeObj->validate($delivery_data->postcode),
@@ -475,7 +475,7 @@ class Quotation extends Icargo
     function getQuoteDataByQuoteNumber($param)
     {
         $quoteArr = array();
-        $customerData = $this->db->getRowRecord("SELECT c.available_credit,t1.name,t1.id,email FROM " . DB_PREFIX . "users as t1 
+        $customerData = $this->db->getRowRecord("SELECT c.available_credit,t1.name,t1.id,email FROM " . DB_PREFIX . "users as t1
             INNER JOIN " . DB_PREFIX . "quote_shipment as t2 ON t1.id = t2.customer_id
             INNER JOIN " . DB_PREFIX . "customer_info as c on t2.customer_id = c.user_id
             WHERE t2.quote_number = '" . $param->quote_number . "'");
@@ -522,7 +522,7 @@ class Quotation extends Icargo
         );
     }
 
-    public 
+    public
 
     function saveAndSendNextdayQuotation($param){
         $this->db->startTransaction();

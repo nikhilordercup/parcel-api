@@ -1,0 +1,36 @@
+<style type="text/css">
+  .products{
+    width: 700px;
+    border-collapse: collapse;
+  }
+  h2,h3{
+    margin: 0;
+    padding:0;
+  }
+  .border{
+    border: 1px solid black;
+    padding:5px;
+  }
+  table.products{
+    border: 1px solid black;
+    height: 800px;
+    margin-left: -6px;
+    margin-right: -6px;
+    margin-bottom: -6px;
+  }
+  .products tr td{
+    padding:5px;
+    border:1px solid #333;
+  }
+  .products tr th{
+    padding:5px;
+    border:1px solid #333;
+  }
+  .pull-right{
+    float: right;
+  }
+
+  .pull-center{
+    text-align:center
+  }
+</style>
