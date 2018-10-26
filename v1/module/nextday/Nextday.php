@@ -749,8 +749,9 @@ final class Nextday extends Booking
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail   = (strtolower($carrier_code) == 'dhl') ? $this->_param->service_opted->rate : array();
         $this->commitTransaction();
+
         if ((strtolower($carrier_code) == 'pnp')) {
-            $customLabel = new Custom_Label();
+            $customLabel = new Custom_Label();  
             $customLabel->createLabel($loadIdentity);
         }
 
