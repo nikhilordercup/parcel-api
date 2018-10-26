@@ -588,6 +588,9 @@ class Customer extends Icargo{
       $data['customer']['charge_from_base'] = $customerpersonaldata['charge_from_base'];
       $data['customer']['tax_exempt'] = $customerpersonaldata['tax_exempt'];
       $data['customer']['auto_label_print'] = $customerpersonaldata['auto_label_print'];
+      $data['customer']['round_trip'] = $customerpersonaldata['round_trip'];
+      $data['customer']['driving_mode'] = $customerpersonaldata['driving_mode'];
+
       $data['customerbilling']['name'] = $customerbillingdata['name'];
       $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
       $data['customerbilling']['address_2'] = $customerbillingdata['address_line2'];
@@ -597,15 +600,15 @@ class Customer extends Icargo{
       $data['customerbilling']['country'] = $customerbillingdata['country'];
       $data['customerbilling']['phone'] = $customerbillingdata['phone'];
       $data['customerbilling']['email'] = $customerbillingdata['email'];
-     $data['customerpickup']['name'] = $customerpickupdata['name'];
-     $data['customerpickup']['address_1'] = $customerpickupdata['address_line1'];
-     $data['customerpickup']['address_2'] = $customerpickupdata['address_line2'];
-     $data['customerpickup']['postcode'] = $customerpickupdata['postcode'];
-     $data['customerpickup']['city'] = $customerpickupdata['city'];
-     $data['customerpickup']['state'] = $customerpickupdata['state'];
-     $data['customerpickup']['country'] = $customerpickupdata['country'];
-     $data['customerpickup']['phone'] = $customerpickupdata['phone'];
-     $data['customerpickup']['email'] = $customerpickupdata['email'];
+      $data['customerpickup']['name'] = $customerpickupdata['name'];
+      $data['customerpickup']['address_1'] = $customerpickupdata['address_line1'];
+      $data['customerpickup']['address_2'] = $customerpickupdata['address_line2'];
+      $data['customerpickup']['postcode'] = $customerpickupdata['postcode'];
+      $data['customerpickup']['city'] = $customerpickupdata['city'];
+      $data['customerpickup']['state'] = $customerpickupdata['state'];
+      $data['customerpickup']['country'] = $customerpickupdata['country'];
+      $data['customerpickup']['phone'] = $customerpickupdata['phone'];
+      $data['customerpickup']['email'] = $customerpickupdata['email'];
      return $data;
   }
 
