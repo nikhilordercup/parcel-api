@@ -170,7 +170,7 @@ class allShipments extends Icargo
             $filterString = implode(" AND ", $filterShipment);
         }
         //print_r($param->data);
-        //print_r($filterString);die;
+        //print_r($filterString);die; 
 
         $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
         //print_r($items);die;
