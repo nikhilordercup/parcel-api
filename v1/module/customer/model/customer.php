@@ -1,7 +1,7 @@
 <?php
 class Customer_Model
 {
-	
+
     public function __construct()
     {
         $this->db = new DbHandler();
@@ -895,5 +895,11 @@ class Customer_Model
         $record  = $this->db->getAllRecords($sql);
         return $record;
     }
+
+		public function getCompanyConfiguration($companyId){
+			$sql     = "SELECT configuration_json FROM " . DB_PREFIX . "configuration AS t1 WHERE t1.company_id = '$companyId'";
+			$record  = $this->db->getRowRecord($sql);
+			return $record;
+		}
 }
 ?>
