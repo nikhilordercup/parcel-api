@@ -1,16 +1,12 @@
 <?php
-require_once "../v1/module/firebase/Firebase_Api.php";
-require_once "../v1/module/firebase/model/User.php";
+require_once "../v1/module/user_management/Firebase_Api.php";
+require_once "../v1/module/user_management/model/User.php";
 
 class Auth_provider{
     private function getFirebase(){
          $firebaseObj = new Firebase_Api();
          return $firebaseObj->getFirebase();
     }
-	
-	private function _handleException($e){
-		return array("status"=>"error", "message"=>$e->getMessage());
-	}
 
     public function login($email, $password){
         try {
@@ -18,7 +14,7 @@ class Auth_provider{
             $userRecord = User::_getInstance()->deserialize($obj);
             return array("status"=>"success", "data"=>$userRecord, "message"=>"User authenticated successfully");
         } catch (Exception $e) {
-            return $this->_handleException($e);
+            echo $e->getMessage();
         }
     }
 
@@ -27,7 +23,7 @@ class Auth_provider{
             $this->getFirebase()->getAuth()->sendPasswordResetEmail($email);
             return array("status"=>"success", "message"=>"Reset password link has been sent to $email");
         } catch (Exception $e){
-            return $this->_handleException($e);
+            return array("status"=>"error", "message"=>$e->getMessage());
         }
     }
 
@@ -37,7 +33,7 @@ class Auth_provider{
             $userRecord = User::_getInstance()->deserialize($obj);
             return array("status"=>"success", "data"=>$userRecord, "message"=>"Signup successful");
         }catch(Exception $e){
-            return $this->_handleException($e);
+            return array("status"=>"error", "message"=>$e->getMessage());
         }
     }
 
