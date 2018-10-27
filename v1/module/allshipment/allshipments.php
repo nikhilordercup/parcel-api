@@ -586,7 +586,7 @@ class allShipments extends Icargo
     {
         $dropTrackinginfo           = array();
         $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
-		    $parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
+		$parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);

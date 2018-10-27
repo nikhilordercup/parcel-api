@@ -1,4 +1,4 @@
-<?php
+<?php 
 //error_reporting(E_ALL);
 ini_set("display_errors", 0); 
 ini_set('date.timezone', 'Europe/London');
@@ -74,6 +74,9 @@ require_once 'module/firebase/Firebase_Shipment_Deliver_From_Route.php';
 require_once 'module/firebase/route-accept.php';
 require_once 'module/firebase/Firebase_Route_Assign.php';
 require_once 'module/firebase/Firebase_Withdraw_Route.php';
+require_once 'module/firebase/Firebase_User_Management.php';
+require_once 'module/firebase/User_Management.php';
+require_once 'module/firebase/model/Model.php';
 
 require_once 'module/firebase/route-release.php';
 
