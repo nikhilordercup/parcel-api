@@ -518,6 +518,9 @@ public function checkCustomerEmailExist($company_email){
     }
 	
 	public function setDefaultAddress($param){
+		if(isset($param->address_list->id))
+			$param->address_list->address_id = $param->address_list->id;
+			
 		$addressExist = $this->isExist("user_id='".$param->userid."' AND address_id=".$param->address_list->address_id."","user_address");
 		if($addressExist){
 			 $defaultExist = $this->isExist("user_id='".$param->userid."' AND default_address='Y'","user_address");
@@ -574,9 +577,8 @@ public function checkCustomerEmailExist($company_email){
    	}
 	
 	public function isExist($condition,$tbl){
-		$record = array();
-		$sqldata ='count(1) as exist';
-		$sql = "SELECT ".$sqldata." FROM ".DB_PREFIX."$tbl AS t1 WHERE ".$condition."";
+		$sql = "SELECT count(1) as exist FROM ".DB_PREFIX."$tbl AS t1 WHERE ".$condition."";
+		echo $sql;
 		$record = $this->db->getOneRecord($sql);
 		return $record['exist'];
    	}

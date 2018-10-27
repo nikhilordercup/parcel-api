@@ -1,7 +1,7 @@
 <?php
 require_once "Providers/Auth_Provider.php";
 class Firebase_User_Management{
-    public $authProviderObj= null;
+    public static $authProviderObj= null;
 
     public function __construct(){
         if(self::$authProviderObj===null){
@@ -10,7 +10,7 @@ class Firebase_User_Management{
         $this->authProvider = self::$authProviderObj;
     }
 
-    public function login($email,$password){
+    private function _login($email,$password){
         return $this->authProvider->login($email,$password);
     }
 
@@ -18,12 +18,50 @@ class Firebase_User_Management{
         return $this->authProvider->forgotPassword($email);
     }
 
-    public function signupUser($email,$password){
+    private function _signupUser($email,$password){
         return $this->authProvider->signupUser($email,$password);
     }
 
     public function signOut(){
         return $this->authProvider->signOut();
     }
+	
+	public function customerSignup($param){
+		$signupStatus = $this->_signupUser($param->email,$param->password);
+		$param->customerbilling = new stdClass();
+		$param->customerpickup = new stdClass();
+
+		$param->customerbilling->name = $param->name;
+		$param->customerbilling->address_1 = $param->address_1;
+		$param->customerbilling->country = $param->country;
+		$param->customerbilling->countrycode = $param->countrycode;
+		$param->customerbilling->postcode = $param->postcode;
+		$param->customerbilling->city = $param->city;
+		$param->customerpickup->name = $param->name;
+		$param->customerpickup->address_1 = $param->address_1;
+		$param->customerpickup->country = $param->country;
+		$param->customerpickup->countrycode = $param->countrycode;
+		$param->customerpickup->postcode = $param->postcode;
+		$param->customerpickup->city = $param->city;
+		
+		if($signupStatus['status']=='success'){
+			$userManagementObj = new User_Management();
+			$saveCustomerToDB = $userManagementObj->createApiCustomer($param,$signupStatus['data']);
+			return $saveCustomerToDB;
+		}else{
+			return $signupStatus;
+		}
+	}
+	
+	public function customerLogin($email,$password){
+		$loginStatus = $this->_login($email,$password);
+		if($loginStatus['status']=='success'){
+			$userManagementObj = new User_Management();
+			$loginCustomerFromDB = $userManagementObj->customerLogin($email,$password);
+			return $loginCustomerFromDB;
+		}else{
+			return $loginStatus;
+		}
+	}
 }
 ?>

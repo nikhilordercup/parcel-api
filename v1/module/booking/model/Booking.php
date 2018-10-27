@@ -63,9 +63,9 @@ class Booking_Model_Booking
         return $this->_db->getAllRecords($sql);
     } */
 	
-	public
+	/* public
 
-    function getCustomerCarrierServices($customer_id, $carrier_id, $account_number, $flowType=""){
+    function getCustomerCarrierServices($customer_id, $carrier_id, $account_number, $flowType=""){ 
         $flowType = strtolower($flowType);
         $flowTypeJoin = ($flowType) ? " INNER JOIN `".DB_PREFIX."service_flow_type` AS CSFT ON CST.id=CSFT.service_id" : '';
         $flowTypeCond = ($flowType) ? " AND LOWER(CSFT.flow_type)='$flowType' " : '';
@@ -76,7 +76,16 @@ class Booking_Model_Booking
                 . $flowTypeJoin
                 . " WHERE CSCT.status= 1 AND CCST.status=1 AND CST.status = 1 AND CSCT.courier_id='$carrier_id' AND CCST.company_customer_id='$customer_id' AND CCST.courier_id='$carrier_id' $flowTypeCond AND CSFT.account_number = '$account_number' AND CST.service_type='NEXTDAY' ORDER BY `CSFT`.`service_id` ASC"; 			
         return $this->_db->getAllRecords($sql);
-    }
+    } */
+	
+	
+	public
+
+   function getCustomerCarrierServices($customer_id, $carrier_id, $account_number, $flowType)
+   {
+       $sql = "SELECT CST.service_code, CST.service_name, CSFT.service_id FROM `" . DB_PREFIX . "courier_vs_services_vs_company` AS CSCT INNER JOIN `" . DB_PREFIX . "company_vs_customer_vs_services` AS CCST ON CSCT.service_id=CCST.service_id INNER JOIN `" . DB_PREFIX . "courier_vs_services` AS CST ON CST.id=CSCT.service_id INNER JOIN `" . DB_PREFIX . "courier_vs_company` AS CCT ON CCT.company_id=CCST.company_id AND CCT.account_number='$account_number' INNER JOIN `" . DB_PREFIX . "service_flow_type` AS CSFT ON CST.id=CSFT.service_id WHERE CSCT.status= 1 AND CCST.status=1 AND CST.status = 1 AND CSCT.courier_id='$carrier_id' AND CCST.company_customer_id='$customer_id' AND CCST.courier_id='$carrier_id'  AND CSFT.flow_type='$flowType'  AND CSFT.account_number = '$account_number' AND CST.service_type='NEXTDAY' ORDER BY `CSFT`.`service_id` ASC";
+       return $this->_db->getAllRecords($sql);
+   }
 
     public
 

@@ -174,6 +174,7 @@ final class Nextday extends Booking
         }
         $customerInfo = $this->modelObj->getCompanyInfo($this->_param->company_id);
         $homeCountry  = strtolower($customerInfo['country']);
+
         $flowType     = 'Domestic';
 
         if ($collectionCountry->id == $deliveryCountry->id) {
@@ -188,6 +189,7 @@ final class Nextday extends Booking
         $carrier = $this->getCustomerCarrierAccount($this->_param->company_id, $this->_param->customer_id, $this->collection_postcode, $this->_param->collection_date);
         //if ( $this->_param->collection[0]->country->id != $this->_param->delivery[0]->country->id) {
         if (count($carrier) > 0) {
+			$flowType = strtolower($flowType);
             foreach ($carrier as $key => $item) {
                 //if($item['internal']!=1){
 					$accountId                   = isset($item["account_id"]) ? $item["account_id"] : $item["carrier_id"];
