@@ -1,1 +1,1 @@
-`ALTER TABLE icargo_service_flow_type DROP INDEX unique;`
+ALTER TABLE icargo_service_flow_type DROP INDEX unique;

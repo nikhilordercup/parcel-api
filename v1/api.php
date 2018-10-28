@@ -2425,3 +2425,27 @@ GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
 SubscriptionController::initRoutes($app);
+
+$app->post('/apiLogin', function() use ($app){
+	$r = json_decode($app->request->getBody());
+	$obj = new Firebase_User_Management();
+	verifyRequiredParams(array('email','password'),$r->auth);
+	$response = $obj->customerLogin($r->auth->email,$r->auth->password);
+	echoResponse(200, $response);
+});
+
+$app->post('/apiForgotPassword', function() use ($app){
+	$r = json_decode($app->request->getBody());
+	$obj = new Firebase_User_Management();
+	verifyRequiredParams(array('email'),$r->auth);
+	$response = $obj->forgotPassword($r->auth->email);
+	echoResponse(200, $response);
+});
+
+$app->post('/apiSignup', function() use ($app){
+	$r = json_decode($app->request->getBody());
+	$obj = new Firebase_User_Management();
+	verifyRequiredParams(array('email','password'),$r);
+	$response = $obj->customerSignup($r);
+	echoResponse(200, $response);
+});

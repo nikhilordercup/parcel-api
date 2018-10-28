@@ -176,7 +176,7 @@ class Notification_Model_Index
     public function rollBackTransaction() {
         $this->_db->rollBackTransaction();
     }
-    /* get Invoice data*/
+
     public function getInvoiceData($invoiceID){
         $sql = "SELECT I.*,COM.name as company_name,COM.email as company_email,CUS.email as customer_email,CUS.name as customer_name  FROM `".DB_PREFIX."invoices` as I
                 LEFT JOIN `".DB_PREFIX."users` as CUS on (CUS.id = I.customer_id AND CUS.user_level = 5)
@@ -184,6 +184,16 @@ class Notification_Model_Index
                 WHERE I.id ='$invoiceID'";
         return $this->_db->getRowRecord($sql);
     }
-    
-        
+
+    public
+
+    function getSignupNotification($trigger_code){
+        return $this->_db->getAllRecords("SELECT * FROM `".DB_PREFIX."notification_default` AS ST WHERE type LIKE 'custom' AND trigger_code LIKE '$trigger_code' AND  status=1");
+    }
+
+    public
+
+    function findNewUserInfo($user_id){
+        return $this->_db->getRowRecord("SELECT * FROM `".DB_PREFIX."users` AS UT WHERE id='$user_id'");
+    }
 }
