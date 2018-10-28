@@ -254,7 +254,7 @@ class Booking extends Icargo
 
             $data["is_internal"] = $is_internal;
 
-            $data["shipment_instruction"] = $param2->pickup_instruction;//$shipment_instruction;
+            $data["shipment_instruction"] = (isset($param2->pickup_instruction) and ($param2->pickup_instruction)) ? $param2->pickup_instruction : "";//$shipment_instruction;
 
             $shipmentId = $this->modelObj->saveShipment($data);
 
