@@ -74,7 +74,7 @@ class Authentication{
     
 	public function process(){
 		$response = array();
-		$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1");
+		$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.`user_level` <> 5");
 		if ($user != NULL) {
 			//if(passwordHash::check_password($user['password'],$this->_getPassword())){
 				$access_token = $this->_setAccessToken($user['id']);
@@ -152,6 +152,9 @@ class Authentication{
                     $response['user_code'] = $user['code'];
                     $response['profile_image'] = $user['profile_image'];
                     $response['profile_path'] = $user['profile_path'];
+                    $response['country_code'] = $this->_getCountryCode($user['country']);
+                    $response['currency_code'] = $this->_getCurrencyCode($user['country']);
+                    
                 }else {
 					$response['status'] = "error";
 					$response['message'] = 'Authentication Failure!';
@@ -193,6 +196,15 @@ class Authentication{
     private function _getCustomerDetail($customer_id){
         $customerInfo = $this->db->getRowRecord("SELECT * FROM ".DB_PREFIX."customer_info where user_id='".$customer_id."' ");
         return $customerInfo;
+    }
+    
+    private function _getCountryCode($country){
+        $countrydata = $this->db->getRowRecord("SELECT alpha2_code FROM ".DB_PREFIX."countries where short_name='".$country."' ");
+        return $countrydata['alpha2_code'];
+    }
+     private function _getCurrencyCode($country){
+        $countrydata = $this->db->getRowRecord("SELECT currency_code FROM ".DB_PREFIX."countries where short_name='".$country."' ");
+        return $countrydata['currency_code'];
     }
 }
 ?>

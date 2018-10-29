@@ -1,7 +1,7 @@
 <?php
 class Customer_Model
 {
-	
+
     public function __construct()
     {
         $this->db = new DbHandler();
@@ -230,7 +230,7 @@ class Customer_Model
         $record  = array();
         $sqldata = 't1.id,t1.name,t1.email,t1.password,t1.phone,t1.address_1,t1.address_2,t1.city,t1.postcode,t1.state,
                 t1.country,t1.status,CI.ccf_operator_service,CI.ccf_operator_surcharge,CI.ccf,CI.surcharge,CI.customer_type,
-                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.available_credit as availablebalance,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base,CI.tax_exempt,CI.auto_label_print';
+                CI.accountnumber,CI.vatnumber,CI.creditlimit,CI.available_credit as availablebalance,CI.invoicecycle,tm.name as company_name,CI.ccf_history,CI.charge_from_base,CI.tax_exempt,CI.auto_label_print,CI.round_trip,CI.driving_mode';
         $sql     = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "users AS t1
              INNER JOIN " . DB_PREFIX . "company_users AS t2  ON t2.user_id=t1.id
              INNER JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id=t1.id
@@ -895,5 +895,11 @@ class Customer_Model
         $record  = $this->db->getAllRecords($sql);
         return $record;
     }
+
+		public function getCompanyConfiguration($companyId){
+			$sql     = "SELECT configuration_json FROM " . DB_PREFIX . "configuration AS t1 WHERE t1.company_id = '$companyId'";
+			$record  = $this->db->getRowRecord($sql);
+			return $record;
+		}
 }
 ?>

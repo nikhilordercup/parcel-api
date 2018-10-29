@@ -24,11 +24,16 @@ class Customer extends Icargo{
     public function saveCustomer($param){
          $data = array();
          $exist = $this->modelObj->checkCustomerEmailExist($param->customer->customer_email);
-         if($exist >0){ return array("status"=>"error","message"=>"Customer Email Already Exist ");}
+         if($exist >0){
+           return array("status"=>"error","message"=>"Customer Email Already Exist ");
+         }
          if($param->customer->name!='' && $param->customer->type!='' && $param->customer->invoicecycle!='' && $param->customer->customer_email!='' && $param->customer->password!=''){
             if($param->customer->type =='POSTPAID' && $param->customer->creditlimit==''){
               return array("status"=>"error","message"=>"Please Fill Credit limit in Number");
             }
+             $companyConf = $this->modelObj->getCompanyConfiguration($param->company_id);
+             $companyConf = json_decode($companyConf["configuration_json"]);
+
              $data = array(
                 "user_level"=>5,
                 "name"=>$param->customer->name,
@@ -72,6 +77,21 @@ class Customer extends Icargo{
                 $customerinfo['charge_from_base'] = $param->customer->charge_from_base;
                 $customerinfo['tax_exempt'] = $param->customer->tax_exempt;
 
+                if(isset($param->customer->round_trip)){
+                    $customerinfo['round_trip'] = $param->customer->round_trip;
+                }elseif($companyConf->round_trip){
+                    $customerinfo['round_trip'] = $companyConf->round_trip;
+                }else{
+                    $customerinfo['round_trip'] = ROUND_TRIP;
+                }
+
+                if(isset($param->customer->driving_mode)){
+                    $customerinfo['driving_mode'] = $param->customer->driving_mode;
+                }elseif($companyConf->driving_mode){
+                    $customerinfo['driving_mode'] = $companyConf->driving_mode;
+                }else{
+                    $customerinfo['driving_mode'] = DRIVING_MODE;
+                }
 
                 $this->modelObj->addContent('customer_info',$customerinfo);
             //if($customerinfo['customer_type']=='POSTPAID'){
@@ -568,6 +588,9 @@ class Customer extends Icargo{
       $data['customer']['charge_from_base'] = $customerpersonaldata['charge_from_base'];
       $data['customer']['tax_exempt'] = $customerpersonaldata['tax_exempt'];
       $data['customer']['auto_label_print'] = $customerpersonaldata['auto_label_print'];
+      $data['customer']['round_trip'] = $customerpersonaldata['round_trip'];
+      $data['customer']['driving_mode'] = $customerpersonaldata['driving_mode'];
+
       $data['customerbilling']['name'] = $customerbillingdata['name'];
       $data['customerbilling']['address_1'] = $customerbillingdata['address_line1'];
       $data['customerbilling']['address_2'] = $customerbillingdata['address_line2'];
@@ -577,15 +600,15 @@ class Customer extends Icargo{
       $data['customerbilling']['country'] = $customerbillingdata['country'];
       $data['customerbilling']['phone'] = $customerbillingdata['phone'];
       $data['customerbilling']['email'] = $customerbillingdata['email'];
-     $data['customerpickup']['name'] = $customerpickupdata['name'];
-     $data['customerpickup']['address_1'] = $customerpickupdata['address_line1'];
-     $data['customerpickup']['address_2'] = $customerpickupdata['address_line2'];
-     $data['customerpickup']['postcode'] = $customerpickupdata['postcode'];
-     $data['customerpickup']['city'] = $customerpickupdata['city'];
-     $data['customerpickup']['state'] = $customerpickupdata['state'];
-     $data['customerpickup']['country'] = $customerpickupdata['country'];
-     $data['customerpickup']['phone'] = $customerpickupdata['phone'];
-     $data['customerpickup']['email'] = $customerpickupdata['email'];
+      $data['customerpickup']['name'] = $customerpickupdata['name'];
+      $data['customerpickup']['address_1'] = $customerpickupdata['address_line1'];
+      $data['customerpickup']['address_2'] = $customerpickupdata['address_line2'];
+      $data['customerpickup']['postcode'] = $customerpickupdata['postcode'];
+      $data['customerpickup']['city'] = $customerpickupdata['city'];
+      $data['customerpickup']['state'] = $customerpickupdata['state'];
+      $data['customerpickup']['country'] = $customerpickupdata['country'];
+      $data['customerpickup']['phone'] = $customerpickupdata['phone'];
+      $data['customerpickup']['email'] = $customerpickupdata['email'];
      return $data;
   }
 
@@ -677,6 +700,8 @@ class Customer extends Icargo{
 
  public function editCustomerPersonalDetails($param){
      // start here
+     $companyConf = $this->modelObj->getCompanyConfiguration($param->company_id);
+     $companyConf = json_decode($companyConf["configuration_json"]);
             $data = array(
                 "name"=>$param->customer->name,
                 "phone"=>isset($param->customer->phone)?$param->customer->phone:'',
@@ -703,6 +728,26 @@ class Customer extends Icargo{
             $customerinfo['charge_from_base'] = isset($param->customer->charge_from_base)?$param->customer->charge_from_base:'YES';
             $customerinfo['tax_exempt'] = isset($param->customer->tax_exempt)?$param->customer->tax_exempt:'YES';
             $customerinfo['auto_label_print'] = isset($param->customer->auto_label_print)?$param->customer->auto_label_print:'YES';
+
+            //$customerinfo['round_trip'] = isset($param->customer->round_trip) ? $param->customer->round_trip : 'NO';
+            //$customerinfo['driving_mode'] = isset($param->customer->driving_mode) ? $param->customer->driving_mode : 'BICYCLING';
+
+            if(isset($param->customer->round_trip)){
+                $customerinfo['round_trip'] = $param->customer->round_trip;
+            }elseif($companyConf->round_trip){
+                $customerinfo['round_trip'] = $companyConf->round_trip;
+            }else{
+                $customerinfo['round_trip'] = ROUND_TRIP;
+            }
+
+            if(isset($param->customer->driving_mode)){
+                $customerinfo['driving_mode'] = $param->customer->driving_mode;
+            }elseif($companyConf->driving_mode){
+                $customerinfo['driving_mode'] = $companyConf->driving_mode;
+            }else{
+                $customerinfo['driving_mode'] = DRIVING_MODE;
+            }
+
             $condition = "user_id = '" . $param->customer_id . "'";
             $customerinfoStatus    = $this->modelObj->editContent("customer_info",$customerinfo, $condition);
 
