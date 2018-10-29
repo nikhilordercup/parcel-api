@@ -1,4 +1,4 @@
-<?php
+<?php 
 final class Nextday extends Booking
     {
     private $_param = array();
