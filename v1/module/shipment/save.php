@@ -39,6 +39,9 @@ class shipment extends Library{
         if(isset($param["user_level"])){
             $this->user_level = $param["user_level"];
         }
+        if(isset($param["country_code"])){
+            $this->country_code = $param["country_code"];
+        }
 	}
 
 	private function _get_upload_xml_path(){
@@ -262,14 +265,14 @@ class shipment extends Library{
             $returnData = array();
 			$ticketNumber = $this->_generate_ticket_no();
 
-			$datapostcode = $this->postcodeObj->validate($data['postcode']);
+			$datapostcode = $this->postcodeObj->validate($data['postcode'],$this->country_code);
 			$datapostcode = $datapostcode[0];
 
-			$shipment_geo_location = $this->get_lat_long_by_postcode($datapostcode,$data['latitude'],$data['longitude']);
+			$shipment_geo_location = $this->get_lat_long_by_postcode($datapostcode);
 
 			$warehouse_id = $this->_shipment_warehouse(array("company_id"=>$this->company_id, "postcode"=>$datapostcode, "shipment_geo_location"=>$shipment_geo_location));
 
-			$postcode = $this->postcodeObj->validate($valuedata['postcode']);
+			$postcode = $this->postcodeObj->validate($valuedata['postcode'],$this->country_code);
 			$postcode = $postcode[0];
 			if($postcode){
 				$valuedata['postcode'] = $postcode;
@@ -420,14 +423,14 @@ class shipment extends Library{
         //return $dataStatus;
 		}
 
-	private function _add_shipment_data_uk_mail($data){
+	private function _add_shipment_data_uk_mail($data){ 
 		$dataStatus = false;
 		$returnData = array();
 
 		$ticketNumber = $this->_generate_ticket_no();
 		$this->company_id = $this->_get_company_id($data['company_code']);
 
-        $postcode = $this->postcodeObj->validate($data['postcode']);
+        $postcode = $this->postcodeObj->validate($data['postcode'],$this->country_code);
 		$postcode = $postcode[0];
 
 		$warehouse_id = $this->warehouse_id;//$this->_shipment_warehouse(array("company_id"=>$this->company_id, "postcode"=>$postcode));
@@ -513,15 +516,18 @@ class shipment extends Library{
 		/*$address = $shipmentData['shipment_address1']." ".$shipmentData['shipment_address2']." ".$shipmentData['shipment_address3']." ".str_replace(' ','',$shipmentData['shipment_postcode'])." ".
 		$shipmentData['shipment_customer_city']." ".$shipmentData['shipment_customer_country'];*/
 
-        $shipmentData['search_string'] = $ticketNumber.' '.$data['docketNumber'].' '.$shipmentData['instaDispatch_objectIdentity'].' '.str_replace(' ','',$data['postcode']).' '.$shipmentData['shipment_customer_name'].' '.$shipmentData['shipment_required_service_date'];
+        $shipmentData['search_string'] = $ticketNumber.' '.$shipmentData['instaDispatch_docketNumber'].' '.$shipmentData['instaDispatch_objectIdentity'].' '.str_replace(' ','',$data['postcode']).' '.$shipmentData['shipment_customer_name'].' '.$shipmentData['shipment_required_service_date'];
         /*$address = $shipmentData['shipment_address1']." ".$shipmentData['shipment_address2']." ".$shipmentData['shipment_address3']." ".str_replace(' ','',$shipmentData['shipment_postcode'])." ".
         $shipmentData['shipment_customer_city']." ".$shipmentData['shipment_customer_country']; */
 
         $data['latitude']  = isset($data['latitude'])?$data['latitude']:'';
         $data['longitude'] = isset($data['longitude'])?$data['longitude']:'';
-
-        $shipment_geo_location = $this->get_lat_long_by_postcode($data['postcode'],$data['latitude'],$data['longitude']);
-
+        //$shipment_geo_location = $this->get_lat_long_by_postcode($data['address1'].', '.$data['postcode']);
+        if($this->country_code=='US'){
+            $shipment_geo_location = $this->get_lat_long_by_postcode($data['address1'].', '.$data['postcode']);
+        }else{
+            $shipment_geo_location = $this->get_lat_long_by_postcode($data['postcode']);
+        }
         $shipmentData['shipment_latitude'] = $shipment_geo_location["latitude"];
 		$shipmentData['shipment_longitude'] = $shipment_geo_location["longitude"];
 		$shipmentData['shipment_latlong'] = $shipment_geo_location["latitude"].','.$shipment_geo_location["longitude"];
@@ -543,15 +549,15 @@ class shipment extends Library{
         $address_data['longitude'] = $shipmentData["shipment_longitude"];
         $address_data['customer_id'] = $this->company_id;
         $address_data['type'] = (isset($data["status"])) ? $data["status"] : "";
-
+       
         $address_status = $this->_save_address($address_data);
-
+        
         if($address_status["status"]=="success"){
 
             $shipmentData["address_id"] = $address_status["address_id"];
 
             $shipmentId = $this->db->save("shipment", $shipmentData);
-
+            //print_r($shipmentId);die;
             $shipmentData['shipment_postcode'] = $postcode;
             $shipmentData['shipment_address'] = $address_data['address_line1'];
 
@@ -770,7 +776,7 @@ class shipment extends Library{
 
     public function addshipmentDetail(){
        $data = array();
-	   $postcode = $this->postcodeObj->validate($this->tempdata->delivery->postcode);//$this->validatePostcode($this->tempdata->delivery->postcode);
+	   $postcode = $this->postcodeObj->validate($this->tempdata->delivery->postcode,$this->country_code);//$this->validatePostcode($this->tempdata->delivery->postcode);
 	   $postcode = $postcode[0];
        if($postcode){
 		   $dateData = isset($this->tempdata->delivery->servicedate)?$this->tempdata->delivery->servicedate:date("Y/m/d H:m:s");
@@ -835,7 +841,7 @@ class shipment extends Library{
     private function _preparedataFromCsv($job_type,$company_id,$file_name,$tempdata){
         $temperarydata = array();
         $tempdata =  (array) $tempdata;
-       if(count($tempdata['values']) > 0){
+        if(count($tempdata['values']) > 0){
            foreach($tempdata['values'] as $key=>$val){
               $data = $this->_getSingleShipmentData($val,$company_id);
               //$data['address1'] = $val->address;
@@ -867,7 +873,8 @@ class shipment extends Library{
 
     private function _getSingleShipmentData($val,$company_id){
 		$data = array();
-		$data['company_code']    = $this->_get_company_code($company_id);
+		$val->parcelid  = isset($val->parcelid)?$val->parcelid:0;
+        $data['company_code']    = $this->_get_company_code($company_id);
 		$data['postcode']        = $val->postcode;
 		$data['docketNumber']    = $val->parcelid;
 		$data['identity']        = $val->parcelid;
@@ -875,7 +882,7 @@ class shipment extends Library{
 		$data['objectIdentity']  = $val->parcelid;
 		$data['objectTypeName']	 = 'JobLoad';
 		$data['jobTypeName']     = 'Delivery';
-		$data['executionDate']   = date('Y-m-d',strtotime(str_replace(array("/","-"), array("-","-"), isset($val->scandate)?$val->scandate:'')));
+		$data['executionDate']   = date('Y-m-d',strtotime(str_replace(array("/","-"), array("-","-"), isset($val->scandate)?$val->scandate:date('Y-m-d'))));
 		$data['startTime']       = date('h:m:s',strtotime(str_replace("/", "-", isset($val->scandate)?$val->scandate:'')));
 		$data['endTime']         = date('h:m:s',strtotime(str_replace("/", "-", isset($val->scandate)?$val->scandate:'')));
 
@@ -974,7 +981,7 @@ class shipment extends Library{
 
         $ticketNumber = $this->_generate_ticket_no();
 		if(isset($param["postcode"])){
-			$postcode = $this->postcodeObj->validate($param["postcode"]);
+			$postcode = $this->postcodeObj->validate($param["postcode"],$this->country_code);
 			$postcode = $postcode[0];
 		}else{
 			$postcode = "";
@@ -1403,9 +1410,9 @@ class shipment extends Library{
             $_data["invoice_reference"] ='';
             // $_data["json_data"] = $data_string;
             $_data["status"] ='INFO_RECEIVED';
-						$_data["customer_reference1"] = $param->customer_reference1;
-						$_data["customer_reference2"] = $param->customer_reference2;
-
+            $_data["customer_reference1"] = $param->customer_reference1;
+            $_data["customer_reference2"] = $param->customer_reference2;
+            $_data["is_manualbooking"] = $param->is_manualbooking;
             $customerData = $this->getBookedCustomerInfo($_data['customer_id']);
             $_data['customer_type']        = $customerData['customer_type'];
 
@@ -1448,8 +1455,8 @@ class shipment extends Library{
     private
 
     function _save_address($address){
-		$commonObj = new Common();
-        $postcode = $this->postcodeObj->validate($address["postcode"]);
+        $commonObj = new Common();
+        $postcode = $this->postcodeObj->validate($address["postcode"],$this->country_code);
 		$postcode = $postcode[0];
         if($postcode){
 			if(isset($address["type"])){
@@ -1623,6 +1630,7 @@ class shipment extends Library{
 
     function bookSameDayShipment($data)
     {
+
 		$carrier_id = $data->service_detail->otherinfo->courier_id;
 
         //check customer is enable or not  shipment_instruction
@@ -1697,7 +1705,8 @@ class shipment extends Library{
 
                     $shipmentService->customer_reference1 = (isset($data->customer_reference1)) ? $data->customer_reference1 : "";
                     $shipmentService->customer_reference2 = (isset($data->customer_reference2)) ? $data->customer_reference2 : "";
-
+                    $shipmentService->is_manualbooking = (isset($data->ismanualbooking) && ($data->ismanualbooking !='')) ? $data->ismanualbooking : "false";
+                        
                     unset($shipmentService->message);
                     //save shipment price breakdown
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"version"=>$priceVersionNo));

@@ -1,0 +1,39 @@
+<?php
+require_once "Providers/Auth_Provider.php";
+class Firebase_User_Management{
+    public static $authProviderObj= null;
+
+    public function __construct(){
+        if(self::$authProviderObj===null){
+            self::$authProviderObj = new Auth_Provider();
+        }
+        $this->authProvider = self::$authProviderObj;
+    }
+
+    public function login($email,$password){
+        return $this->authProvider->login($email,$password);
+    }
+
+    public function forgotPassword($email){
+        return $this->authProvider->forgotPassword($email);
+    }
+
+    private function _signupUser($email,$password){
+        return $this->authProvider->signupUser($email,$password);
+    }
+
+    public function signOut(){
+        return $this->authProvider->signOut();
+    }
+	
+	public function customerSignup($param){
+		$signupStatus = $this->_signupUser($param->email,$param->password);
+		if($signupStatus['status']=='error'){
+			return $signupStatus;
+		}else{
+			//db operation
+			
+		}
+	}
+}
+?>
