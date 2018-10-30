@@ -144,11 +144,12 @@ class RateEngineModel {
     }
 
     public function searchPriceForZone($carrierId, $fromZone, $toZone) {
-        $query = "SELECT R.*,C.name as carrier_name,S.service_name,RT.name as rate_type"
-                . ",RU.name as rate_unit FROM " . DB_PREFIX . "rate_info AS R "
+        $query = "SELECT R.*,C.name as carrier_name,S.service_name,S.service_code,RT.name as rate_type"
+                . ",RU.name as rate_unit, R.account_id, CVC.account_number FROM " . DB_PREFIX . "rate_info AS R "
                 . "LEFT JOIN  " . DB_PREFIX . "courier_vs_services AS S ON R.service_id=S.id "
                 . "LEFT JOIN " . DB_PREFIX . "courier AS C ON R.carrier_id=C.id "
                 . "LEFT JOIN " . DB_PREFIX . "rate_types AS RT ON R.rate_type_id=RT.id "
+                . "LEFT JOIN " . DB_PREFIX . "courier_vs_company AS CVC ON R.account_id=CVC.id "
                 . "LEFT JOIN " . DB_PREFIX . "rate_units AS RU ON R.rate_unit_id=RU.id WHERE "
                 . "R.carrier_id=$carrierId AND R.from_zone_id=$fromZone "
                 . "AND R.to_zone_id=$toZone ";
@@ -213,14 +214,18 @@ class RateEngineModel {
         ];
     }
 
-    public function searchUkPost($rec, $zip) {
+    public function searchUkPost($rec, $zip,$surcharge=false) {
         if ($zip == trim($zip) && strpos($zip, ' ') == false) {
             $zip = substr_replace($zip, ' ', -3, -3);
-        };
+        }
 
         for ($i = strlen($zip); $i >= 2; $i--) {
-            foreach ($rec as $r) {                //print_r($r);
-                if ($r['post_code'] == substr($zip, 0, $i)) {
+            foreach ($rec as $r) {                
+                if($surcharge){
+                    if($r==substr($zip, 0, $i)){
+                        return $r;
+                    }
+                }else if ($r['post_code'] == substr($zip, 0, $i)) {
                     return $r;
                 }
             }
@@ -257,7 +262,7 @@ class RateEngineModel {
     public function addSurcharge($data,$carrierId,$services,$accounts,$surcharege){
         foreach ($accounts as $a){
             foreach($services as $s){
-                $this->deleteIfExist($carrierId, $a, $s);
+                $this->deleteIfExist($carrierId, $a, $s,$surcharege);
                 $t=[
                     'carrier_id'=>$carrierId,
                     'service_id'=>$s, 
@@ -272,7 +277,7 @@ class RateEngineModel {
     }
     public function fetchSurcharge($carrierId,$services,$accounts,$surcharege){
         $query="SELECT S.id, C.name AS carrierName,CS.service_name AS serviceName, A.account_number AS accountNumber,"
-                . " S.surcharge, S.surcharge_rules AS surchargeRule "
+                . " S.surcharge, S.surcharge_rules AS surchargeRule, CS.service_code as serviceCode "
                 . "FROM ".DB_PREFIX."surcharges AS S "
                 . "LEFT JOIN ".DB_PREFIX."courier AS C ON S.carrier_id=C.id "
                 . "LEFT JOIN ".DB_PREFIX."courier_vs_services AS CS ON S.service_id=CS.id "
@@ -289,9 +294,12 @@ class RateEngineModel {
     public function deleteSurcharge($id){
         return $this->_db->delete("DELETE FROM ".DB_PREFIX."surcharges WHERE id=$id");
     }
-    public function deleteIfExist($carrierId,$accountId,$serviceId){
+    public function deleteIfExist($carrierId,$accountId,$serviceId,$surchargeId){
         return $this->_db->delete("DELETE FROM ".DB_PREFIX."surcharges WHERE carrier_id=$carrierId "
-                . "AND account_id=$accountId AND service_id=$serviceId");
+                . "AND account_id=$accountId AND service_id=$serviceId AND surcharge=$surchargeId");
+        
+    }
+    public function getSurchargeByRate(){
         
     }
 
