@@ -1,0 +1,4 @@
+INSERT INTO icargo_notification_default (company_id, trigger_type, trigger_code, status, template) VALUES
+('0','sms','courierSignup','0',''),
+('0','email','courierSignup','1','<p>Hi Instadispatch,<br style="font-size: 13px;text-align: left;"/><br style="font-size: 13px;text-align: left;"/><br style="font-size: 13px;text-align: left;"/>A new customer has been signed up successfully and below are the details.<br style="font-size: 13px;text-align: left;"/><br style="font-size: 13px;text-align: left;"/>Name : __inquiry_name__</p><p style="color: rgba(0, 0, 0, 0.87);font-size: 14px;">Phone No : __inquiry_phone__</p><p style="color: rgba(0, 0, 0, 0.87);font-size: 14px;">Email : __inquiry_email__</p><p><br style="font-size: 13px;text-align: left;"/></p><p>Regards</p><p><br style="font-size: 13px;text-align: left;"/></p><p>Instadispatch</p><p><br style="font-size: 13px;text-align: left;"/></p><p>UK</p>'),
+('0','webhook','courierSignup','0','');

@@ -37,7 +37,7 @@ class Company extends Icargo{
 		return $this->_company_id;
 	}
 	
-	public function __construct($data){
+	public function __construct($data){            
 		$this->_parentObj = parent::__construct(array("email"=>$data->email, "access_token"=>$data->access_token));
 		
 		if(isset($data->email)){
@@ -111,6 +111,10 @@ class Company extends Icargo{
 		return $this->_parentObj->db->getRowRecord("SELECT t2.category_name,plate_no,model,color,brand,max_weight,max_width,max_height,max_length,max_volume FROM ".DB_PREFIX."vehicle as t1 INNER JOIN ".DB_PREFIX."vehicle_category AS t2 ON t1.category_id = t2.id WHERE t1.id = ".$param->id."");
     }
     
+    public function getUserProfileInfo($param) {
+        return $this->_parentObj->db->getRowRecord("SELECT * FROM ".DB_PREFIX."users WHERE id = ".$param->id."");
+    }
+
     private function _getIncompleteModuleData(){
         $setupObj = new Setup((object) array("email"=>$this->_getEmail(), "access_token"=>$this->_getAccessToken(), "user_id"=>$this->_getCompanyId()));
         $setup_response = $setupObj->getDefaultRegistrationData();
@@ -133,7 +137,7 @@ class Company extends Icargo{
     public function addWareHouse($param){
         $libObj = new Library();
 		$postCodeObj = new Postcode();
-		$isValidPostcode = $postCodeObj->validate($param->postcode);
+		$isValidPostcode = $postCodeObj->validate($param->postcode,$param->country_code);
 		if($isValidPostcode){
 			$latLngArr = $libObj->get_lat_long_by_postcode($param->postcode);
 			//if($latLngArr['longitude']!='' || $latLngArr['longitude']!=''){
@@ -213,6 +217,76 @@ class Company extends Icargo{
 		
         return $response;
 	}
+        
+    /*
+     * Update user profile
+     * working for Controller, Customer
+     */
+               
+        
+    public function updateUserInfo($param){
+        //print_r($param); die;
+        
+        $userDetail = $this->getUserProfileInfo($param);
+        
+        $data = array(
+            'name'=>$param->name,
+            'phone'=>$param->phone,
+            'address_1'=>$param->address_1,
+            'address_2'=>$param->address_2,
+            'city'=>$param->city,
+            'state'=>$param->state,
+            'country'=>$param->country
+        );
+
+        if( isset($param->file) && $param->file && isset($param->file_name) && $param->file_name ) {
+            
+            $filepath       = dirname(dirname(dirname(dirname(__FILE__)))) . '/upload/profile_image/'; 
+            $ext            = strtolower( pathinfo($param->file_name, PATHINFO_EXTENSION) );
+
+            $fname          = time().".$ext";
+            $file_name      = $filepath. $fname;            
+            $profileBase64  = $param->file;            
+            $profileBase64  = base64_decode($profileBase64);
+            
+            file_put_contents($file_name, $profileBase64);
+            $ctype = '';
+            switch( $ext ) {
+                case "gif": 
+                    $ctype = "image/gif"; break;
+                case "png": 
+                    $ctype = "image/png"; break;
+                case "jpeg": 
+                    $ctype = "image/jpeg"; break;
+                case "jpg": 
+                    $ctype = "image/jpeg"; break;
+                default:
+            }
+
+            header('Content-type: ' . $ctype);         
+            if($userDetail['profile_image']) {
+                $fPath = $filepath.$userDetail['profile_image'];
+                unset( $fPath );                
+            }
+            $data['profile_image'] = $fname;
+            $data['profile_path'] = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].'/'.LABEL_URL.'upload/profile_image/';
+        }
+        
+        $condition = 'id='.$param->id;
+        $update = $this->_parentObj->db->update("users",$data,$condition);
+
+
+        if ($update != NULL) {
+            $response["status"] = "success";
+            $response["result"] = $this->getUserProfileInfo($param);
+            $response["message"] = "Profile updated successfully";  
+        }else{
+            $response["status"] = "error";
+            $response["message"] = "Failed to update profile. Please try again";
+        }
+
+        return $response;
+    }
 
     
     public function save($param){

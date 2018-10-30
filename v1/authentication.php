@@ -1,4 +1,5 @@
 <?php
+require_once("../v1/module/notification/Signup/Courier_Signup.php");
 $app->post('/login', function() use ($app) {
     require_once 'passwordHash.php';
     require_once("module/authentication/authentication.php");
@@ -47,7 +48,7 @@ $app->post('/signUp', function() use ($app) {
         );
         $user = $db->save("users",$data);
         $countryInfo=$db->getOneRecord("SELECT * FROM ".DB_PREFIX."countries WHERE short_name='".$r->company->country."'" );
-           
+
 
         //$user = $db->insertIntoTable($r->company, $column_names, $table_name);
         if ($user != NULL) {
@@ -56,8 +57,24 @@ $app->post('/signUp', function() use ($app) {
             $column_names = array('company_id','warehouse_id', 'user_id');
             $relationTblEntry = $db->insertIntoTable($relationData, $column_names, DB_PREFIX."company_users");
 
+            $defaultConfiguration = array(
+               "username"=>"roopesh",
+               "password"=>"ROOPESH",
+               "port"=>"25",
+               "host"=>"LOCALHOST",
+               "maximum_allow_drop"=>"40",
+               "buffer_time"=>"100",
+               "maxbuffertimeperdrop"=>"000",
+               "maxbuffertimepershipment"=>"0",
+               "whscanautoatrue"=>"1",
+               "driverscanautoatrue"=>"1",
+               "regularattempt"=>"2",
+               "phonetypeattempt"=>"1",
+               "round_trip"=>ROUND_TRIP,
+               "driving_mode"=>DRIVING_MODE
+            );
             $db->save("configuration", array(
-                    "configuration_json"=>'{"username":"roopesh","password":"ROOPESH","port":"25","host":"LOCALHOST","maximum_allow_drop":"40","buffer_time":"100","maxbuffertimeperdrop":"000","maxbuffertimepershipment":"0","whscanautoatrue":"1","driverscanautoatrue":"1","regularattempt":"2","phonetypeattempt":"1"}',
+                    "configuration_json"=>json_encode($defaultConfiguration),
                     "shipment_end_number"=>"00000000000",
                     "shipment_ticket_prefix"=>"ICARGOS$user",
                     "parcel_end_number"=>"00000000000",
@@ -94,12 +111,12 @@ $app->post('/signUp', function() use ($app) {
 
             //chargebee associate to trial plan
             $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
-            
-           
+
+
             Chargebee_Model_Chargebee::getInstanse()->
             updateBillingInfo($user, $chargebee_customer_data->customer_id);
-            
-            
+
+
 
 
             $chargebee_customer_data = (object) array(
@@ -127,20 +144,21 @@ $app->post('/signUp', function() use ($app) {
             $db->update("chargebee_customer", array("user_id"=>$user),"chargebee_customer_id='$chargebee_customer_data->customer_id'");
 
             //save user default notification templates
-            $sql = "SELECT * FROM " . DB_PREFIX ."notification_default";
+            $sql = "SELECT * FROM " . DB_PREFIX ."notification_default WHERE type LIKE 'default'";
             $templates = $db->getALLRecordS($sql);
 
             foreach($templates as $template){
                 $db->save("notification", array(
                     "company_id" => $user,
-                    "type" => '',
-                    "jobtype" => '',
                     "trigger_type" => $template["trigger_type"],
                     "trigger_code" => $template["trigger_code"],
                     "status" => $template["status"],
                     "template" => $template["template"]
                 ));
             }
+
+            $notificationObj = new Courier_Signup();
+            $notificationObj->send($user);
 
             $response["status"] = "success";
             $response["message"] = "User account created successfully";

@@ -4,6 +4,7 @@ config.php
 .idea/
 vendor/
 label/
+/upload/
 composer.lock
 config.php
 temp/
@@ -12,3 +13,4 @@ temp/
 parcel-api.userprefs
 pod/signature/\*.png
 assets/outputpdf
+pod/

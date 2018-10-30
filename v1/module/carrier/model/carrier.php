@@ -69,7 +69,7 @@ class Carrier_Model_Carrier
     public function getCcfOfCarrierServices($service_code, $customer_id, $company_id, $courier_id)
     {
         $sql = "
-        SELECT  
+        SELECT
         COURSER.id as service_id,
         CCST.customer_ccf AS customer_carrier_service_ccf,
         CCST.ccf_operator AS customer_carrier_service_operator,
@@ -91,7 +91,7 @@ class Carrier_Model_Carrier
         INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company as COMSER on (COMSER.service_id = CCST.service_id AND COMSER.courier_id = CCST.courier_id   AND COMSER.company_id =  '$company_id')
         INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.id = CCST.courier_id AND  COMCOUR.company_id =  '$company_id')
         INNER JOIN " . DB_PREFIX . "courier_vs_services as COURSER on (COURSER.id = CCST.service_id)
-        WHERE CCST.status = 1  AND CCC.status = 1 
+        WHERE CCST.status = 1  AND CCC.status = 1
         AND COMSER.status = 1 AND COMCOUR.status = 1 AND COURSER.status = 1
         AND CCST.company_customer_id = '$customer_id'
         AND CCST.company_id = '$company_id'
@@ -103,17 +103,17 @@ class Carrier_Model_Carrier
     public function getCcfOfCarrier($customer_id, $company_id, $courier_id)
     {
         $sql = "
-        SELECT 
+        SELECT
         CCC.customer_ccf_value AS customer_carrier_ccf,
         CCC.company_ccf_operator_service AS customer_carrier_operator,
         CINFO.ccf AS customer_ccf,
         CINFO.ccf_operator_service AS customer_operator,
         COMCOUR.company_ccf_value AS company_carrier_ccf,
         COMCOUR.company_ccf_operator_service AS company_carrier_operator
-        FROM " . DB_PREFIX . "courier_vs_company_vs_customer as CCC 
+        FROM " . DB_PREFIX . "courier_vs_company_vs_customer as CCC
         INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCC.customer_id
         INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.id = CCC.company_courier_account_id AND  COMCOUR.company_id =  CCC.company_id )
-        WHERE   CCC.status = 1 AND  COMCOUR.status = 1 
+        WHERE   CCC.status = 1 AND  COMCOUR.status = 1
         AND CCC.customer_id = '$customer_id'
         AND CCC.company_id = '$company_id'
         AND CCC.company_courier_account_id = '$courier_id'";
@@ -123,7 +123,7 @@ class Carrier_Model_Carrier
     public function getCcfOfCarrierSurcharge($surchrage_code, $customer_id, $company_id, $courier_id)
     {
        $sql = "
-        SELECT  
+        SELECT
                 COURSER.id as surcharge_id,
                 CCST.customer_surcharge AS customer_carrier_surcharge_ccf,
                 CCST.ccf_operator AS customer_carrier_surcharge_operator,
@@ -146,10 +146,10 @@ class Carrier_Model_Carrier
                 INNER JOIN " . DB_PREFIX . "courier_vs_surcharge_vs_company as COMSER on (COMSER.surcharge_id = CCST.surcharge_id AND COMSER.courier_id = CCST.courier_id   AND COMSER.company_id =  '$company_id')
                 INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.id = CCST.courier_id AND  COMCOUR.company_id =  '$company_id')
                 INNER JOIN " . DB_PREFIX . "courier_vs_surcharge as COURSER on (COURSER.id = CCST.surcharge_id)
-                WHERE CCST.status = 1  
-                AND CCC.status = 1 
-                AND COMSER.status = 1 
-                AND COMCOUR.status = 1 
+                WHERE CCST.status = 1
+                AND CCC.status = 1
+                AND COMSER.status = 1
+                AND COMCOUR.status = 1
                 AND COURSER.status = 1
                 AND CCST.company_customer_id = '$customer_id'
                 AND CCST.company_id = '$company_id'
@@ -161,7 +161,7 @@ class Carrier_Model_Carrier
     public function getSurchargeOfCarrier($customer_id, $company_id, $courier_id)
     {
         $sql = "
-        SELECT 
+        SELECT
         CCC.customer_surcharge_value AS customer_surcharge_value,
         CCC.company_ccf_operator_surcharge AS company_ccf_operator_surcharge,
         CINFO.surcharge AS customer_surcharge,
@@ -169,10 +169,10 @@ class Carrier_Model_Carrier
         COMCOUR.company_surcharge_value AS company_carrier_ccf,
         COMCOUR.company_ccf_operator_surcharge AS company_carrier_operator,
         COMCOUR.pickup,COMCOUR.pickup_surcharge
-        FROM " . DB_PREFIX . "courier_vs_company_vs_customer as CCC 
+        FROM " . DB_PREFIX . "courier_vs_company_vs_customer as CCC
         INNER JOIN " . DB_PREFIX . "customer_info as CINFO on CINFO.user_id = CCC.customer_id
         INNER JOIN " . DB_PREFIX . "courier_vs_company as COMCOUR on (COMCOUR.id = CCC.company_courier_account_id AND  COMCOUR.company_id =  CCC.company_id )
-        WHERE   CCC.status = 1 AND  COMCOUR.status = 1 
+        WHERE   CCC.status = 1 AND  COMCOUR.status = 1
         AND CCC.customer_id = '$customer_id'
         AND CCC.company_id = '$company_id'
         AND CCC.company_courier_account_id = '$courier_id'";
@@ -199,7 +199,7 @@ class Carrier_Model_Carrier
 
     public function getCcfOfCarrierSurcharge__($surchrage_code, $customer_id)
     {
-        $sql = "SELECT  
+        $sql = "SELECT
                 CCST.customer_surcharge AS customer_carrier_surcharge_ccf,
                 CCST.ccf_operator AS customer_carrier_surcharge_operator,
                 CCC.customer_surcharge_value AS customer_carrier_ccf,
@@ -230,7 +230,7 @@ class Carrier_Model_Carrier
     public function checkServiceExist($serviceName, $courier_id)
     {
         $sql = "SELECT CT.id as service_id
-               FROM " . DB_PREFIX . "courier_vs_services AS CT 
+               FROM " . DB_PREFIX . "courier_vs_services AS CT
                WHERE CT.service_code = '$serviceName' AND CT.courier_id = '$courier_id'";
         $servicedetails = $this->_getDbInstance()->getRowRecord($sql);
         return $servicedetails['service_id'];
@@ -242,7 +242,7 @@ class Carrier_Model_Carrier
               CTS.company_service_ccf,CTS.company_ccf_operator,CUSTSER.customer_ccf,CUSTSER.ccf_operator
               FROM " . DB_PREFIX . "company_vs_customer_vs_services AS CUSTSER
               INNER JOIN " . DB_PREFIX . "courier_vs_services AS CTT ON CTT.id = CUSTSER.service_id
-              INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS  CTS ON CTS.id = CUSTSER.company_service_id 
+              INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS  CTS ON CTS.id = CUSTSER.company_service_id
               WHERE CUSTSER.service_id = '$serviceName' AND CUSTSER.courier_id = '$courier_id' AND CUSTSER.company_customer_id = '$customerid'";
         return $this->_getDbInstance()->getRowRecord($sql);
     }

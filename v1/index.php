@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
 ini_set('date.timezone', 'Europe/London');
 
 require_once 'constant.php';
@@ -41,9 +43,9 @@ require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
 require_once 'dev.test.php';
-require_once('../vendor/setasign/fpdf/fpdf.php');
-require_once('../vendor/setasign/fpdi/src/autoload.php');
-require_once 'module/fpdf/ConcatPdf.php';
+//require_once('../vendor/setasign/fpdf/fpdf.php');
+//require_once('../vendor/setasign/fpdi/src/autoload.php');
+//require_once 'module/fpdf/ConcatPdf.php';
 
 //require_once('../vendor/dompdf/autoload.inc.php');
 require_once 'module/route/complete.php';
@@ -74,6 +76,9 @@ require_once 'module/firebase/Firebase_Shipment_Deliver_From_Route.php';
 require_once 'module/firebase/route-accept.php';
 require_once 'module/firebase/Firebase_Route_Assign.php';
 require_once 'module/firebase/Firebase_Withdraw_Route.php';
+require_once 'module/firebase/Firebase_User_Management.php';
+require_once 'module/firebase/User_Management.php';
+require_once 'module/firebase/model/Model.php';
 
 require_once 'module/firebase/route-release.php';
 
@@ -142,6 +147,9 @@ require_once 'module/tracking/Easypost_Tracking.php';
 require_once 'module/tracking/Find_Save_Tracking.php';
 require_once 'module/tracking/Create_Tracking.php';
 
+require_once 'module/service_provider/ServiceProvider.php';
+require_once 'module/service_provider/model/ServiceProviderModel.php';
+require_once 'module/custom_labels/Custom_Label.php';
 
 //Country file included
 require_once 'module/country/model/country.php';
@@ -219,7 +227,7 @@ EOD;
 
     // Http response code
     $app->status($status_code);
- 
+
     // setting response content type to json
     //$app->contentType('application/json');
 
@@ -227,7 +235,7 @@ EOD;
     //echo json_encode($response);
 }
 
-function encodeJwtData($data) { 
+function encodeJwtData($data) {
     $privateKey = <<<EOD
 -----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQC8kGa1pSjbSYZVebtTRBLxBz5H4i2p/llLCrEeQhta5kaQu/Rn
@@ -262,4 +270,4 @@ function rootPath(){
     return dirname(dirname(dirname(__FILE__)));
 }
 
-$app->run(); 
+$app->run();

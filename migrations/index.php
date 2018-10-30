@@ -93,4 +93,3 @@ $files = $fileManager->getFileList();
         </script>
     </body>
 </html>
-
