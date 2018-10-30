@@ -410,16 +410,16 @@
         },
         {
             "name": "google/cloud-core",
-            "version": "v1.23.7",
+            "version": "v1.23.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-cloud-php-core.git",
-                "reference": "f0f1d929285a43359bf65bec0135ce4c8d0d0503"
+                "reference": "49a9086e5a402bd6d94c781368f6d88cbaab8835"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-cloud-php-core/zipball/f0f1d929285a43359bf65bec0135ce4c8d0d0503",
-                "reference": "f0f1d929285a43359bf65bec0135ce4c8d0d0503",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-core/zipball/49a9086e5a402bd6d94c781368f6d88cbaab8835",
+                "reference": "49a9086e5a402bd6d94c781368f6d88cbaab8835",
                 "shasum": ""
             },
             "require": {
@@ -465,20 +465,20 @@
                 "Apache-2.0"
             ],
             "description": "Google Cloud PHP shared dependency, providing functionality useful to all components.",
-            "time": "2018-10-08T13:57:02+00:00"
+            "time": "2018-10-29T16:21:18+00:00"
         },
         {
             "name": "google/cloud-storage",
-            "version": "v1.9.1",
+            "version": "v1.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-cloud-php-storage.git",
-                "reference": "3db9ba4fa8ac8749781c4ace05142375588ea75a"
+                "reference": "02853047d64eea483e7209487126e3db8daff342"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-cloud-php-storage/zipball/3db9ba4fa8ac8749781c4ace05142375588ea75a",
-                "reference": "3db9ba4fa8ac8749781c4ace05142375588ea75a",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-storage/zipball/02853047d64eea483e7209487126e3db8daff342",
+                "reference": "02853047d64eea483e7209487126e3db8daff342",
                 "shasum": ""
             },
             "require": {
@@ -515,7 +515,7 @@
                 "Apache-2.0"
             ],
             "description": "Cloud Storage Client for PHP",
-            "time": "2018-10-08T13:57:02+00:00"
+            "time": "2018-10-29T16:21:18+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
