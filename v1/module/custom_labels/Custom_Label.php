@@ -23,7 +23,7 @@ class Custom_Label
 
         $obj = new Design1_Label();
         $labels = $obj->createLable($load_identity);
-        $mpdf = new Mpdf/Mpdf($config);
+        $mpdf = new \Mpdf\Mpdf($config);
         $mpdf->SetDisplayMode('fullpage');
         $mpdf->list_indent_first_level = 0; // 1 or 0 - whether to indent the first level of a list
 

@@ -2418,10 +2418,10 @@ $app->post('/getNextDayCarriersofCompany', function() use ($app) {
     $obj = new allShipments($r);
     $response = $obj->getNextDayCarriersofCompany($r);
     echoResponse(200, $response);
-});  
+});
 
 
-    
+
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
@@ -2449,4 +2449,10 @@ $app->post('/apiSignup', function() use ($app){
 	verifyRequiredParams(array('email','password'),$r);
 	$response = $obj->customerSignup($r);
 	echoResponse(200, $response);
+});
+
+$app->post('/test', function() use ($app){
+	$obj = new Custom_Label();
+	$data = $obj->createLabel("ICARGOS1839560");
+	print_r($data);die;
 });
