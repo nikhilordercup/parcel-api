@@ -3,16 +3,16 @@ class Courier_Signup{
 
     public static $modelObj = NULL;
 
-    private $headerMsg = "Courier Signup";
+    private $headerMsg = "Courier Signup";  
 
     private $recepientEmail = array(
         array(
-            "name"=>"Nishant Verma 1",
-            "email"=>"nishant.verma@ordercup.com"
+            "name"=>"Nikhil",
+            "email"=>"nikhil.kumar@ordercup.com"
         ),
         array(
-            "name"=>"Nishant Verma 2",
-            "email"=>"nishant.v@perceptive-solutions.com"
+            "name"=>"Deepak",
+            "email"=>"deepak.sethi@perceptive-solutions.com"
         )
     );
 

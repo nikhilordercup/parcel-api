@@ -1,6 +1,7 @@
 <?php
-class Quotation extends Icargo
+require_once "../v1/module/notification/Sameday/Quotation_Notification.php";
 
+class Quotation extends Icargo
 {
     private $headerMsg = "Icargo Quotation - __quote_number__";
     public
@@ -297,107 +298,22 @@ class Quotation extends Icargo
 
         if ($data->quote_email != '')
         {
-            $templateMsg = array();
-            $emailObj = new Notification_Email();
             if ($quoteSave['status'] == "success")
             {
-                $shipmentData = $this->_getShipmentDataByQuoteNumber($quoteSave['quote_number']);
-                $serviceData = $this->_getServiceDataByQuoteNumber($quoteSave['quote_number']);
-                $template = $this->_getTemplateByTemplateCode($data->company_id, "sameday_quotation");
-                $courierData = $this->_getCourierDataByCompanyId($data->company_id);
-                $quoteExpiry = $this->_getCustomerQuoteExpiryDays($data->customer_id);
-                foreach($shipmentData as $value)
-                {
-                    if ($value['shipment_service_type'] == 'P')
-                    {
-                        $templateMsg['collection_postcode'][] = $value['shipment_postcode'];
-                    }
-                    else
-                    {
-                        $templateMsg['delivery_postcode'][] = $value['shipment_postcode'];
-                    }
+                $notificationObj = new Quotation_Notification();
+                $status = $notificationObj->send(array("quote_email"=>$data->quote_email,"quote_number"=>$quoteSave['quote_number'],"company_id"=>$data->company_id,"customer_id"=>$data->customer_id,"service_date"=>$data->service_date));
+
+                if($status["status"]=="success"){
+                    $response = array(
+                        "status" => "success",
+                        "message" => $quoteSave['message']
+                    );
+                }else{
+                    $response = array(
+                        "status" => "error",
+                        "message" => $status['message']
+                    );
                 }
-
-                $html = '';
-                $serviceDetail = json_decode($serviceData['service_opted']);
-
-                // $requestString = json_decode($serviceData['service_response_string']);
-
-                $collectionTimeStamp = strtotime($data->service_date);
-                $transitTimeStamp = $serviceData['transit_time'];
-                $deliveryTimeStamp = $collectionTimeStamp + $transitTimeStamp;
-                $deliveryDateTime = date("D d M H:i:s Y", $deliveryTimeStamp);
-                $counter = 1;
-                foreach($serviceDetail as $service)
-                {
-                    if ($counter % 2)
-                    {
-                        $color = '#bfbfbf';
-                    }
-                    else
-                    {
-                        $color = '#FFF';
-                    }
-
-                    $html.= '<tr height="20" bgcolor="' . $color . '"><td style="font-family:arial,sans-serif;margin:0px">';
-                    $html.= $service->service_name;
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px">&nbsp;</td><td style="font-family:arial,sans-serif;margin:0px">';
-                    $html.= $courierData['name'];
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px">&nbsp;';
-                    $html.= $deliveryDateTime;
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px">';
-                    $html.= $service->total_price;
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px"><br /></td><td style="font-family:arial,sans-serif;margin:0px"><span class="aBn" data-term="goog_2083724664" tabindex="0"><span class="aQJ">';
-                    $html.= $serviceData['collection_time'];
-                    $html.= '</span></span></td></tr>';
-                    $counter++;
-                }
-
-                $service_detail_str = $html;
-                $subject_msg = str_replace(array(
-                    "__quote_number__"
-                ) , array(
-                    $quoteSave['quote_number']
-                ) , $this->headerMsg);
-                $collection_postcode = implode("", $templateMsg['collection_postcode']);
-                $delivery_postcode = implode(",", $templateMsg['delivery_postcode']);
-                $template_msg = str_replace(array(
-                    "__quote_number__",
-                    "__shipping_date__",
-                    "__collection_postcode__",
-                    "__delivery_postcode__",
-                    "__service_detail__",
-                    "__quote_expiry__",
-                    "__courier_name__"/* ,
-                    "__img_src__" */
-                ) , array(
-                    $quoteSave['quote_number'],
-                    $serviceData['collection_date'],
-                    $collection_postcode,
-                    $delivery_postcode,
-                    $service_detail_str,
-                    $quoteExpiry,
-                    $courierData['name']/* ,
-                    "http://app-tree.co.uk/icargoN/assets/img/pnp_logo.png" */
-                ) , $template["template_html"]);
-                $status = $emailObj->sendMail(array(
-                    "recipient_name_and_email" => array(
-                        array(
-                            "name" => "kavita",
-                            "email" => $data->quote_email
-                        )
-                    ) ,
-                    "template_msg" => $template_msg,
-                    "subject_msg" => $subject_msg
-                ));
-                if ($status['status'] == 1) $response = array(
-                    "status" => "success",
-                    "message" => $quoteSave['message']
-                );
-                else $response = array(
-                    "status" => "error",
-                    "message" => $status['message']
-                );
             }
             else
             {

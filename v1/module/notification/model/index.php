@@ -196,4 +196,33 @@ class Notification_Model_Index
     function findNewUserInfo($user_id){
         return $this->_db->getRowRecord("SELECT * FROM `".DB_PREFIX."users` AS UT WHERE id='$user_id'");
     }
+
+    public
+
+    function getShipmentDataByQuoteNumber($quote_number)
+    {
+        return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "quote_shipment WHERE quote_number = '$quote_number'");
+    }
+
+    public
+
+    function getServiceDataByQuoteNumber($quote_number)
+    {
+        return $this->_db->getRowRecord("SELECT service_opted,collection_date,collection_time,service_response_string,transit_time FROM " . DB_PREFIX . "quote_service WHERE quote_number = '$quote_number'");
+    }
+
+    public
+
+    function getCourierDataByCompanyId($company_id)
+    {
+        return $this->_db->getRowRecord("SELECT name,icon FROM `" . DB_PREFIX . "courier` AS CT WHERE `company_id`='$company_id'");
+    }
+
+    public
+
+    function getCustomerQuoteExpiryDays($customer_id)
+    {
+        $record = $this->_db->getRowRecord("SELECT quote_expiry_days FROM " . DB_PREFIX . "customer_info WHERE `user_id` = '$customer_id'");
+        return $record['quote_expiry_days'];
+    }
 }

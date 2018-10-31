@@ -169,22 +169,19 @@ class allShipments extends Icargo
         if(count($filterShipment)>0){
             $filterString = implode(" AND ", $filterShipment);
         }
-        //print_r($param->data);
-        //print_r($filterString);die; 
 
         $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
-        //print_r($items);die;
+
         $filterLoadIdentity = array();
 
         foreach($items as $item){
             if(!in_array($item["load_Identity"], $filterLoadIdentity))
                 array_push($filterLoadIdentity, $item["load_Identity"]);
         }
-
         $loadIdentityString = implode("','", $filterLoadIdentity);
 
-        $shipmentsData = $this->modelObj->getAllShipmentsNishant($loadIdentityString);
-        $shipmentsData = $this->_prepareShipmentsNishant($shipmentsData);
+        $shipmentsData = $this->modelObj->getAllShipments($loadIdentityString);
+        $shipmentsData = $this->_prepareShipments($shipmentsData);
         return $shipmentsData;
     }
 
@@ -224,7 +221,7 @@ class allShipments extends Icargo
         $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
 
 
-       
+
         $html .= (isset($param->data->customer_reference1) && ($param->data->customer_reference1 != '')) ? ' AND S.customer_reference1 LIKE "%' . $param->data->customer_reference1 . '%" ' : '';
 
         $html .= (isset($param->data->customer_reference2) && ($param->data->customer_reference2 != '')) ? ' AND S.customer_reference2 LIKE "%' . $param->data->customer_reference2 . '%" ' : '';
@@ -435,7 +432,7 @@ class allShipments extends Icargo
         return $returndata;
     }*/
 
-    private function _prepareShipmentsNishant($shipmentsData)
+    private function _prepareShipments($shipmentsData)
     {
         $dataArray  = array();
         $returndata = array();
@@ -577,7 +574,7 @@ class allShipments extends Icargo
                 'trackinginfo' => $allInfo['trackinginfo'],
                 'shipmentTrackinginfo' => $allInfo['shipmentTrackinginfo'],
                 'podinfo' => $allInfo['podinfo'],
-				'parcelInfo'=>$allInfo['parcelInfo']
+				        'parcelInfo'=>$allInfo['parcelInfo']
             )
         );
     }
@@ -1551,7 +1548,7 @@ class allShipments extends Icargo
             $tempval                                = array();
             $tempval['shipment_ticket']             = $param['data']['reference'];
             $tempval['instaDispatch_loadIdentity']  = $param['job_identity'];
-            $tempval['create_date']                 = Library::_getInstance()->date_format($param['data']['servicedate']);//date('Y-m-d', strtotime($param['data']['servicedate']));
+            $tempval['create_date']                 = date('Y-m-d', strtotime($param['data']['servicedate']));
             $tempval['create_time']                 = date('H:m:s', strtotime($param['data']['servicedate']));
             $tempval['actions']                     = $param['data']['events'];
             $tempval['internel_action_code']        = $param['data']['events'];
@@ -1576,7 +1573,6 @@ class allShipments extends Icargo
                 "custom_tracking" => 1
             ));
             $adddata                     = $this->modelObj->addContent('shipment_life_history', $tempval);
-
             if ($adddata) {
                 return array(
                     'status' => 'success',
@@ -2287,28 +2283,28 @@ public function getNextDayCarriersofCompany($param){
             $returndata = $this->modelObj->getNextDayCarriersofCompany($param->company_id);
         }
         return $returndata;
-}   
-    
-        
+}
+
+
 
 
 
        /*public function dashboardFilter() {
-        // Today  tomorrow  This week  Last week  This Month  Last Month This quarter Last Quarter Custom Range 
+        // Today  tomorrow  This week  Last week  This Month  Last Month This quarter Last Quarter Custom Range
         $curDate = date('Y-m-d');
         if( $data->filter == 'today') {
             $startDate = $endDate = $curDate;
         }
         else if( $data->filter == 'tomorrow') {
-            $startDate = $endDate = date('Y-m-d', strtotime($curDate,'+1D'));            
+            $startDate = $endDate = date('Y-m-d', strtotime($curDate,'+1D'));
         }
         else if( $data->filter == 'tweek') {
             $d = strtotime("today");
             $start_week = strtotime("last sunday midnight",$d);
             $end_week = strtotime("next saturday",$d);
-            $startDate = date("Y-m-d",$start_week); 
-            $endDate = date("Y-m-d",$end_week);  
-        }    
+            $startDate = date("Y-m-d",$start_week);
+            $endDate = date("Y-m-d",$end_week);
+        }
         else if( $data->filter == 'lweek') {
             $previous_week = strtotime("-1 week +1 day");
 
@@ -2360,7 +2356,7 @@ public function getNextDayCarriersofCompany($param){
             {
                 $startDate = strtotime('1-October-'.($current_year-1));  // timestamp or 1-October Last Year 12:00:00 AM
                 $endDate = strtotime('1-January-'.$current_year);  // // timestamp or 1-January  12:00:00 AM means end of 31 December Last year
-            } 
+            }
             else if($current_month>=4 && $current_month<=6)
             {
                 $startDate = strtotime('1-January-'.$current_year);  // timestamp or 1-Januray 12:00:00 AM
@@ -2377,7 +2373,7 @@ public function getNextDayCarriersofCompany($param){
                 $endDate = strtotime('1-October-'.$current_year);  // timestamp or 1-October 12:00:00 AM means end of 30 September
             }
         }
-                   
+
     }
 
     public function dashboardCarrierVsShipmemt($data = array()) {
@@ -2387,7 +2383,7 @@ public function getNextDayCarriersofCompany($param){
             $startDate = date('Y-m-d', strtotime($date->start_date));
             $endDate = date('Y-m-d', strtotime($date->end_date));
         }
-        
+
         $where = "shipment_date='$curDate'";
 	}*/
     public function _findShipmentInstructionByLoadIdentity($load_identity){

@@ -708,7 +708,7 @@ class Customer extends Icargo{
                 "postcode"=>isset($param->customer->postcode)?$param->customer->postcode:'',
                 "city"=>isset($param->customer->city)?$param->customer->city:'',
                 "state"=>isset($param->customer->state)?$param->customer->state:'',
-                "country"=>isset($param->customer->country)?$param->customer->country:'',
+                //"country"=>isset($param->customer->country)?$param->customer->country:'',
              );
           $condition = "id = '" . $param->customer_id . "' AND user_level = '5'";
           $infoStatus    = $this->modelObj->editContent("users",$data, $condition);

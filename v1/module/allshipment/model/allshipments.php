@@ -73,7 +73,7 @@ class AllShipment_Model
 
     }
 
-    public function getAllShipments($filter=''){
+    /*public function getAllShipments($filter=''){
 
         $record = array();
         $sqldata = 'S.instaDispatch_loadIdentity,
@@ -121,7 +121,7 @@ class AllShipment_Model
                     ORDER BY  FIELD(\"S.shipment_service_type\",\"P\",\"D\"),S.shipment_id DESC";
         $record = $this->db->getAllRecords($sql);
         return $record;
-    }
+    }*/
 
     public function getAllShipmentsIdentity($filter='',$limitstr){
         $record = array();
@@ -669,7 +669,7 @@ class AllShipment_Model
         return  $record;
     }
 
-   public function getAllServicesOfCarrier($carrierId,$companyId,$servicetype){ 
+   public function getAllServicesOfCarrier($carrierId,$companyId,$servicetype){
          $record = array();
          $sqldata = 'C.service_name,C.service_code,S.service_id,S.company_service_name,S.company_service_code,C.flow_type';
          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "courier_vs_services_vs_company AS S
@@ -689,10 +689,10 @@ class AllShipment_Model
                 INNER JOIN " . DB_PREFIX . "courier as C on L.courier_id = C.id
                 WHERE L.company_id = '" . $companyId . "'";
         $record = $this->db->getAllRecords($sql);
-        
-        
-        
-            
+
+
+
+
         return $record;
       }
      public function getNextDayCarriersofCompany($companyId){
@@ -709,9 +709,9 @@ class AllShipment_Model
         $record = $this->db->getAllRecords($sql);
         return $record;
       }
-    
-        
-   
+
+
+
 
 
     public function findShipmentInstructionByLoadIdentity($load_identity){
@@ -733,7 +733,7 @@ class AllShipment_Model
         return $record;
     }
 
-    public function getAllShipmentsNishant($ticket_string){
+    public function getAllShipments($ticket_string){
         $record = array();
         $sql = "SELECT S.instaDispatch_loadIdentity,S.icargo_execution_order,S.shipment_service_type,S.instaDispatch_loadGroupTypeCode,S.shipment_service_type,S.current_status,S.shipment_create_date,S.shipment_required_service_date,S.shipment_required_service_starttime,S.shipment_postcode AS shipment_postcode,S.shipment_address1 AS address_line1,S.shipment_address2 AS address_line2,S.shipment_customer_country AS shipment_customer_country,CI.accountnumber as shipment_customer_account,UTT.name as shipment_customer_name,(SST.base_price + SST.courier_commission_value + SST.surcharges + SST.taxes) as shipment_customer_price,SST.service_name as shipment_service_name,SST.is_hold as is_hold,SST.is_recurring as is_recurring,SST.booked_by_recurring as booked_by_recurring,COUR.name as carrier,COUR.icon as carrier_icon,UT.name as booked_by,SST.isInvoiced as isInvoiced,SST.tracking_code as cancel_status,SST.label_json as label_json,SST.tracking_code as current_status,SST.customer_reference1 AS customer_reference1,SST.customer_reference2 AS customer_reference2,SST.create_date AS booking_date,SCT.collection_date_time AS collection_date_time,SST.label_tracking_number AS tracking_no
         FROM icargo_shipment AS S
@@ -745,7 +745,7 @@ class AllShipment_Model
         LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
         LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
         WHERE S.instaDispatch_loadIdentity IN ('$ticket_string')
-        ORDER BY S.instaDispatch_loadIdentity, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
+        ORDER BY S.shipment_id DESC, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
         $record = $this->db->getAllRecords($sql);
         return $record;
     }

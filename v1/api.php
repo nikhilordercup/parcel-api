@@ -2418,10 +2418,10 @@ $app->post('/getNextDayCarriersofCompany', function() use ($app) {
     $obj = new allShipments($r);
     $response = $obj->getNextDayCarriersofCompany($r);
     echoResponse(200, $response);
-});  
+});
 
 
-    
+
 GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
@@ -2454,13 +2454,34 @@ $app->post('/apiSignup', function() use ($app){
 $app->post('/checkChangedAddress', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	$obj = new Module_Addressbook_Addressbook($r);
-    $response = $obj->checkChangedAddress($r);
-    echoResponse(200, $response);
+  $response = $obj->checkChangedAddress($r);
+  echoResponse(200, $response);
 });
 
-$app->post('/fixAddressString', function() use ($app){
+$app->post('/fixAddressString', function() use ($app){//delete after execution
 	$r = json_decode($app->request->getBody());
 	$obj = new Module_Addressbook_Addressbook($r);
-    $response = $obj->getAllAddressesFromAddressBook();
-    echoResponse(200, $response);
+  $response = $obj->getAllAddressesFromAddressBook();
+  echoResponse(200, $response);
+});
+
+$app->post('/fixDrivingModeAndRoundTrip', function() use ($app){//delete after execution
+	$db = new DbHandler();
+	$sql = "SELECT * FROM icargo_configuration";
+	$records = $db->getAllRecords($sql);
+
+	foreach($records as $record){
+	    $conf = json_decode($record["configuration_json"]);
+
+			if(!isset($conf->round_trip))
+			    $conf->round_trip = ROUND_TRIP;
+
+			if(!isset($conf->driving_mode))
+			    $conf->driving_mode = DRIVING_MODE;
+
+			$confJson = json_encode($conf);
+			$id = $record["id"];
+			$updateSql = "UPDATE icargo_configuration SET configuration_json='$confJson' WHERE id='$id'";
+			$db->updateData($updateSql);
+	}
 });

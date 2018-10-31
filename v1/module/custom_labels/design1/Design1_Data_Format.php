@@ -27,22 +27,22 @@ class Design1_Data_Format{
   public function formateConsigneeAddress($param){
     return "<table>
       <tr>
-        <td><p style=\"font-weight:bold; font-size:20pt;letter-spacing:3px;\">" . $param["shipment_customer_name"] . "</p></td>
+        <td><p style=\"font-weight:bold; font-size:28pt;\">" . $param["shipment_customer_name"] . "</p></td>
       </tr>
       <tr>
-        <td><p style=\"font-size:14pt;letter-spacing:1px;\">" . $param["shipment_address1"] . "</p></td>
+        <td><p style=\"font-size:22pt;letter-spacing:1px;\">" . $param["shipment_address1"] . "</p></td>
       </tr>
       <tr>
-        <td><p style=\"font-size:14pt;letter-spacing:1px;\">" . $param["shipment_address2"] . "</p></td>
+        <td><p style=\"font-size:22pt;letter-spacing:1px;\">" . $param["shipment_address2"] . "</p></td>
       </tr>
       <tr>
-        <td><p style=\"font-weight:bold; font-size:20pt;letter-spacing:3px;\">" . $param["shipment_customer_city"] . "</p></td>
+        <td><p style=\"font-weight:bold; font-size:22pt;letter-spacing:3px;\">" . $param["shipment_customer_city"] . "</p></td>
       </tr>
       <tr>
-        <td><p style=\"font-weight:bold; font-size:20pt;letter-spacing:3px;\">" . $param["shipment_postcode"] . "</p></td>
+        <td><p style=\"font-weight:bold; font-size:22pt;letter-spacing:3px;\">" . $param["shipment_postcode"] . "</p></td>
       </tr>
       <tr>
-        <td><p style=\"font-weight:bold; font-size:20pt;letter-spacing:3px;\">" . $param["shipment_customer_country"] . "</p></td>
+        <td><p style=\"font-weight:bold; font-size:22pt;letter-spacing:3px;\">" . $param["shipment_customer_country"] . "</p></td>
       </tr>
     </table>";
   }

@@ -423,7 +423,7 @@ class shipment extends Library{
         //return $dataStatus;
 		}
 
-	private function _add_shipment_data_uk_mail($data){ 
+	private function _add_shipment_data_uk_mail($data){
 		$dataStatus = false;
 		$returnData = array();
 
@@ -549,9 +549,9 @@ class shipment extends Library{
         $address_data['longitude'] = $shipmentData["shipment_longitude"];
         $address_data['customer_id'] = $this->company_id;
         $address_data['type'] = (isset($data["status"])) ? $data["status"] : "";
-       
+
         $address_status = $this->_save_address($address_data);
-        
+
         if($address_status["status"]=="success"){
 
             $shipmentData["address_id"] = $address_status["address_id"];
@@ -1513,7 +1513,7 @@ class shipment extends Library{
 			}
 			return array("status"=>"success", "address_id"=>$address_id);
 			/* else{
-				
+
 			}
 			if(($address_op!="") AND ($address_op=="add")){
 				if(!$address_id){
@@ -1531,7 +1531,7 @@ class shipment extends Library{
 
     private
 
-    function _bookSameDayShipment($param){ 
+    function _bookSameDayShipment($param){
         $shipment_data = $param["shipment_data"];
         //address
         $address = $this->_save_address($shipment_data,$param["address_op"]);
@@ -1723,7 +1723,7 @@ class shipment extends Library{
                     $shipmentService->customer_reference1 = (isset($data->customer_reference1)) ? $data->customer_reference1 : "";
                     $shipmentService->customer_reference2 = (isset($data->customer_reference2)) ? $data->customer_reference2 : "";
                     $shipmentService->is_manualbooking = (isset($data->ismanualbooking) && ($data->ismanualbooking !='')) ? $data->ismanualbooking : "false";
-                        
+
                     unset($shipmentService->message);
                     //save shipment price breakdown
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"version"=>$priceVersionNo));
