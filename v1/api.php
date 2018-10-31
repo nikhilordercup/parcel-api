@@ -2461,8 +2461,23 @@ $app->post('/checkChangedAddress', function() use ($app){
 	print_r($data);die;
 });
 
-$app->post('/test', function() use ($app){
-	$obj = new Custom_Label();
-	$data = $obj->createLabel("ICARGOS027724");
-	print_r($data);die;
+$app->post('/fixDrivingModeAndRoundTrip', function() use ($app){//delete after execution
+	$db = new DbHandler();
+	$sql = "SELECT * FROM icargo_configuration";
+	$records = $db->getAllRecords($sql);
+
+	foreach($records as $record){
+	    $conf = json_decode($record["configuration_json"]);
+
+			if(!isset($conf->round_trip))
+			    $conf->round_trip = ROUND_TRIP;
+
+			if(!isset($conf->driving_mode))
+			    $conf->driving_mode = DRIVING_MODE;
+
+			$confJson = json_encode($conf);
+			$id = $record["id"];
+			$updateSql = "UPDATE icargo_configuration SET configuration_json='$confJson' WHERE id='$id'";
+			$db->updateData($updateSql);
+	}
 });
