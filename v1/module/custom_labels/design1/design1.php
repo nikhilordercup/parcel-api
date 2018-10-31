@@ -6,7 +6,7 @@ final class Design1_Label extends Label{
   public $html = '<table align="center">
     <tr>
       <td colspan="2" align="center">
-         <barcode size="3" height="0.5" code="__PARCEL_BARCODE__" class="barcode" style="margin-bottom:50pt"></barcode>
+         <barcode size="3" height="0.5" code="__PARCEL_BARCODE__" class="barcode" style="margin-bottom:10pt"></barcode>
       </td>
     </tr>
     <tr>
@@ -15,8 +15,8 @@ final class Design1_Label extends Label{
         <table class="invoice-booking">
           <tbody>
             <tr>
-              <td><p style="font-weight:bold; font-size:20pt;">Reference :</p></td>
-              <td><p style="font-weight:bold; font-size:20pt;letter-spacing:3px;">__PARCEL_REFERENCE__</p></td>
+              <td><p style="font-weight:bold; font-size:14pt;">Reference :</p></td>
+              <td><p style="font-weight:bold; font-size:15pt;letter-spacing:3px;">__PARCEL_REFERENCE__</p></td>
             </tr>
             <tr>
               <td><p style="font-size:14pt;letter-spacing:1px;">Weight :</p></td>
@@ -35,7 +35,7 @@ final class Design1_Label extends Label{
               <td><p style="font-size:14pt;letter-spacing:1px;">__ALETRNATE_REFERENCE__</p></td>
             </tr>
             <tr>
-              <td colspan="2"><p style="font-size:30pt;">__SERVICE_DATE__</p></td>
+              <td colspan="2"><p style="font-size:25pt;">__SERVICE_DATE__</p></td>
             </tr>
           </tbody>
         </table>
@@ -44,7 +44,7 @@ final class Design1_Label extends Label{
 
     <tr>
       <td>
-        <table style="margin-top:30pt">
+        <table style="margin-top:10pt">
           <tr>
             <td><p style="font-size:14pt;letter-spacing:1px;">__SHIPMENT_CUSTOMER_NAME__</p></td>
           </tr>
@@ -57,7 +57,7 @@ final class Design1_Label extends Label{
         </table>
       </td>
       <td>
-        <table>
+        <table style="margin-top:0pt">
           <tr>
             <td><img src="__COMPANY_LOGO__" height="100px" width="140px"></td>
           </tr>
