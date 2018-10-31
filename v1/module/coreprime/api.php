@@ -292,5 +292,128 @@ class Module_Coreprime_Api extends Icargo
         }
         return array("status"=>"success", "message"=>"sufficient balance.","available_credit"=>$available_credit['available_credit']);
     }
+    
+    public
+    function getAllServices2($param)
+    {
+        $available_credit = $this->_getCustomerAccountBalence($param->customer_id);
+        $response_filter_type = "min";
+        $param->customer_id = $param->customer_id;
+        $transit_distance = $param->transit_distance;
+        $transit_time = $param->transit_time;
+        $chargefromBase = $this->modelObj->getCustomerChargeFromBase($param->customer_id);
+        $isTaxExempt    = $this->modelObj->getTaxExemptStatus($param->customer_id);
+        $waypointCount = 0;
+        if (isset($param->waypoint_lists)) {
+            $waypointCount = count($param->waypoint_lists);
+        }
+        $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
+        $is_tax_exempt = ($isTaxExempt['tax_exempt']=='YES')?true:false;//  true;
+        if (!isset($param->from_postcode)) {
+            $error["from_postcode"] = "Collection postcode is mandatory";
+        }
+        if (!isset($param->to_postcode)) {
+            $error["to_postcode"] = "Delivery postcode is mandatory";
+        }
+        if ($charge_from_warehouse) {
+            $transit_distance += $param->warehouse_to_collection_point_distance;
+            $transit_time += $param->warehouse_to_collection_point_time;
+        }
+        $data = $this->_filterApiResponseManulal($param);
+        if(isset($data->status) && ($data->status=="error")){
+          return $data;
+        }else{
+          return array("status" => "success","rate"=>$data,"availiable_balence" => $available_credit['available_credit']);
+        }
+    }
+    
+    private
+    function _filterApiResponseManulal($input){ //print_r($input);die;
+        //print_r($input);die;
+        $selectedCarrier = json_decode($input->manualprice->selectedcarrier,1);
+        $selectedService = json_decode($input->manualprice->selected_service,1);
+        $servicePrice    = $input->manualprice->service_price;
+        $taxval          = $input->manualprice->taxval;
+        $surcharges      = array();
+        $surchargesPrice = array();
+        
+        if(isset($input->manualprice->newsurcharges) and count($input->manualprice->newsurcharges)>0){
+          foreach($input->manualprice->newsurcharges as $key=>$val){
+            $surcharges[$key] = json_decode($val,1);  
+          }
+        }
+        if(isset($input->manualprice->newsurchargesprice) and count($input->manualprice->newsurchargesprice)>0){
+          foreach($input->manualprice->newsurchargesprice as $key=>$val){
+            $surchargesPrice[$key] = json_decode($val,1);  
+          }
+        }
+        $returnarray = array();
+        $data        = array();
+        $returnarray['rate'][$selectedCarrier['code']] = array();
+        $data['taxes'] = array('total_tax'=>1.11,'tax_percentage'=>$taxval);
+        $data['dimensions'] = array("length"=>0,"width"=>0,"height"=>0,"unit"=>"IN");
+        $data['weight'] = array("weight"=>0,"unit"=>"KG");
+        $data['time'] = array();
+        $data['charge_from_base'] = 1;
+        $data['max_delivery_time'] = '00:00:00';
+        $data['rate_type'] = '';
+        $data['message'] = '';
+        $data['currency'] = '';
+        
+        
+        
+        
+        
+        $data['service_name'] = ($selectedService['company_service_name']=='')?$selectedService['service_name']:$selectedService['company_service_name'];
+        $data['base_price'] = $servicePrice;
+        $data['icon'] = $selectedCarrier['icon'];
+        
+        $data['otherinfo']['original_price'] = $servicePrice;
+        $data['otherinfo']['ccf_value'] = 0;
+        $data['otherinfo']['operator'] = 'FLAT';
+        $data['otherinfo']['price'] = 0;
+        $data['otherinfo']['company_service_code'] = ($selectedService['company_service_code']=='')?$selectedService['service_code']:$selectedService['company_service_code'];
+        $data['otherinfo']['company_service_name'] = ($selectedService['company_service_name']=='')?$selectedService['service_name']:$selectedService['company_service_name'];
+        $data['otherinfo']['courier_service_code'] = $selectedService['service_code'];
+        $data['otherinfo']['courier_service_name'] = $selectedService['service_name'];
+        $data['otherinfo']['level'] = 0;
+        $data['otherinfo']['service_id'] = $selectedService['service_id'];
+        $data['otherinfo']['price_with_ccf'] = $servicePrice;
+        $data['otherinfo']['courier_id'] = $selectedCarrier['courier_id'];
+        $data['otherinfo']['autocarrier_id'] = $selectedCarrier['autocarrier_id'];
+        $data['otherinfo']['accountkey'] = $selectedCarrier['account_number'];
+        $totalSurcharges = 0;
+        if(count($surcharges)>0){
+        foreach($surcharges as $keysur=>$valsur){
+            $data['surcharges'][$valsur['surcharge_code']] = $surchargesPrice[$keysur];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['price'] = $surchargesPrice[$keysur];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['price_with_ccf'] = $surchargesPrice[$keysur];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['original_price'] = $surchargesPrice[$keysur];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['surcharge_value'] = 0;
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['operator'] = 'FLAT';
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['price'] = 0;
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['price_with_ccf'] = $surchargesPrice[$keysur];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['company_surcharge_code'] = $valsur['company_surcharge_code'];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['company_surcharge_name'] = $valsur['company_surcharge_name'];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['courier_surcharge_code'] = $valsur['surcharge_code'];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['courier_surcharge_name'] = $valsur['surcharge_name'];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['level'] = 0;
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['surcharge_id'] = $valsur['surcharge_id'];
+            $data['surchargesinfo'][$valsur['surcharge_code']]['info']['carrier_id'] = $selectedCarrier['courier_id'];
+          }
+           $totalSurcharges = array_sum($data['surcharges']);
+        }
+        $data['pricewithouttax']   = $totalSurcharges  + $servicePrice;
+        $total_tax_val             = isset($data['taxes']['tax_percentage'])?$data['taxes']['tax_percentage']:0;
+        $data['chargable_tax']     = number_format((($data['pricewithouttax'] *$total_tax_val)/100),2,'.','');
+        $data['total_price']       = $data['pricewithouttax'] + $data['chargable_tax'];
+        $returnarray['rate'][$selectedCarrier['code']][] = $data;
+        if(is_array($returnarray)){
+            return json_decode(json_encode($returnarray));
+        } else {
+            return array("status"=>"error", "message"=>"Empty responses");
+        }
+    }
+    
 }
 ?>

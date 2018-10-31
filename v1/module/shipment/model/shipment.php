@@ -721,6 +721,14 @@ class Shipment_Model
 
     public
 
+    function makeCopiedRoutective($new_route_id){
+        return $this->db->update("shipment_route", array(
+            "is_active"=>"Y"
+        ), "shipment_route_id = '$new_route_id'");
+    }
+
+    public
+
     function releaseShipmentFromRoute($shipment_route_id){
         return $this->db->update("shipment_route", array(
             "assign_start_time"=>"00:00:00",

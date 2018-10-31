@@ -75,6 +75,9 @@ class Route_Release extends Icargo
 
 								if($newShipmentRouteId)
 								{
+
+										$this->modelObj->makeCopiedRoutective($newShipmentRouteId);
+										
 										foreach($shipments as $shipment)
 						        {
 						            $status = $this->modelObj->reAssignShipmentRoute($shipment["shipment_ticket"], $newShipmentRouteId);
