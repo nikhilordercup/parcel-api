@@ -1441,7 +1441,7 @@ class shipment extends Library{
     private
 
     function _getAddressBySearchStringAndCustomerId($customer_id, $search_string){
-        $record = $this->db->getRowRecord("SELECT id AS address_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'");
+        $record = $this->db->getRowRecord("SELECT id AS address_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '%$search_string%'");
         return $record['address_id'];
     }
 
@@ -1454,9 +1454,10 @@ class shipment extends Library{
 
     private
 
-    function _save_address($address){
-        $commonObj = new Common();
-        $postcode = $this->postcodeObj->validate($address["postcode"],$this->country_code);
+    function _save_address($address,$address_op=""){
+		$commonObj = new Common();
+        $postcode = $this->postcodeObj->validate($address["postcode"]);
+
 		$postcode = $postcode[0];
         if($postcode){
 			if(isset($address["type"])){
@@ -1501,12 +1502,28 @@ class shipment extends Library{
 
             $address_id = $this->_getAddressBySearchStringAndCustomerId($address["customer_id"], $data["search_string"]);
 
-            if(!$address_id){
-                $data["version_id"] = "version_1";
-
-            $address_id = $this->db->save("address_book", $data);
-            }
-            return array("status"=>"success", "address_id"=>$address_id);
+			if(!$address_id){
+				if(($address_op!="") AND ($address_op=="add")){
+					$data["version_id"] = "version_1";
+					$address_id = $this->db->save("address_book", $data);
+				}else{
+					$address_id = $address['address_id'];
+					$update = $this->db->update("address_book",$data,"id='$address_id'");
+				}
+			}
+			return array("status"=>"success", "address_id"=>$address_id);
+			/* else{
+				
+			}
+			if(($address_op!="") AND ($address_op=="add")){
+				if(!$address_id){
+					$data["version_id"] = "version_1";
+					$address_id = $this->db->save("address_book", $data);
+				}
+			}else{
+				$update = $this->db->update("address_book",$data,"id='$address_id'");
+			} */
+            //return array("status"=>"success", "address_id"=>$address_id);
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
@@ -1514,10 +1531,10 @@ class shipment extends Library{
 
     private
 
-    function _bookSameDayShipment($param){
+    function _bookSameDayShipment($param){ 
         $shipment_data = $param["shipment_data"];
         //address
-        $address = $this->_save_address($shipment_data);
+        $address = $this->_save_address($shipment_data,$param["address_op"]);
         //shipment
         if($address["status"]=="success"){
             $shipment_data["address_id"] = $address["address_id"];
@@ -1543,7 +1560,6 @@ class shipment extends Library{
         $data = $param["shipment_data"];
         $timestamp = $param["timestamp"];
         $customer_id = $param["customer_id"];
-
         foreach($data as $column => $item){
             $_data[$column] = $item;
         }
@@ -1605,6 +1621,7 @@ class shipment extends Library{
 
         $_data["carrier_code"] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
         $_data["carrier_account_number"] = (isset($param["account_number"])) ? $param["account_number"] : "";
+		$_data["address_id"] = (isset($_data["address_list"]->id)) ? $_data["address_list"]->id : "";
 
 
 
@@ -1676,7 +1693,7 @@ class shipment extends Library{
                 $shipment_data->special_instruction = (isset($shipment_data->special_instruction)) ? $shipment_data->special_instruction : "";
                 $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Collection","jobTypeCode"=>"COLL","shipment_service_type"=>"P","icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction, "carrier_code"=>$carrierCode));
 
-                $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
+                $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData,"address_op"=>$data->address_op));
 
                 if($shipmentStatus["status"]=="success"){
 
@@ -1729,7 +1746,7 @@ class shipment extends Library{
                 }
                 $shipmentData = $this->_prepareShipmentData(array("collection_user_id"=>$data->collection_user_id,"shipment_data"=>$shipment_data,"timestamp"=>$timestamp,"customer_id"=>$data->customer_id,"availabilityTypeCode"=>"UNKN", "availabilityTypeName"=>"Unknown","file_name"=>"","loadGroupTypeName"=>"Same","loadGroupTypeCode"=>"Same","isDutiable"=>"false","jobTypeName"=>"Delivery","jobTypeCode"=>"DELV","shipment_service_type"=>"D","load_identity"=>$loadIdentity,"icargo_execution_order"=>$counter,"service_date"=>$this->service_date,"shipment_executionOrder"=>$counter,"warehouse_id"=>$data->warehouse_id,"customer_id"=>$data->customer_id,"userid"=>$data->userid,"notification"=>$shipment_data->notification,"shipment_instruction"=>$shipment_data->special_instruction,"carrier_code"=>$carrierCode));
 
-                $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData));
+                $shipmentStatus = $this->_bookSameDayShipment(array("shipment_data"=>$shipmentData,"address_op"=>$data->address_op));
 
                 if($shipmentStatus["status"]=="success" and !$service_id){
                     //save only service id is false

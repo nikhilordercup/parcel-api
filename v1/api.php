@@ -2453,12 +2453,16 @@ $app->post('/apiSignup', function() use ($app){
 
 $app->post('/checkChangedAddress', function() use ($app){
 	$r = json_decode($app->request->getBody());
-	$addressObj = new Module_Addressbook_Addressbook((object) array("email"=>$r->email, "access_token"=>$r->access_token));
-	$addressObj->checkChangedAddress($r);
-	print_r($r);die;
-	$obj = new Custom_Label();
-	$data = $obj->createLabel("ICARGOS027724");
-	print_r($data);die;
+	$obj = new Module_Addressbook_Addressbook($r);
+  $response = $obj->checkChangedAddress($r);
+  echoResponse(200, $response);
+});
+
+$app->post('/fixAddressString', function() use ($app){//delete after execution
+	$r = json_decode($app->request->getBody());
+	$obj = new Module_Addressbook_Addressbook($r);
+  $response = $obj->getAllAddressesFromAddressBook();
+  echoResponse(200, $response);
 });
 
 $app->post('/fixDrivingModeAndRoundTrip', function() use ($app){//delete after execution

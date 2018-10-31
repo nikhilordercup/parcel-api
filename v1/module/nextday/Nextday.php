@@ -1,4 +1,4 @@
-<?php 
+<?php
 final class Nextday extends Booking
     {
     private $_param = array();
@@ -939,7 +939,7 @@ final class Nextday extends Booking
                 }
             }
 
-        if ((strtolower($carrier_code) != 'pnp'))
+        if((strtolower($carrier_code) != 'pnp') && $this->_param->manualbookingreference=='')
             {
             $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
             if ($labelInfo['status'] == 'success')

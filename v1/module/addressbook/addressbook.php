@@ -188,32 +188,40 @@ class Module_Addressbook_Addressbook extends Icargo{
         return $response;
     }
 
-		public
+	public function checkChangedAddress($param){
+		$addressBookParam = (Object) array(
+			"address_1" => $param->address_line1,
+			"address_2" => $param->address_line2,
+			"postcode"  => $param->postcode,
+			"city"      => $param->city,
+			"state"     => $param->state,
+			"country"   => $param->country,
+			"name"      => $param->name,
+			"email"     => $param->address_email,
+			"company_id"=> $param->company_id,
+		);
 
-		function checkChangedAddress($param){
-			  $addressBookParam = (Object) array(
-				    "address_1" => $param->address_line1,
-						"address_2" => $param->address_line2,
-						"postcode"  => $param->postcode,
-						"city"      => $param->city,
-						"state"     => $param->state,
-						"country"   => $param->country,
-						"name"      => $param->name,
-						"email"     => $param->address_email,
-						"company_id"=> $param->company_id,
-
-				);
-
-			  $commonObj = new Common();
-				$addressBookStr = $commonObj->getAddressBookSearchString($addressBookParam);
-				$record = Addressbook_Model::_getInstance()->searchAddressByAddressStringAndAddressId($param->address_id, $addressBookStr);
-				if($record){
-				    echo "record found";
-				}else{
-				    echo "record not found";
-				}
-				die;
+		$commonObj = new Common();
+		$addressBookStr = $commonObj->getAddressBookSearchString($addressBookParam);
+		$record = Addressbook_Model::_getInstance()->searchAddressByAddressStringAndAddressId($param->address_id, $addressBookStr);
+		if($record){
+			$response = array("address_status"=>"not changed");
+		   //echo "record found";
+		}else{
+		   $response = array("address_status"=>"changed");
+		   //echo "record not found";
 		}
+		return $response;
+	}
+
+	public function getAllAddressesFromAddressBook(){
+		$records = Addressbook_Model::_getInstance()->getAllAddressesFromAddressBook();
+		foreach($records as $record){
+			$data = strtolower(preg_replace('/\s+/','',$record['search_string']));
+			$update = Addressbook_Model::_getInstance()->updateAddressById($record['id'],$data);
+			print_r($update);
+		}
+	}
 
 }
 ?>
