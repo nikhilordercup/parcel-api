@@ -2402,3 +2402,17 @@ $app->post('/apiSignup', function() use ($app){
 	$response = $obj->customerSignup($r);
 	echoResponse(200, $response);
 });
+
+$app->post('/checkChangedAddress', function() use ($app){
+	$r = json_decode($app->request->getBody());
+	$obj = new Module_Addressbook_Addressbook($r);
+    $response = $obj->checkChangedAddress($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/fixAddressString', function() use ($app){
+	$r = json_decode($app->request->getBody());
+	$obj = new Module_Addressbook_Addressbook($r);
+    $response = $obj->getAllAddressesFromAddressBook();
+    echoResponse(200, $response);
+});
