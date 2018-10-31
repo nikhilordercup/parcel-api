@@ -130,7 +130,7 @@ class Country extends Icargo
         {
             
             $country_id = $obj->country_id;
-            $nonduty_id = $obj->nondutiable_id->id;            
+            $nonduty_id = $obj->nondutiable_id;            
             $status = 1;
             $created = date('Y-m-d H:i:s');            
             $resp = false;

@@ -294,7 +294,22 @@ public function createAllInvoicePdf($invoiceRef,$imageName,$watermark){
              $html    = $this->getBodyDataHTML($html,$pdfdata);
              $footerContent  = $this->prepareFooterHtml($footerTemplate,$customerdata,$src);
              ob_clean();
-             $pdf = new mPDF('c','A4-L');
+
+             $config = array(
+                 'mode' => 'c',
+                 'margin_left' => 32,
+                 'margin_right' => 25,
+                 'margin_top' => 27,
+                 'margin_bottom' => 25,
+                 'margin_header' => 16,
+                 'margin_footer' => 13
+             );
+
+             //$pdf = new mPDF('c','A4-L');
+
+             $pdf = new Mpdf\Mpdf($config);
+
+
              $pdf->showImageErrors = true;
              $pdf->SetHTMLHeader('<div class="container"> <h3>TAX INVOICE</h3></div>');
              $pdf->SetDisplayMode('fullpage');

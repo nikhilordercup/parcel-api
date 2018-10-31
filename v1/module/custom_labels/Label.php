@@ -5,7 +5,6 @@ class Label{
 
   public $methodArray = array(
     "__CONSIGNEE_ADDRESS__" => "findConsigneeAddress",
-    "__REFERENCE_NO__" => "findReferenceNo",
     "__WEIGHT__" => "findWeight",
     "__PIECE_COUNTER__" => "findPieceCounter",
     "__TOTAL_PIECE__" => "findTotalPiece",
@@ -14,31 +13,17 @@ class Label{
     "__SERVICE_DATE__" => "findServiceDate",
     "__COMPANY_LOGO__" => "findCompanyLogo",
     "__SERVICE_NAME__" => "findServiceName",
-    "__SENDER_POSTCODE__" => "findSenderPostcode",
-    "__SENDER_COUNTRY__" => "findSenderCountry",
-    "__CONSIGNEE_POSTCODE__" => "findConsigneePostcode",
-    "__CONSIGNEE_COUNTRY__" => "findConsigneeCountry",
+    "__DELIVERY_POSTCODE__" => "findDeliveryPostcode",
+    "__DELIVERY_COUNTRY__" => "findDeliveryCountry",
+    "__COLLECTION_POSTCODE__" => "findCollectionPostcode",
+    "__COLLECTION_COUNTRY__" => "findCollectionCountry",
     "__COMPANY_URL__" => "findCompanyUrl",
-    "__BARCODE__" => "findBarcode"
-  );
-
-  public $formatData = array(
-    "__CONSIGNEE_ADDRESS__" => "formateConsigneeAddress",
-    "__REFERENCE_NO__" => "formateReferenceNo",
-    "__WEIGHT__" => "formateWeight",
-    "__PIECE_COUNTER__" => "formatePieceCounter",
-    "__TOTAL_PIECE__" => "formateTotalPiece",
-    "__CUSTOMER_REFERENCE__" => "formateCustomerReference",
-    "__ALETRNATE_REFERENCE__" => "formateAlternateReference",
-    "__SERVICE_DATE__" => "formateServiceDate",
-    "__COMPANY_LOGO__" => "formateCompanyLogo",
-    "__SERVICE_NAME__" => "formateServiceName",
-    "__SENDER_POSTCODE__" => "formateSenderPostcode",
-    "__SENDER_COUNTRY__" => "formateSenderCountry",
-    "__CONSIGNEE_POSTCODE__" => "formateConsigneePostcode",
-    "__CONSIGNEE_COUNTRY__" => "formateConsigneeCountry",
-    "__COMPANY_URL__" => "formateCompanyUrl",
-    "__BARCODE__" => "formateBarcode"
+    "__PARCEL_BARCODE__" => "findParcelBarcode",
+    "__SHIPMENT_INSTRUCTION__" => "findShipmentInstruction",
+    "__SHIPMENT_CUSTOMER_NAME__" => "findShipmentCustomerName",
+    "__SHIPMENT_CUSTOMER_PHONE_NO__" => "findShipmentCustomerPhoneNo",
+    "__SHIPMENT_CUSTOMER_MOBILE_NO__" => "findShipmentCustomerMobileNo",
+    "__PARCEL_REFERENCE__" => "findParcelReference"
   );
 
   public function __construct(){
@@ -65,10 +50,6 @@ class Label{
     return $record;
   }
 
-  protected function findReferenceNo(){
-
-  }
-
   protected function findWeight($param){
     $record = $this->modelObj->getParcelWeight($param["parcel_ticket"]);
     return $record;
@@ -82,12 +63,14 @@ class Label{
     return $param;
   }
 
-  protected function findCustomerReference(){
-    return array("customer_reference"=>"customer_reference nahi pta hai");
+  protected function findCustomerReference($param){
+    $record = $this->modelObj->getCustomerReference($param["load_identity"]);
+    return $record;
   }
 
-  protected function findAlternateReference(){
-
+  protected function findAlternateReference($param){
+    $record = $this->modelObj->getAlternateReference($param["load_identity"]);
+    return $record;
   }
 
   protected function findServiceDate($param){
@@ -105,116 +88,63 @@ class Label{
     return $record;
   }
 
-  protected function findSenderPostcode(){
+  protected function findDeliveryPostcode($param){
+    $record = $this->modelObj->getDeliveryPostcode($param["load_identity"]);
+    return $record;
+  }
+
+  protected function findDeliveryCountry($param){
+    $record = $this->modelObj->getDeliveryCountry($param["load_identity"]);
+    return $record;
+  }
+
+  protected function findCollectionPostcode($param){
+    $record = $this->modelObj->getCollectionPostcode($param["load_identity"]);
+    return $record;
+  }
+
+  protected function findCollectionCountry($param){
+    $record = $this->modelObj->getCollectionCountry($param["load_identity"]);
+    return $record;
+  }
+
+  protected function findCompanyUrl($param){
+    $record = $this->modelObj->getCompanyUrl($param["company_id"]);
+    return $record;
+  }
+
+  protected function findParcelBarcode($param){
+    $record = $this->modelObj->getParcelReference($param["parcel_ticket"]);
+    return $record;
+    //$record = $this->modelObj->getBarcodeNo($param["load_identity"]);
+    //return $record;
+  }
+
+  protected function findShipmentInstruction($param){
+    $record = $this->modelObj->getShipmentInstruction($param["shipment_ticket"]);
+    return $record;
 
   }
 
-  protected function findSenderCountry(){
+  protected function findShipmentCustomerName($param){
+    $record = $this->modelObj->getShipmentCustomerName($param["shipment_ticket"]);
+    return $record;
 
   }
 
-  protected function findConsigneePostcode(){
-
+  protected function findShipmentCustomerPhoneNo($param){
+    $record = $this->modelObj->getShipmentContactPhoneNo($param["shipment_ticket"]);
+    return $record;
   }
 
-  protected function findConsigneeCountry(){
-
+  protected function findShipmentCustomerMobileNo($param){
+    $record = $this->modelObj->getShipmentContactMobileNo($param["shipment_ticket"]);
+    return $record;
   }
 
-  protected function findCompanyUrl(){
-
+  protected function findParcelReference($param){
+    $record = $this->modelObj->getParcelReference($param["parcel_ticket"]);
+    return $record;
   }
-
-  protected function findBarcode($load_identity){
-
-  }
-
-  /*Format data*/
-  protected function formateConsigneeAddress($param){
-    return "<table>
-      <tr>
-        <td>" . $param["shipment_customer_name"] . "</td>
-      </tr>
-      <tr>
-        <td>" . $param["shipment_address1"] . "</td>
-      </tr>
-      <tr>
-        <td>" . $param["shipment_address2"] . "</td>
-      </tr>
-      <tr>
-        <td>" . $param["shipment_customer_city"] . "</td>
-      </tr>
-      <tr>
-        <td>" . $param["shipment_postcode"] . "</td>
-      </tr>
-      <tr>
-        <td>" . $param["shipment_customer_country"] . "</td>
-      </tr>
-    </table>";
-  }
-
-  protected function formateReferenceNo(){
-
-  }
-
-  protected function formateWeight($param){
-    $weight = number_format($param["parcel_weight"], 2, '.', ',');
-    return "$weight kg";
-  }
-
-  protected function formatePieceCounter($param){
-    return $param["item_count"];
-  }
-
-  protected function formateTotalPiece($param){
-    return $param["total_items"];
-  }
-
-  protected function formateCustomerReference($param){
-    return $param["customer_reference"];
-  }
-
-  protected function formateAlternateReference(){
-
-  }
-
-  protected function formateServiceDate($param){
-    return $param["service_date"];
-  }
-
-  protected function formateCompanyLogo($param){
-    $path = "../assets/logo";
-    $logo = $param["logo"];
-    return "$path/$logo";
-  }
-
-  protected function formateServiceName($param){
-    return $param["service_name"];
-  }
-
-  protected function formateSenderPostcode(){
-
-  }
-
-  protected function formateSenderCountry(){
-
-  }
-
-  protected function formateConsigneePostcode(){
-
-  }
-
-  protected function formateConsigneeCountry(){
-
-  }
-
-  protected function formateCompanyUrl(){
-
-  }
-
-  protected function formateBarcode($load_identity){
-
-  }
-
 }
 ?>

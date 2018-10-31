@@ -11,7 +11,7 @@ class Model_Label{
   }
 
   public function getParcelTicketByLoadIdentity($load_identity){
-    $sql = "SELECT `shipment_ticket`, `parcel_ticket`, `parcel_weight`, `instaDispatch_loadIdentity`, `company_id` FROM `" . DB_PREFIX . "shipments_parcel` WHERE instaDispatch_loadIdentity = '$load_identity'";
+    $sql = "SELECT `shipment_ticket`, `parcel_ticket`, `parcel_weight`, `instaDispatch_loadIdentity`, `company_id` FROM `" . DB_PREFIX . "shipments_parcel` WHERE instaDispatch_loadIdentity = '$load_identity' AND parcel_type='D'";
     return $this->_db->getAllRecords($sql);
   }
 
@@ -39,8 +39,9 @@ class Model_Label{
     return $this->_db->getRowRecord($sql);
   }
 
-  public function getUrl(){
-
+  public function getCompanyUrl($company_id){
+    $sql = "SELECT url FROM " . DB_PREFIX . "configuration WHERE company_id = '$company_id'";
+    return $this->_db->getRowRecord($sql);
   }
 
   public function getCompanyLogo($company_id){
@@ -48,9 +49,64 @@ class Model_Label{
     return $this->_db->getRowRecord($sql);
   }
 
-  public function getBarcodeNo(){
+  public function getBarcodeNo($load_identity){
+    $sql = "SELECT label_tracking_number AS tracking_number FROM " . DB_PREFIX . "shipment_service WHERE load_identity LIKE '$load_identity'";
+    return $this->_db->getRowRecord($sql);
+  }
 
+  public function getCollectionPostcode($load_identity){
+    $sql = "SELECT shipment_postcode FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity LIKE '$load_identity' AND shipment_service_type='P'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getCollectionCountry($load_identity){
+    $sql = "SELECT shipment_customer_country AS shipment_country FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity LIKE '$load_identity' AND shipment_service_type='P'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getCustomerReference($load_identity){
+    $sql = "SELECT customer_reference1 AS customer_reference FROM " . DB_PREFIX . "shipment_service WHERE load_identity LIKE '$load_identity'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getAlternateReference($load_identity){
+    $sql = "SELECT customer_reference2 AS alternate_reference FROM " . DB_PREFIX . "shipment_service WHERE load_identity LIKE '$load_identity'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getDeliveryPostcode($load_identity){
+    $sql = "SELECT shipment_postcode FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity LIKE '$load_identity' AND shipment_service_type='D'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getDeliveryCountry($load_identity){
+    $sql = "SELECT shipment_customer_country AS shipment_country FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity LIKE '$load_identity' AND shipment_service_type='D'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getShipmentInstruction($shipment_ticket){
+    $sql = "SELECT shipment_instruction AS shipment_instruction FROM " . DB_PREFIX . "shipment WHERE shipment_ticket LIKE '$shipment_ticket'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getShipmentContactPhoneNo($shipment_ticket){
+    $sql = "SELECT shipment_customer_phone AS contact_phone FROM " . DB_PREFIX . "shipment WHERE shipment_ticket LIKE '$shipment_ticket'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getShipmentCustomerName($shipment_ticket){
+    $sql = "SELECT shipment_customer_name AS customer_name FROM " . DB_PREFIX . "shipment WHERE shipment_ticket LIKE '$shipment_ticket'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getShipmentContactMobileNo($shipment_ticket){
+    $sql = "SELECT shipment_contact_mobile AS mobile_no FROM " . DB_PREFIX . "shipment WHERE shipment_ticket LIKE '$shipment_ticket'";
+    return $this->_db->getRowRecord($sql);
+  }
+
+  public function getParcelReference($parcel_ticket){
+    $sql = "SELECT parcel_ticket AS parcel_reference FROM " . DB_PREFIX . "shipments_parcel WHERE parcel_ticket LIKE '$parcel_ticket'";
+    return $this->_db->getRowRecord($sql);
   }
 }
-
 ?>
