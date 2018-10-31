@@ -3,16 +3,16 @@ require_once('model/addressbook.php');
 require_once(dirname(dirname(dirname(__FILE__))).'/postcodeanywhere/lookup.php');
 
 class Module_Addressbook_Addressbook extends Icargo{
-	
+
     public
-    
+
     function __construct($data){
 	    $this->_parentObj = parent::__construct(array("email"=>$data->email, "access_token"=>$data->access_token));
-        
+
 	}
-    
+
    public
-    
+
     function getAllAddresses($param)
     {
         $response = array();
@@ -22,11 +22,11 @@ class Module_Addressbook_Addressbook extends Icargo{
 		else
 			$param->country_code = 'GB';
 	    if(isset($param->origin) && $param->origin=='api')
-	    { 
+	    {
 	        $pcaLookup = new Address_Lookup();
             $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
             if($addresses["status"]=="success")
-            {   
+            {
 		        $container = json_decode(json_encode((array)$addresses['data']), TRUE);
 				$addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
@@ -49,7 +49,7 @@ class Module_Addressbook_Addressbook extends Icargo{
             $pcaLookup = new Address_Lookup();
             $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
             if($addresses["status"]=="success")
-            {   
+            {
 		        $container = json_decode(json_encode((array)$addresses['data']), TRUE);
 				$addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
@@ -83,12 +83,12 @@ class Module_Addressbook_Addressbook extends Icargo{
         {
             $response = array("status"=>"success","data"=>$records,"origin"=>"local");
         }
-		
+
         return $response;
     }
-	
+
     public
-    
+
     function getAllAddresses13March2018($param)
     {
         $response = array();
@@ -96,9 +96,9 @@ class Module_Addressbook_Addressbook extends Icargo{
         $response = array("status"=>"success","data"=>$records,"origin"=>"local");
         return $response;
     }
-    
+
     public
-    
+
     function searchAddressByIdBKP26march2018($param){
         if($param->address_origin=="api"){
             $pcaLookup = new Address_Lookup();
@@ -118,9 +118,9 @@ class Module_Addressbook_Addressbook extends Icargo{
             }
         }
     }
-	
+
 	public
-    
+
     function searchAddressById($param){
         if($param->address_origin=="api"){
             $pcaLookup = new Address_Lookup();
@@ -155,11 +155,11 @@ class Module_Addressbook_Addressbook extends Icargo{
 				"country"=>$addresses["country"]),"origin"=>"local");
 		}
     }
-	
+
 	public
-    
-    function getAllAddressesTest($param) 
-    {   
+
+    function getAllAddressesTest($param)
+    {
 	    $records = array();
         $response = array();
         $addresses = Addressbook_Model::_getInstance()->searchAllAddress(array("customer_id"=>$param->customer_id,"postcode"=>$param->search_postcode));
@@ -173,20 +173,47 @@ class Module_Addressbook_Addressbook extends Icargo{
 					));
                 }
 		}else{
-			
+
 		}
         $response = array("status"=>"success","data"=>$records,"origin"=>"local");
-       
+
         return $response;
     }
-	
+
 	public
 
     function getAllDefaultWarehouseAddressBySearchKey($param){
         $records = Addressbook_Model::_getInstance()->searchAllDefaultWarehouseAddress($param->customer_id,$param->search_postcode);
         $response = array("status"=>"success","data"=>$records,"origin"=>"local");
         return $response;
-    } 
-	
+    }
+
+		public
+
+		function checkChangedAddress($param){
+			  $addressBookParam = (Object) array(
+				    "address_1" => $param->address_line1,
+						"address_2" => $param->address_line2,
+						"postcode"  => $param->postcode,
+						"city"      => $param->city,
+						"state"     => $param->state,
+						"country"   => $param->country,
+						"name"      => $param->name,
+						"email"     => $param->address_email,
+						"company_id"=> $param->company_id,
+
+				);
+
+			  $commonObj = new Common();
+				$addressBookStr = $commonObj->getAddressBookSearchString($addressBookParam);
+				$record = Addressbook_Model::_getInstance()->searchAddressByAddressStringAndAddressId($param->address_id, $addressBookStr);
+				if($record){
+				    echo "record found";
+				}else{
+				    echo "record not found";
+				}
+				die;
+		}
+
 }
 ?>

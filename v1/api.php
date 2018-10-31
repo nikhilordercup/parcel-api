@@ -2451,8 +2451,18 @@ $app->post('/apiSignup', function() use ($app){
 	echoResponse(200, $response);
 });
 
+$app->post('/checkChangedAddress', function() use ($app){
+	$r = json_decode($app->request->getBody());
+	$addressObj = new Module_Addressbook_Addressbook((object) array("email"=>$r->email, "access_token"=>$r->access_token));
+	$addressObj->checkChangedAddress($r);
+	print_r($r);die;
+	$obj = new Custom_Label();
+	$data = $obj->createLabel("ICARGOS027724");
+	print_r($data);die;
+});
+
 $app->post('/test', function() use ($app){
 	$obj = new Custom_Label();
-	$data = $obj->createLabel("ICARGOS1839560");
+	$data = $obj->createLabel("ICARGOS027724");
 	print_r($data);die;
 });
