@@ -14,11 +14,11 @@ class Custom_Label
             //'margin_bottom' => 25,
             //'margin_header' => 16,
             //'margin_footer' => 13
-			'format' => 'A4'
+			      'format' => 'A4'
 			//'format' => array(101,152),
 			//'orientation' => 'L'
         );
-		
+
         $dirPath = "../label/$load_identity/pnp";
         $path = "$dirPath/$load_identity.pdf";
         if (!file_exists($dirPath)) {
