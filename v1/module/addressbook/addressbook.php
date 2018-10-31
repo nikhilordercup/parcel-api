@@ -190,15 +190,15 @@ class Module_Addressbook_Addressbook extends Icargo{
 
 	public function checkChangedAddress($param){
 		$addressBookParam = (Object) array(
-			"address_1" => $param->address_line1,
-			"address_2" => $param->address_line2,
-			"postcode"  => $param->postcode,
-			"city"      => $param->city,
-			"state"     => $param->state,
-			"country"   => $param->country,
-			"name"      => $param->name,
-			"email"     => $param->address_email,
-			"company_id"=> $param->company_id,
+			"address_1" => (isset($param->address_line1)) ? $param->address_line1 : "",
+			"address_2" => (isset($param->address_line2)) ? $param->address_line2 : "",
+			"postcode"  => (isset($param->postcode)) ? $param->postcode : "",
+			"city"      => (isset($param->city)) ? $param->city : "",
+			"state"     => (isset($param->state)) ? $param->state : "",
+			"country"   => (isset($param->country)) ? $param->country : "",
+			"name"      => (isset($param->name)) ? $param->name : "",
+			"email"     => (isset($param->address_email)) ? $param->address_email : "",
+			"company_id"=> (isset($param->company_id)) ? $param->company_id : "",
 		);
 
 		$commonObj = new Common();

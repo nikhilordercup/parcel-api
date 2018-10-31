@@ -1513,7 +1513,7 @@ class shipment extends Library{
 			}
 			return array("status"=>"success", "address_id"=>$address_id);
 			/* else{
-				
+
 			}
 			if(($address_op!="") AND ($address_op=="add")){
 				if(!$address_id){
@@ -1531,7 +1531,7 @@ class shipment extends Library{
 
     private
 
-    function _bookSameDayShipment($param){ 
+    function _bookSameDayShipment($param){
         $shipment_data = $param["shipment_data"];
         //address
         $address = $this->_save_address($shipment_data,$param["address_op"]);
