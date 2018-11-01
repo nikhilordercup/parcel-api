@@ -1,5 +1,5 @@
 <?php
-require_once ("./module/google/model/Google_Model_Api.php");
+require_once "../v1/module/google/model/Google_Model_Api.php";
 
 class Module_Google_Api extends Icargo
 {
