@@ -1097,7 +1097,7 @@ class shipment extends Library{
 
             $data['carrier_code'] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
             $data['carrier_account_number'] = (isset($param["carrier_account_number"])) ? $param["carrier_account_number"] : "";
-
+						$data["address_id"] = 0;
             //save address first then save shipment detail with address id
             $shipmentId = $this->db->save("shipment", $data);
 
