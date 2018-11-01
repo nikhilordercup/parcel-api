@@ -210,7 +210,7 @@ class Driver extends Icargo
     public
 
     function addDriver($param)
-        {
+        { 
         $savedrecord = array();
         $isDriverExists = $this->_parentObj->db->getOneRecord("select 1 from icargo_users where email='" . $param->user_email . "'");
         if (!$isDriverExists)
@@ -219,21 +219,21 @@ class Driver extends Icargo
             $param->user_level = 4;
             $param->register_in_firebase = 1;
             $data = array(
-                'parent_id' => $param->company_id,
-                'name' => $param->name,
-                'contact_name' => $param->name,
-                'phone' => $param->phone,
-                'email' => $param->user_email,
-                'password' => $param->password,
-                'address_1' => $param->address_1,
-                'address_2' => $param->address_2,
-                'city' => $param->city,
-                'postcode' => $param->postcode,
-                'user_level' => $param->user_level,
-                'uid' => $param->uid,
-                'register_in_firebase' => $param->register_in_firebase,
-                'state' => $param->state,
-                'country' => $param->country->short_name
+                'parent_id' => (isset($param->company_id)) ? $param->company_id : 0,
+                'name' => (isset($param->name)) ? $param->name : "",
+                'contact_name' => (isset($param->name)) ? $param->name : "",
+                'phone' => (isset($param->phone)) ? $param->phone : "",
+                'email' => (isset($param->user_email)) ? $param->user_email : "",
+                'password' => (isset($param->password)) ? $param->password : "",
+                'address_1' => (isset($param->address_1)) ? $param->address_1 : "",
+                'address_2' => (isset($param->address_2)) ? $param->address_2 : "",
+                'city' => (isset($param->city)) ? $param->city : "",
+                'postcode' => (isset($param->postcode)) ? $param->postcode : "",
+                'user_level' => (isset($param->user_level)) ? $param->user_level : "",
+                'uid' => (isset($param->uid)) ? $param->uid : "",
+                'register_in_firebase' => (isset($param->register_in_firebase)) ? $param->register_in_firebase : "",
+                'state' => (isset($param->state)) ? $param->state : "",
+                'country' => (isset($param->short_name)) ? $param->short_name : ""
             );
 
             // $driver_id = $this->_parentObj->db->insertIntoTable($param, $column_names, DB_PREFIX."users");
@@ -277,7 +277,7 @@ class Driver extends Icargo
 
                     $data['id'] = $driver_id;
                     $data['action'] = $driver_id;
-                    $data['address'] = $param->address_1 . ' ' . $param->address_2;
+                    $data['address'] = $data["address_1"] . ' ' . $data["address_2"];
                     $response["status"] = "success";
                     $response["message"] = "Driver created successfully";
                     $response["saved_record"] = $data; //$this->getDriverByDriverId($driver_id);
