@@ -59,7 +59,7 @@ class Module_Coreprime_Api extends Icargo
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
-        return $server_output; 
+        return $server_output;
     }
     private
     function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse,$is_tax_exempt)
@@ -234,9 +234,9 @@ class Module_Coreprime_Api extends Icargo
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = [];
-        
+
         $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
-        
+
         if(isset($data->status) && ($data->status=="error")){
           return $data;
         }else{
@@ -292,7 +292,7 @@ class Module_Coreprime_Api extends Icargo
         }
         return array("status"=>"success", "message"=>"sufficient balance.","available_credit"=>$available_credit['available_credit']);
     }
-    
+
     public
     function getAllServices2($param)
     {
@@ -326,7 +326,7 @@ class Module_Coreprime_Api extends Icargo
           return array("status" => "success","rate"=>$data,"availiable_balence" => $available_credit['available_credit']);
         }
     }
-    
+
     private
     function _filterApiResponseManulal($input){ //print_r($input);die;
         //print_r($input);die;
@@ -336,15 +336,15 @@ class Module_Coreprime_Api extends Icargo
         $taxval          = $input->manualprice->taxval;
         $surcharges      = array();
         $surchargesPrice = array();
-        
+
         if(isset($input->manualprice->newsurcharges) and count($input->manualprice->newsurcharges)>0){
           foreach($input->manualprice->newsurcharges as $key=>$val){
-            $surcharges[$key] = json_decode($val,1);  
+            $surcharges[$key] = json_decode($val,1);
           }
         }
         if(isset($input->manualprice->newsurchargesprice) and count($input->manualprice->newsurchargesprice)>0){
           foreach($input->manualprice->newsurchargesprice as $key=>$val){
-            $surchargesPrice[$key] = json_decode($val,1);  
+            $surchargesPrice[$key] = json_decode($val,1);
           }
         }
         $returnarray = array();
@@ -359,15 +359,15 @@ class Module_Coreprime_Api extends Icargo
         $data['rate_type'] = '';
         $data['message'] = '';
         $data['currency'] = '';
-        
-        
-        
-        
-        
+
+
+
+
+
         $data['service_name'] = ($selectedService['company_service_name']=='')?$selectedService['service_name']:$selectedService['company_service_name'];
         $data['base_price'] = $servicePrice;
         $data['icon'] = $selectedCarrier['icon'];
-        
+
         $data['otherinfo']['original_price'] = $servicePrice;
         $data['otherinfo']['ccf_value'] = 0;
         $data['otherinfo']['operator'] = 'FLAT';
@@ -414,6 +414,6 @@ class Module_Coreprime_Api extends Icargo
             return array("status"=>"error", "message"=>"Empty responses");
         }
     }
-    
+
 }
 ?>

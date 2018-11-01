@@ -39,7 +39,11 @@
                 "recurring billing",
                 "subscription billing"
             ],
+<<<<<<< HEAD
             "time": "2018-10-26 08:09:28"
+=======
+            "time": "2018-10-26T08:09:28+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "dompdf/dompdf",
@@ -311,7 +315,11 @@
                 "phonenumber",
                 "validation"
             ],
+<<<<<<< HEAD
             "time": "2018-10-18 08:12:16"
+=======
+            "time": "2018-10-18T08:12:16+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "giggsey/locale",
@@ -360,7 +368,11 @@
                 }
             ],
             "description": "Locale functions required by libphonenumber-for-php",
+<<<<<<< HEAD
             "time": "2018-10-18 07:17:52"
+=======
+            "time": "2018-10-18T07:17:52+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "google/auth",
@@ -466,7 +478,11 @@
                 "Apache-2.0"
             ],
             "description": "Google Cloud PHP shared dependency, providing functionality useful to all components.",
+<<<<<<< HEAD
             "time": "2018-10-29 16:21:18"
+=======
+            "time": "2018-10-29T16:21:18+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "google/cloud-storage",
@@ -516,7 +532,11 @@
                 "Apache-2.0"
             ],
             "description": "Cloud Storage Client for PHP",
+<<<<<<< HEAD
             "time": "2018-10-29 16:21:18"
+=======
+            "time": "2018-10-29T16:21:18+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -767,7 +787,11 @@
                 "google",
                 "sdk"
             ],
+<<<<<<< HEAD
             "time": "2018-10-29 08:38:02"
+=======
+            "time": "2018-10-29T08:38:02+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "kreait/firebase-tokens",
@@ -820,7 +844,11 @@
                 "google",
                 "token"
             ],
+<<<<<<< HEAD
             "time": "2018-10-26 22:01:30"
+=======
+            "time": "2018-10-26T22:01:30+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "kreait/gcp-metadata",
@@ -1011,7 +1039,11 @@
                 "sftp",
                 "storage"
             ],
+<<<<<<< HEAD
             "time": "2018-10-15 13:53:10"
+=======
+            "time": "2018-10-15T13:53:10+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "monolog/monolog",
@@ -1157,7 +1189,11 @@
                 "php",
                 "utf-8"
             ],
+<<<<<<< HEAD
             "time": "2018-10-18 11:37:12"
+=======
+            "time": "2018-10-18T11:37:12+00:00"
+>>>>>>> 6ccbd5d385b921ba03aa85d1a1faab0588c0adc1
         },
         {
             "name": "mtdowling/jmespath.php",

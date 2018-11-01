@@ -1,73 +1,75 @@
 <?php
-require_once "../v1/module/custom_labels/Label.php";
-require_once "Design2_Data_Format.php";
+require_once "Label.php";
 
-final class Design2_Label extends Label{
-  public $html = '
-  <table>
+final class Design1_Label extends Label{
+  public $html = '<table>
     <tr>
-      <td colspan="2" align="center" class="widecells"><p>Courier Tracked</p></td>
+      <td>__BARCODE__</td>
     </tr>
 
     <tr>
-      <td colspan="2" align="center">SIGNATURE NEXT DAY</td>
-    </tr>
-
-    <tr>
-      <td colspan="2" align="center"><barcode code="__BARCODE__" type="RM4SCC" height="0.66" text="1" /></td>
-    </tr>
-
-    <tr>
-      <td>
-        <div style="position: fixed; right: 0mm; bottom: 0mm; rotate: -90;">
-          <barcode code="978-0-9542246-0" class="barcode" />
-        </div>
-      </td>
+      <td>__CONSIGNEE_ADDRESS__</td>
 
       <td>
         <table>
           <tr>
-            <td>
-              FAO :
-            </td>
-            <td>
-              Nhi Pta hai
-            </td>
+            <td>Reference :</td>
+            <td>__REFERENCE_NO__</td>
           </tr>
 
           <tr>
-            <td>
-              S Ref :
-            </td>
-            <td>
-              Nhi Pta hai
-            </td>
+            <td>Weight :</td>
+            <td>__WEIGHT__</td>
           </tr>
 
           <tr>
-            <td>
-              Co. :
-            </td>
-            <td>
-              Nhi Pta hai
-            </td>
+            <td>Piece :</td>
+            <td>__PIECE_COUNTER__ of __TOTAL_PIECE__</td>
           </tr>
 
           <tr>
-            <td>
-              Address :
-            </td>
-            <td>
-              __CONSIGNEE_ADDRESS__
-            </td>
+            <td>Cust Ref :</td>
+            <td>__CUSTOMER_REFERENCE__</td>
+          </tr>
+
+          <tr>
+            <td>Alt Ref :</td>
+            <td>__ALETRNATE_REFERENCE__</td>
+          </tr>
+
+          <tr>
+            <td colspan="2">__SERVICE_DATE__</td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td>Left 2 Column</td>
+      <td>
+        <table>
+          <tr>
+            <td><img src="__COMPANY_LOGO__"></td>
+          </tr>
+          <tr>
+            <td>__SERVICE_NAME__</td>
+          </tr>
+          <tr>
+            <td>__SENDER_POSTCODE__ -  __SENDER_COUNTRY__</td>
+          </tr>
+          <tr>
+            <td>__CONSIGNEE_POSTCODE__ -  __CONSIGNEE_COUNTRY__</td>
           </tr>
         </table>
-      <td>
+      </td>
+    </tr>
+    <tr>
+      <td>__COMPANY_URL__</td>
     </tr>
   </table>';
   public function __construct(){
     $this->labelObj = new Label();
-    $this->dataFormatObj = new Design2_Data_Format();
   }
 
   private function _createLabelByParcelTicket($item){
@@ -80,7 +82,7 @@ final class Design2_Label extends Label{
       }else{
         $data["total_items"] = $item["total_items"];
         $data["item_count"] = $item["item_count"];
-        array_push($replaceData, call_user_func_array(array($this->dataFormatObj, $this->dataFormatObj->formatData[$m]), array($data)));
+        array_push($replaceData, call_user_func_array(array($this->labelObj, $this->labelObj->formatData[$m]), array($data)));
       }
     }
     return str_replace($this->labelVariables, $replaceData, $this->html);

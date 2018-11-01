@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 /*
  * Database configuration
@@ -7,4 +8,4 @@
  define('DB_HOST', 'localhost');
  define('DB_NAME', 'app_stable');
  define('DB_PREFIX', 'icargo_'); 
-?>
+?> 
