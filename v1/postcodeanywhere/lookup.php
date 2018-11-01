@@ -62,7 +62,7 @@ Class Address_Lookup{
 			}
 			else {
 				//Output results
-				return array("status"=>"error", "message"=>"no address found");
+				return array("status"=>"error", "message"=>"no address found", "data"=> array());
 			}
 			/* die;
 			if (!$oPostcode->run()) {
