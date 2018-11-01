@@ -255,7 +255,7 @@ class Library
                     foreach($address_components->address_components as $val) {
                         if (in_array('postal_code', $val->types)) {
                             $postdata = str_replace(' ', '', $val->long_name);
-                            $addressdatadata = str_replace(' ', '', urldecode($address));
+                            $addressdatadata = $this->getPostcode(str_replace(' ', '', urldecode($address)));
                             if ($postdata == $addressdatadata) {
                                 $latitude = $address_components->geometry->location->lat;
                                 $long = $address_components->geometry->location->lng;
@@ -514,6 +514,22 @@ class Library
         }
 
         return false;
+    }
+    public 
+        
+    function getPostcode($address)
+    {
+        $parcePostcode  = explode(',',$address);
+        $tempPostcode = $parcePostcode[0];
+        if(is_array($parcePostcode)){
+            if(count($parcePostcode)==2 and $parcePostcode[1] !=''){
+              $temparray = explode('-',$parcePostcode[1]);
+              if(is_array($temparray)){
+                  $tempPostcode = $temparray[0];
+              }
+            }
+        }
+      return $tempPostcode;
     }
 }
 
