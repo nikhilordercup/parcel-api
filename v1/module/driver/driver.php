@@ -233,7 +233,7 @@ class Driver extends Icargo
                 'uid' => (isset($param->uid)) ? $param->uid : "",
                 'register_in_firebase' => (isset($param->register_in_firebase)) ? $param->register_in_firebase : "",
                 'state' => (isset($param->state)) ? $param->state : "",
-                'country' => (isset($param->short_name)) ? $param->short_name : ""
+                'country' => (isset($param->country->short_name)) ? $param->country->short_name : ""
             );
 
             // $driver_id = $this->_parentObj->db->insertIntoTable($param, $column_names, DB_PREFIX."users");
