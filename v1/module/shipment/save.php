@@ -1507,7 +1507,7 @@ class shipment extends Library{
 					$data["version_id"] = "version_1";
 					$address_id = $this->db->save("address_book", $data);
 				}else{
-					$address_id = $address['address_id'];
+					$address_id = (isset($address['address_id'])) ? $address['address_id'] : 0;
 					$update = $this->db->update("address_book",$data,"id='$address_id'");
 				}
 			}

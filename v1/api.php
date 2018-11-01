@@ -633,7 +633,7 @@ $app->post('/addShipment', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id','warehouse_id','customer_id','user_level'),$r);
-	$obj = new shipment(array('job_type'=>$r->job_type,'tempdata'=>$r->tempdata,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'customer_id'=>$r->customer_id,'user_level'=>$r->user_level));
+	$obj = new shipment(array('job_type'=>$r->job_type,'tempdata'=>$r->tempdata,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'customer_id'=>$r->customer_id,'user_level'=>$r->user_level,'country_code'=>$r->country_code)); 
 	$status = $obj->addshipmentDetail();
 	echoResponse(200, $status);
 });
