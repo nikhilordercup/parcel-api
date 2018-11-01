@@ -23,12 +23,12 @@ class Module_Addressbook_Addressbook extends Icargo{
 			$param->country_code = 'GB';
 	    if(isset($param->origin) && $param->origin=='api')
 	    {
-	        $pcaLookup = new Address_Lookup();
+	          $pcaLookup = new Address_Lookup();
             $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code);
             if($addresses["status"]=="success")
             {
-		        $container = json_decode(json_encode((array)$addresses['data']), TRUE);
-				$addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
+		            $container = json_decode(json_encode((array)$addresses['data']), TRUE);
+				        $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
                 foreach($addresses["data"] as $key => $list)
                 {
