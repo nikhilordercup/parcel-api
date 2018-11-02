@@ -1503,7 +1503,7 @@ class shipment extends Library{
             $address_id = $this->_getAddressBySearchStringAndCustomerId($address["customer_id"], $data["search_string"]);
 
 			if(!$address_id){
-				if(($address_op!="") AND ($address_op=="add")){
+				if(($address_op===null) OR ($address_op=="add")){
 					$data["version_id"] = "version_1";
 					$address_id = $this->db->save("address_book", $data);
 				}else{
