@@ -52,6 +52,9 @@ class RateApiController {
                         foreach ($surchargeList as $i => $l) {
                             $this->_responseData['surchargeList'][$c->name][$a->credentials->account_number][$l['serviceCode']][] = $l;
                         }
+                        if (!isset($this->_responseData['surchargeList'])) {
+                            $this->_responseData['surchargeList'] = [];
+                        }
                     }
                     $this->_responseData['accountInfo'][$c->name][] = $ca;
                     $fromZone = $this->_reateEngineModel
@@ -70,6 +73,7 @@ class RateApiController {
                 }
             }
         }
+//        print_r($this->_responseData['surchargeList']);exit;
         $this->getRates($this->_responseData);
         $this->applyPriceRules($param);
         $this->addErrorMessages();
@@ -134,34 +138,23 @@ class RateApiController {
                         switch ($f["rate_type"]) {
                             case 'Weight':
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packagesWeight);
-                                if ($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
-                                    unset($this->_responseData['rate'][$name][$k][$z][$key]);
-                                }
                                 break;
                             case 'Box':
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packagesCount);
-                                if ($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
-                                    unset($this->_responseData['rate'][$name][$k][$z][$key]);
-                                }
                                 break;
                             case 'Time':
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $time);
-                                if ($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
-                                    unset($this->_responseData['rate'][$name][$k][$z][$key]);
-                                }
                                 break;
                             case 'Distance':
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $distance);
-                                if ($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
-                                    unset($this->_responseData['rate'][$name][$k][$z][$key]);
-                                }
                                 break;
                             case 'Drop Rate':
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $drops);
-                                if ($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
-                                    unset($this->_responseData['rate'][$name][$k][$z][$key]);
-                                }
                                 break;
+                        }
+                        if ($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
+                            unset($this->_responseData['rate'][$name][$k][$z][$key]);
+                            continue;
                         }
                         if (count($this->_responseData['rate'][$name][$k][$z])) {
                             $manager = new SurchargeManager();

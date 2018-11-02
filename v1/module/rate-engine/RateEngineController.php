@@ -71,7 +71,7 @@ class RateEngineController {
                         break;
                     }
                 case 'rate-units': {
-                        addRateUnitData();
+                        self::$_rateEngine->addRateUnitData();
                         break;
                     }
             }

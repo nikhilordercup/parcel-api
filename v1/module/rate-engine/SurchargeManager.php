@@ -54,16 +54,18 @@ class SurchargeManager {
         $this->_rate = $rate;
         $this->_transitData = $transitData;
         $this->_requestData = $request;
+        if (is_null($surcharges)) {
+            $surcharges = [];
+        }
         foreach ($surcharges as $surcharge) {
             $surchargeObj = json_decode($surcharge["surchargeRule"]);
             $this->_surcharge = $surchargeObj;
             if (!in_array($rate['service_id'], $surchargeObj->services)) {
                 continue;
             }
-            
+
             switch ($surchargeObj->surcharge) {
                 case 1:
-                    exit('Long Lenght');
                     $this->longLengthSurcharge($rate);
                     break;
                 case 3:
@@ -85,7 +87,7 @@ class SurchargeManager {
 //                case 12:
                 case 13:
                 case 14:
-                    $this->commonSurchare($rate,$surchargeObj->surcharge);
+                    $this->commonSurchare($rate, $surchargeObj->surcharge);
                     break;
                 case 15:
                 case 16:
@@ -96,13 +98,14 @@ class SurchargeManager {
             }
         }
         if (!is_null($this->_fuelSurcharge)) {
-            $this->fuelSurcharge($this->_countedSurcharge);
+            //print_r($this->_fuelSurcharge);exit;
+            $this->fuelSurcharge($rate,$this->_countedSurcharge);
         }
     }
 
     public function longLengthSurcharge($rate) {
         $finalSurcharge = 0;
-        if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
+//        if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
             foreach ($this->_packages as $p) {
                 $lengthApplicable = $this->isConditionTrue($p->length, $this->_surcharge->lengthData->lconditions, $this->_surcharge->lengthData->lUnit);
                 $widthApplicable = $this->isConditionTrue($p->width, $this->_surcharge->lengthData->wconditions, $this->_surcharge->lengthData->wUnit);
@@ -111,10 +114,10 @@ class SurchargeManager {
                     $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
                 }
             }
-        } else {
-            
-        }
-        
+//        } else {
+//            
+//        }
+
         $this->_countedSurcharge["long_length_surcharge"] = $finalSurcharge;
     }
 
@@ -171,17 +174,22 @@ class SurchargeManager {
         $this->_surcharge->commonData->{"factorValue"} = $this->getWeightSurchargeRate($totalWeight);
         $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
         $this->_countedSurcharge["manual_handling_surcharge"] = $finalSurcharge;
-         
     }
 
-    public function fuelSurcharge($appliedSurcharges = []) {
+    public function fuelSurcharge($rate,$appliedSurcharges = [] ) {
         $finalSurcharge = 0;
-        foreach ($this->_surcharge->fuleSurcharge->applyOn as $id) {
+        $this->_fuelSurcharge=(object)$this->_fuelSurcharge;
+        $d= json_decode($this->_fuelSurcharge->surchargeRule);
+        if(!isset($d->fuleSurcharge)){
+            return 0;
+        }
+        foreach ($d->fuleSurcharge->applyOn as $id) {
             if (array_key_exists($this->surcharges[$id - 1], $appliedSurcharges)) {
-                $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, ['rate' => $appliedSurcharges[$this->surcharges[$id - 1]]]);
+                $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate' => $appliedSurcharges[$this->surcharges[$id - 1]]]);
             }
         }
-        $this->_countedSurcharge["fuel_surcharge"] = $finalSurcharge;
+        $finalSurcharge += $this->calculateSurcharge($d->commonData, $rate);
+        $this->_countedSurcharge["fuel_surcharge"] = round($finalSurcharge,2);
     }
 
     public function bookingSurcharge() {
@@ -301,11 +309,12 @@ class SurchargeManager {
         }
         return $rate;
     }
+
     /**
      * Here we are returning all calculated surcharge
      * @return type array
      */
-    public function getAppliedSurcharge(){
+    public function getAppliedSurcharge() {
         return $this->_countedSurcharge;
     }
 
