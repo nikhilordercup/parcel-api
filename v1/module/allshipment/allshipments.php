@@ -181,7 +181,6 @@ class allShipments extends Icargo
         $loadIdentityString = implode("','", $filterLoadIdentity);
 
         $shipmentsData = $this->modelObj->getAllShipments($loadIdentityString);
-        print_r($shipmentsData);die;
         $shipmentsData = $this->_prepareShipments($shipmentsData);
         return $shipmentsData;
     }

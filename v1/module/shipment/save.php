@@ -1648,7 +1648,9 @@ class shipment extends Library{
     function bookSameDayShipment($data)
     {
 
-		$carrier_id = $data->service_detail->otherinfo->courier_id;
+				$bookingObj = new Booking(array("email"=>$data->email,"access_token"=>$data->access_token));
+
+				$carrier_id = $data->service_detail->otherinfo->courier_id;
 
         //check customer is enable or not  shipment_instruction
         $customerStatus = $this->db->getRowRecord("SELECT status FROM ".DB_PREFIX."users WHERE id = '$data->customer_id' AND status=1");
@@ -1717,8 +1719,8 @@ class shipment extends Library{
                     $shipmentService->transit_time_text = $data->transit_time_text;
                     $shipmentService->transit_distance_text = $data->transit_distance_text;
                     $shipmentService->load_identity = $loadIdentity;
-					$shipmentService->service_request_string = '';
-					$shipmentService->service_response_string = '';
+										$shipmentService->service_request_string = '';
+										$shipmentService->service_response_string = '';
 
                     $shipmentService->customer_reference1 = (isset($data->customer_reference1)) ? $data->customer_reference1 : "";
                     $shipmentService->customer_reference2 = (isset($data->customer_reference2)) ? $data->customer_reference2 : "";
@@ -1730,6 +1732,15 @@ class shipment extends Library{
                     //save shipment price detail
 
                     $service_id = $this->_saveShipmentService($shipmentService);
+
+										$this->_saveShipmentCollection((Object)array(
+													"carrier_code"=>$carrierCode,
+													"collection_date_time"=>$data->service_date,
+													"is_regular_pickup"=>"yes",
+													"pickup"=>"1",
+													"service_id"=>$service_id
+									  ));
+
                     $paymentStatus = $this->_manageAccounts($service_id, $loadIdentity, $data->customer_id,$this->company_id);
                     ++$counter;
                 }
@@ -1860,6 +1871,25 @@ class shipment extends Library{
         $sql = "SELECT C.customer_type,C.available_credit FROM " . DB_PREFIX . "customer_info as C
                 WHERE  C.user_id = '$customerId'";
         return $this->db->getRowRecord($sql);
+    }
+
+		private
+
+    function _saveShipmentCollection($data){
+
+        $collection_data = array();
+
+        $collection_data["carrier_code"]         = $data->carrier_code;
+        $collection_data["collection_date_time"] = $data->collection_date_time;
+        $collection_data["is_regular_pickup"]    = $data->is_regular_pickup;
+        $collection_data["pickup"]               = $data->pickup;
+        $collection_data["service_id"]           = $data->service_id;
+
+        $status = $this->db->save("shipment_collection", $collection_data);
+        if($status==0){
+            return array("status"=>"error", "message"=>"shipment collection detail not saved");
+        };
+        return array("status"=>"success", "message"=>"shipment collection detail saved");
     }
 }
 ?>
