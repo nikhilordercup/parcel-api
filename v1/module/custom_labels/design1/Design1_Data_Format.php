@@ -69,7 +69,7 @@ class Design1_Data_Format{
   }
 
   public function formateServiceDate($param){
-    return $param["service_date"];
+    return Library::_getInstance()->date_format($param["service_date"]);
   }
 
   public function formateCompanyLogo($param){
