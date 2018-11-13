@@ -1885,7 +1885,7 @@ class shipment extends Library{
         $collection_data["pickup"]               = $data->pickup;
         $collection_data["service_id"]           = $data->service_id;
 
-        $status = $this->db->save("shipment_collection", $collection_data);
+        $status = $this->db->save("shipment_service", $_data);$this->db->saveShipmentCollection($collection_data);
         if($status==0){
             return array("status"=>"error", "message"=>"shipment collection detail not saved");
         };

@@ -1,6 +1,7 @@
 <?php
 require_once "model/rest.php";
 require_once "Ws_Driver_Tracking.php";
+
 class Process_Form
 {
     public $modelObj = null;
@@ -78,6 +79,9 @@ class Process_Form
         if (isset($params->form_status)) {
             $this->form_status = $params->form_status;
         }
+        if (isset($params->pod_image)) {
+            $this->pod_image = $params->pod_image;
+        }
         $this->model_rest = new Ws_Model_Rest();
     }
     private function _get_driver_by_id()
@@ -107,24 +111,56 @@ class Process_Form
     // script for grid update
     {
         $firebasedata     = array();
+        $podObj  = new Pod();
         $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
         if (($ticket != '') && ($driver_id != '') && ($route_id != '')) {
             $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
             if ($shipment_details != null and $shipment_details['current_status'] != 'D') {
-                if (isset($pod_data["pod"]) and !empty($pod_data["pod"])) {
+                if(isset($this->sign) and $this->sign!=""){
+                    $podPath = $podObj->savePodSignature($ticket, $this->sign);
+                    $this->model_rest->save("shipments_pod", array(
+                        "shipment_ticket" => $ticket,
+                        "driver_id" => $driver_id,
+                        "pod_name" => 'signature',
+                        "contact_person" => $this->contact_name,
+                        "latitude" => $this->latitude,
+                        "longitude" => $this->longitude,
+                        "value" => $podPath,
+                        "comment" => $this->text
+                    ));
+                }
+
+                if(isset($this->pod_image) and $this->pod_image!=""){
+                    $podPath = $podObj->savePodPicture($ticket, $this->pod_image);
+                    $this->model_rest->save("shipments_pod", array(
+                        "shipment_ticket" => $ticket,
+                        "driver_id" => $driver_id,
+                        "pod_name" => 'picture',
+                        "contact_person" => $this->contact_name,
+                        "latitude" => $this->latitude,
+                        "longitude" => $this->longitude,
+                        "value" => $podPath,
+                        "comment" => $this->text
+                    ));
+                }
+
+
+                //$this->pod_image
+
+                /*if (isset($pod_data["pod"]) and !empty($pod_data["pod"])) {
                     $podObj  = new Pod_Signatre();
                     $podPath = $podObj->saveImage($ticket, $pod_data["pod"]);
                     $this->model_rest->save("shipments_pod", array(
                         "shipment_ticket" => $ticket,
                         "driver_id" => $driver_id,
-                        "pod_name" => "signature",
+                        "pod_name" => $pod_data["type"],
                         "contact_person" => $pod_data["contact_person"],
                         "latitude" => $pod_data["latitude"],
                         "longitude" => $pod_data["longitude"],
                         "value" => $podPath,
                         "comment" => $pod_data["comment"]
                     ));
-                }
+                }*/
                 if ($shipment_details['instaDispatch_loadGroupTypeCode'] == 'SAME' && $shipment_details['shipment_service_type'] == 'P') {
                     $condition = "shipment_ticket = '" . $ticket . "'";
                     $status    = $this->model_rest->update("shipment", array(
@@ -158,7 +194,7 @@ class Process_Form
                     'service_date' => date("Y-m-d"),
                     'service_time' => date("H:m:s")
                 ), $condition2);
-                // check all Delivery completed than release to Driver          
+                // check all Delivery completed than release to Driver
                 $shipment_details_after_update                          = $this->model_rest->get_accepted_shipment_details_by_ticket_after_update($ticket);
                 $driverDelivered                                        = array();
                 $driverDelivered['shipment_ticket']                     = $ticket;
@@ -369,7 +405,7 @@ class Process_Form
     }
 
     public function process()
-    {   
+    {
         $data               = array();
         $driver_data        = $this->_get_driver_by_id();
         $this->driver_name  = $driver_data['name'];
@@ -378,14 +414,19 @@ class Process_Form
         $this->warehouse_id = $company_warehouse['warehouse_id'];
 
         if ($this->loadActionCode == 'processdriversuccessaction') {
-            $pod_data = array(
-                'contact' => $this->contact_name,
-                'comment' => $this->text,
-                'pod' => $this->sign,
-                'contact_person' => $this->contact_name,
-                'latitude' => $this->latitude,
-                'longitude' => $this->longitude
-            );
+            $pod_data = array();
+            /*if(isset($this->sign) and $this->sign!=""){
+                $pod_data = array(
+                    'contact' => $this->contact_name,
+                    'comment' => $this->text,
+                    'pod' => $this->sign,
+                    'contact_person' => $this->contact_name,
+                    'latitude' => $this->latitude,
+                    'longitude' => $this->longitude,
+                    'type' => 'signature'
+                );
+            }*/
+
             $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $pod_data, $this->latitude, $this->longitude, $this->service_message);
             Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
                 "shipment_ticket" => $this->shipment_ticket,
@@ -410,7 +451,7 @@ class Process_Form
 
                 $this->_add_driver_tacking();
                 }
-                
+
 
                 if($data["left"]==0){
                     $actions            = "Route completed";
