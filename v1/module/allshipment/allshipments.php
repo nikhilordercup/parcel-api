@@ -584,16 +584,14 @@ class allShipments extends Icargo
     {
         $dropTrackinginfo           = array();
         $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
-		$parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
+		    $parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $shipmentsPriceInfoData = $this->ManagePriceData($carrierPrice, $customerPrice);
-        //$trackinginfo           = $this->getShipmentsTrackingDetails($identity);
         $dropTrackinginfo       = $this->getDropTrackingDetails($identity);
         $shipmentTrackinginfo   = $this->getShipmentTrackingByLoadIdentity($identity);
 
-        //$shipmentsPriceInfoData = $this->ManagePriceData($this->modelObj->getShipmentsPriceDetail($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion));
         $basicInfo = array();
         if (count($shipmentsInfoData) > 0) {
             $basicInfo['totaldrop']            = count($shipmentsInfoData);
@@ -690,14 +688,16 @@ class allShipments extends Icargo
 
             }
         }
-        $podinfo = $this->getShipmentsPodDetails('"' . implode('","', $basicInfo['shipment_ticket']) . '"');
+        //$podinfo = $this->getShipmentsPodDetails('"' . implode('","', $basicInfo['shipment_ticket']) . '"');
+
+        $podinfo = $this->getShipmentsPodDetails(implode("','", $basicInfo['shipment_ticket']));
         return array(
             'basicInfo' => $basicInfo,
             'priceinfo' => $shipmentsPriceInfoData,
             'trackinginfo' => $dropTrackinginfo,
             'shipmentTrackinginfo' => $shipmentTrackinginfo,
             'podinfo' => $podinfo,
-			'parcelInfo'=>$parcelInfo
+			      'parcelInfo'=>$parcelInfo
         );
     }
 
@@ -1446,31 +1446,52 @@ class allShipments extends Icargo
         );
     }
 
+    private function _getTrackingCodeNamePair(){
+        $items = $this->modelObj->getTrackingName();
+        $result = array();
+        foreach($items as $item)
+            $result[$item["code"]] = $item["code_text"];
+        return $result;
+    }
+
     public function getShipmentTrackingByLoadIdentity($identity){
         $shipmentLifeCycle = $this->modelObj->getShipmentTrackingByLoadIdentity($identity);
+        $codeNamePairs = $this->_getTrackingCodeNamePair();
+
         $records = array();
         foreach ($shipmentLifeCycle as $key => $dataVal) {
+            $podItems = $this->modelObj->getShipmentPodByShipmentTicket($dataVal["shipment_ticket"]);
+
+            $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
+
             $records[$dataVal["code"]]['load_identity']         = $dataVal["load_identity"];
             $records[$dataVal["code"]]['code']                  = $dataVal["code"];
-            $records[$dataVal["code"]]['code_text']             = $dataVal["code_text"];
-            $records[$dataVal["code"]]['shipment_service_type'] = ($dataVal['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+            $records[$dataVal["code"]]['code_text']             = $codeNamePairs[$dataVal["code"]];
             $records[$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
             $records[$dataVal["code"]]['create_time']           = date("H:i", strtotime($dataVal['create_date']));
             $records[$dataVal["code"]]['system_create_time']    = $dataVal['create_date'];
-            //$shipmentLifeCycle[$key]['is_custom_create']      = ($dataVal['is_custom_create'] == 0) ? 'false' : 'true';
+
+            $records[$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+
+            foreach($podItems as $podItem){
+                $records[$dataVal["code"]]['pod_info'][] = array(
+                    "shipment_ticket" => $podItem["shipment_ticket"],
+                    "pod_path" => $podItem["value"],
+                    "pod_name" => $podItem["pod_name"],
+                    "create_date" => Library::_getInstance()->date_format($podItem["create_date"])
+                );
+            }
         }
         return array_values($records);
     }
 
    public function getDropTrackingDetails($identity){
         $shipmentLifeCycle = $this->modelObj->getDropTrackingByLoadIdentity($identity);
-
         $items = array();
         $records = array();
         foreach ($shipmentLifeCycle as $key => $dataVal) {
-            //$shipmentLifeCycle[$key]['shipment_service_type'] = "N/A";
-
             $shipmentTicket = ($dataVal["shipment_ticket"]) ? $dataVal["shipment_ticket"] : 0 ;
+            $podInfo = $this->modelObj->getShipmentPodByShipmentTicket($dataVal["shipment_ticket"]);
 
             $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = "N/A";
             $items[$shipmentTicket][$dataVal["code"]]['shipment_ticket']       = $dataVal["shipment_ticket"];
@@ -1483,16 +1504,6 @@ class allShipments extends Icargo
                 $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
                 $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
             }
-
-
-            /*if($dataVal["shipment_ticket"]){
-                $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
-                $shipmentLifeCycle[$key]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
-            }
-            $shipmentLifeCycle[$key]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
-            $shipmentLifeCycle[$key]['create_time']           = date("H:i", strtotime($dataVal['create_date']));*/
-
-            //$shipmentLifeCycle[$key]['is_custom_create']    = ($dataVal['is_custom_create'] == 0) ? 'false' : 'true';
         }
 
         foreach($items as $item){
@@ -1501,8 +1512,6 @@ class allShipments extends Icargo
             }
         }
         return $records;
-        //return array_values($records);
-        //return $shipmentLifeCycle;
     }
 
 
