@@ -79,15 +79,11 @@ class SurchargeManager {
                     break;
                 case 2:
                 case 5:
-//                case 7:
-//                case 8:
-//                case 9:
                 case 10:
                 case 11:
-//                case 12:
                 case 13:
                 case 14:
-                    $this->commonSurchare($rate, $surchargeObj->surcharge);
+                    $this->commonSurcharge($rate, $surchargeObj->surcharge);
                     break;
                 case 15:
                 case 16:
@@ -98,14 +94,12 @@ class SurchargeManager {
             }
         }
         if (!is_null($this->_fuelSurcharge)) {
-            //print_r($this->_fuelSurcharge);exit;
             $this->fuelSurcharge($rate,$this->_countedSurcharge);
         }
     }
 
     public function longLengthSurcharge($rate) {
         $finalSurcharge = 0;
-//        if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
             foreach ($this->_packages as $p) {
                 $lengthApplicable = $this->isConditionTrue($p->length, $this->_surcharge->lengthData->lconditions, $this->_surcharge->lengthData->lUnit);
                 $widthApplicable = $this->isConditionTrue($p->width, $this->_surcharge->lengthData->wconditions, $this->_surcharge->lengthData->wUnit);
@@ -114,14 +108,11 @@ class SurchargeManager {
                     $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
                 }
             }
-//        } else {
-//            
-//        }
 
         $this->_countedSurcharge["long_length_surcharge"] = $finalSurcharge;
     }
 
-    public function commonSurchare($rate, $key) {
+    public function commonSurcharge($rate, $key) {
         $finalSurcharge = 0;
         $key = $this->surcharges[$key - 1];
         $from = $this->isLocationChargeable($this->_requestData->from);
@@ -147,12 +138,12 @@ class SurchargeManager {
         $chargableUnit = 0;
         if ($key == 'same_day_drop_surcharge') {
             $free = $this->_surcharge->sameDay->drop;
-            $drops = $this->_requestData->transit->number_of_drops;
+            $drops = $this->_requestData->transit[0]->number_of_drops;
             $chargableUnit = $drops - $free;
         } else {
             $baseUnit = $this->_surcharge->sameDay->wait;
-            $extra = $this->_requestData->transit->total_waiting_time;
-            $chargableUnit = $extra / $baseUnit;
+            $extra = $this->_requestData->transit[0]->total_waiting_time;
+            $chargableUnit = ($extra / count($this->_packages)) -$baseUnit;
         }
         if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
             foreach ($this->_packages as $p) {
@@ -162,7 +153,7 @@ class SurchargeManager {
             $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
         }
         $finalSurcharge *= $chargableUnit;
-        $this->_countedSurcharge[$key] = $finalSurcharge;
+        $this->_countedSurcharge[$key] = ($finalSurcharge>0)?round($finalSurcharge,2):0;
     }
 
     public function manualHandlingSurcharge($rate) {
@@ -265,14 +256,14 @@ class SurchargeManager {
                 return TRUE;
             } else {
                 $postcodes = explode(',', $this->_surcharge->remoteArea->postCode);
-                $model = new RateEngineModel();
-                if ($location->country == 'GB') {
+                if ($location->country != 'GB') {
                     foreach ($postcodes as $p) {
                         if ($p == $location->zip) {
                             return TRUE;
                         }
                     }
-                }
+                }                
+                $model = new RateEngineModel();
                 $tPost = $model->searchUkPost($postcodes, $location->zip, TRUE);
                 if (count($tPost)) {
                     return TRUE;

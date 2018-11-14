@@ -73,7 +73,6 @@ class RateApiController {
                 }
             }
         }
-//        print_r($this->_responseData['surchargeList']);exit;
         $this->getRates($this->_responseData);
         $this->applyPriceRules($param);
         $this->addErrorMessages();
@@ -111,10 +110,10 @@ class RateApiController {
     public function applyPriceRules($request) {
         $packages = $request->package;
         $packagesCount = count($packages);
-        $packagesWeight = 0;
-        foreach ($packages as $package) {
-            $packagesWeight += $package->weight;
-        }
+        $packagesWeight = $this->calculateWeight($packages);
+//        foreach ($packages as $package) {
+//            $packagesWeight += $package->weight;
+//        }
 
         $distance = 0;
         $time = 0;
@@ -137,7 +136,7 @@ class RateApiController {
                         $f = $f['rate'];
                         switch ($f["rate_type"]) {
                             case 'Weight':
-                                $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packagesWeight);
+                                $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = round($this->filterRateFormRange($f, $packagesWeight),2);
                                 break;
                             case 'Box':
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packagesCount);
@@ -170,11 +169,20 @@ class RateApiController {
         }
         unset($this->_responseData['surchargeList']);
     }
+    public function calculateWeight($packages) {
+        $totalWeight = 0;
+        foreach ($packages as $p) {
+            $volWeight = ($p->length * $p->width * $p->height) / 4000;
+            $weight = $p->weight;
+            $totalWeight += ($weight > $volWeight) ? $weight : $volWeight;
+        }
+        return $totalWeight;
+    }
 
     public function filterRateFormRange($priceInfo, $units) {
-        if ($priceInfo["end_unit"] > $units && $priceInfo["start_unit"] <= $units) {
-            $extra = $units - ($priceInfo["end_unit"] - 1);
-            if ($extra > 0) {
+        if ($priceInfo["end_unit"] >= $units && $priceInfo["start_unit"] < $units) {
+            $extra =$units -($priceInfo["start_unit"]) ;
+            if ($extra > 0 && $priceInfo["additional_base_unit"] >0) {
                 $chargableUnits = $extra / $priceInfo["additional_base_unit"];
                 $remaining = $extra % $priceInfo["additional_base_unit"];
                 if ($remaining > 0) {

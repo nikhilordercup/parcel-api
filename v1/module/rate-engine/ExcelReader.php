@@ -108,7 +108,10 @@ class ExcelReader {
         $queryData = [];
         $error = [];
         
-        foreach ($data as $i => $d) {            
+        foreach ($data as $i => $d) {
+            if(trim($d[0])==""){
+                return $queryData;
+            }
             $service = $this->_reateEngineModel->getServiceByName($d[0]);
             if (!$service) {
                 $error = [
