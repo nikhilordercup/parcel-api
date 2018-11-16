@@ -51,6 +51,10 @@ require_once 'dev.test.php';
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
 
+//Dashboard
+require_once 'module/dashboard/dashboard.php';
+require_once 'module/dashboard/dashboard-api.php';
+//End Dashboard
 
 require_once 'module/shipment/model/shipment.php';
 require_once 'module/shipment/save.php';
