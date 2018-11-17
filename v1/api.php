@@ -2277,15 +2277,16 @@ $app->post('/saveEasyPostTracking', function() use ($app){
     $obj->saveTracking();
     exit();
 });
-/*
+
 $app->post('/createTracking', function() use ($app){
     $r = json_decode(file_get_contents("php://input"));
-    $tracking_code = "1174215114";
+    $tracking_code = "3275217352";//"1174215114";
     $carrier = "DHLExpress";
+		$carrier = "dhl";
     $obj = new Create_Tracking();
     $obj->createTracking($tracking_code, $carrier);
     exit();
-});*/
+});
 $app->post('/checkEligibleforRecurring', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
