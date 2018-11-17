@@ -11,7 +11,7 @@ class User_Management{
         $this->authProvider = self::$authProviderObj;
 		$this->modelObj  = Model::getInstanse();
     }
-    
+
 	public function customerLogin($email,$password){
 		$r = array("email"=>$email,"password"=>$password);
 		$r = (object)$r;
@@ -20,8 +20,8 @@ class User_Management{
 		$response = $obj->process();
         return $response;
 	}
-	
-	
+
+
     public function createApiCustomer($param,$signupData){
 		$data = array();
 		$signupData = (array)$signupData;
@@ -29,19 +29,19 @@ class User_Management{
 		$param->password = $signupData['passwordHash'];
 		//$param->country = 'United Kingdom';
          $exist = $this->modelObj->checkCustomerEmailExist($param->email);
-         if($exist >0){ 
+         if($exist >0){
 			return array("status"=>"error","message"=>"Customer Email Already Exist ");
 		 }
             $data = array("user_level"=>5,"name"=>$param->name,"contact_name"=>"N/A","phone"=>isset($param->phone)?$param->phone:'',"email"=>$param->email,
 							"password"=>$param->password,"postcode"=>'',"city"=>'',"state"=>'',"country"=>$param->country,
 							"status"=>"1","uid"=>$param->uid,"register_in_firebase"=>"1","email_verified"=>"1","access_token"=>"","free_trial_expiry"=>"1970-01-01 00:00:00","parent_id"=>$param->company_id,"is_default"=>1);
-				
+
 			$customer_id = $this->modelObj->addContent('users',$data);
 			if($customer_id){
 				$this->modelObj->addContent('company_warehouse',array('company_id'=>$customer_id,'warehouse_id'=>$param->warehouse_id,'status'=>"1",'update_date'=>date("Y-m-d h:i:s", strtotime('now'))));
 
 				$this->modelObj->addContent('company_users',array('user_id'=>$customer_id,'company_id'=>$param->company_id,'warehouse_id'=>$param->warehouse_id,'status'=>"1",'update_date'=>date("Y-m-d h:i:s", strtotime('now'))));
-				
+
 				$customerinfo  = array();
 				$customerinfo['ccf'] = 0.00;
 				$customerinfo['ccf_operator_service'] = 'NONE';
@@ -76,88 +76,88 @@ class User_Management{
 				 $this->modelObj->addContent('accountbalancehistory',$creditbalanceData);
 
 				 $customerAccountData   = $this->saveCustomerAccount($param->company_id,$customer_id);
-				 
+
 				 if(key_exists('customerpickup',$param) && is_object($param->customerpickup)){
 					 //get country id by iso code
-					 
+
 					 $country = $param->customerpickup->country;
 					 $countrycode = $param->customerpickup->countrycode;
-					 
+
 					 $param->customerpickup->country = new stdClass();
 					 $param->customerpickup->country->short_name = $country;
 					 $param->customerpickup->country->alpha3_code = $countrycode;
-					 
+
 					 $param->customerpickup->customer_id = $customer_id;
 					 $this->saveCarrierCustomerPickupInfo($param->customerpickup);
 				 }
 				 if(key_exists('customerbilling',$param) && is_object($param->customerbilling)){
 					 $country = $param->customerbilling->country;
 					 $countrycode = $param->customerbilling->countrycode;
-					 
+
 					 $param->customerbilling->country = new stdClass();
 					 $param->customerbilling->country->short_name = $country;
 					 $param->customerbilling->country->alpha3_code = $countrycode;
-					 
+
 					  $param->customerbilling->customer_id = $customer_id;
 					 $this->saveCarrierCustomerBillingInfo($param->customerbilling);
 				 }
-				 
-				 return array("status"=>"success","message"=>"Signup successful, Please login with entered email and password!");				 
+
+				 return array("status"=>"success","message"=>"Signup successful, Please login with entered email and password!");
 			}
 			else{
 				return array("status"=>"error","message"=>"Signup failed, Please try again");
-			}           
+			}
 	}
-	
+
 	public function saveCustomerAccount($company_id,$customerId){
       $allAccount =   $this->modelObj->getAllAccountOfCompany($company_id);
        if(count($allAccount)>0){
           foreach($allAccount as $key=>$valdata){
                   $data = array();
-                  $data['status'] = 1; 
-                  $data['company_id'] = $company_id; 
-                  $data['company_courier_account_id']   = $valdata['courier_account_id']; 
-                  $data['account_number']               = $valdata['account_number']; 
-                  $data['courier_id']                   = $valdata['courier_id']; 
-                  $data['customer_id'] = $customerId; 
-                  $data['create_date'] = date('Y-m-d'); 
+                  $data['status'] = 1;
+                  $data['company_id'] = $company_id;
+                  $data['company_courier_account_id']   = $valdata['courier_account_id'];
+                  $data['account_number']               = $valdata['account_number'];
+                  $data['courier_id']                   = $valdata['courier_id'];
+                  $data['customer_id'] = $customerId;
+                  $data['create_date'] = date('Y-m-d');
                   $data['created_by'] = $company_id;
                   $satatusId = $this->modelObj->addContent('courier_vs_company_vs_customer',$data);
                   $allServices =   $this->modelObj->getAllAccountServices($company_id,$valdata['courier_account_id']);
                     if(count($allServices)>0){
                         foreach($allServices as $skey=>$svaldata){
                               $sdata = array();
-                              $sdata['status'] = 1; 
-                              $sdata['company_id'] = $company_id; 
-                              $sdata['company_customer_id'] = $customerId; 
-                              $sdata['courier_id'] = $valdata['courier_account_id']; 
-                              $sdata['company_service_id'] = $svaldata['id']; 
-                              $sdata['service_id'] = $svaldata['service_id']; 
-                              $sdata['create_date'] = date('Y-m-d'); 
+                              $sdata['status'] = 1;
+                              $sdata['company_id'] = $company_id;
+                              $sdata['company_customer_id'] = $customerId;
+                              $sdata['courier_id'] = $valdata['courier_account_id'];
+                              $sdata['company_service_id'] = $svaldata['id'];
+                              $sdata['service_id'] = $svaldata['service_id'];
+                              $sdata['create_date'] = date('Y-m-d');
                               $sdata['create_by'] = $company_id;
                               $satatusId = $this->modelObj->addContent('company_vs_customer_vs_services',$sdata);
                         }
                     }
-               
+
                 $allSurcharges =   $this->modelObj->getAllAccountSurcharges($company_id,$valdata['courier_account_id']);
                 if(count($allSurcharges)>0){
                         foreach($allSurcharges as $surkey=>$survaldata){
                               $surdata = array();
-                              $surdata['status'] = 1; 
-                              $surdata['company_id'] = $company_id; 
-                              $surdata['company_customer_id'] = $customerId; 
-                              $surdata['courier_id'] = $valdata['courier_account_id']; 
-                              $surdata['company_surcharge_id'] = $survaldata['id']; 
-                              $surdata['surcharge_id'] = $survaldata['surcharge_id']; 
-                              $surdata['create_date'] = date('Y-m-d'); 
+                              $surdata['status'] = 1;
+                              $surdata['company_id'] = $company_id;
+                              $surdata['company_customer_id'] = $customerId;
+                              $surdata['courier_id'] = $valdata['courier_account_id'];
+                              $surdata['company_surcharge_id'] = $survaldata['id'];
+                              $surdata['surcharge_id'] = $survaldata['surcharge_id'];
+                              $surdata['create_date'] = date('Y-m-d');
                               $surdata['create_by'] = $company_id;
                               $satatusId = $this->modelObj->addContent('company_vs_customer_vs_surcharge',$surdata);
                         }
 				}
 		   }
-		} 
+		}
 	}
-	
+
 	public function generateCustomerAccount($companyname,$customerid){
        $str = strtoupper($companyname).$customerid.rand(300,60000);
        $exist = $this->modelObj->checkCustomerAccountExist($str);
@@ -167,7 +167,7 @@ class User_Management{
        return $str;
 
    }
-    
+
 	public function saveCarrierCustomerBillingInfo($param){
       $libObj = new Library();
       if(isset($param->postcode) && ($param->postcode!='')){
@@ -219,7 +219,7 @@ class User_Management{
        }
       return array("status"=>"error","message"=>"Customer Billing Address added. But firebase updateion failed"); */
     }
-	
+
 	public function saveCarrierCustomerPickupInfo($param){
       $libObj = new Library();
       if(isset($param->postcode) && ($param->postcode!='')){
@@ -253,6 +253,6 @@ class User_Management{
       return array("status"=>"error","message"=>"Customer Pickup Address added. But firebase updateion failed"); */
     }
 
-   
+
    }
 ?>

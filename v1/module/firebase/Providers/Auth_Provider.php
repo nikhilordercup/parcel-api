@@ -3,11 +3,21 @@ require_once "../v1/module/firebase/Firebase_Api.php";
 require_once "../v1/module/firebase/model/User.php";
 
 class Auth_provider{
-    private function getFirebase(){
-         $firebaseObj = new Firebase_Api();
-         return $firebaseObj->getFirebase();
+    public static $_firebaseObj = null;
+
+    public function __construct(){
+        if(self::$_firebaseObj===null){
+            self::$_firebaseObj =  new Firebase_Api();
+        }
+        $this->firebaseObj = self::$_firebaseObj;
     }
-	
+
+    private function getFirebase(){
+      return $this->firebaseObj->getFirebase();
+         //$firebaseObj = new Firebase_Api();
+         //return $firebaseObj->getFirebase();
+    }
+
 	private function _handleException($e){
 		return array("status"=>"error", "message"=>$e->getMessage());
 	}
@@ -42,7 +52,20 @@ class Auth_provider{
     }
 
     public function signOut(){
-      print_r($this->getFirebase()->getAuth()->signOut());die;
+      return $this->getFirebase()->getAuth()->signOut();
     }
+
+    public function getUserByEmail($email){
+      try{
+          $obj = $this->getFirebase()->getAuth()->getUserByEmail($email);
+          $userRecord = User::_getInstance()->deserialize($obj);
+          return array("status"=>"success", "data"=>$userRecord, "message"=>"User found");
+      }catch(Exception $e){
+          return $this->_handleException($e);
+      }
+
+    }
+
+
 }
 ?>
