@@ -549,6 +549,7 @@ class shipment extends Library{
         $address_data['longitude'] = $shipmentData["shipment_longitude"];
         $address_data['customer_id'] = $this->company_id;
         $address_data['type'] = (isset($data["status"])) ? $data["status"] : "";
+		$address_data['address_origin'] = (isset($data["address_origin"])) ? $data["address_origin"] : "";
 
         $address_status = $this->_save_address($address_data);
 
@@ -803,6 +804,7 @@ class shipment extends Library{
 
 
 		   $data['client'] = isset($this->tempdata->delivery->company)?$this->tempdata->delivery->company:'';
+		   $data['address_origin'] = isset($this->tempdata->delivery->address_origin)?$this->tempdata->delivery->address_origin:'';
 		   $shipdata = $this->_getSingleShipmentData((object)$data,$this->company_id);
 
 		   $shipid = $this->_add_shipment_data_uk_mail($shipdata);
@@ -896,6 +898,7 @@ class shipment extends Library{
         $data['county']          =  isset($val->county)?$val->county:'';
         $data['countryCode']     =  isset($val->country)?$val->country:'';
         $data['zoneCode']        = '';
+		$data['address_origin']     =  isset($val->address_origin)?$val->address_origin:'local';
 
 		$data['itemCount']       =  isset($val->quantity)?$val->quantity:'1';
 		$data['weight']          =  isset($val->weight)?$val->weight:'1';
