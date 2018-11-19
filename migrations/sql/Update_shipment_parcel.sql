@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipments_parcel` ADD `total_weight` FLOAT NOT NULL AFTER `parcel_weight`;  
