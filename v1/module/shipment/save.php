@@ -551,7 +551,7 @@ class shipment extends Library{
         $address_data['type'] = (isset($data["status"])) ? $data["status"] : "";
 
 		$address_data['address_origin'] = (isset($data["address_origin"])) ? $data["address_origin"] : "";
-        
+
         $address_status = $this->_save_address($address_data);
 
         if($address_status["status"]=="success"){
@@ -1897,7 +1897,9 @@ class shipment extends Library{
         $collection_data["pickup"]               = $data->pickup;
         $collection_data["service_id"]           = $data->service_id;
 
-        $status = $this->db->save("shipment_service", $_data);$this->db->saveShipmentCollection($collection_data);
+				$status = $this->db->save("shipment_collection", $collection_data);
+        //$status = $this->db->save("shipment_service", $_data);
+				//$status = $this->db->saveShipmentCollection($collection_data);
         if($status==0){
             return array("status"=>"error", "message"=>"shipment collection detail not saved");
         };
