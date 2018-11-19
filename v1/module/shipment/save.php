@@ -550,6 +550,8 @@ class shipment extends Library{
         $address_data['customer_id'] = $this->company_id;
         $address_data['type'] = (isset($data["status"])) ? $data["status"] : "";
 
+		$address_data['address_origin'] = (isset($data["address_origin"])) ? $data["address_origin"] : "";
+
         $address_status = $this->_save_address($address_data);
 
         if($address_status["status"]=="success"){
@@ -776,38 +778,40 @@ class shipment extends Library{
 
     public function addshipmentDetail(){
        $data = array();
-	   $postcode = $this->postcodeObj->validate($this->tempdata->delivery->postcode,$this->country_code);//$this->validatePostcode($this->tempdata->delivery->postcode);
-	   $postcode = $postcode[0];
+	     $postcode = $this->postcodeObj->validate($this->tempdata->delivery->postcode,$this->country_code);//$this->validatePostcode($this->tempdata->delivery->postcode);
+	     $postcode = $postcode[0];
        if($postcode){
-		   $dateData = isset($this->tempdata->delivery->servicedate)?$this->tempdata->delivery->servicedate:date("Y/m/d H:m:s");
+				   $dateData = isset($this->tempdata->delivery->servicedate)?$this->tempdata->delivery->servicedate:date("Y/m/d H:m:s");
 
-		   $data['parcelid'] = isset($this->tempdata->delivery->docketnumber)?$this->tempdata->delivery->docketnumber:0;
-		   $data['scandate'] = date("Y/m/d H:m:s",strtotime($dateData));
+				   $data['parcelid'] = isset($this->tempdata->delivery->docketnumber)?$this->tempdata->delivery->docketnumber:0;
+				   $data['scandate'] = date("Y/m/d H:m:s",strtotime($dateData));
 
-		   $data['quantity'] = isset($this->tempdata->delivery->parcel->quantity)?$this->tempdata->delivery->parcel->quantity:1;
-		   $data['weight']  = isset($this->tempdata->delivery->parcel->weight)?$this->tempdata->delivery->parcel->weight:1;
-		   $data['length'] = isset($this->tempdata->delivery->parcel->length)?$this->tempdata->delivery->parcel->lengt:1;
-		   $data['width'] = isset($this->tempdata->delivery->parcel->width)?$this->tempdata->delivery->parcel->width:1;
-		   $data['height'] = isset($this->tempdata->delivery->parcel->height)?$this->tempdata->delivery->parcel->height:1;
-		   $data['customername'] = isset($this->tempdata->delivery->customername)?$this->tempdata->delivery->customername:'';
+				   $data['quantity'] = isset($this->tempdata->delivery->parcel->quantity)?$this->tempdata->delivery->parcel->quantity:1;
+				   $data['weight']  = isset($this->tempdata->delivery->parcel->weight)?$this->tempdata->delivery->parcel->weight:1;
+				   $data['length'] = isset($this->tempdata->delivery->parcel->length)?$this->tempdata->delivery->parcel->lengt:1;
+				   $data['width'] = isset($this->tempdata->delivery->parcel->width)?$this->tempdata->delivery->parcel->width:1;
+				   $data['height'] = isset($this->tempdata->delivery->parcel->height)?$this->tempdata->delivery->parcel->height:1;
+				   $data['customername'] = isset($this->tempdata->delivery->customername)?$this->tempdata->delivery->customername:'';
 
-           $data['address1'] = isset($this->tempdata->delivery->address1)?$this->tempdata->delivery->address1:'';
-           $data['address2'] = isset($this->tempdata->delivery->address2)?$this->tempdata->delivery->address2:'';
-           $data['city'] = isset($this->tempdata->delivery->city)?$this->tempdata->delivery->city:'';
-           $data['county'] = isset($this->tempdata->delivery->county)?$this->tempdata->delivery->county:'';
-           $data['country'] = $this->tempdata->delivery->country->country;
-           $data['postcode'] = strtoupper($postcode);
+		       $data['address1'] = isset($this->tempdata->delivery->address1)?$this->tempdata->delivery->address1:'';
+		       $data['address2'] = isset($this->tempdata->delivery->address2)?$this->tempdata->delivery->address2:'';
+		       $data['city'] = isset($this->tempdata->delivery->city)?$this->tempdata->delivery->city:'';
+		       $data['county'] = isset($this->tempdata->delivery->county)?$this->tempdata->delivery->county:'';
+		       $data['country'] = $this->tempdata->delivery->country->country;
+		       $data['postcode'] = strtoupper($postcode);
 
-           $data['email'] = isset($this->tempdata->delivery->email)?$this->tempdata->delivery->email:'';
-		   $data['phone'] = isset($this->tempdata->delivery->phone)?$this->tempdata->delivery->phone:'';
+		       $data['email'] = isset($this->tempdata->delivery->email)?$this->tempdata->delivery->email:'';
+				   $data['phone'] = isset($this->tempdata->delivery->phone)?$this->tempdata->delivery->phone:'';
 
 
 		   $data['client'] = isset($this->tempdata->delivery->company)?$this->tempdata->delivery->company:'';
+		   $data['address_origin'] = isset($this->tempdata->delivery->address_origin)?$this->tempdata->delivery->address_origin:'';
 		   $shipdata = $this->_getSingleShipmentData((object)$data,$this->company_id);
 
-		   $shipid = $this->_add_shipment_data_uk_mail($shipdata);
 
-		   if($shipid["status"]=="success"){
+				   $shipid = $this->_add_shipment_data_uk_mail($shipdata);
+
+		   		if($shipid["status"]=="success"){
                $gridData[] =  $this->_getgridData($shipid["ticket_number"]);
 
                //save tracking info
@@ -889,6 +893,7 @@ class shipment extends Library{
 		$data['address1']        =  isset($val->address1)?$val->address1:'';
 		$data['address2']        =  isset($val->address2)?$val->address2:'';
 		$data['address3']        =  '';
+
         $data['contactName']     =  isset($val->customername)?$val->customername:'';
         $data['contactEmail']    =  isset($val->email)?$val->email:'';
         $data['contactPhone']    =  isset($val->phone)?$val->phone:'';
@@ -896,6 +901,8 @@ class shipment extends Library{
         $data['county']          =  isset($val->county)?$val->county:'';
         $data['countryCode']     =  isset($val->country)?$val->country:'';
         $data['zoneCode']        = '';
+
+		$data['address_origin']     =  isset($val->address_origin)?$val->address_origin:'local';
 
 		$data['itemCount']       =  isset($val->quantity)?$val->quantity:'1';
 		$data['weight']          =  isset($val->weight)?$val->weight:'1';
@@ -1501,10 +1508,10 @@ class shipment extends Library{
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
 
             $address_id = $this->_getAddressBySearchStringAndCustomerId($address["customer_id"], $data["search_string"]);
-            if($address['address_origin']=='api'){
+
+			if($address['address_origin']=='api'){
 				$data["version_id"] = "version_1";
 				$address_id = $this->db->save("address_book", $data);
-				
 			}else{
 				if(!$address_id){
 					if(($address_op===null) OR ($address_op=="add")){
@@ -1891,7 +1898,9 @@ class shipment extends Library{
         $collection_data["pickup"]               = $data->pickup;
         $collection_data["service_id"]           = $data->service_id;
 
-        $status = $this->db->save("shipment_collection", $collection_data);
+				$status = $this->db->save("shipment_collection", $collection_data);
+        //$status = $this->db->save("shipment_service", $_data);
+				//$status = $this->db->saveShipmentCollection($collection_data);
         if($status==0){
             return array("status"=>"error", "message"=>"shipment collection detail not saved");
         };

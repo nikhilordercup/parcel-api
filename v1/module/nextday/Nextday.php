@@ -970,7 +970,9 @@ final class Nextday extends Booking
                 );
                 $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
 
-                // $obj = new Create_Tracking();
+                $obj = new Create_Tracking();
+
+                $obj->createTracking($labelData["label_tracking_number"], $carrier_code);
 
                 $statusArr = array(
                     "status" => "success"

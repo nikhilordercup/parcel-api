@@ -419,7 +419,7 @@ class AllShipment_Model
         }
   public  function getShipmentPodByShipmentTicket($tickets){
         $record = array();
-        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ($tickets)";
+        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ('$tickets') ORDER BY create_date DESC";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -657,7 +657,8 @@ class AllShipment_Model
     }
 
     public function getShipmentTrackingByLoadIdentity($load_identity){
-        $sql = "SELECT ST.shipment_service_type, STT.load_identity, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipment AS ST ON STT.load_identity = ST.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY STT.create_date, FIELD(service_type, 'collection','delivery')";
+        //$sql = "SELECT STT.id AS shipment_tracking_id, ST.shipment_service_type, STT.load_identity, STT.code, STT.create_date, SMT.name AS code_text FROM " . DB_PREFIX . "shipment_tracking AS STT INNER JOIN " . DB_PREFIX . "shipment AS ST ON STT.load_identity = ST.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "shipments_master AS SMT ON STT.code=SMT.code WHERE STT.load_identity='$load_identity' ORDER BY STT.create_date, FIELD(service_type, 'collection','delivery')";
+        $sql = "SELECT STT.shipment_ticket, STT.id AS shipment_tracking_id, STT.load_identity, STT.code, STT.create_date FROM " . DB_PREFIX . "shipment_tracking AS STT WHERE STT.load_identity='$load_identity' ORDER BY STT.create_date";
         $record = $this->db->getAllRecords($sql);
         return  $record;
     }
@@ -754,5 +755,11 @@ class AllShipment_Model
 		$record = $this->db->getOneRecord($sql);
 		return  $record['carrier_code'];
 	}
+	
+    public function getTrackingName(){
+        $sql = "SELECT SMT.code, SMT.name AS code_text FROM " . DB_PREFIX . "shipments_master AS SMT";
+        $record = $this->db->getAllRecords($sql);
+        return  $record;
+    }
   }
 ?>
