@@ -200,8 +200,7 @@ class AllShipment_Model
       }
 
 	public function getAllParcelsByIdentity($identity){
-      $sqldata = 'DISTINCT(S.instaDispatch_loadIdentity)';
-      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' GROUP BY P.instaDispatch_loadIdentity";
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package,total_weight FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity'";
 	  $record = $this->db->getAllRecords($sql);
       return $record;
     }
@@ -749,5 +748,11 @@ class AllShipment_Model
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
+	
+	public function getCarrierByLoadIdentity($load_identity){
+		$sql = "SELECT CT.code AS carrier_code FROM ".DB_PREFIX."shipment_service AS ST INNER JOIN ".DB_PREFIX."courier AS CT ON CT.id = ST.carrier WHERE ST.load_identity='$load_identity'";
+		$record = $this->db->getOneRecord($sql);
+		return  $record['carrier_code'];
+	}
   }
 ?>

@@ -758,11 +758,10 @@ final class Nextday extends Booking
 
         $collectionDateTimeObj = $carrierBusinessDay->_findBusinessDay(new DateTime($collection_date_time), 0 , $this->_param->service_opted->carrier_info->code);
         $collection_date_time = $collectionDateTimeObj->format('Y-m-d');
-
         foreach($this->_param->collection as $key => $item)
             {
             $execution_order++;
-            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id,$this->_param->address_op);
             if ($addressInfo["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -851,7 +850,7 @@ final class Nextday extends Booking
         foreach($this->_param->delivery as $key => $item)
             {
             $execution_order++;
-            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id,$this->_param->address_op);
             if ($addressInfo["status"] == "error")
                 {
                 $this->rollBackTransaction();
