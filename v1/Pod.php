@@ -53,18 +53,10 @@ class Pod
               $imgStatus = fwrite($fp, $data);
               fclose($fp);
 
-                /*$source = fopen($encoded_string, 'wb+');
-                $destination = fopen("$path/$file_name.{$type}", 'wb+');
+              if($imgStatus)
+                  return $this->_getFileName($destinatib_img).".{$this->type}";
 
-                $imgStatus = stream_copy_to_stream($source, $destination);
-
-                fclose($source);
-                fclose($destination);*/
-
-                if($imgStatus)
-                    return $this->_getFileName($destinatib_img).".{$this->type}";
-
-                return false;
+              return false;
             }
         } else {
             throw new \Exception('did not match data URI with image data');
@@ -113,19 +105,6 @@ class Pod
         $file = $this->_saveImage($file_name, $encoded_string);
 
         if($file){
-            /*$filePath = "$path/$file";//
-            $filePath = "$path/1536828514.jpeg";
-            $ext = $this->_getFileExtension($filePath);
-            $w = 200;
-            $h = 200;
-
-            $newFile = "$path/{$file_name}_X_{$w}_X_{$h}.{$ext}";
-
-            $resizeObj = new Resize($filePath);
-            $resizeObj->resizeImage($w, $h , 0);
-            $resizeObj->saveImage($newFile, 100);*/
-
-
             $file = $this->libObj->get_api_url()."pod/$folder/$file";
 
             return $file;

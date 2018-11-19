@@ -55,7 +55,33 @@ class Find_Save_Tracking{
         ));
 
         //delete old record
-        $this->modelObj->deleteTrackingByLoadIdentityAndCode(array(
+        /*$oldTrackingIds = $this->modelObj->findTrackingByLoadIdentityAndCode(array(
+            "shipment_ticket" => $status["shipment_ticket"],
+            "load_identity" => $status["load_identity"],
+            "code" => $status["tracking_code"]
+        ));
+
+        if($oldTrackingIds){
+            $oldTrackingId = array();
+            $oldPodId = array();
+            foreach($oldTrackingIds as $item)
+                array_push($oldTrackingId, $item["id"]);
+
+            $oldTrackingId = implode(",", $oldTrackingId);
+
+            $oldPodIds = $this->modelObj->findPodIdByTrackingId($oldTrackingId);
+            if($oldPodIds){
+                foreach($oldPodIds as $item){
+                    $this->modelObj->deletePodByPodId($item["pod_id"]);
+                    array_push($oldPodId, $item["pod_id"]);
+                }
+                $oldPodId = implode(",", $oldPodId);
+                $this->modelObj->deleteTrackingPodByTrackingIdAndPodId($oldTrackingId, $oldPodId);
+            }
+        }*/
+
+        //delete old tracking record
+        $oldTrackingIds = $this->modelObj->deleteTrackingByLoadIdentityAndCode(array(
             "shipment_ticket" => $status["shipment_ticket"],
             "load_identity" => $status["load_identity"],
             "code" => $status["tracking_code"]
@@ -74,7 +100,6 @@ class Find_Save_Tracking{
         }
 
         $trackingId = $this->modelObj->saveTrackingHistory($historyData);
-
         //save tracking pod
         if(count($this->podData)>0){
             foreach($this->podData as $podData){
@@ -83,6 +108,7 @@ class Find_Save_Tracking{
                     $this->modelObj->saveTrackingPod(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
                 }
             }
+            $this->podData = array();
         }
         //update tracking status
         $this->_saveTrackingcode();

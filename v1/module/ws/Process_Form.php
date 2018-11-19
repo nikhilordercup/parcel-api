@@ -108,37 +108,50 @@ class Process_Form
         return $track_id;
     }
 
-    private function _savePod($ticket, $driver_id){
-        $podObj  = new Pod();
+    private function _findPod($ticket, $driver_id, $type, $pod_name){
+        $podFound = $this->model_rest->findPod($ticket, $driver_id, $type, $pod_name, $this->text, $this->contact_name, $this->latitude, $this->longitude);
+        if($podFound["shipment_count"]>0)
+            return true;
+        return false;
+    }
+
+    private function _savePod($ticket, $driver_id, $type){
         $result = array();
+        $podObj  = new Pod();
         if(isset($this->sign) and $this->sign!=""){
-            $podPath = $podObj->savePodSignature($ticket, $this->sign);
-            $id = $this->model_rest->save("shipments_pod", array(
-                "shipment_ticket" => $ticket,
-                "driver_id" => $driver_id,
-                "pod_name" => 'signature',
-                "contact_person" => $this->contact_name,
-                "latitude" => $this->latitude,
-                "longitude" => $this->longitude,
-                "value" => $podPath,
-                "comment" => $this->text
-            ));
-            $result["signature"] = $id;
+            if(!$this->_findPod($ticket, $driver_id, $type, 'signature')){
+                $podPath = $podObj->savePodSignature($ticket, $this->sign);
+                $id = $this->model_rest->savePod(array(
+                    "shipment_ticket" => $ticket,
+                    "driver_id" => $driver_id,
+                    "pod_name" => 'signature',
+                    "contact_person" => $this->contact_name,
+                    "latitude" => $this->latitude,
+                    "longitude" => $this->longitude,
+                    "value" => $podPath,
+                    "comment" => $this->text,
+                    "type" => $type
+                ));
+                $result["signature"] = $id;
+            }
         }
 
         if(isset($this->pod_image) and $this->pod_image!=""){
-            $podPath = $podObj->savePodPicture($ticket, $this->pod_image);
-            $id = $this->model_rest->save("shipments_pod", array(
-                "shipment_ticket" => $ticket,
-                "driver_id" => $driver_id,
-                "pod_name" => 'picture',
-                "contact_person" => $this->contact_name,
-                "latitude" => $this->latitude,
-                "longitude" => $this->longitude,
-                "value" => $podPath,
-                "comment" => $this->text
-            ));
-            $result["picture"] = $id;
+            if(!$this->_findPod($ticket, $driver_id, $type, 'picture')){
+                $podPath = $podObj->savePodPicture($ticket, $this->pod_image);
+                $id = $this->model_rest->savePod(array(
+                    "shipment_ticket" => $ticket,
+                    "driver_id" => $driver_id,
+                    "pod_name" => 'picture',
+                    "contact_person" => $this->contact_name,
+                    "latitude" => $this->latitude,
+                    "longitude" => $this->longitude,
+                    "value" => $podPath,
+                    "comment" => $this->text,
+                    "type" => $type
+                ));
+                $result["picture"] = $id;
+            }
         }
         return $result;
     }
@@ -154,7 +167,7 @@ class Process_Form
 
             if ($shipment_details != null and $shipment_details['current_status'] != 'D') {
 
-                $podStatusData = $this->_savePod($ticket, $driver_id);
+                $podStatusData = $this->_savePod($ticket, $driver_id, 'success');
 
                 if ($shipment_details['instaDispatch_loadGroupTypeCode'] == 'SAME' && $shipment_details['shipment_service_type'] == 'P') {
                     $condition = "shipment_ticket = '" . $ticket . "'";
@@ -303,7 +316,7 @@ class Process_Form
             $warehouse_id       = $getshipmentDetails['warehouse_id'];
             $gridData           = $this->getGridDataByTicket($company_id, $warehouse_id, $route_id, $ticket);
 
-            $podStatusData = $this->_savePod($ticket, $driver_id);
+            $podStatusData = $this->_savePod($ticket, $driver_id, 'carded');
 
             if ($status2) {
                 return array(

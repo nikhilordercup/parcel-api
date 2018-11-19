@@ -1,8 +1,8 @@
 <?php
 class shipment extends Library{
-	public $data = array();
+	  public $data = array();
     public $returntempdata = null;
-	public function __construct($param = array()){
+	  public function __construct($param = array()){
 		$this->db = new DbHandler();
 
 		$this->_ftp_user_name = "5waysGTS";
@@ -10,13 +10,12 @@ class shipment extends Library{
 		$this->_ftp_host = "54.191.172.136";
 		$this->returntempdata = array();
 
-         if(isset($param["file_name"])){
+        if(isset($param["file_name"])){
             $this->file_name = $param["file_name"];
         }
         if(isset($param["root_path"])){
             $this->root_path = $param["root_path"];
         }
-
 
         $this->postcodeObj = new Postcode();
 
