@@ -137,7 +137,7 @@ class SurchargeManager {
         $key = $this->surcharges[$key - 1];
         $chargableUnit = 0;
         if ($key == 'same_day_drop_surcharge') {
-            $free = $this->_surcharge->sameDay->drop;
+            $free = $this->_surcharge->sameDay->drop??0;
             $drops = $this->_requestData->transit[0]->number_of_drops;
             $chargableUnit = $drops - $free;
         } else {
