@@ -103,10 +103,10 @@ class Find_Save_Tracking{
         //save tracking pod
         if(count($this->podData)>0){
             foreach($this->podData as $podData){
-                $recordExist = $this->modelObj->findPodTrackingHistory(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
-                if($recordExist["exist"]==0){
+                //$recordExist = $this->modelObj->findPodTrackingHistory(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
+                //if($recordExist["exist"]==0){
                     $this->modelObj->saveTrackingPod(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
-                }
+                //}
             }
             $this->podData = array();
         }

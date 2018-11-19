@@ -298,7 +298,8 @@ class Tracking_Model_Index
 
     function findPodTrackingHistory($param)
     {
-        return $this->_db->getRowRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "tracking_pod WHERE pod_id='" . $param["pod_id"] . "'");
+        //return $this->_db->getRowRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "tracking_pod WHERE pod_id='" . $param["pod_id"] . "'");
+        return $this->_db->getRowRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "tracking_pod WHERE pod_id='" . $param["pod_id"] . "' AND tracking_id='" . $param["tracking_id"] . "'");
     }
 
     /*public
