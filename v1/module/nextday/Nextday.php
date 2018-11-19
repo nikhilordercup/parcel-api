@@ -762,7 +762,7 @@ final class Nextday extends Booking
         foreach($this->_param->collection as $key => $item)
             {
             $execution_order++;
-            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id,$this->_param->address_op);
             if ($addressInfo["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -851,7 +851,7 @@ final class Nextday extends Booking
         foreach($this->_param->delivery as $key => $item)
             {
             $execution_order++;
-            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id,$this->_param->address_op);
             if ($addressInfo["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -971,7 +971,9 @@ final class Nextday extends Booking
                 );
                 $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
 
-                // $obj = new Create_Tracking();
+                $obj = new Create_Tracking();
+
+                $obj->createTracking($labelData["label_tracking_number"], $carrier_code);
 
                 $statusArr = array(
                     "status" => "success"
