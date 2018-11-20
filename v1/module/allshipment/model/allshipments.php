@@ -419,7 +419,7 @@ class AllShipment_Model
         }
   public  function getShipmentPodByShipmentTicket($tickets){
         $record = array();
-        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ('$tickets') ORDER BY create_date DESC";
+        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ('$tickets') AND pod_name='signature' ORDER BY create_date DESC";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -755,13 +755,13 @@ class AllShipment_Model
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
-	
+
 	public function getCarrierByLoadIdentity($load_identity){
 		$sql = "SELECT CT.code AS carrier_code FROM ".DB_PREFIX."shipment_service AS ST INNER JOIN ".DB_PREFIX."courier AS CT ON CT.id = ST.carrier WHERE ST.load_identity='$load_identity'";
 		$record = $this->db->getOneRecord($sql);
 		return  $record['carrier_code'];
 	}
-	
+
     public function getTrackingName(){
         $sql = "SELECT SMT.code, SMT.name AS code_text FROM " . DB_PREFIX . "shipments_master AS SMT";
         $record = $this->db->getAllRecords($sql);
