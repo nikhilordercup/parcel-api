@@ -2,15 +2,17 @@
 class Module_Coreprime_Api extends Icargo
 {
     public static $coreprimeApiObj = NULL;
+    private $_isLabelCall=false;
+    private $_endpoints=[];
 
     private $_environment = array(
       "live" =>  array(
           "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImRldmVsb3BlcnNAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Njk5MzU0N30.cpm3XYPcLlwb0njGDIf8LGVYPJ2xJnS32y_DiBjSCGI",
-          "access_url" => "http://occore.ordercup.com/api/v1/rate"
+          "access_url" => "http://api.icargo.in/v1/rate-engine/getRate"
       ),
       "stagging" =>  array(
           "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Im1hcmdlc2guc29uYXdhbmVAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Mzk2ODgxMX0.EJc4SVQXIwZibVuXFxkTo8UjKvH8S9gWyuFn9bsi63g",
-          "access_url" => "http://occore.ordercup1.com/api/v1/rate"
+          "access_url" => "http://api.icargo.in/v1/rate-engine/getRate"
       )
     );
 
@@ -18,6 +20,9 @@ class Module_Coreprime_Api extends Icargo
 
     function __construct($data)
     {
+        if(!class_exists('RateEngineModel')){
+            require_once '../rate-engine/RateEngineModel.php';
+        }
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->modelObj = new Coreprime_Model_Api();
         $this->customerccf = new CustomerCostFactor();
@@ -45,21 +50,25 @@ class Module_Coreprime_Api extends Icargo
 
     function _postRequest($data)
     {
-        $data_string = json_encode($data);
-
-        $ch = curl_init($this->access_url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Authorization:'.$this->authorization_token,
-                'Content-Length: ' . strlen($data_string))
-        );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
-        curl_close($ch);
-        return $server_output; 
+        if(isset($data->label)){
+            $this->_isLabelCall=true;
+            return $this->doLabelCall($data);
+        }
+        $pd=$this->filterServiceProvider($data);
+        $finalPrice=[];
+        if(isset($pd['Coreprime'])){
+            $cpData=$data;
+            $cpData['carriers']=$pd['Coreprime'];
+            $cpRate=$this->postToCorePrime($cpData);
+            $this->mergePrice($finalPrice,$cpRate);
+        }
+        if(isset($pd['Local'])){
+            $lcData=$data;
+            $lcData['carriers']=$pd['Local'];
+            $localRate=$this->postToRateEngine('Local',$lcData);
+            $this->mergePrice($finalPrice,$localRate);
+        }
+        return json_encode($finalPrice);
     }
     private
     function _filterApiResponse($input,$customer_id,$company_id,$charge_from_warehouse,$is_tax_exempt)
@@ -414,6 +423,95 @@ class Module_Coreprime_Api extends Icargo
             return array("status"=>"error", "message"=>"Empty responses");
         }
     }
-    
+    public function filterServiceProvider($data){
+        $env='DEV';
+        if(ENV=='live'){
+            $env='PROD';
+        }
+        $callType='RATE';
+        if($this->_isLabelCall){
+            $callType='LABEL';
+        }
+        $rateEngModel=new RateEngineModel();
+        $providerList=$rateEngModel->getProviderInfo($callType,$env);
+        $this->_endpoints=$providerList;
+        $filteredData=[];
+        foreach ($data['carriers'] as $c){
+            foreach ($providerList as $p){
+                if($p['code']==$c['name'])
+                $filteredData[$p['provider']][]=$c;
+            }
+        }
+        return $filteredData;
+    }
+    public function postToRateEngine($provider,$data){
+        $url="";
+        foreach ($this->_endpoints as $ep){
+            if($ep['provider']==$provider){
+                $url=$ep['rate_endpoint'];
+            }
+        }
+        $data_string=json_encode($data);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($data_string))
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $server_output = curl_exec($ch);
+        curl_close($ch);
+        return $server_output;
+    }
+    public function postToCorePrime($cpData){
+        $url="";
+        foreach ($this->_endpoints as $ep){
+            if($ep['provider']=='Coreprime'){
+                $url=$ep['rate_endpoint'];
+            }
+        }
+        $data_string = json_encode($cpData);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Authorization:'.$this->authorization_token,
+                'Content-Length: ' . strlen($data_string))
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $server_output = curl_exec($ch);
+        curl_close($ch);
+        return $server_output;
+    }
+    public function mergePrice(&$finalArray,$price){
+        $price=json_decode($price);
+        foreach ($price->rate as $k=>$p){
+            $finalArray['rate'][$k]=$p;
+        }
+    }
+    public function doLabelCall($data){
+        $env='DEV';
+        if(ENV=='live'){
+            $env='PROD';
+        }
+        $rateEngModel=new RateEngineModel();
+        $providerList=$rateEngModel->getProviderInfo('LABEL',$env);
+        $obj=json_decode($data);
+        foreach ($providerList as $p){
+            if(strtolower($p['code'])==strtolower($obj->carrier)){
+                if($p['provider']=='Coreprime'){
+                    return $this->postToCorePrime($data);
+                }
+                if($p['provider']=='Local'){
+                    return $this->postToRateEngine($data);
+                }
+            }
+
+        }
+        return [];
+    }
 }
-?>

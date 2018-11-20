@@ -29,7 +29,7 @@ class RateApiController {
     public static function initRoutes($app) {
         $app->post('/rate-engine/getRate', function() use ($app) {
             $r = json_decode($app->request->getBody());
-            verifyRequiredParams(array('access_token'), $r);
+//            verifyRequiredParams(array('access_token'), $r);
             $controller = new RateApiController;
             $controller->breakRequest($r);
         });
@@ -163,6 +163,7 @@ class RateApiController {
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
                             unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
                         }
+//                        $this->_responseData['rate'][$name][$k][$z]= array_values($this->_responseData['rate'][$name][$k][$z]);
                     }
                 }
             }
@@ -204,25 +205,31 @@ class RateApiController {
                     'message' => 'No zone found.'
                 ]
             ];
-            return FALSE;
         }
         if (!isset($this->_responseData['rate'])) {
-            $this->_responseData['zone'] = [
-                'error' => [
-                    'rate_found' => FALSE,
-                    'message' => 'No rate found.'
-                ]
-            ];
-            return FALSE;
+            $this->_responseData['rate'] = [];
+        }else{
+            foreach($this->_responseData['rate'] as $name=>$v){
+                $i=0;$final=[];
+                foreach($v as $account=>$d){
+                    $j=0;
+                    foreach($d as $service=>$rate){
+                        if(!count(array_values($rate))){
+                            unset($this->_responseData['rate'][$name][$account][$service]);
+                            continue;
+                        }
+                        $this->_responseData['rate'][$name][$account][$service]= array_values($rate);
+                        $final[$i][$account][$j][$service]= array_values($rate);
+                        $j++;
+                    }
+                    $i++;
+                }
+                $this->_responseData['rate'][$name]= $final;
+            }
         }
         foreach ($this->_responseData['accountInfo'] as $k => $z) {
             if (!array_key_exists($k, $this->_responseData['rate'])) {
-                $this->_responseData['rate'][$k] = [
-                    'error' => [
-                        'rate_found' => FALSE,
-                        'message' => 'No rate found.'
-                    ]
-                ];
+                $this->_responseData['rate'][$k] = [];
             }
             if (!array_key_exists($k, $this->_responseData['zone'])) {
                 $this->_responseData['zone'][$k] = [

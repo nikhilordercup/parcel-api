@@ -633,7 +633,7 @@ $app->post('/addShipment', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token','email','company_id','warehouse_id','customer_id','user_level'),$r);
-	$obj = new shipment(array('job_type'=>$r->job_type,'tempdata'=>$r->tempdata,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'customer_id'=>$r->customer_id,'user_level'=>$r->user_level));
+	$obj = new shipment(array('job_type'=>$r->job_type,'tempdata'=>$r->tempdata,'company_id'=>$r->company_id,'warehouse_id'=>$r->warehouse_id,'customer_id'=>$r->customer_id,'user_level'=>$r->user_level,'country_code'=>$r->country_code));
 	$status = $obj->addshipmentDetail();
 	echoResponse(200, $status);
 });
@@ -2277,15 +2277,16 @@ $app->post('/saveEasyPostTracking', function() use ($app){
     $obj->saveTracking();
     exit();
 });
-/*
+
 $app->post('/createTracking', function() use ($app){
     $r = json_decode(file_get_contents("php://input"));
-    $tracking_code = "1174215114";
+    $tracking_code = "3275217352";//"1174215114";
     $carrier = "DHLExpress";
+		$carrier = "dhl";
     $obj = new Create_Tracking();
     $obj->createTracking($tracking_code, $carrier);
     exit();
-});*/
+});
 $app->post('/checkEligibleforRecurring', function() use ($app) {
 	$response = array();
 	$r = json_decode($app->request->getBody());
@@ -2454,8 +2455,53 @@ $app->post('/apiSignup', function() use ($app){
 	echoResponse(200, $response);
 });
 
-$app->post('/test', function() use ($app){
-	$obj = new Custom_Label();
-	$data = $obj->createLabel("ICARGOS1839560");
-	print_r($data);die;
+$app->post('/checkChangedAddress', function() use ($app){
+	$r = json_decode($app->request->getBody());
+	$obj = new Module_Addressbook_Addressbook($r);
+  $response = $obj->checkChangedAddress($r);
+  echoResponse(200, $response);
+});
+
+$app->post('/fixAddressString', function() use ($app){//delete after execution
+	$r = json_decode($app->request->getBody());
+	$obj = new Module_Addressbook_Addressbook($r);
+  $response = $obj->getAllAddressesFromAddressBook();
+  echoResponse(200, $response);
+});
+
+$app->post('/fixDrivingModeAndRoundTrip', function() use ($app){//delete after execution
+	$db = new DbHandler();
+	$sql = "SELECT * FROM icargo_configuration";
+	$records = $db->getAllRecords($sql);
+
+	foreach($records as $record){
+	    $conf = json_decode($record["configuration_json"]);
+
+			if(!isset($conf->round_trip))
+			    $conf->round_trip = ROUND_TRIP;
+
+			if(!isset($conf->driving_mode))
+			    $conf->driving_mode = DRIVING_MODE;
+
+			$confJson = json_encode($conf);
+			$id = $record["id"];
+			$updateSql = "UPDATE icargo_configuration SET configuration_json='$confJson' WHERE id='$id'";
+			$db->updateData($updateSql);
+	}
+});
+
+$app->post('/podDuplicateFix', function() use ($app){//delete after execution
+	$db = new DbHandler();
+	$sql = "SELECT count(1) as num_count, GROUP_CONCAT(pod_id) as pod_id FROM `icargo_shipments_pod` group by shipment_ticket, create_date, pod_name having num_count>1";
+	$records = $db->getAllRecords($sql);
+
+	foreach($records as $record){
+		  $pod_id = explode(",",$record["pod_id"]);
+			foreach($pod_id as $key => $pod){
+			    if($key>0){
+						  $sql = "DELETE FROM icargo_shipments_pod WHERE pod_id='$pod'";
+					    $db->delete($sql);
+					}
+			}
+	}
 });

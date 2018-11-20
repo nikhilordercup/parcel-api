@@ -49,15 +49,15 @@ class Master extends Icargo{
              'action'=>'surcharge',
              'actioncode'=>'getAllCourierSurcharge'
        );
-      $data[] = array(  
-             'id'=>'1',
-             'name'=>'Rates',
-             'code'=>'RATES',
-             'description'=>'Rate description going here',
-             'action'=>'surcharge',
-             'actioncode'=>'rates'
-       ); 
-      return  $data;
+        $data[] = array(
+            'id'=>'1',
+            'name'=>'Rates',
+            'code'=>'RATES',
+            'description'=>'Rate description going here',
+            'action'=>'surcharge',
+            'actioncode'=>'rates'
+        );
+        return  $data;
     }
 
     public function getAllCouriers($param){

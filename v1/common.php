@@ -90,9 +90,38 @@
         }
 
 		public function getAddressBookSearchString($arr)
-        { // add contact number
-			       return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country.$arr->name.$arr->email.$arr->company_id;
-           //return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state.$arr->country;
+        {
+             $temp = array();
+             if(isset($arr->address_1))
+                 array_push($temp, $arr->address_1);
+
+             if(isset($arr->address_2))
+                 array_push($temp, $arr->address_2);
+
+             if(isset($arr->postcode))
+                 array_push($temp, $arr->postcode);
+
+             if(isset($arr->city))
+                 array_push($temp, $arr->city);
+
+             if(isset($arr->state))
+                 array_push($temp, $arr->state);
+
+             if(isset($arr->country))
+                 array_push($temp, $arr->country);
+
+             if(isset($arr->name))
+                 array_push($temp, $arr->name);
+
+             if(isset($arr->email))
+                 array_push($temp, $arr->email);
+
+             if(isset($arr->company_id))
+                 array_push($temp, $arr->company_id);
+
+             $addressString = implode("", $temp);
+
+			       return strtolower(preg_replace('/\s+/','',$addressString));
         }
 
         public function countryList($searchData = array())

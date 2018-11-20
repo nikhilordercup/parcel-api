@@ -410,6 +410,7 @@ class Library
     function get_api_url()
     {
         $url = $this->base_url();
+        return "$url/";
         if (ENV == "dev") {
             $url = "$url/dev/";
         }

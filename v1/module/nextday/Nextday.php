@@ -1,4 +1,6 @@
-<?php 
+<?php
+require_once "../v1/module/business_day_cal/Carrier_Business_Day.php";
+
 final class Nextday extends Booking
     {
     private $_param = array();
@@ -730,6 +732,7 @@ final class Nextday extends Booking
             return $available_credit;
             }
 
+
         $company_code = $this->_getCompanyCode($this->_param->company_id);
         $serviceId = $this->_param->service_opted->rate->info->service_id;
         $customerWarehouseId = $this->getCustomerWarehouseIdByCustomerId($this->_param->company_id, $this->_param->customer_id);
@@ -739,14 +742,26 @@ final class Nextday extends Booking
         $this->startTransaction();
         $execution_order = 0;
         $collection_date_time = $this->_param->service_opted->collection_carrier->collection_date_time;
+
+
         $collection_end_at = $this->_param->service_opted->collection_carrier->collection_end_at;
         $carrier_account_number = $this->_param->service_opted->collection_carrier->account_number;
         $is_internal = $this->_param->service_opted->collection_carrier->is_internal;
         $searchString = $companyName = $contactName = '';
+
+        $this->maxTransitDays = 0;
+
+        if(isset($this->_param->service_opted->service_options->max_transit_days))
+            $this->maxTransitDays = (int)$this->_param->service_opted->service_options->max_transit_days;
+
+        $carrierBusinessDay = new Carrier_Business_Day();
+
+        $collectionDateTimeObj = $carrierBusinessDay->_findBusinessDay(new DateTime($collection_date_time), 0 , $this->_param->service_opted->carrier_info->code);
+        $collection_date_time = $collectionDateTimeObj->format('Y-m-d');
         foreach($this->_param->collection as $key => $item)
             {
             $execution_order++;
-            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id,$this->_param->address_op);
             if ($addressInfo["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -825,14 +840,17 @@ final class Nextday extends Booking
                 }
             }
 
-        $collection_date_time = "1970-01-01 00:00:00";
+        $deliveryDateTimeObj = $carrierBusinessDay->_findBusinessDay(new DateTime($collection_date_time), $this->maxTransitDays , $this->_param->service_opted->carrier_info->code);
+        $delivery_date_time = $deliveryDateTimeObj->format('Y-m-d');
+
+        //$collection_date_time = "1970-01-01 00:00:00";
         $collection_end_at = "00:00:00";
         $carrier_account_number = $this->_param->service_opted->carrier_info->account_number;
         $is_internal = $this->_param->service_opted->carrier_info->is_internal;
         foreach($this->_param->delivery as $key => $item)
             {
             $execution_order++;
-            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id);
+            $addressInfo = $this->_saveAddressData($item, $this->_param->customer_id,$this->_param->address_op);
             if ($addressInfo["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -840,7 +858,7 @@ final class Nextday extends Booking
                 }
 
             $this->_param->delivery->$key->load_identity = $loadIdentity;
-            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->delivery->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "DELV", "NEXT", "D", $execution_order, $carrier_account_number, $is_internal);
+            $shipmentStatus = $this->_saveShipment($this->_param, $this->_param->delivery->$key, $this->_param->parcel, $addressInfo["address_data"], $customerWarehouseId, $this->_param->company_id, $company_code, $delivery_date_time, $collection_end_at, "next", "DELV", "NEXT", "D", $execution_order, $carrier_account_number, $is_internal);
             if ($shipmentStatus["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -939,7 +957,7 @@ final class Nextday extends Booking
                 }
             }
 
-        if ((strtolower($carrier_code) != 'pnp'))
+        if((strtolower($carrier_code) != 'pnp') && $this->_param->manualbookingreference=='')
             {
             $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
             if ($labelInfo['status'] == 'success')
@@ -952,7 +970,9 @@ final class Nextday extends Booking
                 );
                 $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
 
-                // $obj = new Create_Tracking();
+                $obj = new Create_Tracking();
+
+                $obj->createTracking($labelData["label_tracking_number"], $carrier_code);
 
                 $statusArr = array(
                     "status" => "success"

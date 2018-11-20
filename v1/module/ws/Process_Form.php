@@ -1,6 +1,7 @@
 <?php
 require_once "model/rest.php";
 require_once "Ws_Driver_Tracking.php";
+
 class Process_Form
 {
     public $modelObj = null;
@@ -78,6 +79,9 @@ class Process_Form
         if (isset($params->form_status)) {
             $this->form_status = $params->form_status;
         }
+        if (isset($params->pod_image)) {
+            $this->pod_image = $params->pod_image;
+        }
         $this->model_rest = new Ws_Model_Rest();
     }
     private function _get_driver_by_id()
@@ -103,28 +107,68 @@ class Process_Form
         $track_id = $this->_driverTracking->saveDriverTracking();
         return $track_id;
     }
-    private function _delivered_shipment($ticket, $driver_id, $route_id, $driver_name, $pod_data, $latitude, $longitude, $service_msg)
+
+    private function _findPod($ticket, $driver_id, $type, $pod_name){
+        $podFound = $this->model_rest->findPod($ticket, $driver_id, $type, $pod_name, $this->text, $this->contact_name, $this->latitude, $this->longitude);
+        if($podFound["shipment_count"]>0)
+            return true;
+        return false;
+    }
+
+    private function _savePod($ticket, $driver_id, $type){
+        $result = array();
+        $podObj  = new Pod();
+        if(isset($this->sign) and $this->sign!=""){
+            if(!$this->_findPod($ticket, $driver_id, $type, 'signature')){
+                $podPath = $podObj->savePodSignature($ticket, $this->sign);
+                $id = $this->model_rest->savePod(array(
+                    "shipment_ticket" => $ticket,
+                    "driver_id" => $driver_id,
+                    "pod_name" => 'signature',
+                    "contact_person" => $this->contact_name,
+                    "latitude" => $this->latitude,
+                    "longitude" => $this->longitude,
+                    "value" => $podPath,
+                    "comment" => $this->text,
+                    "type" => $type
+                ));
+                $result["signature"] = $id;
+            }
+        }
+
+        if(isset($this->pod_image) and $this->pod_image!=""){
+            if(!$this->_findPod($ticket, $driver_id, $type, 'picture')){
+                $podPath = $podObj->savePodPicture($ticket, $this->pod_image);
+                $id = $this->model_rest->savePod(array(
+                    "shipment_ticket" => $ticket,
+                    "driver_id" => $driver_id,
+                    "pod_name" => 'picture',
+                    "contact_person" => $this->contact_name,
+                    "latitude" => $this->latitude,
+                    "longitude" => $this->longitude,
+                    "value" => $podPath,
+                    "comment" => $this->text,
+                    "type" => $type
+                ));
+                $result["picture"] = $id;
+            }
+        }
+        return $result;
+    }
+
+    private function _delivered_shipment($ticket, $driver_id, $route_id, $driver_name, $latitude, $longitude, $service_msg)
     // script for grid update
     {
         $firebasedata     = array();
+
         $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
         if (($ticket != '') && ($driver_id != '') && ($route_id != '')) {
             $shipment_details = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
+
             if ($shipment_details != null and $shipment_details['current_status'] != 'D') {
-                if (isset($pod_data["pod"]) and !empty($pod_data["pod"])) {
-                    $podObj  = new Pod_Signatre();
-                    $podPath = $podObj->saveImage($ticket, $pod_data["pod"]);
-                    $this->model_rest->save("shipments_pod", array(
-                        "shipment_ticket" => $ticket,
-                        "driver_id" => $driver_id,
-                        "pod_name" => "signature",
-                        "contact_person" => $pod_data["contact_person"],
-                        "latitude" => $pod_data["latitude"],
-                        "longitude" => $pod_data["longitude"],
-                        "value" => $podPath,
-                        "comment" => $pod_data["comment"]
-                    ));
-                }
+
+                $podStatusData = $this->_savePod($ticket, $driver_id, 'success');
+
                 if ($shipment_details['instaDispatch_loadGroupTypeCode'] == 'SAME' && $shipment_details['shipment_service_type'] == 'P') {
                     $condition = "shipment_ticket = '" . $ticket . "'";
                     $status    = $this->model_rest->update("shipment", array(
@@ -158,7 +202,7 @@ class Process_Form
                     'service_date' => date("Y-m-d"),
                     'service_time' => date("H:m:s")
                 ), $condition2);
-                // check all Delivery completed than release to Driver          
+                // check all Delivery completed than release to Driver
                 $shipment_details_after_update                          = $this->model_rest->get_accepted_shipment_details_by_ticket_after_update($ticket);
                 $driverDelivered                                        = array();
                 $driverDelivered['shipment_ticket']                     = $ticket;
@@ -208,7 +252,8 @@ class Process_Form
                         'grid_data' => $gridData,
                         'left' => $checkMoreShipmentofthisRouteDriver,
                         'ticket' => $ticket,
-                        'timestamp' => microtime(true)
+                        'timestamp' => microtime(true),
+                        'pod_status' => $podStatusData
                     );
                 }
             } else {
@@ -247,6 +292,8 @@ class Process_Form
     private function _carded_shipment($ticket, $driver_id, $route_id, $comment, $status)
     {
         $shipmentExist = $this->model_rest->shipment_exist_by_ticket_driver($ticket, $driver_id, $route_id);
+        $shipmentExist['exist'] = 1;
+
         if ($shipmentExist['exist'] == 1) {
             $getshipmentDetails = $this->model_rest->get_accepted_shipment_details_by_ticket($ticket);
             $condition          = "shipment_ticket = '" . $ticket . "'";
@@ -268,6 +315,9 @@ class Process_Form
             $company_id         = $getshipmentDetails['company_id'];
             $warehouse_id       = $getshipmentDetails['warehouse_id'];
             $gridData           = $this->getGridDataByTicket($company_id, $warehouse_id, $route_id, $ticket);
+
+            $podStatusData = $this->_savePod($ticket, $driver_id, 'carded');
+
             if ($status2) {
                 return array(
                     'message' => "Shipment($ticket) updated as (Carded) by Driver($this->driver_name)",
@@ -275,7 +325,8 @@ class Process_Form
                     'status' => "success",
                     'grid_data' => $gridData,
                     'ticket' => $ticket,
-                    'left' => 1
+                    'left' => 1,
+                    'pod_status' => $podStatusData
                 );
             }
         } else {
@@ -369,7 +420,7 @@ class Process_Form
     }
 
     public function process()
-    {   
+    {
         $data               = array();
         $driver_data        = $this->_get_driver_by_id();
         $this->driver_name  = $driver_data['name'];
@@ -378,15 +429,8 @@ class Process_Form
         $this->warehouse_id = $company_warehouse['warehouse_id'];
 
         if ($this->loadActionCode == 'processdriversuccessaction') {
-            $pod_data = array(
-                'contact' => $this->contact_name,
-                'comment' => $this->text,
-                'pod' => $this->sign,
-                'contact_person' => $this->contact_name,
-                'latitude' => $this->latitude,
-                'longitude' => $this->longitude
-            );
-            $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $pod_data, $this->latitude, $this->longitude, $this->service_message);
+
+            $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $this->latitude, $this->longitude, $this->service_message);
             Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
                 "shipment_ticket" => $this->shipment_ticket,
                 "company_id" => $this->company_id,
@@ -406,11 +450,11 @@ class Process_Form
                 }
                 $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');
 
-                Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver"));
+                Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver", "pod_status"=> $data["pod_status"]));
 
                 $this->_add_driver_tacking();
                 }
-                
+
 
                 if($data["left"]==0){
                     $actions            = "Route completed";
@@ -430,27 +474,29 @@ class Process_Form
             if ($data['status'] == "success") {
                 $common_obj = new Common();
                 $data         = $this->_carded_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->service_message, 'Ca');
-                $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
-                if ($shipmentData["shipment_service_type"] == "P") {
-                    $actions            = "Collection failed";
-                    $internalActionCode = "COLLECTIONFAILED";
-                } elseif ($shipmentData["shipment_service_type"] == "D") {
-                    $actions            = "Delivery failed";
-                    $internalActionCode = "DELIVERYFAILED";
+                if($data['status'] == "success") {
+                    $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
+                    if ($shipmentData["shipment_service_type"] == "P") {
+                        $actions            = "Collection failed";
+                        $internalActionCode = "COLLECTIONFAILED";
+                    } elseif ($shipmentData["shipment_service_type"] == "D") {
+                        $actions            = "Delivery failed";
+                        $internalActionCode = "DELIVERYFAILED";
+                    }
+
+                    Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver", "pod_status"=> $data["pod_status"]));
+
+                    $this->_add_driver_tacking();
+
+                    Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
+                        "service_message" => $this->service_message,
+                        "shipment_ticket" => $this->shipment_ticket,
+                        "company_id" => $this->company_id,
+                        "warehouse_id" => $this->warehouse_id,
+                        "trigger_code" => "failed",
+                        "shipment_type" => $shipmentData["instaDispatch_loadGroupTypeCode"]
+                    ));
                 }
-
-                Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver"));
-
-                $this->_add_driver_tacking();
-
-                Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
-                    "service_message" => $this->service_message,
-                    "shipment_ticket" => $this->shipment_ticket,
-                    "company_id" => $this->company_id,
-                    "warehouse_id" => $this->warehouse_id,
-                    "trigger_code" => "failed",
-                    "shipment_type" => $shipmentData["instaDispatch_loadGroupTypeCode"]
-                ));
             }
         }
         return $data;
