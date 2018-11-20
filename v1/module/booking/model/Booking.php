@@ -451,7 +451,7 @@ class Booking_Model_Booking
 
     function checkCollectionTime($addressId, $customerId, $carrierCode, $collectionTime)
     {
-        $sql = "SELECT collection_start_time AS collection_start_time, collection_end_time AS collection_end_time FROM " . DB_PREFIX . "address_carrier_time AS ACT WHERE ACT.address_id=" . $addressId . " AND ACT.customer_id=" . $customerId . " AND ACT.carrier_code='" . $carrierCode . "' AND '$collectionTime' >= `collection_start_time` AND '$collectionTime' <= `collection_end_time`";
+        $sql = "SELECT collection_start_time AS collection_start_time, collection_end_time AS collection_end_time FROM " . DB_PREFIX . "address_carrier_time AS ACT WHERE ACT.address_id='$addressId' AND ACT.customer_id='$customerId' AND ACT.carrier_code='$carrierCode' AND '$collectionTime' >= `collection_start_time` AND '$collectionTime' <= `collection_end_time`";
         $record = $this->_db->getRowRecord($sql);
         return $record;
     }
