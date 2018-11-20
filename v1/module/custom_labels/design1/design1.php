@@ -3,76 +3,81 @@ require_once "../v1/module/custom_labels/Label.php";
 require_once "Design1_Data_Format.php";
 
 final class Design1_Label extends Label{
-  public $html = '<table align="center">
+  public $html = '<table align="center" style="position:relative; top:50px">
     <tr>
-      <td colspan="2" align="center">
-         <barcode size="3" height="0.5" code="__PARCEL_BARCODE__" class="barcode" style="margin-bottom:50pt"></barcode>
+      <td rowspan="2">
+      <div style="position: absolute;left: 20mm; top: 20mm; rotate:-90;">
+         <barcode size="4" height="0.4" code="__PARCEL_BARCODE__" class="barcode" style="margin-bottom:10pt; margin-left:10px";></barcode>
+         </div>
       </td>
-    </tr>
-    <tr>
-      <td><p>__CONSIGNEE_ADDRESS__</p></td>
+
+      <td style="padding-top:50pt">
+      <p>__CONSIGNEE_ADDRESS__</p>
+      </td>
+      </tr>
+
+      <tr>
       <td>
         <table class="invoice-booking">
           <tbody>
             <tr>
-              <td><p style="font-weight:bold; font-size:20pt;">Reference :</p></td>
-              <td><p style="font-weight:bold; font-size:20pt;letter-spacing:3px;">__PARCEL_REFERENCE__</p></td>
+              <td><p style="font-weight:bold; font-size:28pt;">Reference :</p></td>
+              <td><p style="font-size:22pt"><u>__PARCEL_REFERENCE__</u></p></td>
             </tr>
             <tr>
-              <td><p style="font-size:14pt;letter-spacing:1px;">Weight :</p></td>
-              <td><p style="font-size:14pt;letter-spacing:1px;">__WEIGHT__</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">Weight :</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">__WEIGHT__</p></td>
             </tr>
             <tr>
-              <td><p style="font-size:14pt;letter-spacing:1px;">Piece :</p></td>
-              <td><p style="font-size:14pt;letter-spacing:1px;">__PIECE_COUNTER__ of __TOTAL_PIECE__</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">Piece :</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">__PIECE_COUNTER__ of __TOTAL_PIECE__</p></td>
             </tr>
             <tr>
-              <td><p style="font-size:14pt;letter-spacing:1px;">Cust Ref :</p></td>
-              <td><p style="font-size:14pt;letter-spacing:1px;">__CUSTOMER_REFERENCE__</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">Cust Ref :</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">__CUSTOMER_REFERENCE__</p></td>
             </tr>
             <tr>
-              <td><p style="font-size:14pt;letter-spacing:1px;">Alt Ref :</p></td>
-              <td><p style="font-size:14pt;letter-spacing:1px;">__ALETRNATE_REFERENCE__</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">Alt Ref :</p></td>
+              <td><p style="font-size:22pt;letter-spacing:1px;">__ALETRNATE_REFERENCE__</p></td>
             </tr>
             <tr>
-              <td colspan="2"><p style="font-size:30pt;">__SERVICE_DATE__</p></td>
+              <td colspan="2"><p style="font-size:28pt; font-weight:bold">__SERVICE_DATE__</p></td>
             </tr>
           </tbody>
         </table>
       </td>
-    </tr>
+      </tr>
 
-    <tr>
-      <td>
-        <table style="margin-top:30pt">
-          <tr>
-            <td><p style="font-size:14pt;letter-spacing:1px;">__SHIPMENT_CUSTOMER_NAME__</p></td>
-          </tr>
-          <tr>
-            <td><p style="font-size:14pt;letter-spacing:1px;">__SHIPMENT_CUSTOMER_MOBILE_NO__</p></td>
-          </tr>
-          <tr>
-            <td><p style="font-size:14pt;letter-spacing:1px;">__SHIPMENT_INSTRUCTION__</p></td>
-          </tr>
-        </table>
-      </td>
+
+    <!-- <tr>
       <td>
         <table>
           <tr>
-            <td><img src="__COMPANY_LOGO__" height="100px" width="140px"></td>
+            <td><p style="font-size:22pt;letter-spacing:1px;">__SHIPMENT_CUSTOMER_NAME__</p></td>
           </tr>
           <tr>
-            <td><p style="font-size:14pt;letter-spacing:1px;">__SERVICE_NAME__</p></td>
+            <td><p style="font-size:22pt;letter-spacing:1px;">__SHIPMENT_CUSTOMER_MOBILE_NO__</p></td>
           </tr>
           <tr>
-            <td><p style="font-size:14pt;letter-spacing:1px;">__DELIVERY_POSTCODE__ -  __DELIVERY_COUNTRY__</p></td>
-          </tr>
-          <tr>
-            <td><p style="font-size:14pt;letter-spacing:1px;">__COLLECTION_POSTCODE__ -  __COLLECTION_COUNTRY__</p></td>
+            <td></td>
           </tr>
         </table>
       </td>
+      </tr> -->
+
+      <tr>
+         <td>
+          <img src="__COMPANY_LOGO__" height="100px" width="140px" style="margin-top:90px; margin-right:30px">
+          </td>
+
+          <td style="padding-top:40pt">
+          <p style="font-size:22pt;letter-spacing:1px; margin-top:50px">__SERVICE_NAME__</p>
+          <p style="font-size:22pt;letter-spacing:1px;">__DELIVERY_POSTCODE__ -  __DELIVERY_COUNTRY__</p>
+          <p style="font-size:22pt;letter-spacing:1px;">__COLLECTION_POSTCODE__ -  __COLLECTION_COUNTRY__</p>
+          <p style="font-size:22pt;letter-spacing:1px;">__SHIPMENT_INSTRUCTION__</p>
+          </td>
     </tr>
+
     <tr>
       <td><p style="font-weight:bold; font-size:25pt;letter-spacing:1px;">__COMPANY_URL__</p></td>
     </tr>

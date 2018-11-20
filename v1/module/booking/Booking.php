@@ -9,6 +9,8 @@ class Booking extends Icargo
         $this->modelObj = new Booking_Model_Booking();
 
         $this->postcodeObj = new Postcode();
+		
+		$this->db = new DbHandler();
     }
 
     /**
@@ -74,7 +76,7 @@ class Booking extends Icargo
 
     protected
 
-    function _saveAddressData($data, $customer_id){
+    function _saveAddressData($data, $customer_id,$address_op=""){
 		$commonObj = new Common();
         $data = (object)$data;
         $postcode = ($data->country->alpha3_code == 'GBR') ? ( $this->postcodeObj->validate($data->postcode) ) : true;
@@ -114,19 +116,28 @@ class Booking extends Icargo
             $param["billing_address"] = "N";
 
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
-
-            if(!$addressVersion["version_id"]) {
-                $param["version_id"] = "version_1";
+			
+			if($data->address_origin=='api'){
+				$param["version_id"] = "version_1";
 				$address_id = $this->modelObj->saveAddress($param);
 				return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
-            }
-            else{
-                $version = explode("_", $addressVersion['version_id']);
-                $param["version_id"] = "version_".($version[1]+1);
-				return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
-            }
-            //$address_id = $this->modelObj->saveAddress($param);
-            //return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
+				
+			}else{
+				if(!$addressVersion["address_id"]){
+					if(($address_op===null) OR ($address_op=="add")){
+						$param["version_id"] = "version_1";
+						$address_id = $this->modelObj->saveAddress($param);
+					}else{
+						$address_id = (isset($data->address_list->id)) ? $data->address_list->id : 0;
+						$update = $this->db->update("address_book",$param,"id='$address_id'");
+					}
+					return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
+				}else{
+					$version = explode("_", $addressVersion['version_id']);
+					$param["version_id"] = "version_".($version[1]+1);
+					return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
+				}
+			} 
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
@@ -285,7 +296,8 @@ class Booking extends Icargo
 
         $parcelData['package']       = $parcel->package_code;
         $parcelData['parcel_ticket'] = $parcelTicketNumber;
-        $parcelData['parcel_weight'] = $parcel->weight;
+        $parcelData['parcel_weight'] = round($parcel->weight/$parcel->quantity,2);
+		$parcelData['total_weight'] =  $parcel->weight;
         $parcelData['parcel_height'] = $parcel->height;
         $parcelData['parcel_length'] = $parcel->length;
         $parcelData['parcel_width']  = $parcel->width;

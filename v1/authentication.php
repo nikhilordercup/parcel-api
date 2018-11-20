@@ -125,7 +125,7 @@ $app->post('/signUp', function() use ($app) {
                 "customer_id"=>$chargebee_customer_data->customer_id,
                 "plan_unit_price"=>$basic_plan["price"],
                 "start_date"=>date("Y-m-d"),
-                "trial_end"=>'',
+                //"trial_end"=>$r->company->state,
                 "billing_cycles"=>$basic_plan["billing_cycle"],
                 'plan_limit'=>$basic_plan['shipment_limit']
             );

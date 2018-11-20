@@ -42,7 +42,6 @@ class Booking_Notification_Courier
 
             //get company detail
             $company_info = $this->_getModelInstance()->getCompanyInfo($param["company_id"]);
-            $company_info["email"] = "meenakshi@perceptive-solutions.com";
 
             $services = $this->_getModelInstance()->getServiceName($collectionShipment["instaDispatch_loadIdentity"]);
 

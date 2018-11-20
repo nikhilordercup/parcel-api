@@ -8,13 +8,17 @@ class Custom_Label
     {
         $config = array(
             'mode' => 'c',
-            'margin_left' => 32,
-            'margin_right' => 25,
-            'margin_top' => 27,
-            'margin_bottom' => 25,
-            'margin_header' => 16,
-            'margin_footer' => 13
+			'margin_left' => 0,
+            'margin_right' => 0,
+            'margin_top' => 5,
+            //'margin_bottom' => 25,
+            //'margin_header' => 16,
+            //'margin_footer' => 13
+			      'format' => 'A4'
+			//'format' => array(101,152),
+			//'orientation' => 'L'
         );
+
         $dirPath = "../label/$load_identity/pnp";
         $path = "$dirPath/$load_identity.pdf";
         if (!file_exists($dirPath)) {
@@ -24,7 +28,7 @@ class Custom_Label
         $obj = new Design1_Label();
         $labels = $obj->createLable($load_identity);
         $mpdf = new \Mpdf\Mpdf($config);
-        $mpdf->SetDisplayMode('fullpage');
+        $mpdf->SetDisplayMode('fullwidth');// fullwidth // real //default // fullpage
         $mpdf->list_indent_first_level = 0; // 1 or 0 - whether to indent the first level of a list
 
         // Load a stylesheet

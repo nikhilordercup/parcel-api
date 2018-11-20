@@ -340,7 +340,7 @@ class Booking_Model_Booking
 
     function getServiceDataByLoadIdentity($loadIdentity)
     {
-        $sql = "SELECT SST.service_name,SST.currency,CST.service_code FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON SST.service_name = CST.service_name WHERE SST.load_identity='$loadIdentity'";
+        $sql = "SELECT SST.service_name,SST.currency,CST.service_code,SST.customer_reference1,SST.customer_reference2 FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN " . DB_PREFIX . "courier_vs_services AS CST ON SST.service_name = CST.service_name WHERE SST.load_identity='$loadIdentity'";
         return $this->_db->getRowRecord($sql);
     }
 
@@ -451,7 +451,7 @@ class Booking_Model_Booking
 
     function checkCollectionTime($addressId, $customerId, $carrierCode, $collectionTime)
     {
-        $sql = "SELECT collection_start_time AS collection_start_time, collection_end_time AS collection_end_time FROM " . DB_PREFIX . "address_carrier_time AS ACT WHERE ACT.address_id=" . $addressId . " AND ACT.customer_id=" . $customerId . " AND ACT.carrier_code='" . $carrierCode . "' AND '$collectionTime' >= `collection_start_time` AND '$collectionTime' <= `collection_end_time`";
+        $sql = "SELECT collection_start_time AS collection_start_time, collection_end_time AS collection_end_time FROM " . DB_PREFIX . "address_carrier_time AS ACT WHERE ACT.address_id='$addressId' AND ACT.customer_id='$customerId' AND ACT.carrier_code='$carrierCode' AND '$collectionTime' >= `collection_start_time` AND '$collectionTime' <= `collection_end_time`";
         $record = $this->_db->getRowRecord($sql);
         return $record;
     }
@@ -635,6 +635,12 @@ class Booking_Model_Booking
         $record = $this->_db->getAllRecords($sql);
         return $record;
       }
+	  
+	  public function getDeliveryInstructionByLoadIdentity($load_identity)
+		{
+			$sql = "SELECT shipment_instruction FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$load_identity' AND shipment_service_type = 'D'";
+			return $this->_db->getOneRecord($sql);
+		}
 }
 
 ?>

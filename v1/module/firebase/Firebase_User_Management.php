@@ -1,5 +1,5 @@
 <?php
-require_once "Providers/Auth_Provider.php";
+require "Providers/Auth_Provider.php";
 class Firebase_User_Management{
     public static $authProviderObj= null;
 
@@ -22,10 +22,14 @@ class Firebase_User_Management{
         return $this->authProvider->signupUser($email,$password);
     }
 
+    private function _getUserByEmail($email){
+        return $this->authProvider->getUserByEmail($email);
+    }
+
     public function signOut(){
         return $this->authProvider->signOut();
     }
-	
+
 	public function customerSignup($param){
 		$signupStatus = $this->_signupUser($param->email,$param->password);
 		$param->customerbilling = new stdClass();
@@ -43,7 +47,7 @@ class Firebase_User_Management{
 		$param->customerpickup->countrycode = $param->countrycode;
 		$param->customerpickup->postcode = $param->postcode;
 		$param->customerpickup->city = $param->city;
-		
+
 		if($signupStatus['status']=='success'){
 			$userManagementObj = new User_Management();
 			$saveCustomerToDB = $userManagementObj->createApiCustomer($param,$signupStatus['data']);
@@ -52,7 +56,7 @@ class Firebase_User_Management{
 			return $signupStatus;
 		}
 	}
-	
+
 	public function customerLogin($email,$password){
 		$loginStatus = $this->_login($email,$password);
 		if($loginStatus['status']=='success'){
@@ -63,5 +67,13 @@ class Firebase_User_Management{
 			return $loginStatus;
 		}
 	}
+
+  public function test($u, $p){
+    return $this->_signupUser($u, $p);
+  }
+
+  public function test1($email){
+    return $this->_getUserByEmail($email);
+  }
 }
 ?>

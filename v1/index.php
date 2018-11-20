@@ -138,7 +138,7 @@ require_once 'module/allshipment/model/allshipments.php';
 
 require_once 'module/shipment/shipment_tracking.php';
 
-require_once 'pod_signature.php';//no need to keep separate file to save image. This is already defined in libraray
+require_once 'Pod.php';//no need to keep separate file to save image. This is already defined in libraray
 
 require_once 'module/package/Module_Package_Index.php';
 
