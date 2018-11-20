@@ -466,8 +466,14 @@ class Module_Coreprime_Api extends Icargo
         return $server_output;
     }
     public function postToCorePrime($cpData){
+        $url="";
+        foreach ($this->_endpoints as $ep){
+            if($ep['provider']=='Coreprime'){
+                $url=$ep['rate_endpoint'];
+            }
+        }
         $data_string = json_encode($cpData);
-        $ch = curl_init($this->access_url);
+        $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -479,6 +485,7 @@ class Module_Coreprime_Api extends Icargo
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
+//        exit($url);
         return $server_output;
     }
     public function mergePrice(&$finalArray,$price){
