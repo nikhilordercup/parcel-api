@@ -457,7 +457,6 @@ class allShipments extends Icargo
             }
         }
         //$podinfo = $this->getShipmentsPodDetails('"' . implode('","', $basicInfo['shipment_ticket']) . '"');
-
         $podinfo = $this->getShipmentsPodDetails(implode("','", $basicInfo['shipment_ticket']));
         return array(
             'basicInfo' => $basicInfo,
@@ -1255,14 +1254,17 @@ class allShipments extends Icargo
 
    public function getDropTrackingDetails($identity){
         $shipmentLifeCycle = $this->modelObj->getDropTrackingByLoadIdentity($identity);
+
         $items = array();
         $records = array();
+        $temp = array();
         foreach ($shipmentLifeCycle as $key => $dataVal) {
-            $shipmentTicket = ($dataVal["shipment_ticket"]) ? $dataVal["shipment_ticket"] : 0 ;
+            $shipmentTicket = ($dataVal["shipment_ticket"]) ? $dataVal["shipment_ticket"] : $identity ;
             $podItems = $this->modelObj->getShipmentPodByShipmentTicket($dataVal["shipment_ticket"]);
+            //$podItems = $this->modelObj->getShipmentPodInfo($dataVal["shipment_ticket"], $dataVal["code"]);
 
             $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = "N/A";
-            $items[$shipmentTicket][$dataVal["code"]]['shipment_ticket']       = $dataVal["shipment_ticket"];
+            $items[$shipmentTicket][$dataVal["code"]]['shipment_ticket']       = $shipmentTicket;//$dataVal["shipment_ticket"];
             $items[$shipmentTicket][$dataVal["code"]]['code']                  = $dataVal["code"];
             $items[$shipmentTicket][$dataVal["code"]]['code_text']             = $dataVal["code_text"];
             $items[$shipmentTicket][$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
@@ -1273,21 +1275,38 @@ class allShipments extends Icargo
                 $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
             }
 
-            foreach($podItems as $podItem){
-                $items[$shipmentTicket][$dataVal["code"]]['pod_info'][] = array(
-                    "shipment_ticket" => $podItem["shipment_ticket"],
-                    "pod_path" => $podItem["value"],
-                    "pod_name" => $podItem["pod_name"],
-                    "create_date" => Library::_getInstance()->date_format($podItem["create_date"])
-                );
+            /*foreach($podItems as $podItem){
+                if(!isset($temp[$podItem["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]])){
+                    $temp[$podItem["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]] = true;
+                    $items[$podItem["shipment_ticket"]][$dataVal["code"]]['pod_info'][] = array(
+                        "shipment_ticket" => $podItem["shipment_ticket"],
+                        "pod_path" => $podItem["value"],
+                        "pod_name" => $podItem["pod_name"],
+                        "create_date" => Library::_getInstance()->date_format($podItem["create_date"])
+                    );
+                }
             }
+            /*foreach($podItems as $podItem){
+                if(!isset($temp[$dataVal["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]])){
+                    $temp[$dataVal["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]] = true;
+                    $items[$dataVal["shipment_ticket"]][$dataVal["code"]]['pod_info'][] = array(
+                        "shipment_ticket" => $podItem["shipment_ticket"],
+                        "pod_path" => $podItem["pod_path"],
+                        "pod_name" => $podItem["pod_name"],
+                        "create_date" => Library::_getInstance()->date_format($podItem["create_date"])
+                    );
+                }
+            }*/
         }
-
+        //print_r($items);
         foreach($items as $item){
             foreach($item as $data){
+                $data["pod_info"] = $this->modelObj->getShipmentPodInfo($data["shipment_ticket"], $data["code"]);
+                //print_r($data);die;
                 array_push($records, $data);
             }
         }
+        //print_r($records);die;
         return $records;
     }
 
