@@ -758,7 +758,6 @@ final class Nextday extends Booking
 
         $collectionDateTimeObj = $carrierBusinessDay->_findBusinessDay(new DateTime($collection_date_time), 0 , $this->_param->service_opted->carrier_info->code);
         $collection_date_time = $collectionDateTimeObj->format('Y-m-d');
-
         foreach($this->_param->collection as $key => $item)
             {
             $execution_order++;

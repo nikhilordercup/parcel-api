@@ -342,7 +342,17 @@ class allShipments extends Icargo
     {
         $dropTrackinginfo           = array();
         $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
-		    $parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
+		$parcelData            = $this->modelObj->getAllParcelsByIdentity($identity);
+		$temp = array();
+		$parcelInfo = array();
+		foreach($parcelData as $data){
+			$temp[$data['parcel_height'].$data['parcel_length'].$data['parcel_width']][$data['package']][$data['parcel_weight']] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package']);
+		}
+		
+		foreach($temp as $data){
+			$parcelInfo['package'][] = $data;
+		}
+		
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
@@ -454,7 +464,7 @@ class allShipments extends Icargo
             'trackinginfo' => $dropTrackinginfo,
             'shipmentTrackinginfo' => $shipmentTrackinginfo,
             'podinfo' => $podinfo,
-			      'parcelInfo'=>$parcelInfo
+			'parcelInfo'=>$parcelInfo
         );
     }
 
@@ -1894,15 +1904,15 @@ class allShipments extends Icargo
         $userId             = $param->user;
         if(is_array($param->job_identity) && count($param->job_identity)>0){
           foreach($param->job_identity as $valdata){
-
              $shipment_type =  $this->modelObj->getShipmentsType($valdata);
              if($shipment_type and $shipment_type['shipment_type']!=''){
                 if($shipment_type['shipment_type']=='NEXT'){
+					$carrier_code = $this->modelObj->getCarrierByLoadIdentity($valdata);
                     $tempdata = array();
                     $tempdata['load_identity']  = $valdata;
-                    $tempdata['carrier']        = $shipment_type['code'];
+                    $tempdata['carrier']        = $carrier_code;//$shipment_type['code'];
                     $tempdata['ship_date']      = date('Y-m-d',strtotime($shipment_type['booking_date']));
-                    $tempdata['carrier_code']   = $shipment_type['code'];
+                    $tempdata['carrier_code']   = $carrier_code;//$shipment_type['code'];
                     $courierStatus = $this->cancelShipmentByLoadIdentity((object)$tempdata);
                     if($courierStatus['status']!='error'){
                         $returnData[]       = $param->job_identity[0];

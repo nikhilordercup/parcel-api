@@ -1507,10 +1507,10 @@ class shipment extends Library{
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
 
             $address_id = $this->_getAddressBySearchStringAndCustomerId($address["customer_id"], $data["search_string"]);
+
 			if($address['address_origin']=='api'){
 				$data["version_id"] = "version_1";
 				$address_id = $this->db->save("address_book", $data);
-
 			}else{
 				if(!$address_id){
 					if(($address_op===null) OR ($address_op=="add")){
@@ -1522,6 +1522,7 @@ class shipment extends Library{
 					}
 				}
 			}
+			
 			return array("status"=>"success", "address_id"=>$address_id);
 			/* else{
 

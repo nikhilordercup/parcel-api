@@ -1368,16 +1368,13 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
         $img_file = realpath(dirname(dirname(dirname(dirname(__FILE__))))).'/assets/logo/'.$companydata['logo'];
         $imgData = base64_encode(file_get_contents($img_file));
         $src = 'data:'.mime_content_type($img_file).';charset=binary;base64,'.$imgData;
-
-
-
-
+        
         foreach($customerdata as $key=>$val){
             $customerdata[$key] = !empty($val)?$val:'NA';
         }
         $pdfData   = array();
+        $ammountBucket = array('creditBucket'=>array(),'debitBucket'=>array());
         if(count($data)>0){
-            $ammountBucket = array('creditBucket'=>array(),'debitBucket'=>array());
             foreach($data as $key=>$value){
               if($value['payment_for'] == 'RECHARGE'){
                     $temp = array();
@@ -1392,10 +1389,10 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
                     $temp['reference2']         = 'NA';
                     $temp['service_name']       = 'NA';
                     $temp['customer_booking_reference'] = $value['payment_reference'];
-                    $temp['base_amount']        = 0.00;
+                    $temp['base_amount']        = '0.00';
                     $temp['surcharge_total']    = 0.00;
                     $temp['fual_surcharge']     = 0.00;
-                    $temp['tax']                = 0.00;
+                    $temp['tax']                = '0.00';
                     $temp['total']              = $value['amount'];
                     if($value['payment_type']=='DEBIT'){
                         $ammountBucket['debitBucket'][] = $value['amount'];
@@ -1423,13 +1420,13 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
                 $temp['reference2']         = (isset($shipmentDetails['reference2']) && $shipmentDetails['reference1']!='')?$shipmentDetails['reference2']:'NA';
                 $temp['invoice_type']       = $value['payment_for'];
                 $temp['transaction']        = $value['payment_type'];
-                $temp['chargable_value']    = $shipmentDetails['chargable_value'];
-                $temp['service_name']       = $shipmentDetails['service_name'];
-                $temp['customer_booking_reference'] = $shipmentDetails['customer_booking_reference'];
-                $temp['base_amount']        =  $shipmentDetails['base_amount'];
+                $temp['chargable_value']    = isset($shipmentDetails['chargable_value'])?$shipmentDetails['chargable_value']:'0';
+                $temp['service_name']       = isset($shipmentDetails['service_name'])?$shipmentDetails['service_name']:'NA';
+                $temp['customer_booking_reference'] = isset($shipmentDetails['customer_booking_reference'])?$shipmentDetails['customer_booking_reference']:'NA';
+                $temp['base_amount']        =  isset($shipmentDetails['base_amount'])?$shipmentDetails['base_amount']:'0';
                 $temp['fual_surcharge']     =  isset($shipmentDetails['fual_surcharge'])?$shipmentDetails['fual_surcharge']:0;
                 $temp['surcharge_total']    =  ($shipmentDetails['surcharge_total']-$temp['fual_surcharge']);
-                $temp['tax']                =  $shipmentDetails['tax'];
+                $temp['tax']                =  isset($shipmentDetails['tax'])?$shipmentDetails['tax']:'0';
                 $temp['total']              =  ($temp['base_amount']+$temp['surcharge_total']+$temp['fual_surcharge']+$temp['tax']);
                 if($value['payment_type']=='DEBIT'){
                         $ammountBucket['debitBucket'][] = $value['amount'];

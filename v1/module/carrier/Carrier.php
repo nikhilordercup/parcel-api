@@ -33,7 +33,7 @@ class Carrier{
                 if( strtolower($deliveryCarrier) == 'dhl' ) {
                     $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
                 } else {
-                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity);
+                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
                 }
 
 
@@ -201,10 +201,10 @@ class Carrier{
 			$labelArr = json_decode($labelInfo[0]['label_json']);
 
 			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
-            $requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,
-												/* 'authentication_token_created_at'=>$labelArr->label->authenticationtoken_created_at, */'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber);
+			$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>'','token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
+            //$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
 
-			$requestArr['carrier'] = $param->carrier;
+			$requestArr['carrier'] = strtolower($param->carrier);
 			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
 			$requestArr['carrier_cancel_return'] = false;
 			$requestArr['ship_date'] = $param->ship_date;

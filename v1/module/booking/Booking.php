@@ -137,20 +137,7 @@ class Booking extends Icargo
 					$param["version_id"] = "version_".($version[1]+1);
 					return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
 				}
-			}
-			
-            /* if(!$addressVersion["version_id"]) {
-                $param["version_id"] = "version_1";
-				$address_id = $this->modelObj->saveAddress($param);
-				return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
-            }
-            else{
-                $version = explode("_", $addressVersion['version_id']);
-                $param["version_id"] = "version_".($version[1]+1);
-				return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
-            }
-            //$address_id = $this->modelObj->saveAddress($param);
-            //return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param); */
+			} 
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
@@ -309,7 +296,8 @@ class Booking extends Icargo
 
         $parcelData['package']       = $parcel->package_code;
         $parcelData['parcel_ticket'] = $parcelTicketNumber;
-        $parcelData['parcel_weight'] = $parcel->weight;
+        $parcelData['parcel_weight'] = round($parcel->weight/$parcel->quantity,2);
+		$parcelData['total_weight'] =  $parcel->weight;
         $parcelData['parcel_height'] = $parcel->height;
         $parcelData['parcel_length'] = $parcel->length;
         $parcelData['parcel_width']  = $parcel->width;
