@@ -8,6 +8,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
     public function __construct()
     {
         $this->modelObj = new Booking_Model_Booking();
+        $this->libObj = new Library();
     }
 
 
@@ -29,8 +30,8 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 
             $label_path = "../label";
 			$this->labelPath = "$label_path/$loadIdentity/ukmail";
-
-			$fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST']."/".LABEL_URL;
+      $fileUrl = $this->libObj->get_api_url();//.LABEL_URL;
+			//$fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST']."/".LABEL_URL;
 
             if (!file_exists("$label_path/$loadIdentity/ukmail/")) {
                 $oldmask = umask(0);
