@@ -108,8 +108,8 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
     {
         $response     = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
-        
-		foreach($allData as $key=>$data){
+
+		/*foreach($allData as $key=>$data){
 			if($key=='collection'){
 				foreach($data as $collectionData){
 					$response['from']      = array(
@@ -151,10 +151,10 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 			$response['carrier'] = $data['carrier_code'];
 			$response['ship_date'] = $data['shipment_required_service_date'];
 			$carrierAccountNumber = $data["carrier_account_number"];
-		}
-		
-		
-        /* foreach ($shipmentInfo as $key => $data) {
+		}*/
+
+
+         foreach ($shipmentInfo as $key => $data) {
             if ($data['shipment_service_type'] == 'P') {
                 $response['from']      = array(
                     "name" => $data["shipment_customer_name"],
@@ -194,7 +194,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
                 $carrierAccountNumber = $data["carrier_account_number"];
                 //$response['ship_date'] = $data['shipment_required_service_date'];
             }
-        } */
+        }
         $response['package']     = $this->getPackageInfo($loadIdentity);
         $serviceInfo             = $this->getServiceInfo($loadIdentity);
 		$delivery_instruction    = $this->modelObj->getDeliveryInstructionByLoadIdentity($loadIdentity);
@@ -225,7 +225,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             "extended_cover_required" => isset($allData->is_insured) ? $allData->insurance_amount : "",
             "invoice_type" => ""
         );
-        
+
 		$response['currency'] = isset($serviceInfo['currency']) && !empty($serviceInfo['currency']) ? $serviceInfo['currency'] : 'GBP';
 		$response['insurance'] = array('value' => (isset($allData->is_insured) ? $allData->insurance_amount : 0) , 'currency' => $response['currency'], 'insurer' => '');
         $response['constants']       = array(

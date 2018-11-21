@@ -97,6 +97,8 @@ class Booking extends Icargo
             $param["last_name"]     = "";
             $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
             $param["phone"]    	    = (isset($data->phone)) ? $data->phone : "";
+            $param["name"]          = (isset($data->name)) ? $data->name : "";
+            $param["email"]         = (isset($data->email)) ? $data->email : "";
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = (isset($data->company_name)) ? $data->company_name : "";
 
@@ -117,7 +119,7 @@ class Booking extends Icargo
 
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
 
-			if($data->address_origin=='api'){
+			if(isset($data->address_origin) and $data->address_origin=='api'){
 				$param["version_id"] = "version_1";
 				$address_id = $this->modelObj->saveAddress($param);
 				return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);

@@ -721,7 +721,7 @@ class AllShipment_Model
     }
 
     public function getAllShipmentTicket($filter, $start, $end){
-        $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS load_Identity FROM " . DB_PREFIX . "shipment AS S";
+        $sql = "SELECT S.instaDispatch_loadIdentity AS load_Identity FROM " . DB_PREFIX . "shipment AS S";
         $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=S.instaDispatch_loadIdentity";
         $sql .= " WHERE $filter ";
         $sql .= " AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')";
