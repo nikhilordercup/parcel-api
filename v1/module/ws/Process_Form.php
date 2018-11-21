@@ -337,7 +337,8 @@ class Process_Form
                 return array(
                     'message' => "Shipment($ticket) Already Processed By Controller",
                     'success' => true,
-                    'status' => "success"
+                    'status' => "success",
+                    'pod_status' => array()
                 );
             }
             return array(
