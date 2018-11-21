@@ -268,7 +268,8 @@ class Process_Form
                         'grid_data' => $gridData,
                         'left' => $checkMoreShipmentofthisRouteDriver,
                         'ticket' => $ticket,
-                        'timestamp' => microtime(true)
+                        'timestamp' => microtime(true),
+                        'pod_status' => array()
                     );
                 }
                 return array(
@@ -278,7 +279,8 @@ class Process_Form
                     'grid_data' => $gridData,
                     'left' => $checkMoreShipmentofthisRouteDriver,
                     'ticket' => $ticket,
-                    'timestamp' => microtime(true)
+                    'timestamp' => microtime(true),
+                    'pod_status' => array()
                 );
             }
         } else {
