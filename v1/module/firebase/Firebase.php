@@ -106,6 +106,7 @@ class Firebase{
 
         foreach($shipments as $key => $shipment){
             $drop = $this->_getRouteDrop(array("postcode"=>$shipment['shipment_postcode'],"address_1"=>$shipment['shipment_address1']), true);
+            $companyId = $shipment["company_id"];
 
             $drop = str_replace('/','', $drop);
 
@@ -194,6 +195,7 @@ class Firebase{
             $temp[$drop]['disputedate']                     = $this->_formate_date($shipment['disputedate'], 'Y-m-d');
             $temp[$drop]['driver_pickuptime']               = $this->_formate_date($shipment['driver_pickuptime'], 'Y-m-d H:i:s');
             $temp[$drop]['warehousereceived_date']          = $this->_formate_date($shipment['warehousereceived_date'], 'Y-m-d H:i:s');
+            $temp[$drop]['shipment_company_name']           = $this->_findCompanyName($companyId);
         }
         unset($temp1);
         array_multisort(
@@ -272,6 +274,11 @@ class Firebase{
     protected function _getJobCountByShipmentRouteId()
     {
         return $this->modelObj->getJobCountByShipmentRouteId($this->_getRouteId());
+    }
+
+    private function _findCompanyName($company_id){
+        $data = $this->modelObj->getUserById($company_id);
+        return $data["name"];
     }
 }
 ?>
