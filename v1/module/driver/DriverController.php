@@ -1,5 +1,4 @@
 <?php
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -31,31 +30,31 @@ class DriverController{
      * Register routes for driver data
      * @param type $app
      */
-    public static function initRoutes($app) {        
-        
-        $app->post('/fetchDayRoutes', function() use ($app) { 
+    public static function initRoutes($app) {
+
+        $app->post('/fetchDayRoutes', function() use ($app) {
             $self = new DriverController($app);
-            $r = json_decode($app->request->getBody()); 
+            $r = json_decode($app->request->getBody());
             verifyRequiredParams(array('access_token'), $r);
             $data=$self->getDayRoutes( $r->company_id, $r->route_date);
             echoResponse(200, array('result'=>'success','message'=> json_encode($data)));
         });
-        
-        $app->post('/saveUpdatedRoute', function() use ($app) { 
+
+        $app->post('/saveUpdatedRoute', function() use ($app) {
             $self = new DriverController($app);
-            $r = json_decode($app->request->getBody()); 
+            $r = json_decode($app->request->getBody());
             verifyRequiredParams(array('access_token'), $r);
             $self->saveUpdatedRoute( $r->model);
             echoResponse(200, array('result'=>'success','message'=> "Saved!"));
         });
-       
+
     }
 
     /**
      * Fetch All Driver List
      */
     public function getAllDrivers($companyId) {
-        $sql = "SELECT U.* FROM `" . DB_PREFIX . "users` AS U JOIN " . DB_PREFIX . "company_users  AS CU ON U.id=CU.user_id 
+        $sql = "SELECT U.* FROM `" . DB_PREFIX . "users` AS U JOIN " . DB_PREFIX . "company_users  AS CU ON U.id=CU.user_id
 WHERE  user_level=4 AND CU.company_id=$companyId";
     }
 
@@ -63,7 +62,7 @@ WHERE  user_level=4 AND CU.company_id=$companyId";
      * Fetch All Active Drivers
      */
     public function getActiveDrivers($companyId) {
-        $sql = "SELECT U.* FROM `" . DB_PREFIX . "users` AS U JOIN " . DB_PREFIX . "company_users  AS CU ON U.id=CU.user_id 
+        $sql = "SELECT U.* FROM `" . DB_PREFIX . "users` AS U JOIN " . DB_PREFIX . "company_users  AS CU ON U.id=CU.user_id
 WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId";
     }
 
@@ -71,7 +70,7 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
      * Fetch all assigned routes for active drivers.
      */
     public function getActiveDriverRoutes() {
-        
+
     }
 
     /**
@@ -94,7 +93,7 @@ WHERE device_token_id IS NOT NULL AND user_level=4 AND CU.company_id=$companyId"
                 if($r['shipment_route_id']==$s['shipment_routed_id']){
                     $rec[$k]['shipments'][$index]=$s;
                     $index++;
-                }                
+                }
             }
         }
         return $rec;

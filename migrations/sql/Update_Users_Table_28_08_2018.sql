@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_users` CHANGE `phone` `phone` VARCHAR(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL;

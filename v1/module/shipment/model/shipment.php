@@ -85,13 +85,13 @@ class Shipment_Model
                 R1.shipment_service_type as service_type,R1.is_receivedinwarehouse as in_warehouse,R1.shipment_postcode as postcode,
                 R1.shipment_customer_name as consignee_name';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1
-            
-             WHERE R1.shipment_routed_id  = '" . $routeId . "' 
-             AND R1.warehouse_id  = '" . $whareHouseId . "' 
-             AND R1.company_id  = '" . $componyId . "' 
-             AND (R1.is_driver_accept  = 'Pending' OR R1.is_driver_accept  = 'YES')  
+
+             WHERE R1.shipment_routed_id  = '" . $routeId . "'
+             AND R1.warehouse_id  = '" . $whareHouseId . "'
+             AND R1.company_id  = '" . $componyId . "'
+             AND (R1.is_driver_accept  = 'Pending' OR R1.is_driver_accept  = 'YES')
              AND (R1.current_status  = 'O' OR R1.current_status  = 'D' OR R1.current_status  = 'Ca' OR R1.current_status  = 'S'  )";
-        
+
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -107,11 +107,11 @@ class Shipment_Model
                 CA.shipment_service_type as service_type,CA.is_receivedinwarehouse as in_warehouse,CA.shipment_postcode as postcode, CA.shipment_address1 AS address1, CA.shipment_customer_name AS consignee_name, CA.icargo_execution_order AS execution_order, CA.current_status';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "driver_shipment AS R1
              INNER JOIN " . DB_PREFIX . "shipment AS CA  ON R1.shipment_ticket = CA.shipment_ticket
-             WHERE R1.shipment_route_id  = '" . $routeId . "' 
-             AND CA.warehouse_id  = '" . $whareHouseId . "' 
-             AND CA.company_id  = '" . $componyId . "' 
-             AND CA.shipment_ticket  = '" . $ticket . "' 
-             AND (R1.shipment_accepted  = 'Pending' OR R1.shipment_accepted  = 'YES')  
+             WHERE R1.shipment_route_id  = '" . $routeId . "'
+             AND CA.warehouse_id  = '" . $whareHouseId . "'
+             AND CA.company_id  = '" . $componyId . "'
+             AND CA.shipment_ticket  = '" . $ticket . "'
+             AND (R1.shipment_accepted  = 'Pending' OR R1.shipment_accepted  = 'YES')
              AND (CA.current_status  = 'O' OR CA.current_status  = 'D' OR CA.current_status  = 'Ca'  )";
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -127,10 +127,10 @@ class Shipment_Model
                 CA.shipment_assigned_service_time as service_time,CA.shipment_total_weight as weight,CA.shipment_ticket as shipment_ticket,
                 CA.shipment_service_type as service_type,CA.is_receivedinwarehouse as in_warehouse,CA.shipment_postcode as postcode,CA.shipment_customer_name as consignee_name';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS CA
-             WHERE CA.shipment_routed_id  = '" . $routeId . "' 
-             AND CA.warehouse_id  = '" . $whareHouseId . "' 
-             AND CA.company_id  = '" . $componyId . "' 
-             AND (CA.is_shipment_routed  = '1')  
+             WHERE CA.shipment_routed_id  = '" . $routeId . "'
+             AND CA.warehouse_id  = '" . $whareHouseId . "'
+             AND CA.company_id  = '" . $componyId . "'
+             AND (CA.is_shipment_routed  = '1')
              AND CA.current_status  = 'S'";
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -189,7 +189,7 @@ class Shipment_Model
         t1.`shipment_routed_id`,t1.`company_id`,t1.`warehouse_id`,t1.`shipment_ticket`,'Assigned',t1.`shipment_latitude`,
         t1.`shipment_longitude`,t1.`icargo_execution_order`,t1.`shipment_total_item`";
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS t1
-               
+
                 WHERE current_status = 'D' AND is_driver_assigned = '1' AND shipment_routed_id!=0 AND company_id = '" . $company_id . "' ORDER BY `shipment_routed_id`,`shipment_executionOrder`";;
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -263,7 +263,7 @@ class Shipment_Model
                    R2.name,R3.route_name';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1
                 LEFT JOIN " . DB_PREFIX . "shipments_parcel AS R0  ON R0.shipment_ticket = R1.shipment_ticket
-                LEFT JOIN " . DB_PREFIX . "users AS R2 ON R1.assigned_driver = R2.id 
+                LEFT JOIN " . DB_PREFIX . "users AS R2 ON R1.assigned_driver = R2.id
                 LEFT JOIN " . DB_PREFIX . "shipment_route AS R3  ON R1.shipment_routed_id = R3.shipment_route_id
                 WHERE R1.shipment_ticket  IN( " . $ticket . ") AND R2.user_level= 4";
         $record = $this->db->getAllRecords($sql);
@@ -286,7 +286,7 @@ class Shipment_Model
         $record = array();
         $sqldata = 'R1.*';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1
-               WHERE R1.shipment_ticket IN(" . $ticket . ") AND (R1.current_status = 'O' OR R1.current_status  = 'Ca') 
+               WHERE R1.shipment_ticket IN(" . $ticket . ") AND (R1.current_status = 'O' OR R1.current_status  = 'Ca')
                AND is_receivedinwarehouse = 'YES'";
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -304,15 +304,15 @@ class Shipment_Model
                    CA.shipment_required_service_date,CA.shipment_required_service_starttime,CA.shipment_required_service_endtime,
                    CA.shipment_postcode';
         $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "driver_shipment AS R1
-                    
-                    LEFT JOIN " . DB_PREFIX . "users AS R2 ON R1.driver_id = R2.id 
+
+                    LEFT JOIN " . DB_PREFIX . "users AS R2 ON R1.driver_id = R2.id
                     LEFT JOIN " . DB_PREFIX . "shipment_route AS R3  ON R1.shipment_route_id = R3.shipment_route_id
                     LEFT JOIN " . DB_PREFIX . "shipment AS CA ON R1.shipment_ticket = CA.shipment_ticket
-                    WHERE R1.driver_id = " . $driverId . "  
-                    AND R1.shipment_route_id = " . $routeid . " 
-                    AND  R1.shipment_accepted  != 'Release'  
-                    AND CA.is_receivedinwarehouse = 'YES'  
-                    AND (CA.current_status = 'O' || CA.current_status  = 'Ca') 
+                    WHERE R1.driver_id = " . $driverId . "
+                    AND R1.shipment_route_id = " . $routeid . "
+                    AND  R1.shipment_accepted  != 'Release'
+                    AND CA.is_receivedinwarehouse = 'YES'
+                    AND (CA.current_status = 'O' || CA.current_status  = 'Ca')
                     ORDER BY R1.execution_order";
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -337,8 +337,8 @@ class Shipment_Model
         {
         $sql = "SELECT COUNT(1) as num FROM " . DB_PREFIX . "driver_shipment AS R1
                 LEFT JOIN " . DB_PREFIX . "shipment AS R2  ON R1.shipment_ticket = R2.shipment_ticket
-                WHERE R1.shipment_route_id = " . $routeId . " 
-                AND R1.driver_id = " . $driver . " 
+                WHERE R1.shipment_route_id = " . $routeId . "
+                AND R1.driver_id = " . $driver . "
                 AND R1.is_driveraction_complete = 'N'";
         $record = $this->db->getOneRecord($sql);
         return $record['num'];
@@ -350,8 +350,8 @@ class Shipment_Model
         {
         $sql = "SELECT count(1) as num FROM " . DB_PREFIX . "driver_shipment AS R1
                 LEFT JOIN " . DB_PREFIX . "shipment AS R2  ON R1.shipment_ticket = R2.shipment_ticket
-                WHERE R1.shipment_route_id = " . $routeId . " 
-                AND R1.driver_id = " . $driver . " 
+                WHERE R1.shipment_route_id = " . $routeId . "
+                AND R1.driver_id = " . $driver . "
                 AND R1.is_driveraction_complete = 'N'
                 AND R2.is_receivedinwarehouse = 'YES'";
         $record = $this->db->getOneRecord($sql);
@@ -377,7 +377,7 @@ class Shipment_Model
         {
         $record = array();
         $sqldata = 'R1.shipment_ticket,R1.shipment_service_type,R1.shipment_total_attempt,R1.current_status,R1.is_shipment_routed,R1.shipment_routed_id,R1.is_driver_assigned,R1.is_driver_accept,R1.assigned_driver,R1.assigned_vehicle,R1.last_history_id,R2.execution_order,R2.distancemiles,R2.estimatedtime,R1.shipment_postcode,R1.shipment_address1,R1.shipment_address2,R1.shipment_address3';
-        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1 
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS R1
         LEFT JOIN " . DB_PREFIX . "driver_shipment AS R2  ON R1.shipment_ticket = R2.shipment_ticket WHERE R1.shipment_ticket IN('$ticket')";
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -580,8 +580,8 @@ class Shipment_Model
 
     function getCompletedRouteShipmentDetailsByShipmentRouteIdAndSearchDate($company_id, $search_date, $warehouse_id)
         {
-        $sql = "SELECT RT.route_name, RT.assign_start_time, RT.shipment_route_id, UT.name AS assigned_driver, RT.completed_date AS service_date FROM " . DB_PREFIX . "shipment_route AS RT 
-        INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=RT.driver_id 
+        $sql = "SELECT RT.route_name, RT.assign_start_time, RT.shipment_route_id, UT.name AS assigned_driver, RT.completed_date AS service_date FROM " . DB_PREFIX . "shipment_route AS RT
+        INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=RT.driver_id
         WHERE DATE_FORMAT(RT.completed_date,\"%Y-%m-%d\") = '$search_date' AND company_id = '$company_id' AND warehouse_id = '$warehouse_id'";
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -592,7 +592,7 @@ class Shipment_Model
     function getShipmentsByShipmentRouteId($shipment_route_id)
         {
         $sql = "SELECT ST.customer_id,ST.shipment_postcode AS postcode, ST.shipment_address1 AS address_line1, ST.shipment_latitude AS latitude, ST.shipment_longitude AS longitude, ST.shipment_id, ST.instaDispatch_loadGroupTypeCode, ST.shipment_ticket, ST.`icargo_execution_order`, ST.`shipment_service_type` FROM " . DB_PREFIX . "shipment AS ST
-               WHERE ST.shipment_routed_id = '$shipment_route_id' ORDER BY shipment_executionOrder";	   
+               WHERE ST.shipment_routed_id = '$shipment_route_id' ORDER BY shipment_executionOrder";
         $records = $this->db->getAllRecords($sql);
         return $records;
         }
@@ -629,7 +629,7 @@ class Shipment_Model
 
     function getShipmentDetailsByShipmentTicket($ticket)
         {
-        
+
 	$sql = "SELECT R1.shipment_ticket,R1.shipment_service_type,R1.shipment_total_attempt,R1.current_status,R1.is_shipment_routed,R1.shipment_routed_id,R1.is_driver_assigned,R1.is_driver_accept,R1.assigned_driver,R1.assigned_vehicle,R1.last_history_id,R1.distancemiles,R1.estimatedtime,R1.shipment_postcode AS shipment_postcode,R1.shipment_address1 AS shipment_address1,R1.shipment_address2 AS shipment_address2,R1.shipment_address3 FROM " . DB_PREFIX . "shipment AS R1 WHERE R1.shipment_ticket IN('$ticket')";
         $record = $this->db->getAllRecords($sql);
         return $record;
@@ -706,20 +706,43 @@ class Shipment_Model
 
     public
 
+    function copyAndSaveRoute($shipment_route_id){
+        $sql = "INSERT INTO `".DB_PREFIX."shipment_route`(route_id,custom_route,route_name,create_date,is_active,assign_start_time,estimated_job_time,actual_start_time,is_optimized,optimized_type,last_optimized_time,status,comment,company_id,warehouse_id,is_route_rejected,service_date,completed_date,event_code,route_type) SELECT route_id,custom_route,route_name,create_date,is_active,assign_start_time,estimated_job_time,actual_start_time,is_optimized,optimized_type,last_optimized_time,status,comment,company_id,warehouse_id,is_route_rejected,service_date,completed_date,event_code,route_type FROM `".DB_PREFIX."shipment_route` WHERE shipment_route_id = '$shipment_route_id'";
+        return $this->db->executeQuery($sql);
+    }
+
+    public
+
+    function reAssignShipmentRoute($shipment_ticket,$shipment_route_id){
+        return $this->db->update("shipment", array(
+            "shipment_routed_id"=>"$shipment_route_id"
+        ), "shipment_ticket LIKE '$shipment_ticket'");
+    }
+
+    public
+
+    function makeCopiedRoutective($new_route_id){
+        return $this->db->update("shipment_route", array(
+            "is_active"=>"Y"
+        ), "shipment_route_id = '$new_route_id'");
+    }
+
+    public
+
     function releaseShipmentFromRoute($shipment_route_id){
         return $this->db->update("shipment_route", array(
             "assign_start_time"=>"00:00:00",
             "actual_start_time"=>"00:00:00",
             "is_current"=>"N",
-            "driver_accepted"=>"0",
-            "is_route_started"=>"0",
-            "driver_id"=>"0",
-            "is_active"=>"Y",
+            //"driver_accepted"=>"0",
+            //"is_route_started"=>"0",
+            //"driver_id"=>"0",
+            "is_active"=>"N",
             "status"=>"1"
         ), "shipment_route_id = '$shipment_route_id'");
     }
 
-    public function saveUserCredentialInfo($param, $user_id){        
+    public function saveUserCredentialInfo($param, $user_id){
         return $this->db->update("users", array("device_token_id"=>$param["device_token_id"]), "id='$user_id'");
     }
 
@@ -762,7 +785,7 @@ class Shipment_Model
         $records = $this->db->getRowRecord($sql);
         return $records;
         }
-		
+
 	public
 
     function findAllUndeliveredShipmentOfRoute($routeId)
@@ -772,7 +795,7 @@ class Shipment_Model
         $records = $this->db->getAllRecords($sql);
         return $records;
         }
-		
+
 	public
 
     function findShipmentCurrentStatus($shipment_ticket)

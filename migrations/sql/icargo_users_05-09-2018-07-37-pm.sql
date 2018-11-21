@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_users` ADD `profile_image` VARCHAR(100) NULL COMMENT 'profile image' AFTER `device_token_id`, ADD `profile_path` VARCHAR(100) NULL COMMENT 'profile image relative path' AFTER `profile_image`;

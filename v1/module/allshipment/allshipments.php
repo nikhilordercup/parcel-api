@@ -14,129 +14,180 @@ class allShipments extends Icargo
 
     public function getallshipments($param)
     {
-        $html  = '';
-        $html2 = '';
-        $html3 = '';
+        $filterShipment = array();
+        if(isset($param->data)){
 
-        //$html .= isset($param->data->account)?' AND CI.accountnumber = "'.$param->data->account.'" ':'';
-        $html .= (isset($param->data->customer) && ($param->data->customer != '')) ? ' AND S.customer_id =  "' . $param->data->customer . '" ' : '';
+            if(isset($param->data->customer)){
+                if(!is_array($param->data->customer))
+                    $param->data->customer = array($param->data->customer);
 
-
-        $html .= (isset($param->warehouse_id) && ($param->warehouse_id > 0) && ($param->warehouse_id != '')) ? ' AND S.warehouse_id = "' . $param->warehouse_id . '" ' : '';
-
-
-        $html .= (isset($param->data->job_identity) && ($param->data->job_identity != '')) ? ' AND S.instaDispatch_loadIdentity = "' . $param->data->job_identity . '" ' : '';
-
-
-        $html .= (isset($param->data->job_type) && ($param->data->job_type != '')) ? ' AND S.shipment_type = "' . $param->data->job_type . '" ' : '';
-
-
-        $html .= (isset($param->data->booking_date) && ($param->data->booking_date != '')) ? ' AND S.booking_date =  "' . $param->data->booking_date . '" ' : '';
-
-        if (isset($param->data->globalbookingdatefilter) && ($param->data->globalbookingdatefilter != '')) {
-            $dates = explode('/', $param->data->globalbookingdatefilter);
-        }
-
-        $html .= (isset($param->data->globalbookingdatefilter) && ($param->data->globalbookingdatefilter != '')) ? 'AND (S.booking_date BETWEEN "' . $dates[0] . '" AND "' . $dates[1] . '")' : '';
-
-        $html .= (isset($param->data->carrier) && ($param->data->carrier != '')) ? ' AND S.carrier = "' . $param->data->carrier . '" ' : '';
-
-        $html .= (isset($param->data->booked_by) && ($param->data->booked_by != '')) ? ' AND S.booked_by = "' . $param->data->booked_by . '" ' : '';
-
-        $html .= (isset($param->data->amount) && ($param->data->amount != '')) ? ' AND S.amount =  ' . $param->data->amount . ' ' : '';
-
-        $html .= (isset($param->data->isInvoiced) && ($param->data->isInvoiced != '')) ? ' AND S.isInvoiced = "' . $param->data->isInvoiced . '" ' : '';
-
-
-        $html .= (isset($param->data->service) && ($param->data->service != '')) ? ' AND S.service_name = "' . $param->data->service . '" ' : '';
-
-
-
-        $html .= (isset($param->data->shipment_status) && ($param->data->shipment_status != 'select')) ? ' AND  S.tracking_code = "' . $param->data->shipment_status . '"' : '';
-
-        $html2 .= (isset($param->data->postcode) && ($param->data->postcode != '')) ? ' AND S.shipment_postcode LIKE "%' . $param->data->postcode . '%"' : '';
-
-        $html2 .= (isset($param->data->pickup_date) && ($param->data->pickup_date != '')) ? ' AND S.shipment_required_service_date =  "' . $param->data->pickup_date . '" AND S.shipment_service_type = "P"' : '';
-
-
-
-        if (isset($param->data->globalcollectiondatefilter) && ($param->data->globalcollectiondatefilter != '')) {
-            $dates2 = explode('/', $param->data->globalcollectiondatefilter);
-        }
-
-        $html2 .= (isset($param->data->globalcollectiondatefilter) && ($param->data->globalcollectiondatefilter != '')) ? 'AND (S.shipment_required_service_date BETWEEN "' . $dates2[0] . '" AND "' . $dates2[1] . '")' : '';
-
-
-        if ($html2 != '' && $html == '') { // Only Serch Two's Data coming
-            $identityarray     = array();
-            $limitstr          = "LIMIT " . $param->datalimitpre . ", " . $param->datalimitpost . "";
-            $shipmentsDataDrop = $this->modelObj->getAllShipmentsIdentity($html2, $limitstr);
-            foreach ($shipmentsDataDrop as $data) {
-                $identityarray[] = $data['instaDispatch_loadIdentity'];
-            }
-            $html3 .= " AND S.instaDispatch_loadIdentity  IN(" . '"' . implode('","', $identityarray) . '"' . ") ";
-
-            $shipmentsData = $this->modelObj->getAllShipments($html3);
-        }
-        if ($html2 == '' && $html != '') { // Only Serch One's Data coming
-            $identityarray = array();
-            $limitstr      = "LIMIT " . $param->datalimitpre . ", " . $param->datalimitpost . "";
-            $shipmentsData = $this->modelObj->getAllShipmentsDrop($param->warehouse_id, $param->company_id, $limitstr, $html);
-
-            foreach ($shipmentsData as $data) {
-                $identityarray[] = $data['instaDispatch_loadIdentity'];
-            }
-            $html3 .= " AND S.instaDispatch_loadIdentity  IN(" . '"' . implode('","', $identityarray) . '"' . ") ";
-            $shipmentsData = $this->modelObj->getAllShipments($html3 . $html2);
-
-        }
-        if ($html2 != '' && $html != '') { // Both Serch's Data coming
-            $seachoneBucketarray = array();
-            $seachtwoBucketarray = array();
-            $identityarray       = array();
-            $identityarray2      = array();
-            $limitstr            = "LIMIT " . $param->datalimitpre . ", " . $param->datalimitpost . "";
-            $seachoneBucket      = $this->modelObj->getAllShipmentsDrop($param->warehouse_id, $param->company_id, "", $html);
-            foreach ($seachoneBucket as $data) {
-                $seachoneBucketarray[] = $data['instaDispatch_loadIdentity'];
-            }
-            $seachtwoBucket = $this->modelObj->getAllShipmentsIdentity($html2, "");
-            foreach ($seachtwoBucket as $data) {
-                $seachtwoBucketarray[] = $data['instaDispatch_loadIdentity'];
-            }
-            $commondata = array_intersect($seachoneBucketarray, $seachtwoBucketarray);
-            $html31     = " AND S.instaDispatch_loadIdentity  IN(" . '"' . implode('","', $commondata) . '"' . ") ";
-
-            $shipmentsDataDrop = $this->modelObj->getAllShipmentsDrop($param->warehouse_id, $param->company_id, $limitstr, $html31);
-            foreach ($shipmentsDataDrop as $data) {
-                $identityarray[] = $data['instaDispatch_loadIdentity'];
+                $customer_id_string = implode("','", array_filter($param->data->customer));
+                $filterShipment["customer_filter"] = "S.customer_id IN('" . $customer_id_string . "')";
             }
 
-            $html3 .= " AND S.instaDispatch_loadIdentity  IN(" . '"' . implode('","', $identityarray) . '"' . ") ";
-            //$shipmentsData = $this->modelObj->getAllShipments($html3.$html2);
-            $shipmentsData = $this->modelObj->getAllShipments($html3);
-        }
-        if ($html2 == '' && $html == '') { // Both Serch's Data not coming
-            $limitstr      = "LIMIT " . $param->datalimitpre . ", " . $param->datalimitpost . "";
-            $shipmentsData = $this->modelObj->getAllShipmentsDrop($param->warehouse_id, $param->company_id, $limitstr, $html);
-
-
-
-            $identityarray = array();
-            foreach ($shipmentsData as $data) {
-                $identityarray[] = $data['instaDispatch_loadIdentity'];
+            if(isset($param->warehouse_id)){
+                $filterShipment["warehouse_filter"] = "S.warehouse_id = '" . $param->warehouse_id . "'";
             }
-            $html3 .= " AND S.instaDispatch_loadIdentity  IN(" . '"' . implode('","', $identityarray) . '"' . ") ";
-            $shipmentsData = $this->modelObj->getAllShipments($html3 . $html2);
+
+            if(isset($param->data->job_identity)){
+                $filterShipment["job_identity_filter"] = "S.instaDispatch_loadIdentity = '" . $param->data->job_identity . "'";
+            }
+
+            if(isset($param->data->job_type)){
+                $filterShipment["job_type_filter"] = "S.instaDispatch_loadGroupTypeCode = '" . $param->data->job_type . "'";
+            }
+
+            if(isset($param->data->carrier)){
+                if(!is_array($param->data->carrier))
+                    $param->data->carrier = array($param->data->carrier);
+
+                $carrier_string = implode("','", array_filter($param->data->carrier));
+                $filterShipment["carrier_filter"] = "S.carrier_code IN ('" . $carrier_string . "')";
+            }
+
+            if(isset($param->data->shipment_status)){
+                if(!is_array($param->data->shipment_status))
+                    $param->data->shipment_status = array($param->data->shipment_status);
+
+                $shipment_status_string = implode("','", array_filter($param->data->shipment_status));
+
+                $filterShipment["shipment_status_filter"] = "SST.tracking_code  IN('" . $shipment_status_string . "')";
+            }
+
+            if(isset($param->data->service)){
+                if(!is_array($param->data->service))
+                    $param->data->service = array($param->data->service);
+
+                $service_string = implode("','", $param->data->service);
+                $filterShipment["service_filter"] = "SST.service_name IN('$service_string')";
+            }
+
+            if(isset($param->data->globalbookingdatefilter)){
+                $data = explode("/", $param->data->globalbookingdatefilter);
+                $startDate = $data[0];
+                $endDate   = $data[1];
+                $filterShipment["booking_date_filter"] = "(S.shipment_create_date BETWEEN '$startDate' AND '$endDate')";
+            }
+
+            if(isset($param->data->globalcollectiondatefilter)){
+                $data = explode("/", $param->data->globalcollectiondatefilter);
+                $startDate = $data[0];
+                $endDate   = $data[1];
+                $filterShipment["collection_date_filter"] = "(S.shipment_required_service_date BETWEEN '$startDate' AND '$endDate')";
+            }
+
+            if(isset($param->data->isInvoiced)){
+                $filterShipment["invoice_filter"] = "SST.isInvoiced = '" . $param->data->isInvoiced . "'";
+            }
+
+            if(isset($param->company_id)){
+                $filterShipment["company_filter"] = "S.company_id = '" . $param->company_id . "'";
+            }
+
+            if(isset($param->data->collection_date_filter)){
+                if(isset($param->data->collection_date_filter->start_date) AND !empty($param->data->collection_date_filter->start_date)){
+                    $start_date = $param->data->collection_date_filter->start_date;
+
+                    if(!isset($param->data->collection_date_filter->end_date) OR empty($param->data->collection_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->collection_date_filter->end_date) AND !empty($param->data->collection_date_filter->end_date)){
+                    $end_date = $param->data->collection_date_filter->end_date;
+
+                    if(!isset($param->data->collection_date_filter->start_date) OR empty($param->data->collection_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["collection_date_filter"] = "(S.shipment_required_service_date BETWEEN '$start_date' AND '$end_date') AND S.shipment_service_type='P'";
+                }
+            }
+
+            if(isset($param->data->delivery_date_filter)){
+                if(isset($param->data->delivery_date_filter->start_date) AND !empty($param->data->delivery_date_filter->start_date)){
+                    $start_date = $param->data->delivery_date_filter->start_date;
+
+                    if(!isset($param->data->collection_date_filter->end_date) OR empty($param->data->delivery_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->delivery_date_filter->end_date) AND !empty($param->data->delivery_date_filter->end_date)){
+                    $end_date = $param->data->delivery_date_filter->end_date;
+
+                    if(!isset($param->data->delivery_date_filter->start_date) OR empty($param->data->delivery_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["delivery_date_filter"] = "(S.shipment_required_service_date BETWEEN '$start_date' AND '$end_date') AND S.shipment_service_type='D'";
+                }
+            }
+
+            if(isset($param->data->booking_date_filter)){
+                if(isset($param->data->booking_date_filter->start_date) AND !empty($param->data->booking_date_filter->start_date)){
+                    $start_date = $param->data->booking_date_filter->start_date;
+
+                    if(!isset($param->data->booking_date_filter->end_date) OR empty($param->data->booking_date_filter->end_date)){
+                        $end_date = $start_date;
+                    }
+                }
+
+                if(isset($param->data->booking_date_filter->end_date) AND !empty($param->data->booking_date_filter->end_date)){
+                    $end_date = $param->data->booking_date_filter->end_date;
+
+                    if(!isset($param->data->booking_date_filter->start_date) OR empty($param->data->booking_date_filter->start_date)){
+                        $start_date = $end_date;
+                    }
+                }
+                if(isset($start_date) AND isset($end_date)){
+                    $filterShipment["booking_date_filter"] = "(SST.create_date BETWEEN '$start_date' AND '$end_date')";
+                }
+            }
+
+            if(isset($param->data->postcode)){
+                $filterShipment["postcode_filter"] = "S.shipment_postcode = '" . $param->data->postcode . "'";
+            }
+
+            if(isset($param->data->amount) AND !empty($param->data->amount)){
+                $filterShipment["postcode_filter"] = "SST.grand_total = '" . $param->data->amount . "'";
+            }
+
+            if(isset($param->data->customer_reference1) AND !empty($param->data->customer_reference1)){
+                $filterShipment["customer_reference1_filter"] = "SST.customer_reference1 LIKE '%" . $param->data->customer_reference1 . "%'";
+            }
+
+            if(isset($param->data->customer_reference2) AND !empty($param->data->customer_reference2)){
+                $filterShipment["customer_reference2_filter"] = "SST.customer_reference2 LIKE '%" . $param->data->customer_reference2 . "%'";
+            }
+
         }
 
-        $shipmentsPrepareData = $this->_prepareShipments($shipmentsData);
-        return $shipmentsPrepareData;
+        $filterString = 1;
+        if(count($filterShipment)>0){
+            $filterString = implode(" AND ", $filterShipment);
+        }
+
+        $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
+
+        $filterLoadIdentity = array();
+
+        foreach($items as $item){
+            if(!in_array($item["load_Identity"], $filterLoadIdentity))
+                array_push($filterLoadIdentity, $item["load_Identity"]);
+        }
+        $loadIdentityString = implode("','", $filterLoadIdentity);
+
+        $shipmentsData = $this->modelObj->getAllShipments($loadIdentityString);
+        $shipmentsData = $this->_prepareShipments($shipmentsData);
+        return $shipmentsData;
     }
 
     private function _getCurrentTrackingStatusByLoadIdentity($load_identity){
         $currentTrackingStatus = $this->modelObj->getCurrentTrackingStatusByLoadIdentity($load_identity);
-        return $currentTrackingStatus["code_translation"]; 
+        return $currentTrackingStatus["code_translation"];
     }
 
     private function _prepareShipments($shipmentsData)
@@ -163,22 +214,27 @@ class allShipments extends Icargo
                             $data['account']            = $pickupData['shipment_customer_account'];
                             $data['service']            = $pickupData['shipment_service_name'];
                             $data['carrier']            = $pickupData['carrier'];
-							$data['carrier_icon']       = $pickupData['carrier_icon'];
+							              $data['carrier_icon']       = $pickupData['carrier_icon'];
                             $data['amount']             = $pickupData['shipment_customer_price'];
                             $data['booked_by']          = $pickupData['booked_by'];
                             $data['isInvoiced']         = $pickupData['isInvoiced'];
                             $data['is_hold']            = $pickupData['is_hold'];
                             $data['is_recurring']       = $pickupData['is_recurring'];
-                            $data['recurring']          = $pickupData['booked_by_recurring'];      
+                            $data['recurring']          = $pickupData['booked_by_recurring'];
                             $data['show']               = 'y';
                             $data['collectionpostcode'] = $pickupData['shipment_postcode'];
                             $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
-                            //$data['pickup_date']        = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
-                            $data['pickup_date']        = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
-							$data['create_date']        = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
-							$data['cancel_status']      = $pickupData['cancel_status'];
+                            $data['pickup_date']        = Library::_getInstance()->date_format($pickupData['shipment_required_service_date']) . '  ' . Library::_getInstance()->time_format($pickupData['shipment_required_service_starttime']);
+              							$data['create_date']        = Library::_getInstance()->date_format($pickupData['shipment_create_date']);
+              							$data['cancel_status']      = $pickupData['cancel_status'];
                             $data['collection_reference'] = "";
-                            $data['shipment_status']        = $pickupData['current_status'];
+                            $data['shipment_status']    = $pickupData['current_status'];
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]           = $pickupData['current_status'];
                         }
                     }
@@ -191,20 +247,8 @@ class allShipments extends Icargo
                         $lastDeliveryarray        = end($innerval['SAME']['D']);
                         $data['deliverypostcode'] = $lastDeliveryarray['shipment_postcode'];
                         $data['delivery']         = $lastDeliveryarray['shipment_postcode'] . ', ' . $lastDeliveryarray['shipment_customer_country'];
-                        //foreach ($innerval['SAME']['D'] as $deliverykey => $deliveryData) {
-                            //$shipmentstatus[] = $deliveryData['current_status'];
-                        //}
                     }
-                    /*$arrd = array_unique($shipmentstatus);
-                    if (count($arrd) > 1) {
-                        $data['shipment_status'] = 'Not Completed';
-                    } elseif (count($arrd) == 1) {
-                        if ($arrd[0] == 'D') {
-                            $data['shipment_status'] = 'Completed';
-                        } else {
-                            $data['shipment_status'] = 'Not Completed';
-                        }
-                    }*/
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
                     $returndata[] = $data;
                 }
                 if (key($innerval) == 'NEXT') {
@@ -212,17 +256,18 @@ class allShipments extends Icargo
                     if (array_key_exists('P', $innerval['NEXT'])) {
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
                             $labelArr = json_decode($pickupData['label_json']);
+
                             if(is_object($labelArr) && count( (array)$labelArr)>0){
-                                    $collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
+                                $collectionReference = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : $labelArr->label->tracking_number;
                             }else{
-                                    $collectionReference = "";
+                                $collectionReference = "";
                             }
 
                             $data['customer']    = $pickupData['shipment_customer_name'];
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
-                            $data['carrier']	 = $pickupData['carrier'];
-							$data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
+                            $data['carrier']	   = $pickupData['carrier'];
+							              $data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
                             $data['amount']      = $pickupData['shipment_customer_price'];
                             $data['booked_by']   = $pickupData['booked_by'];
                             $data['isInvoiced']  = $pickupData['isInvoiced'];
@@ -230,13 +275,17 @@ class allShipments extends Icargo
                             $data['is_recurring'] = $pickupData['is_recurring'];
                             $data['recurring']   = $pickupData['booked_by_recurring'];
                             $data['collection']  = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
-                            //$data['pickup_date'] = $pickupData['shipment_required_service_date'] . '  ' . $pickupData['shipment_required_service_starttime'];
                             $data['pickup_date'] = date("d/m/Y",strtotime($pickupData['shipment_required_service_date'])) . '  ' . $pickupData['shipment_required_service_starttime'];
 							$data['create_date'] = date("Y-m-d",strtotime($pickupData['shipment_create_date']));
 							$data['cancel_status'] = $pickupData['cancel_status'];
 							$data['shipment_status']        = $pickupData['current_status'];
                             $data['collection_reference'] = $collectionReference;
-							
+                            $data['customer_reference1']    = $pickupData['customer_reference1'];
+                            $data['customer_reference2']    = $pickupData['customer_reference2'];
+                            $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
+                            $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
+                            $data['tracking_no']        = $pickupData['tracking_no'];
+                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
                         }
                     }
@@ -250,21 +299,11 @@ class allShipments extends Icargo
                         krsort($deliveryPostcode);
                         $data['delivery'] = end($deliveryPostcode);
                     }
-                    /*$arrd = array_unique($shipmentstatus);
-                    if (count($arrd) > 1) {
-                        $data['shipment_status'] = 'Not Completed';
-                    } elseif (count($arrd) == 1) {
-                        if ($arrd[0] == 'D') {
-                            $data['shipment_status'] = 'Completed';
-                        } else {
-                            $data['shipment_status'] = 'Not Completed';
-                        }
-                    }*/
+                    $data['shipment_status'] = $this->_getCurrentTrackingStatusByLoadIdentity($data['job_identity']);
                     $returndata[] = $data;
                 }
             }
         }
-
         return $returndata;
     }
 
@@ -293,7 +332,7 @@ class allShipments extends Icargo
                 'trackinginfo' => $allInfo['trackinginfo'],
                 'shipmentTrackinginfo' => $allInfo['shipmentTrackinginfo'],
                 'podinfo' => $allInfo['podinfo'],
-				'parcelInfo'=>$allInfo['parcelInfo']
+				        'parcelInfo'=>$allInfo['parcelInfo']
             )
         );
     }
@@ -303,16 +342,24 @@ class allShipments extends Icargo
     {
         $dropTrackinginfo           = array();
         $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
-		$parcelInfo             = $this->modelObj->getAllParcelsByIdentity($identity);
+		$parcelData            = $this->modelObj->getAllParcelsByIdentity($identity);
+		$temp = array();
+		$parcelInfo = array();
+		foreach($parcelData as $data){
+			$temp[$data['parcel_height'].$data['parcel_length'].$data['parcel_width']][$data['package']][$data['parcel_weight']] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package']);
+		}
+
+		foreach($temp as $data){
+			$parcelInfo['package'][] = $data;
+		}
+
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $shipmentsPriceInfoData = $this->ManagePriceData($carrierPrice, $customerPrice);
-        //$trackinginfo           = $this->getShipmentsTrackingDetails($identity);
         $dropTrackinginfo       = $this->getDropTrackingDetails($identity);
         $shipmentTrackinginfo   = $this->getShipmentTrackingByLoadIdentity($identity);
 
-        //$shipmentsPriceInfoData = $this->ManagePriceData($this->modelObj->getShipmentsPriceDetail($identity,$shipmentsInfoData[0]['carrierid'],$shipmentsInfoData[0]['companyid'],$priceversion));
         $basicInfo = array();
         if (count($shipmentsInfoData) > 0) {
             $basicInfo['totaldrop']            = count($shipmentsInfoData);
@@ -354,6 +401,9 @@ class allShipments extends Icargo
             $basicInfo['insurencevalue']           = "N/A";
             $basicInfo['handcost']                 = "N/A";
             $basicInfo['flowtype']                 = "Domestic";
+
+            $basicInfo['customer_reference1']      = $shipmentsInfoData[0]['customer_reference1'];
+            $basicInfo['customer_reference2']      = $shipmentsInfoData[0]['customer_reference2'];
 
             $shipmentsurchargeData   = $this->modelObj->getShipmentsurchargeData($identity);
             $basicInfo['chargedata'] = array();
@@ -406,7 +456,8 @@ class allShipments extends Icargo
 
             }
         }
-        $podinfo = $this->getShipmentsPodDetails('"' . implode('","', $basicInfo['shipment_ticket']) . '"');
+        //$podinfo = $this->getShipmentsPodDetails('"' . implode('","', $basicInfo['shipment_ticket']) . '"');
+        $podinfo = $this->getShipmentsPodDetails(implode("','", $basicInfo['shipment_ticket']));
         return array(
             'basicInfo' => $basicInfo,
             'priceinfo' => $shipmentsPriceInfoData,
@@ -845,7 +896,7 @@ class allShipments extends Icargo
             $temp['surcharges']                    = 0;
             $temp['taxes']                         = 0;
             $temp['total_price']                   = 0;
-            $newPriceComponent      = array(); 
+            $newPriceComponent      = array();
             $taxPrice                              = $this->getTaxPrice($records);
             foreach ($records as $key => $data) {
                 if ($data['api_key'] == 'service') {
@@ -910,7 +961,7 @@ class allShipments extends Icargo
                 }else{
                     $dataarr['payment_reference']        = $param['job_identity'];
                     $dataarr['payment_desc']             = 'UPADTE SHIPMENT PRICE';
-                    $dataarr['payment_for']              = 'PRICECHANGE';   
+                    $dataarr['payment_for']              = 'PRICECHANGE';
     		 }
                 $accountUpdatestatus =  $this->manageAccount($dataarr);
                 }
@@ -1025,7 +1076,7 @@ class allShipments extends Icargo
         $temp['total_price'] = 0;
         $temp['taxes']       = 0;
         $taxPrice            = $this->getTaxPrice($records);
-        $newPriceComponent      = array(); 
+        $newPriceComponent      = array();
         foreach ($records as $data) {
             if ($data['api_key'] == 'service') {
                 $temp['base_price']               = $data['baseprice'];
@@ -1046,7 +1097,7 @@ class allShipments extends Icargo
         }
         if ($adddata) {
             $temp['grand_total'] = $temp['surcharges'] + $temp['total_price'] + $temp['taxes'];
-            if ($isInvoiced == 'YES') { 
+            if ($isInvoiced == 'YES') {
                 if ($temp['grand_total'] != $oldGrandTotal) {
                     $voucherHistoryid                  = $this->modelObj->getVoucherHistory($param['job_identity']);
                     $voucherdata                       = array();
@@ -1080,7 +1131,7 @@ class allShipments extends Icargo
                    $dataarr['amount']                   = (($temp['grand_total'] - $oldGrandTotal) > 0) ? ($temp['grand_total'] - $oldGrandTotal) :
                                                           ($oldGrandTotal - $temp['grand_total']);
                    $dataarr['customer_id']              = $customerId;
-                   $dataarr['company_id']               = $param['company_id'];  
+                   $dataarr['company_id']               = $param['company_id'];
                  if ($isInvoiced == 'YES') {
                     $dataarr['payment_reference']        = $voucherdata['voucher_reference'];
                     $dataarr['payment_desc']             = 'Voucher Apply against '.$param['job_identity'];
@@ -1088,11 +1139,11 @@ class allShipments extends Icargo
                    }else{
                     $dataarr['payment_reference']        = $param['job_identity'];
                     $dataarr['payment_desc']             = 'UPADTE SHIPMENT PRICE';
-                    $dataarr['payment_for']              = 'PRICECHANGE';   
+                    $dataarr['payment_for']              = 'PRICECHANGE';
                    }
                 $accountUpdatestatus =  $this->manageAccount($dataarr);
           }
-                
+
         }
         if ($status) {
             return array(
@@ -1162,34 +1213,58 @@ class allShipments extends Icargo
         );
     }
 
+    private function _getTrackingCodeNamePair(){
+        $items = $this->modelObj->getTrackingName();
+        $result = array();
+        foreach($items as $item)
+            $result[$item["code"]] = $item["code_text"];
+        return $result;
+    }
+
     public function getShipmentTrackingByLoadIdentity($identity){
         $shipmentLifeCycle = $this->modelObj->getShipmentTrackingByLoadIdentity($identity);
+        $codeNamePairs = $this->_getTrackingCodeNamePair();
+
         $records = array();
         foreach ($shipmentLifeCycle as $key => $dataVal) {
+            $podItems = $this->modelObj->getShipmentPodByShipmentTicket($dataVal["shipment_ticket"]);
+
+            $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
+
             $records[$dataVal["code"]]['load_identity']         = $dataVal["load_identity"];
             $records[$dataVal["code"]]['code']                  = $dataVal["code"];
-            $records[$dataVal["code"]]['code_text']             = $dataVal["code_text"];
-            $records[$dataVal["code"]]['shipment_service_type'] = ($dataVal['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+            $records[$dataVal["code"]]['code_text']             = $codeNamePairs[$dataVal["code"]];
             $records[$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
             $records[$dataVal["code"]]['create_time']           = date("H:i", strtotime($dataVal['create_date']));
             $records[$dataVal["code"]]['system_create_time']    = $dataVal['create_date'];
-            //$shipmentLifeCycle[$key]['is_custom_create']      = ($dataVal['is_custom_create'] == 0) ? 'false' : 'true';
+
+            $records[$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+
+            foreach($podItems as $podItem){
+                $records[$dataVal["code"]]['pod_info'][] = array(
+                    "shipment_ticket" => $podItem["shipment_ticket"],
+                    "pod_path" => $podItem["value"],
+                    "pod_name" => $podItem["pod_name"],
+                    "create_date" => Library::_getInstance()->date_format($podItem["create_date"])
+                );
+            }
         }
         return array_values($records);
     }
 
-   public function getDropTrackingDetails($identity){ 
+   public function getDropTrackingDetails($identity){
         $shipmentLifeCycle = $this->modelObj->getDropTrackingByLoadIdentity($identity);
 
         $items = array();
         $records = array();
+        $temp = array();
         foreach ($shipmentLifeCycle as $key => $dataVal) {
-            //$shipmentLifeCycle[$key]['shipment_service_type'] = "N/A";
-
-            $shipmentTicket = ($dataVal["shipment_ticket"]) ? $dataVal["shipment_ticket"] : 0 ;
+            $shipmentTicket = ($dataVal["shipment_ticket"]) ? $dataVal["shipment_ticket"] : $identity ;
+            $podItems = $this->modelObj->getShipmentPodByShipmentTicket($dataVal["shipment_ticket"]);
+            //$podItems = $this->modelObj->getShipmentPodInfo($dataVal["shipment_ticket"], $dataVal["code"]);
 
             $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = "N/A";
-            $items[$shipmentTicket][$dataVal["code"]]['shipment_ticket']       = $dataVal["shipment_ticket"];
+            $items[$shipmentTicket][$dataVal["code"]]['shipment_ticket']       = $shipmentTicket;//$dataVal["shipment_ticket"];
             $items[$shipmentTicket][$dataVal["code"]]['code']                  = $dataVal["code"];
             $items[$shipmentTicket][$dataVal["code"]]['code_text']             = $dataVal["code_text"];
             $items[$shipmentTicket][$dataVal["code"]]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
@@ -1200,25 +1275,39 @@ class allShipments extends Icargo
                 $items[$shipmentTicket][$dataVal["code"]]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
             }
 
-
-            /*if($dataVal["shipment_ticket"]){
-                $shipmentInfo = $this->modelObj->getShipmentInfoByShipmentTicket($dataVal["shipment_ticket"]);
-                $shipmentLifeCycle[$key]['shipment_service_type'] = ($shipmentInfo['shipment_service_type'] == 'P') ? 'Collection' : 'Delivery';
+            /*foreach($podItems as $podItem){
+                if(!isset($temp[$podItem["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]])){
+                    $temp[$podItem["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]] = true;
+                    $items[$podItem["shipment_ticket"]][$dataVal["code"]]['pod_info'][] = array(
+                        "shipment_ticket" => $podItem["shipment_ticket"],
+                        "pod_path" => $podItem["value"],
+                        "pod_name" => $podItem["pod_name"],
+                        "create_date" => Library::_getInstance()->date_format($podItem["create_date"])
+                    );
+                }
             }
-            $shipmentLifeCycle[$key]['create_date']           = Library::_getInstance()->date_format($dataVal['create_date']);
-            $shipmentLifeCycle[$key]['create_time']           = date("H:i", strtotime($dataVal['create_date']));*/
-
-            //$shipmentLifeCycle[$key]['is_custom_create']    = ($dataVal['is_custom_create'] == 0) ? 'false' : 'true';
+            /*foreach($podItems as $podItem){
+                if(!isset($temp[$dataVal["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]])){
+                    $temp[$dataVal["shipment_ticket"]][$dataVal["code"]]['pod_info'][$podItem["pod_id"]] = true;
+                    $items[$dataVal["shipment_ticket"]][$dataVal["code"]]['pod_info'][] = array(
+                        "shipment_ticket" => $podItem["shipment_ticket"],
+                        "pod_path" => $podItem["pod_path"],
+                        "pod_name" => $podItem["pod_name"],
+                        "create_date" => Library::_getInstance()->date_format($podItem["create_date"])
+                    );
+                }
+            }*/
         }
-
+        //print_r($items);
         foreach($items as $item){
             foreach($item as $data){
+                $data["pod_info"] = $this->modelObj->getShipmentPodInfo($data["shipment_ticket"], $data["code"]);
+                //print_r($data);die;
                 array_push($records, $data);
             }
         }
+        //print_r($records);die;
         return $records;
-        //return array_values($records);
-        //return $shipmentLifeCycle;
     }
 
 
@@ -1243,7 +1332,7 @@ class allShipments extends Icargo
             $temp['recipient'] = $dataVal['contact_person'];
             $temp['comment']   = $dataVal['comment'];
             $temp['download']  = ($dataVal['pod_name'] == 'signature') ? 'true' : 'false';
-            $temp['action']     = str_replace('http','https',$dataVal['value']);
+            $temp['action']     = (strpos( $dataVal['value'], 'https' ) !== false)?$dataVal['value']:str_replace('http','https',$dataVal['value']);
             $temp['ticket']    = $dataVal['shipment_ticket'];
             $retrundata[]      = $temp;
         }
@@ -1264,7 +1353,7 @@ class allShipments extends Icargo
             $tempval                                = array();
             $tempval['shipment_ticket']             = $param['data']['reference'];
             $tempval['instaDispatch_loadIdentity']  = $param['job_identity'];
-            $tempval['create_date']                 = Library::_getInstance()->date_format($param['data']['servicedate']);//date('Y-m-d', strtotime($param['data']['servicedate']));
+            $tempval['create_date']                 = date('Y-m-d', strtotime($param['data']['servicedate']));
             $tempval['create_time']                 = date('H:m:s', strtotime($param['data']['servicedate']));
             $tempval['actions']                     = $param['data']['events'];
             $tempval['internel_action_code']        = $param['data']['events'];
@@ -1278,7 +1367,7 @@ class allShipments extends Icargo
             $tempval['company_id']       = $param['company_id'];
             $tempval['action_taken_by']  = 'controller';
             $tempval['is_custom_create'] = '1';
-                
+
             $addData                     = $this->modelObj->addContent('shipment_tracking', array(
                 "shipment_ticket" => $param['data']['reference'],
                 "load_identity"   => $param['job_identity'],
@@ -1289,7 +1378,6 @@ class allShipments extends Icargo
                 "custom_tracking" => 1
             ));
             $adddata                     = $this->modelObj->addContent('shipment_life_history', $tempval);
-
             if ($adddata) {
                 return array(
                     'status' => 'success',
@@ -1347,7 +1435,7 @@ class allShipments extends Icargo
         }
     }
 
-   
+
 
     public function getAllowedAllShipmentsStatus($param)
     {
@@ -1410,15 +1498,14 @@ class allShipments extends Icargo
         }
         return $returnTax;
     }
-    
+
      public function getAllCarrier($param){
-         $data =  $this->modelObj->getAllCarrier($param->company_id);
-          return $data; 
+         $data =  $this->modelObj->getAllCarrierCodeAndName($param->company_id);
+          return $data;
 	}
-    
+
 	public function printLabelByLoadIdentity($param){
-		/* $shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
-		if($shipmentStatus!='cancel'){ */
+
 			$carrierObj = new Carrier();
 			if(is_array($param->load_identity)){
 				$load_identity = implode("','",$param->load_identity);
@@ -1438,9 +1525,9 @@ class allShipments extends Icargo
 					return array("status"=>"error","file_path"=>"","One of selected shipment is cancelled, you cannot print label for that shipment");
 				}
 			}
-			
+
 			if(count($labelInfo)==1){
-				if($labelInfo[0]['label_file_pdf']!=='')		
+				if($labelInfo[0]['label_file_pdf']!=='')
 					return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
 				else
 					return array("status"=>"error","file_path"=>"","message"=>"label not found!");
@@ -1452,40 +1539,34 @@ class allShipments extends Icargo
 				}
 				$label_pdf = $carrierObj->mergePdf($labelInfo);
 				return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");
-				/* die;
-				if($labelInfo[0]['label_file_pdf']!==''){
-					$label_pdf = $carrierObj->mergePdf($labelInfo);
-					return array("status"=>$label_pdf['status'],"file_path"=>$label_pdf['file_path'],"message"=>"");	
-				}else{
-					return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");
-				} */
+
 			}else{
 				return array("status"=>"error","file_path"=>"","message"=>"label not found!");
 			}
-		/* }else{
-			return array("status"=>"error","file_path"=>"","message"=>"This shipment is cancelled, you cannot print label for this shipment");
-		} */
-        
-			
+
+
 	}
-	
-	public function cancelShipmentByLoadIdentity($param){ 
+
+	public function cancelShipmentByLoadIdentity($param){
             $carrierObj = new Carrier();
             $carrier_code = $param->carrier_code;
             if(strtolower($carrier_code) == 'dhl') {
-                return $this->_updateShipmentCancel($param);    
-            } else {
+                return $this->_updateShipmentCancel($param);
+            }elseif(strtolower($carrier_code) == 'ukmail') {
                 $cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
                 $cancelShipment = json_decode($cancelShipment);
                 if(isset($cancelShipment->void_consignment)){
-                    return $this->_updateShipmentCancel($param);    
+                    return $this->_updateShipmentCancel($param);
                 }else{
-                   // return array("status"=>"error","message"=>$cancelShipment->error);
+
                     return array("status"=>"error","message"=>"cancel request not completed by carrier");
                 }
+            }else{
+                 return $this->_updateShipmentCancel($param);
+                 return array("status"=>"success","message"=>"cancel request completed by carrier");
             }
 	}
-        
+
     private function _updateShipmentCancel($param) {
             //update shipment status as cancel in shipment service table
             $updateStatus = $this->modelObj->editContent("shipment_service",array("status"=>"cancel"),"load_identity='".$param->load_identity."'");
@@ -1494,9 +1575,9 @@ class allShipments extends Icargo
             else
                 return array("status"=>"error","message"=>"Error while cancellation,please try again");
         }
-    
-       
-    public function createVoucher($voucherdata){ 
+
+
+    public function createVoucher($voucherdata){
     $returnArray = array('status'=>'fail');
     $voucherHistoryid                  = $this->modelObj->getVoucherHistory($voucherdata['job_identity']);
     $voucherdata['voucher_reference']  = $this->modelObj->_generate_voucher_no($voucherdata['company_id']);
@@ -1514,9 +1595,9 @@ class allShipments extends Icargo
         $returnArray['voucherRef'] = $voucherdata['shipment_reference'];
     }
   return $returnArray;
-}    
-    
-   
+}
+
+
     public function manageAccount($creditbalanceData){
                 $getCustomerdetails =  $this->modelObj->getCustomerInfo($creditbalanceData['customer_id']);
                 $creditbalanceData['customer_type']        = $getCustomerdetails['customer_type'];
@@ -1524,7 +1605,7 @@ class allShipments extends Icargo
                 if($creditbalanceData['payment_type']=='CREDIT'){
                     $creditbalanceData['balance']              = $getCustomerdetails["available_credit"] + $creditbalanceData["amount"];
                 }else{
-                   $creditbalanceData['balance']              = $getCustomerdetails["available_credit"] - $creditbalanceData["amount"]; 
+                   $creditbalanceData['balance']              = $getCustomerdetails["available_credit"] - $creditbalanceData["amount"];
                 }
                 $creditbalanceData['create_date']          = date("Y-m-d");
                 $addHistory = $this->modelObj->addContent('accountbalancehistory', $creditbalanceData);
@@ -1536,7 +1617,7 @@ class allShipments extends Icargo
                       }
         }
     }
-    
+
 
     public function holdJob($param){   $loadidentity =  '"'.implode('","',$param->job_identity).'"';
         if(is_array($param->job_identity) && count($param->job_identity)>0){
@@ -1556,10 +1637,10 @@ class allShipments extends Icargo
                 return array("status"=>"success", "message"=>"Action perform successfully");
         }
     }
-    public function getlogo($param){   
+    public function getlogo($param){
     return $this->modelObj->getCompanylogo($param->company_id);
 }
-    public function getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown){   
+    public function getVoucherBreakDown($newPriceComponent,$getLastPriceBreakdown){
     $oldData = array('service'=>0,'surcharges'=>0,'fual_surcharge'=>0,'tax'=>0);
     $newData = array('service'=>0,'surcharges'=>0,'fual_surcharge'=>0,'tax'=>0);
     if(is_array($getLastPriceBreakdown)  and count($getLastPriceBreakdown)>0){
@@ -1598,9 +1679,9 @@ class allShipments extends Icargo
                 'fual_surcharge'=>number_format(($newData['fual_surcharge'] - $oldData['fual_surcharge']),2),
                 'tax'=>number_format(($newData['tax'] - $oldData['tax']),2)
          );
-    }   
+    }
     public function getRecurringShipmentDetails($param){
-        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"';
         $shipmentsInfoData     = $this->modelObj->getRecurringShipmentDetails($loadidentity);
         $basicInfo = array();
         $basicInfo['totaldrop']            = count($shipmentsInfoData);
@@ -1649,9 +1730,9 @@ class allShipments extends Icargo
             }
        // return array("status"=>"success", "message"=>"Action perform successfully");
         return $basicInfo;
-     }    
-    public function bookRecurringJob($param){ 
-        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+     }
+    public function bookRecurringJob($param){
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"';
         $company_id   = $param->company_id;
         $job_type     = $param->job_type;
         $load_identity  = $param->job_identity[0];
@@ -1664,13 +1745,13 @@ class allShipments extends Icargo
         $recurringInfo['company_carrier_id']   = $shipmentsInfoData[0]['company_carrier_id'];
         $recurringInfo['company_service_id']   = $shipmentsInfoData[0]['company_service_id'];
         $recurringInfo['recurring_type']       = $param->paramdata->recurringtype;
-        foreach($param->paramdata->alldata as $recurrval){ 
-          $recurringInfo['recurring_month_date'] = isset($recurrval->recurringDayDate)?$recurrval->recurringDayDate:'00';  
+        foreach($param->paramdata->alldata as $recurrval){
+          $recurringInfo['recurring_month_date'] = isset($recurrval->recurringDayDate)?$recurrval->recurringDayDate:'00';
           $recurringInfo['recurring_date']       = isset($recurrval->recurringDate)?$recurrval->recurringDate:'1970-01-01';
           $recurringInfo['recurring_day']        = isset($recurrval->recurringDay)?$recurrval->recurringDay:'NONE';
           $recurringInfo['recurring_time']       = isset($recurrval->recurringTime)?$recurrval->recurringTime:'00:00:00';
           $status = $this->modelObj->addContent("recurring_jobs",$recurringInfo);
-        } 
+        }
         if($status){
          $condition   = "load_identity  = '$load_identity'";
          $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'YES'), $condition);
@@ -1678,21 +1759,21 @@ class allShipments extends Icargo
         }else{
             return array("status"=>"error", "message"=>"Recurring Job not added");
         }
-    }  
-    public function getRecurringJobs($param){ 
+    }
+    public function getRecurringJobs($param){
         $company_id         = $param->company_id;
         $recurringInfoData  = $this->modelObj->getRecurringJobsByCompanyId($company_id);
         foreach($recurringInfoData as $key=>$val){
-            $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;   
+            $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;
             $recurringInfoData[$key]['last_booked_date'] = ($val['last_booked_date']=='1970-01-01')?'':$val['last_booked_date'];
             $recurringInfoData[$key]['last_booked_time'] = ($val['last_booked_time']=='00:00:00')?'':$val['last_booked_time'];
         }
          return $recurringInfoData;
   }
-    public function editRecurringjobStatus($param){ 
+    public function editRecurringjobStatus($param){
         $company_id         = $param->company_id;
         $recurringJob_id    = $param->descid;
-        $statusData         = $param->status; 
+        $statusData         = $param->status;
         $condition   = "job_id  = '$recurringJob_id' AND company_id = '$company_id'";
         $status      = $this->modelObj->editContent("recurring_jobs", array('status'=>$statusData), $condition);
         if($status){
@@ -1701,7 +1782,7 @@ class allShipments extends Icargo
             return array("status"=>"error", "message"=>"Requested action not performed.");
         }
   }
-    public function deleteRecurringjobStatus($param){ 
+    public function deleteRecurringjobStatus($param){
         $company_id         = $param->company_id;
         $recurringJob_id    = $param->descid;
         $recurringJobref    = $param->jobref;
@@ -1710,14 +1791,14 @@ class allShipments extends Icargo
         if($status){
          // if(count($recDetails)==1){
            $innercondition   = "load_identity  = '$recurringJobref'";
-           $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'NO'), $innercondition); 
+           $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'NO'), $innercondition);
          // }
           return array("status"=>"success", "message"=>"Requested action performed successfully.");
         }else{
             return array("status"=>"error", "message"=>"Requested action not performed.");
         }
-  } 
-    public function recurringJobDetails($param){ 
+  }
+    public function recurringJobDetails($param){
         $company_id         = $param->company_id;
         $recurringJobref    = $param->job_identity;
         $recDetails         = $this->modelObj->getRecurringJobDetail($recurringJobref);
@@ -1726,9 +1807,9 @@ class allShipments extends Icargo
             unset($recDetails[$key]);
         }
     return $recDetails;
-  }    
-    public function updateRecurringJob($param){ 
-        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+  }
+    public function updateRecurringJob($param){
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"';
         $company_id   = $param->company_id;
         $job_type     = $param->job_type;
         $load_identity  = $param->job_identity[0];
@@ -1745,13 +1826,13 @@ class allShipments extends Icargo
         $recurringInfo['company_carrier_id']   = $shipmentsInfoData[0]['company_carrier_id'];
         $recurringInfo['company_service_id']   = $shipmentsInfoData[0]['company_service_id'];
         $recurringInfo['recurring_type']       = $param->paramdata->recurringtype;
-        foreach($param->paramdata->alldata as $recurrval){ 
-          $recurringInfo['recurring_month_date'] = isset($recurrval->recurringDayDate)?$recurrval->recurringDayDate:'00';  
+        foreach($param->paramdata->alldata as $recurrval){
+          $recurringInfo['recurring_month_date'] = isset($recurrval->recurringDayDate)?$recurrval->recurringDayDate:'00';
           $recurringInfo['recurring_date']       = isset($recurrval->recurringDate)?$recurrval->recurringDate:'1970-01-01';
           $recurringInfo['recurring_day']        = isset($recurrval->recurringDay)?$recurrval->recurringDay:'NONE';
           $recurringInfo['recurring_time']       = isset($recurrval->recurringTime)?$recurrval->recurringTime:'00:00:00';
           $status = $this->modelObj->addContent("recurring_jobs",$recurringInfo);
-        } 
+        }
         if($status){
          $condition   = "load_identity  = '$load_identity'";
          $status      = $this->modelObj->editContent("shipment_service", array('is_recurring'=>'YES'), $condition);
@@ -1760,19 +1841,22 @@ class allShipments extends Icargo
             return array("status"=>"error", "message"=>"Recurring Job not updated");
           }
         }else{
-           return array("status"=>"success", "message"=>"all Recurring Job deleted successfully");  
+           return array("status"=>"success", "message"=>"all Recurring Job deleted successfully");
         }
     }
-    public function getAllRecurringBreakdown($param){ 
+    public function getAllRecurringBreakdown($param){
         $company_id         = $param->company_id;
         $job_reference      = $param->job_reference;
         $recurringInfoData  = $this->modelObj->getRecurringJobsBreakDown($company_id,$job_reference);
         foreach($recurringInfoData as $key=>$val){
-            $recurringInfoData[$key]['recurring_date'] = ($val['recurring_date']=='1970-01-01')?'':$val['recurring_date'];   
-            $recurringInfoData[$key]['recurring_day'] = ($val['recurring_day']=='NONE')?'':$val['recurring_day'];   
-            $recurringInfoData[$key]['recurring_month_date'] = ($val['recurring_month_date']=='00')?'':$val['recurring_month_date'];   
-            $recurringInfoData[$key]['recurring_time'] = ($val['recurring_time']=='00:00:00')?'':$val['recurring_time'];   
-            $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;   
+            $recurringInfoData[$key]['recurring_date'] = ($val['recurring_date']=='1970-01-01')?'':$val['recurring_date'];
+            $recurringInfoData[$key]['recurring_day'] = ($val['recurring_day']=='NONE')?'':$val['recurring_day'];
+            $recurringInfoData[$key]['recurring_month_date'] = ($val['recurring_month_date']=='00')?'':$val['recurring_month_date'];
+            $recurringInfoData[$key]['recurring_time'] = ($val['recurring_time']=='00:00:00')?'':$val['recurring_time'];
+            $recurringInfoData[$key]['last_booked_date'] = ($val['last_booked_date']=='1970-01-01')?'':$val['last_booked_date'];
+            $recurringInfoData[$key]['last_booked_time'] = ($val['last_booked_time']=='00:00:00')?'':$val['last_booked_time'];
+            $recurringInfoData[$key]['last_booked_ref'] = ($val['last_booked_ref']=='')?'':$val['last_booked_ref'];
+            $recurringInfoData[$key]['status'] = ($val['status']=='true')?true:false;
         }
          return $recurringInfoData;
   }
@@ -1785,61 +1869,61 @@ class allShipments extends Icargo
               if($currentLoadStatus['status']  != 'cancel'){
                   $currentLoadStatus = $currentLoadStatus['current_status'];
                   if(in_array($currentLoadStatus,$eligiblearray)){
-                      $returnData['success'][] = $valdata; 
+                      $returnData['success'][] = $valdata;
                   }else{
-                      $returnData['fail'][] = $valdata; 
-                  } 
+                      $returnData['fail'][] = $valdata;
+                  }
               }else{
-                    $returnData['cancel'][] = $valdata; 
+                    $returnData['cancel'][] = $valdata;
               }
            }
       }else{
-          return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
+          return   array("status"=>"fail", "message"=>"Please pass valid identity");
       }
     if(count($returnData['fail'])>0){
-        return  array("status"=>"fail", "message"=>implode(',',$returnData['fail'])." not eligible for cancellation,Please remove these from your selection before process");   
+        return  array("status"=>"fail", "message"=>implode(',',$returnData['fail'])." not eligible for cancellation,Please remove these from your selection before process");
     }elseif(count($returnData['success'])>0){
-      return  array("status"=>"success", "data"=>$returnData['success'],"message"=>implode(',',$returnData['success'])." eligible for cancellation"); 
+      return  array("status"=>"success", "data"=>$returnData['success'],"message"=>implode(',',$returnData['success'])." eligible for cancellation");
     }else{
-       return  array("status"=>"fail","message"=>implode(',',$returnData['cancel'])." already cancelled");    
+       return  array("status"=>"fail","message"=>implode(',',$returnData['cancel'])." already cancelled");
     }
- }    
+ }
     public function getEligibleStatusForCanceljob(){
         $returnarray = array();
         $code =  $this->modelObj->getEligibleCancelCode();
         if(count($code)>0){
           foreach($code as $datacode){
             $returnarray[] = $datacode['code'];
-          }  
+          }
         }
        return $returnarray;
- }    
+ }
     public function cancelJob($param){
         $returnData = array();
         $company_id         = $param->company_id;
-        $userId             = $param->user; 
-        if(is_array($param->job_identity) && count($param->job_identity)>0){    
+        $userId             = $param->user;
+        if(is_array($param->job_identity) && count($param->job_identity)>0){
           foreach($param->job_identity as $valdata){
-           
-             $shipment_type =  $this->modelObj->getShipmentsType($valdata); 
+             $shipment_type =  $this->modelObj->getShipmentsType($valdata);
              if($shipment_type and $shipment_type['shipment_type']!=''){
                 if($shipment_type['shipment_type']=='NEXT'){
+					$carrier_code = $this->modelObj->getCarrierByLoadIdentity($valdata);
                     $tempdata = array();
                     $tempdata['load_identity']  = $valdata;
-                    $tempdata['carrier']        = $shipment_type['code'];
+                    $tempdata['carrier']        = $carrier_code;//$shipment_type['code'];
                     $tempdata['ship_date']      = date('Y-m-d',strtotime($shipment_type['booking_date']));
-                    $tempdata['carrier_code']   = $shipment_type['code'];
+                    $tempdata['carrier_code']   = $carrier_code;//$shipment_type['code'];
                     $courierStatus = $this->cancelShipmentByLoadIdentity((object)$tempdata);
                     if($courierStatus['status']!='error'){
-                        $returnData[]       = $param->job_identity;
+                        $returnData[]       = $param->job_identity[0];
                         $requestStatus = $this->cancelJobRequest($valdata,$company_id,$userId,$param);
                         if($requestStatus['status']!='error'){
                              return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
                         }else{
-                             return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00003"); 
+                             return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00003");
                         }
-                    }else{  
-                         return   array("status"=>"fail", "message"=>"courier not allow for cancellation","error_code"=>"ERRORCAN00001"); 
+                    }else{
+                         return   array("status"=>"fail", "message"=>"courier not allow for cancellation","error_code"=>"ERRORCAN00001");
                     }
                   }
                 elseif($shipment_type['shipment_type']=='SAME'){
@@ -1848,37 +1932,37 @@ class allShipments extends Icargo
                         if($requestStatus['status']!='error'){
                              return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
                         }else{
-                             return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00002"); 
+                             return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00002");
                         }
                     }
                 else{
-                   return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00004"); 
-                }   
+                   return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00004");
+                }
              }
            }
         }else{
-          return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00005"); 
+          return   array("status"=>"fail", "message"=>"Please pass valid cancel identity","error_code"=>"ERRORCAN00005");
         }
     return array("status"=>"success", "message"=>implode(',',$returnData)." has been canceled");
-}     
+}
     public function cancelJobRequest($valdata,$company_id,$userId,$param){
-           $loadDetail = $this->modelObj->getLoadDetail($valdata); 
-           $voucherUpdate = $this->manageVoucherAndAccount($loadDetail,$loadDetail['grand_total'],'CREDIT',$company_id,$userId); 
+           $loadDetail = $this->modelObj->getLoadDetail($valdata);
+           $voucherUpdate = $this->manageVoucherAndAccount($loadDetail,$loadDetail['grand_total'],'CREDIT',$company_id,$userId);
            if($voucherUpdate['status']=='success'){
               if(isset($loadDetail['cancelation_charge']) and $loadDetail['cancelation_charge'] > 0){
-               $this->manageVoucherAndAccount($loadDetail,$loadDetail['cancelation_charge'],'DEBIT',$company_id,$userId);        
-              } 
+               $this->manageVoucherAndAccount($loadDetail,$loadDetail['cancelation_charge'],'DEBIT',$company_id,$userId);
+              }
                 //$returnData       = $param->job_identity;
                 $condition        = "load_identity = '" . $valdata . "'";
-                $status1          = $this->modelObj->editContent("shipment_service", array('status'=>'cancel'), $condition);
+                $status1          = $this->modelObj->editContent("shipment_service", array('status'=>'cancel','tracking_code'=>'CANCELLED'), $condition);
                 $condition        = "instaDispatch_loadIdentity = '" . $valdata . "'";
                 $status2          = $this->modelObj->editContent("shipment", array('current_status'=>'Cancel'), $condition);
-                return array("status"=>"success", "message"=>"cancel successfull"); 
+                return array("status"=>"success", "message"=>"cancel successfull");
            }
            else{
-              return array("status"=>"error", "message"=>"cancel job request fail","error_code"=>"ERRORCAN00006"); 
+              return array("status"=>"error", "message"=>"cancel job request fail","error_code"=>"ERRORCAN00006");
            }
-        }    
+        }
     public function manageVoucherAndAccount($loadDetail,$amount,$payemntType,$companyId,$userId){
    $voucherRef = '';
    $getCustomerdetails  =  $this->modelObj->getCustomerInfo($loadDetail['customer_id']);
@@ -1900,7 +1984,7 @@ class allShipments extends Icargo
     $dataarr['payment_type']             = $payemntType;
     $dataarr['amount']                   = $amount;
     $dataarr['customer_id']              = $loadDetail['customer_id'];;
-    $dataarr['company_id']               = $companyId;  
+    $dataarr['company_id']               = $companyId;
     if($loadDetail['isInvoiced']=='YES'  && $customer_type == 'POSTPAID'){
           $dataarr['payment_reference']  = $voucherRef;
           $dataarr['payment_desc']       = 'Voucher Apply against '.$loadDetail['load_identity'].' cancel job';
@@ -1908,26 +1992,26 @@ class allShipments extends Icargo
     }else{
           $dataarr['payment_reference']  = $loadDetail['load_identity'];
           $dataarr['payment_desc']       = 'CANCEL SHIPMENT';
-          $dataarr['payment_for']        = 'CANCELSHIP';   
+          $dataarr['payment_for']        = 'CANCELSHIP';
     }
     $accountUpdatestatus =  $this->manageAccount($dataarr);
     return $accountUpdatestatus;
-}  
+}
     public function loadTracking($param){
         $returnData = array();
         $company_id         = $param->company_id;
-        $userId             = $param->user; 
+        $userId             = $param->user;
         $trackingId         = array();
         $trackingDetail     = array();
         if(is_array($param->job_identity) && count($param->job_identity)==0){
-            return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
+            return   array("status"=>"fail", "message"=>"Please pass valid identity");
         }else{
             $trackingDetail = $this->getShipmentTrackingByLoadIdentity($param->job_identity[0]);
             if(count($trackingDetail)==0){
                 return array("status"=>"fail", "message"=>"tracking details not found","error_code"=>"ERROR0080");
             }else{
                 $records = array();
-               
+
                 foreach($trackingDetail as $item){
                     array_push($records, array(
                         "status"=>$item["code"],
@@ -1937,22 +2021,11 @@ class allShipments extends Icargo
                 return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$records);
             }
         }
-        /*if(is_array($param->job_identity) && count($param->job_identity)>0){    
-            $trackingDetail = $this->modelObj->getShipmentTrackingByLoadIdentity($param->job_identity[0]);
-            //$trackingDetail = $this->modelObj->getShipmentTrackingDetails($param->job_identity[0]);
-            if(count($trackingDetail)>0){
-                //
-            }else{
-                return   array("status"=>"fail", "message"=>"tracking details not found","error_code"=>"ERROR0080"); 
-            }  
-        }else{
-            return   array("status"=>"fail", "message"=>"Please pass valid identity"); 
-        }
-        return array("status"=>"success", "message"=>" tracking details found","trackingdata"=>$trackingDetail);*/
+
     }
-    
-    public function checkEligibleforRecurring($param){ 
-        $loadidentity          =  '"'.implode('","',$param->job_identity).'"'; 
+
+public function checkEligibleforRecurring($param){
+        $loadidentity          =  '"'.implode('","',$param->job_identity).'"';
         $shipmentsInfoData     = $this->modelObj->checkEligibleforRecurring($loadidentity);
         if($shipmentsInfoData and $shipmentsInfoData['is_recurring']!=''){
             if($shipmentsInfoData['is_recurring']=='YES'){
@@ -1965,8 +2038,56 @@ class allShipments extends Icargo
         }else{
             return array("status"=>"error", "message"=>"is_recurring error", "is_recurring"=>true);
         }
-     }    
-    
-        
+     }
+
+public function getCarrierSurcharge($param){
+        $returndata          = array();
+        if ($param->company_id != 0 and $param->courier_id != 0) {
+            $returndata = $this->modelObj->getAllSurchargeOfCarrier($param->courier_id, $param->company_id);
+        }
+        return $returndata;
+    }
+public function getCarrierServices($param){
+        $returndata          = array();
+        if ($param->company_id != 0 and $param->courier_id != 0 and $param->servicetype != '') {
+            $returndata = $this->modelObj->getAllServicesOfCarrier($param->courier_id, $param->company_id,$param->servicetype);
+        }
+        return $returndata;
+    }
+public function getCarriersofCompany($param){
+        $returndata          = array();
+        if ($param->company_id != 0) {
+            $returndata = $this->modelObj->getCarriersofCompany($param->company_id);
+        }
+        return $returndata;
+}
+public function getNextDayCarriersofCompany($param){
+        $returndata          = array();
+        if ($param->company_id != 0) {
+            $returndata = $this->modelObj->getNextDayCarriersofCompany($param->company_id);
+        }
+        return $returndata;
+}
+
+    public function _findShipmentInstructionByLoadIdentity($load_identity){
+        $service = array(
+            "P" =>"collection",
+            "D" =>"delivery"
+        );
+        $shipmentInstructions = array();
+        $items = $this->modelObj->findShipmentInstructionByLoadIdentity($load_identity);
+        foreach($items as $item){
+            if(!isset($shipmentInstructions[$service[$item["shipment_service_type"]]])){
+                $shipmentInstructions[$service[$item["shipment_service_type"]]] = array();
+            }
+            if((isset($item["shipment_instruction"])) and !empty($item["shipment_instruction"])){
+                array_push($shipmentInstructions[$service[$item["shipment_service_type"]]], array(
+                    "shipment_instruction" => $item["shipment_instruction"],
+                    "postcode" => $item["postcode"],
+                ));
+            }
+        }
+        return $shipmentInstructions;
+    }
 }
 ?>
