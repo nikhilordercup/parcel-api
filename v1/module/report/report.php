@@ -1,6 +1,11 @@
 <?php
+require_once "../v1/module/report/model/Route_Model.php";
+
 class Report extends Icargo
     {
+
+		private $_driverLists = array();
+
     private $_user_id;
     protected $_parentObj;
     private function _setUserId($v)
@@ -17,16 +22,24 @@ class Report extends Icargo
             "email" => $data->email,
             "access_token" => $data->access_token
         ));
+
+				$this->modelObj = new Route_Model();
         }
 		private function _getMeterToMiles($meter)
 		    {
 				    $meter = (int) $meter;
+						//return $meter * 0.0006213712;
 						return round($meter * 0.0006213712, 2);
 		    }
 		private function _getTimeInHourMinutes($sec)
 				{
 						$sec = (int) $sec;
-				    return gmdate("H:i:s", $sec);
+				    return gmdate("H:i", $sec);
+				}
+		private function _getRouteCountByType($type, $start_date, $end_date, $company_id)
+				{
+		    $result = $this->modelObj->findRouteCountBetweenDate($type, $start_date, $end_date, $company_id);
+				return $result["route_count"];
 				}
     public function getAllActiveReportByCompanyId($param)
         {
@@ -44,10 +57,55 @@ class Report extends Icargo
             "data" => $data
         );
         }
+
+		private function _getAllRouteCount()
+				{
+		    return array(
+				    "nextday_route_count" => $this->_getRouteCountByType('NEXT', $this->param->startDate, $this->param->endDate, $this->param->company_id),
+						"sameday_route_count" => $this->_getRouteCountByType('SAME', $this->param->startDate, $this->param->endDate, $this->param->company_id),
+						"lastmile_route_count" => $this->_getRouteCountByType('Vendor', $this->param->startDate, $this->param->endDate, $this->param->company_id)
+				);
+				}
+		private function _getServiveTypeName()
+				{
+				if ($this->param->service_type == 'lastmile')
+            $service_type = 'Vendor';
+        elseif ($this->param->service_type == 'sameday')
+            $service_type = 'SAME';
+          else
+            $service_type = 'NEXT';
+
+				return $service_type;
+				}
+
+		private function _findDriverTimeInfo()
+				{
+		    $driverTimeInfo = $this->modelObj->findDriverTimeInfo($this->param->startDate, $this->param->endDate, $this->_getServiveTypeName(), $this->param->company_id);
+				$items = array();
+				$this->_driverLists = array();
+				foreach($driverTimeInfo as $item){
+				    $items[$item["id"]] = $item;
+						$this->_driverLists[$item["driver_id"]] = $item["driver_id"];
+				}
+				return array_values($items);
+				}
+
+		private function _findDriverInfo()
+				{
+		    $driverTimeInfo = $this->_findDriverTimeInfo();
+
+				}
+
     public function generateReport($param)
         {
-        // driver name,start date, end date,total time on job, total drops,number of jobs,days,total miles,daily drop rate,average speed,average time per drop
+				$this->param = $param;
+
+				$routeCountInfo = $this->_getAllRouteCount();
+				$driverTimeInfo = $this->_findDriverInfo();
+				//print_r($driverTimeInfo);die;
+				// driver name,start date, end date,total time on job, total drops,number of jobs,days,total miles,daily drop rate,average speed,average time per drop
         $reportData = array();
+				$allRouteId = array();
         if ($param->startDate == $param->endDate)
             {
             $difference = 0;
@@ -85,33 +143,49 @@ class Report extends Icargo
                     );
                     }
                 $reportData[$value['driver_id']]['time_taken'] = $reportData[$value['driver_id']]['time_taken'] + $value['time_taken'];
-                $reportData[$value['driver_id']]['shipment_route_id'][] = $value['shipment_route_id'];
-								$reportData[$value['driver_id']]['time_taken_in_hr_min'] = $this->_getTimeInHourMinutes($reportData[$value['driver_id']]['time_taken']);
+                //$reportData[$value['driver_id']]['shipment_route_id'][] = $value['shipment_route_id'];
+								$allRouteId[$value['driver_id']]['shipment_route_id'][$value['shipment_route_id']] = $value['shipment_route_id'];
 
+								$reportData[$value['driver_id']]['time_taken_in_hr_min'] = $this->_getTimeInHourMinutes($reportData[$value['driver_id']]['time_taken']);
                 }
             foreach($reportData as $driverId => $item)
                 {
-                $shipment_route_id = implode(',', array_unique($item['shipment_route_id']));
+								$shipment_route_id = implode(",", $allRouteId[$driverId]['shipment_route_id']);
+                //$shipment_route_id = implode(',', array_unique($item['shipment_route_id']));
                 $driverName = $this->_parentObj->db->getRowRecord("SELECT name FROM " . DB_PREFIX . "users WHERE id = $driverId");
                 $loadIdentity = $this->_parentObj->db->getRowRecord("SELECT instaDispatch_loadIdentity as load_identity FROM " . DB_PREFIX . "shipment WHERE shipment_routed_id IN($shipment_route_id)");
                 $totalMiles = $this->_parentObj->db->getRowRecord("SELECT SUM(transit_distance) as total_transit_distance FROM " . DB_PREFIX . "shipment_service WHERE load_identity = '" . $loadIdentity['load_identity'] . "'");
 
-                $reportData[$driverId]['total_distance_meter'] = $reportData[$driverId]['total_distance_meter'] + $totalMiles['total_transit_distance'];
-								$reportData[$driverId]['total_distance_miles'] = $reportData[$driverId]['total_distance_miles'] + $this->_getMeterToMiles($totalMiles['total_transit_distance']);
+                $reportData[$driverId]['total_distance_meter'] = $item['total_distance_meter'] + $totalMiles['total_transit_distance'];
+								$reportData[$driverId]['total_distance_miles'] = $item['total_distance_miles'] + $this->_getMeterToMiles($totalMiles['total_transit_distance']);
+
+								$reportData[$driverId]['average_speed'] = $item['total_distance_meter'] / $item['time_taken'];
+
+								$reportData[$driverId]['average_speed'] = $this->_getMeterToMiles($reportData[$driverId]['average_speed']);
+
                 $reportData[$driverId]['driver_name'] = $driverName['name'];
                 $dropJobData = $this->getDropJobData($driverId, $param->startDate, $param->endDate, $param->service_type);
-                if ($dropJobData['no_of_drops'] != 0 AND $dropJobData['no_of_jobs'] != 0)
+                /*if ($dropJobData['no_of_drops'] != 0 AND $dropJobData['no_of_jobs'] != 0)
                     {
                     $reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
                     $reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
                     $reportData[$driverId]['no_of_days'] = $no_of_days;
+										$reportData[$driverId]['daily_drop_rate'] = $dropJobData['no_of_drops']/$dropJobData['no_of_jobs'];
+
                     }
                   else
                     {
                     $reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
                     $reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
                     $reportData[$driverId]['no_of_days'] = $no_of_days;
-                    }
+										$reportData[$driverId]['daily_drop_rate'] = $dropJobData['no_of_drops']/$dropJobData['no_of_jobs'];
+									}*/
+
+									$reportData[$driverId]['no_of_drops'] = $dropJobData['no_of_drops'];
+									$reportData[$driverId]['no_of_jobs'] = $dropJobData['no_of_jobs'];
+									$reportData[$driverId]['no_of_days'] = $no_of_days;
+									$reportData[$driverId]['daily_drop_rate'] = round($dropJobData['no_of_drops']/$dropJobData['no_of_jobs'], 2);
+									$reportData[$driverId]['average_time_per_drop'] = round($item['time_taken']/$dropJobData['no_of_drops'], 2);
                 }
             if (count($reportData > 0))
                 {
