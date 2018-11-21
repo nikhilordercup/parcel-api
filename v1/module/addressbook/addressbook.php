@@ -198,7 +198,7 @@ class Module_Addressbook_Addressbook extends Icargo{
 			"country"   => (isset($param->country)) ? $param->country : "",
 			"name"      => (isset($param->name)) ? $param->name : "",
 			"email"     => (isset($param->address_email)) ? $param->address_email : "",
-			"company_id"=> (isset($param->company_id)) ? $param->company_id : "",
+			"company_id"=> (isset($param->company_name)) ? $param->company_name : "",
 		);
 
 		$commonObj = new Common();
