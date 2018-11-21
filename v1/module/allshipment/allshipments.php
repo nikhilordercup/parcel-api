@@ -348,11 +348,11 @@ class allShipments extends Icargo
 		foreach($parcelData as $data){
 			$temp[$data['parcel_height'].$data['parcel_length'].$data['parcel_width']][$data['package']][$data['parcel_weight']] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package']);
 		}
-		
+
 		foreach($temp as $data){
 			$parcelInfo['package'][] = $data;
 		}
-		
+
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
