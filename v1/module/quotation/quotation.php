@@ -1,32 +1,34 @@
 <?php
-class Quotation extends Library
+require_once "../v1/module/notification/Sameday/Quotation_Notification.php";
 
+class Quotation extends Icargo
 {
     private $headerMsg = "Icargo Quotation - __quote_number__";
     public
 
     function __construct($param = array())
     {
+        parent::__construct(array("email"=>$param->email, "access_token"=>$param->access_token));
         $this->db = new DbHandler();
         $this->postcodeObj = new Postcode();
-        if (isset($param["company_id"]))
+        if (isset($param->company_id))
         {
-            $this->company_id = $param["company_id"];
+            $this->company_id = $param->company_id;
         }
 
-        if (isset($param["warehouse_id"]))
+        if (isset($param->warehouse_id))
         {
-            $this->warehouse_id = $param["warehouse_id"];
+            $this->warehouse_id = $param->warehouse_id;
         }
 
-        if (isset($param["customer_id"]))
+        if (isset($param->customer_id))
         {
-            $this->customer_id = $param["customer_id"];
+            $this->customer_id = $param->customer_id;
         }
 
-        if (isset($param["user_level"]))
+        if (isset($param->user_level))
         {
-            $this->user_level = $param["user_level"];
+            $this->user_level = $param->user_level;
         }
     }
 
@@ -93,8 +95,9 @@ class Quotation extends Library
         $this->db->startTransaction();
         foreach($data->collection_shipment_address as $collection_data)
         {
+			$postcode = $postcodeObj->validate($collection_data->postcode);
             $shipmentData = array(
-                "shipment_postcode" => $postcodeObj->validate($collection_data->postcode),
+                "shipment_postcode" => $postcode[0],//$postcodeObj->validate($collection_data->postcode),
                 "shipment_address" => $collection_data->formatted_address,
                 "quote_number" => $quoteNumber,
                 "shipment_service_type" => "P",
@@ -126,8 +129,9 @@ class Quotation extends Library
 
         foreach($data->delivery_shipment_address as $delivery_data)
         {
+		    $postcode = $postcodeObj->validate($delivery_data->postcode);
             $shipmentData = array(
-                "shipment_postcode" => $postcodeObj->validate($delivery_data->postcode),
+                "shipment_postcode" => $postcode[0],//$postcodeObj->validate($delivery_data->postcode),
                 "shipment_address" => $delivery_data->formatted_address,
                 "quote_number" => $quoteNumber,
                 "shipment_service_type" => "D",
@@ -173,6 +177,10 @@ class Quotation extends Library
             $shipmentService['transit_time_text'] = $data->transit_time_text;
             $shipmentService['transit_distance_text'] = $data->transit_distance_text;
             $shipmentService['shipment_address_json'] = $data->shipment_address_json;
+            $shipmentService['company_id'] = $data->company_id;
+            $shipmentService['warehouse_id'] = $data->warehouse_id;
+            $shipmentService['booking_type'] = "sameday";
+
             $serviceId = $this->_saveQuoteService($shipmentService);
             if ($serviceId)
             {
@@ -215,8 +223,9 @@ class Quotation extends Library
     function _getCustomerQuoteExpiryDate($customer_id, $service_date)
     {
         $record = $this->db->getRowRecord("SELECT quote_expiry_days FROM " . DB_PREFIX . "customer_info WHERE `user_id` = '$customer_id'");
-        $expiry = date('Y-m-d', strtotime("+5 days")); //$record['quote_expiry_days']
-        return $expiry;
+        //$expiry = date('Y-m-d', strtotime("+5 days")); //$record['quote_expiry_days']
+        $expiry_day = $record['quote_expiry_days'];
+        return date("Y-m-d H:i:s", strtotime($service_date . "+$expiry_day day"));
     }
 
     private
@@ -265,7 +274,7 @@ class Quotation extends Library
         if ($record)
         {
             $quote_number = $record['quote_prefix'] . str_pad($record['shipment_ticket_no'], 6, 0, STR_PAD_LEFT);
-            $check_digit = $this->generateCheckDigit($quote_number);
+            $check_digit = Library::_getInstance()->generateCheckDigit($quote_number);
             $quote_number = "$quote_number$check_digit";
             $this->db->updateData("UPDATE " . DB_PREFIX . "configuration SET shipment_end_number = shipment_end_number + 1 WHERE company_id = " . $this->company_id);
             if ($this->_test_shipment_quote($quote_number))
@@ -289,107 +298,22 @@ class Quotation extends Library
 
         if ($data->quote_email != '')
         {
-            $templateMsg = array();
-            $emailObj = new Notification_Email();
             if ($quoteSave['status'] == "success")
             {
-                $shipmentData = $this->_getShipmentDataByQuoteNumber($quoteSave['quote_number']);
-                $serviceData = $this->_getServiceDataByQuoteNumber($quoteSave['quote_number']);
-                $template = $this->_getTemplateByTemplateCode($data->company_id, "sameday_quotation");
-                $courierData = $this->_getCourierDataByCompanyId($data->company_id);
-                $quoteExpiry = $this->_getCustomerQuoteExpiryDays($data->customer_id);
-                foreach($shipmentData as $value)
-                {
-                    if ($value['shipment_service_type'] == 'P')
-                    {
-                        $templateMsg['collection_postcode'][] = $value['shipment_postcode'];
-                    }
-                    else
-                    {
-                        $templateMsg['delivery_postcode'][] = $value['shipment_postcode'];
-                    }
+                $notificationObj = new Quotation_Notification();
+                $status = $notificationObj->send(array("quote_email"=>$data->quote_email,"quote_number"=>$quoteSave['quote_number'],"company_id"=>$data->company_id,"customer_id"=>$data->customer_id,"service_date"=>$data->service_date));
+
+                if($status["status"]=="success"){
+                    $response = array(
+                        "status" => "success",
+                        "message" => $quoteSave['message']
+                    );
+                }else{
+                    $response = array(
+                        "status" => "error",
+                        "message" => $status['message']
+                    );
                 }
-
-                $html = '';
-                $serviceDetail = json_decode($serviceData['service_opted']);
-
-                // $requestString = json_decode($serviceData['service_response_string']);
-
-                $collectionTimeStamp = strtotime($data->service_date);
-                $transitTimeStamp = $serviceData['transit_time'];
-                $deliveryTimeStamp = $collectionTimeStamp + $transitTimeStamp;
-                $deliveryDateTime = date("D d M H:i:s Y", $deliveryTimeStamp);
-                $counter = 1;
-                foreach($serviceDetail as $service)
-                {
-                    if ($counter % 2)
-                    {
-                        $color = '#bfbfbf';
-                    }
-                    else
-                    {
-                        $color = '#FFF';
-                    }
-
-                    $html.= '<tr height="20" bgcolor="' . $color . '"><td style="font-family:arial,sans-serif;margin:0px">';
-                    $html.= $service->service_name;
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px">&nbsp;</td><td style="font-family:arial,sans-serif;margin:0px">';
-                    $html.= $courierData['name'];
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px">&nbsp;';
-                    $html.= $deliveryDateTime;
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px">';
-                    $html.= $service->total_price;
-                    $html.= '</td><td style="font-family:arial,sans-serif;margin:0px"><br /></td><td style="font-family:arial,sans-serif;margin:0px"><span class="aBn" data-term="goog_2083724664" tabindex="0"><span class="aQJ">';
-                    $html.= $serviceData['collection_time'];
-                    $html.= '</span></span></td></tr>';
-                    $counter++;
-                }
-
-                $service_detail_str = $html;
-                $subject_msg = str_replace(array(
-                    "__quote_number__"
-                ) , array(
-                    $quoteSave['quote_number']
-                ) , $this->headerMsg);
-                $collection_postcode = implode("", $templateMsg['collection_postcode']);
-                $delivery_postcode = implode(",", $templateMsg['delivery_postcode']);
-                $template_msg = str_replace(array(
-                    "__quote_number__",
-                    "__shipping_date__",
-                    "__collection_postcode__",
-                    "__delivery_postcode__",
-                    "__service_detail__",
-                    "__quote_expiry__",
-                    "__courier_name__",
-                    "__img_src__"
-                ) , array(
-                    $quoteSave['quote_number'],
-                    $serviceData['collection_date'],
-                    $collection_postcode,
-                    $delivery_postcode,
-                    $service_detail_str,
-                    $quoteExpiry,
-                    $courierData['name'],
-                    "http://app-tree.co.uk/icargoN/assets/img/pnp_logo.png"
-                ) , $template["template_html"]);
-                $status = $emailObj->sendMail(array(
-                    "recipient_name_and_email" => array(
-                        array(
-                            "name" => "kavita",
-                            "email" => $data->quote_email
-                        )
-                    ) ,
-                    "template_msg" => $template_msg,
-                    "subject_msg" => $subject_msg
-                ));
-                if ($status['status'] == 1) $response = array(
-                    "status" => "success",
-                    "message" => $quoteSave['message']
-                );
-                else $response = array(
-                    "status" => "error",
-                    "message" => $status['message']
-                );
             }
             else
             {
@@ -428,9 +352,8 @@ class Quotation extends Library
     {
         $quoteArr = array();
 
-        // $quoteData = $this->db->getAllRecords("SELECT t1.id,t1.quote_number,GROUP_CONCAT(t1.shipment_postcode) as postcode,t1.expiry_date,t1.email_id,t3.name,t2.service_opted FROM ".DB_PREFIX."quote_shipment as t1 INNER JOIN ".DB_PREFIX."quote_service AS t2 ON t1.quote_number = t2.quote_number INNER JOIN ".DB_PREFIX."users AS t3 ON t1.customer_id = t3.id WHERE t1.company_id = ".$param["company_id"]." GROUP BY t1.quote_number");
-
-        $sql = "SELECT t1.quote_number,t1.shipment_postcode as postcode,t1.expiry_date,t1.email_id,t3.name,t2.service_opted FROM " . DB_PREFIX . "quote_shipment as t1 INNER JOIN " . DB_PREFIX . "quote_service AS t2 ON t1.quote_number = t2.quote_number INNER JOIN " . DB_PREFIX . "users AS t3 ON t1.customer_id = t3.id WHERE t1.company_id = " . $param["company_id"];
+        $sql = "SELECT t1.quote_number,t1.shipment_postcode as postcode,t1.expiry_date,t1.email_id,t3.name,t2.service_opted, t2.booking_type FROM " . DB_PREFIX . "quote_shipment as t1 INNER JOIN " . DB_PREFIX . "quote_service AS t2 ON t1.quote_number = t2.quote_number INNER JOIN " . DB_PREFIX . "users AS t3 ON t1.customer_id = t3.id WHERE t2.expiry_date>=CURDATE() AND t2.booking_type='sameday' AND t1.company_id = " . $param["company_id"];
+        //echo $sql;die;
         $quoteData = $this->db->getAllRecords($sql);
         foreach($quoteData as $value)
         {
@@ -440,9 +363,26 @@ class Quotation extends Library
             $quoteArr[$value['quote_number']]["email"] = $value['email_id'];
             $quoteArr[$value['quote_number']]["expiry_date"] = Library::_getInstance()->date_format($value['expiry_date']);
             $quoteArr[$value['quote_number']]["postcode"][] = $value['postcode'];
-            $quoteArr[$value['quote_number']]["service"] = $serviceArr;
+            $quoteArr[$value['quote_number']]["booking_type"] = $value['booking_type'];
+            //$quoteArr[$value['quote_number']]["service"] = $serviceArr;
         }
 
+        $sql = "SELECT QST.quote_number, QST.expiry_date, QST.email AS email_id, QST.service_opted, UT.name, QST.booking_type FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.expiry_date>=CURDATE() AND QST.company_id='".$param['company_id']."' AND booking_type='nextday'";
+        $quoteData = $this->db->getAllRecords($sql);
+        $key = 0;
+        foreach($quoteData as $value)
+        {
+            $json_data = json_decode($value["service_opted"]);
+
+            if(isset($json_data->collection->$key->postcode)){
+                $quoteArr[$value['quote_number']]["quote_number"] = $value['quote_number'];
+                $quoteArr[$value['quote_number']]["name"] = $value['name'];
+                $quoteArr[$value['quote_number']]["email"] = $value['email_id'];
+                $quoteArr[$value['quote_number']]["expiry_date"] = Library::_getInstance()->date_format($value['expiry_date']);
+                $quoteArr[$value['quote_number']]["postcode"] = array($json_data->collection->$key->postcode, $json_data->delivery->$key->postcode);
+                $quoteArr[$value['quote_number']]["booking_type"] = $value['booking_type'];
+            }
+        }
         return $quoteArr;
     }
 
@@ -451,11 +391,15 @@ class Quotation extends Library
     function getQuoteDataByQuoteNumber($param)
     {
         $quoteArr = array();
-        $customerData = $this->db->getRowRecord("SELECT t1.name,t1.id,email FROM " . DB_PREFIX . "users as t1 INNER JOIN " . DB_PREFIX . "quote_shipment as t2 ON t1.id = t2.customer_id WHERE t2.quote_number = '" . $param->quote_number . "'");
+        $customerData = $this->db->getRowRecord("SELECT c.available_credit,t1.name,t1.id,email FROM " . DB_PREFIX . "users as t1
+            INNER JOIN " . DB_PREFIX . "quote_shipment as t2 ON t1.id = t2.customer_id
+            INNER JOIN " . DB_PREFIX . "customer_info as c on t2.customer_id = c.user_id
+            WHERE t2.quote_number = '" . $param->quote_number . "'");
         $quoteArr['customer'] = array(
             "id" => $customerData['id'],
             "name" => $customerData['name'],
-            "email" => $customerData['email']
+            "email" => $customerData['email'],
+            "availiable_balence"=>$customerData['available_credit']
         );
         $userData = $this->db->getRowRecord("SELECT t1.name,t1.id FROM " . DB_PREFIX . "users as t1 INNER JOIN " . DB_PREFIX . "quote_shipment as t2 ON t1.id = t2.user_id WHERE t2.quote_number = '" . $param->quote_number . "'");
         $quoteArr['user'] = array(
@@ -493,6 +437,78 @@ class Quotation extends Library
             "quoteData" => $quoteArr
         );
     }
-}
 
+    public
+
+    function saveAndSendNextdayQuotation($param){
+        $this->db->startTransaction();
+        $param->service_selected = array_values(array_filter($param->service_selected));
+        $this->company_id = $param->company_id;
+        $expiry_date = $this->_getCustomerQuoteExpiryDate($param->customer_id,$param->collection_date);
+        $quote_number = $this->_generate_quote_no();
+
+        $data = array(
+            "service_request_string"=>json_encode($param->service_request_string),
+            "service_response_string"=>json_encode($param->service_response_string),
+            "email"=>$param->quotation_email,
+            "collection_date"=>date("Y-m-d", strtotime($param->collection_date)),
+            "collection_time"=>date("H:i:s", strtotime($param->collection_date)),
+            "customer_id"=>$param->customer_id,
+            "user_id"=>$param->customer_user_id,
+            "expiry_date"=>$expiry_date,
+            "quote_number"=>$quote_number,
+            "shipment_address_json"=>json_encode(array()),
+            "transit_time"=>"0.00",
+            "transit_distance"=>"0.00",
+            "transit_distance_text"=>"",
+            "transit_time_text"=>"",
+            "booking_type"=>"nextday",
+            "warehouse_id"=>$param->warehouse_id,
+            "company_id"=>$param->company_id
+        );
+
+        $service_opted = $param;
+        unset($param->service_request_string);
+        unset($param->service_response_string);
+        unset($param->quotation_email);
+        $data["service_opted"] = json_encode($service_opted);
+
+        $shipmentId = $this->db->save("quote_service", $data);
+        if($shipmentId>0){
+            $this->db->commitTransaction();
+            //send an email
+            Consignee_Notification::_getInstance()->sendNextdayQuotationEmailToConsignee(array("quote_number"=>$quote_number, "company_id"=>$param->company_id, "warehouse_id"=>$param->warehouse_id));
+
+            return array("status"=>"success", "message"=>"You quotation has been booked successfully - $quote_number");
+        }
+        $this->db->rollBackTransaction();
+        return array("status"=>"error", "message"=>"Quote not saved");
+    }
+
+    public
+
+    function loadQuotationByQuotationId($param){
+        $sql = "SELECT QST.service_opted, QST.service_request_string, QST.service_response_string FROM " . DB_PREFIX . "quote_service AS QST INNER JOIN " . DB_PREFIX . "users AS UT ON UT.id=QST.customer_id WHERE QST.expiry_date>=CURDATE() AND QST.company_id='".$param->company_id."' AND quote_number='".$param->quotation_id."'";
+
+        $quoteData = $this->db->getRowRecord($sql);
+        if(count($quoteData)>0){
+            $quoteData["service_opted"] = json_decode($quoteData["service_opted"]);
+            $quoteData["service_request_string"] = json_decode($quoteData["service_request_string"]);
+            $quoteData["service_response_string"] = json_decode($quoteData["service_response_string"]);
+            $quoteData["availablebalance"]      = $this->_getCustomerAvailableBalance($quoteData["service_opted"]->customer_id);
+            $quoteData["status"] = "success";
+        }else{
+            $quoteData["status"] = "error";
+            $quoteData["message"] = "Quotation not found or expired";
+        }
+        return $quoteData;
+    }
+    private
+    function _getCustomerAvailableBalance($customer_id)
+    {
+        $record = $this->db->getRowRecord("SELECT available_credit FROM " . DB_PREFIX . "customer_info WHERE `user_id` = '$customer_id'");
+        $balance = $record['available_credit'];
+        return $balance;
+    }
+}
 ?>

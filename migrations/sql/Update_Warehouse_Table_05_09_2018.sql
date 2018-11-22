@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_warehouse` CHANGE `address_2` `address_2` VARCHAR(200) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;

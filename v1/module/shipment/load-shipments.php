@@ -45,7 +45,7 @@ class loadShipment extends Library
         }
         if (isset($param['shipment_route_id'])) {
             $this->shipment_route_id = $param['shipment_route_id'];
-        }	
+        }
 	    if (isset($param['route_name'])) {
             $this->route_name = $param['route_name'];
         }
@@ -71,9 +71,9 @@ class loadShipment extends Library
             "next_d" => "N/D",
             "same_p" => "S/C",
             "same_d" => "S/D"
-            
+
         );
-		
+
 		$this->service_type = array(
 			'p' => 'Collection',
 			'd' => 'Delivery',
@@ -83,7 +83,7 @@ class loadShipment extends Library
     public function testCompanyConfiguration()
     {
         $record = $this->db->getRowRecord("SELECT configuration_json AS configuration_json FROM " . DB_PREFIX . "configuration AS s WHERE company_id = " . $this->company_id);
-		
+
         if ($record) {
             $configuration                      = json_decode($record['configuration_json']);
             $this->drop_count                   = $configuration->maximum_allow_drop;
@@ -129,7 +129,7 @@ class loadShipment extends Library
     {
         $records = $this->db->getAllRecords("SELECT * FROM " . DB_PREFIX . "shipment AS s WHERE s.current_status = 'C' AND s.instaDispatch_loadGroupTypeCode != 'SAME' AND s.company_id = ' $this->company_id ' AND s.warehouse_id = ' $this->warehouse_id' AND is_internal=1");
         //$records = $this->db->getAllRecords("SELECT s.*, ABT.address_line1 AS shipment_address1, ABT.address_line2 AS shipment_address2, ABT.postcode AS shipment_postcode, ABT.city AS shipment_customer_city, ABT.country AS shipment_customer_country, ABT.iso_code AS shipment_country_code FROM " . DB_PREFIX . "shipment AS s INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=s.address_id WHERE s.current_status = 'C' AND s.instaDispatch_loadGroupTypeCode != 'SAME' AND s.company_id = " . $this->company_id." AND s.warehouse_id = " . $this->warehouse_id);
-        
+
 		$counter = 0;
         $temp    = array();
         $data = array();
@@ -152,12 +152,12 @@ class loadShipment extends Library
             }
             //suppressing type variable temporary
             $type = $load_group_type_code;
-            
+
             if($load_group_type_code =="phone" || $load_group_type_code =="vendor"){
                 $type = "retail";
             }
-            
-            
+
+
             if ($record["shipment_service_type"] == "P") {
                 $temp[$record["shipment_postcode"]][]                  = $record["shipment_ticket"];
                 $data[$record["shipment_postcode"]]["shipment_ticket"] = implode(',', $temp[$record["shipment_postcode"]]); //$record["shipment_ticket"];
@@ -205,7 +205,7 @@ class loadShipment extends Library
         else if (strtolower($this->shipment_type) == 'same') {
             return $this->_get_same_day_data();
         }
-        
+
         else if (strtolower($this->shipment_type) == 'return') {
             return $this->_get_return_data();
         }
@@ -215,10 +215,10 @@ class loadShipment extends Library
         else if (strtolower($this->shipment_type) == 'sameday_customer') {
             return $this->_get_customer_same_day_data();
         }
-        
+
     }
 
-    private 
+    private
 
     function _prepare_customer_sameday_data($records){
         $data    = array();
@@ -231,7 +231,7 @@ class loadShipment extends Library
 
 
             $temp[$record['instaDispatch_loadIdentity']]["shipments"][] = array(
-                "docket_number"               =>$record["docket_number"], 
+                "docket_number"               =>$record["docket_number"],
                 "shipment_postcode"           =>$record["postcode"],
                 "shipment_service_type"       =>$this->service_type[strtolower($record["shipment_service_type"])],
                 "waiting_time"                =>date("i", strtotime($record["waiting_time"]))." min",
@@ -260,7 +260,7 @@ class loadShipment extends Library
 
             $start_time                        = $this->time_format($record['shipments'][0]['shipment_service_start_time']);
             $end_time                          = $this->time_format($record['shipments'][0]['shipment_service_end_time']);
-            $data[$counter]['collection_time'] = "$start_time - $end_time";     
+            $data[$counter]['collection_time'] = "$start_time - $end_time";
             $data[$counter]['shipment_ticket'] = implode(',', array_column($record['shipments'],"shipment_ticket"));
             $data[$counter]["reference_no"]    = $record["reference_no"];
 
@@ -274,7 +274,7 @@ class loadShipment extends Library
             $data[$counter]['drops']           = count($record['shipments']);
             $data[$counter]['shipments']       = $record['shipments'];
             $data[$counter]['service_name']    = $service_opted['service_name'];
-			
+
 			$data[$counter]['quote_amount']    = $service_opted['total_price'];
 
             /*$data[$counter]['customer_name']   = $service_opted['customer_name'];
@@ -290,7 +290,7 @@ class loadShipment extends Library
         return $data;
     }
 
-    private 
+    private
 
     function _prepare_sameday_data($records){
         $data    = array();
@@ -302,7 +302,7 @@ class loadShipment extends Library
             $temp[$record['instaDispatch_loadIdentity']]["service_date"]     = $record["shipment_required_service_date"];
 
             $temp[$record['instaDispatch_loadIdentity']]["shipments"][] = array(
-                "docket_number"               =>$record["docket_number"], 
+                "docket_number"               =>$record["docket_number"],
                 "shipment_postcode"           =>$record["postcode"],
                 "shipment_service_type"       =>$this->service_type[strtolower($record["shipment_service_type"])],
                 "waiting_time"                =>date("i", strtotime($record["waiting_time"]))." min",
@@ -331,7 +331,7 @@ class loadShipment extends Library
             $start_time                        = $this->time_format($record['shipments'][0]['shipment_service_start_time']);
             $end_time                          = $this->time_format($record['shipments'][0]['shipment_service_end_time']);
 
-            $data[$counter]['collection_time'] = "$start_time - $end_time";     
+            $data[$counter]['collection_time'] = "$start_time - $end_time";
             $data[$counter]['shipment_ticket'] = implode(',', array_column($record['shipments'],"shipment_ticket"));
             $data[$counter]["reference_no"]    = $record["reference_no"];
 
@@ -360,20 +360,20 @@ class loadShipment extends Library
     { //LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.shipment_id=s.shipment_id  , t.transit_distance_text, t.transit_time_text
         /*$records = $this->db->getAllRecords("SELECT b.postcode, s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time,
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
-        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
-        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
+        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date,
+        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time,
         distancemiles AS distance_miles, estimatedtime AS estimated_time, b.address_line1, b.address_line2, b.latitude, b.longitude, s.icargo_execution_order
         FROM " . DB_PREFIX . "shipment AS s
-        INNER JOIN " . DB_PREFIX . "address_book AS b on s.address_id=b.id WHERE s.current_status = 'C' AND 
+        INNER JOIN " . DB_PREFIX . "address_book AS b on s.address_id=b.id WHERE s.current_status = 'C' AND
         s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")");*/
-        $sql = "SELECT s.shipment_postcode as postcode, s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+        $sql = "SELECT s.shipment_postcode as postcode, s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time,
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
-        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
-        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
+        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date,
+        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time,
         distancemiles AS distance_miles, estimatedtime AS estimated_time, s.shipment_address1 as address_line1, s.shipment_address1 as address_line2, s.shipment_latitude as latitude, s.shipment_longitude as longitude, s.icargo_execution_order
         FROM " . DB_PREFIX . "shipment AS s
-        WHERE s.current_status = 'C' AND 
-        s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND s.shipment_create_date BETWEEN '$this->startDate' AND '$this->endDate' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";
+        WHERE s.current_status = 'C' AND
+        s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND s.shipment_required_service_date BETWEEN '$this->startDate' AND '$this->endDate' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";
         $records = $this->db->getAllRecords($sql);
         $data = $this->_prepare_sameday_data($records);
 
@@ -381,29 +381,29 @@ class loadShipment extends Library
     }
 
     private function _get_customer_same_day_data()
-    {//LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.shipment_id=s.shipment_id , t.transit_distance, t.transit_time 
-        $sqlOld = "SELECT b.postcode,b.address_line1,b.address_line2,b.city,b.state,b.country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+    {//LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.shipment_id=s.shipment_id , t.transit_distance, t.transit_time
+        $sqlOld = "SELECT b.postcode,b.address_line1,b.address_line2,b.city,b.state,b.country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time,
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
-        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
-        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
+        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date,
+        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time,
         distancemiles AS distance_miles, estimatedtime AS estimated_time
-        FROM " . DB_PREFIX . "shipment AS s LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.load_identity=s.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "address_book AS b on s.address_id=b.id WHERE s.current_status = 'C' AND 
+        FROM " . DB_PREFIX . "shipment AS s LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.load_identity=s.instaDispatch_loadIdentity INNER JOIN " . DB_PREFIX . "address_book AS b on s.address_id=b.id WHERE s.current_status = 'C' AND
         s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND t.customer_id='$this->user_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";
 
-        /*$sql = "SELECT s.shipment_postcode as postcode,s.shipment_address1 as address_line1,b.shipment_address2 as address_line2,s.shipment_customer_city as city,b.state,s.shipment_customer_country as country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+        /*$sql = "SELECT s.shipment_postcode as postcode,s.shipment_address1 as address_line1,b.shipment_address2 as address_line2,s.shipment_customer_city as city,b.state,s.shipment_customer_country as country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time,
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
-        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
-        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
+        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date,
+        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time,
         distancemiles AS distance_miles, estimatedtime AS estimated_time
-        FROM " . DB_PREFIX . "shipment AS s LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.load_identity=s.instaDispatch_loadIdentity WHERE s.current_status = 'C' AND 
+        FROM " . DB_PREFIX . "shipment AS s LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.load_identity=s.instaDispatch_loadIdentity WHERE s.current_status = 'C' AND
         s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND t.customer_id='$this->user_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";*/
 
-        $sql = "SELECT s.shipment_postcode as postcode,s.shipment_address1 as address_line1,s.shipment_address2 as address_line2,s.shipment_customer_city as city,s.shipment_county as state,s.shipment_customer_country as country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time, 
+        $sql = "SELECT s.shipment_postcode as postcode,s.shipment_address1 as address_line1,s.shipment_address2 as address_line2,s.shipment_customer_city as city,s.shipment_county as state,s.shipment_customer_country as country,s.shipment_customer_name,s.shipment_customer_email,s.shipment_customer_phone,s.shipment_id, shipment_instruction, shipment_postcode, shipment_service_type, waitingtime AS waiting_time,
         loadingtime AS loading_time, $this->_execution_order AS shipment_order,instaDispatch_loadGroupTypeCode, instaDispatch_loadIdentity,
-        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date, 
-        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time, 
+        instaDispatch_docketNumber AS docket_number, shipment_ticket, instaDispatch_jobIdentity, shipment_required_service_date,
+        shipment_required_service_starttime AS shipment_required_service_start_time, shipment_required_service_endtime AS shipment_required_service_end_time,
         distancemiles AS distance_miles, estimatedtime AS estimated_time
-        FROM " . DB_PREFIX . "shipment AS s LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.load_identity=s.instaDispatch_loadIdentity WHERE s.current_status = 'C' AND 
+        FROM " . DB_PREFIX . "shipment AS s LEFT JOIN " . DB_PREFIX . "shipment_service AS t ON t.load_identity=s.instaDispatch_loadIdentity WHERE s.current_status = 'C' AND
         s.instaDispatch_loadGroupTypeCode = 'SAME' AND s.company_id = ".$this->company_id." AND s.warehouse_id = '$this->warehouse_id' AND t.customer_id='$this->user_id' ORDER BY FIELD(\"shipment_service_type\",\"P\",\"D\")";
 
         $records = $this->db->getAllRecords($sql);
@@ -436,7 +436,7 @@ class loadShipment extends Library
             }
             //suppressing type variable temporary
             $type = $load_group_type_code;
-            
+
             if($load_group_type_code =="phone" || $load_group_type_code =="vendor"){
                 $type = "retail";
             }
@@ -474,7 +474,7 @@ class loadShipment extends Library
         return array(
             "aoColumn" => $aoColumn,
             "aaData" => array_values($data)
-        );   
+        );
     }
     private function _get_disputed_data()
     {
@@ -501,7 +501,7 @@ class loadShipment extends Library
             }
             //suppressing type variable temporary
             $type = $load_group_type_code;
-            
+
             if($load_group_type_code =="phone" || $load_group_type_code =="vendor"){
                 $type = "retail";
             }
@@ -539,7 +539,7 @@ class loadShipment extends Library
         return array(
             "aoColumn" => $aoColumn,
             "aaData" => array_values($data)
-        );   
+        );
     }
     public function shipmentStatus()
     {
@@ -624,7 +624,7 @@ class loadShipment extends Library
         $records               = $this->db->getAllRecords("SELECT shipment_postcode, shipment_customer_country, instaDispatch_loadGroupTypeCode, shipment_service_type, is_receivedinwarehouse, instaDispatch_objectIdentity, shipment_ticket FROM " . DB_PREFIX . "shipment AS s WHERE s.shipment_ticket IN('$this->shipment_ticket') AND s.current_status = 'C'");
         foreach ($records as $key => $value) {
             $shipment_type[] = $value['instaDispatch_loadGroupTypeCode'];
-            $shipment_day_services[] = $value['shipment_ticket'];    
+            $shipment_day_services[] = $value['shipment_ticket'];
         }
         $shipment_type = array_values(array_unique($shipment_type));
         if (count($shipment_type) == 1) {
@@ -636,7 +636,7 @@ class loadShipment extends Library
                         'message' => 'Total ' . $count . ' same Day Shipment select.',
                         'data' => $shipment_day_services
                     );
-                }  
+                }
             }else {
                     $data = array(
                         'status' => true,
@@ -653,10 +653,10 @@ class loadShipment extends Library
         }
         return $data;
     }
-    
-    
-    
-        
+
+
+
+
     private function _search_in_array($array)
     {
         array_multisort(array_map('strlen', $array), $array);
@@ -669,7 +669,7 @@ class loadShipment extends Library
         $this->shipment_route = array();
         $cols                 = array_column($this->route_postcode, $column);
         $key                  = array_search($needle, $cols);
-        
+
         if (!$key) {
             $temp = array();
             foreach ($cols as $key => $col) {
@@ -744,10 +744,10 @@ class loadShipment extends Library
         $this->_clean_temporary_data_by_session_id();
         foreach ($data['routes'] as $key => $valueinner)
             $this->_add_temp_routes($key, $valueinner,'NONSAMEDAY');
-		
+
 		$this->_update_execution_order();
     }
-    
+
     public function requestRoutesSamedayData()
     {
         $ticketids            = $this->shipment_ticket;
@@ -763,10 +763,10 @@ class loadShipment extends Library
         $this->_clean_temporary_data_by_session_id();
         foreach ($data['routes'] as $key => $valueinner)
             $this->_add_temp_routes($key, $valueinner,'SAMEDAY');
-		
+
 		$this->_update_execution_order();
     }
-    
+
 	private function _update_execution_order()
 	{
 		$sql = "SELECT group_concat(`shipment_id`) as `shipment_id`, `drop_name`, `temp_route_id` FROM `" . DB_PREFIX . "temp_routes_shipment` group by drop_name, temp_route_id ORDER BY drop_name";
@@ -775,12 +775,12 @@ class loadShipment extends Library
 			if(!isset($this->drops[$record['temp_route_id']][$record['drop_name']]['shipments'])){
 				$this->drops[$record['temp_route_id']][$record['drop_name']]['shipments'] = array();
 			}
-			$this->drops[$record['temp_route_id']][$record['drop_name']]['shipments'][] =  $record['shipment_id'];  
+			$this->drops[$record['temp_route_id']][$record['drop_name']]['shipments'][] =  $record['shipment_id'];
 		}
 		foreach($this->drops as $route_id => $drop){
 			$execution_order = 1;
 			foreach($drop as $shipment){
-				$sql = "UPDATE `" . DB_PREFIX . "temp_routes_shipment` SET drop_execution_order = $execution_order WHERE temp_route_id = $route_id AND company_id = $this->company_id AND shipment_id IN(".$shipment['shipments'][0].")";			
+				$sql = "UPDATE `" . DB_PREFIX . "temp_routes_shipment` SET drop_execution_order = $execution_order WHERE temp_route_id = $route_id AND company_id = $this->company_id AND shipment_id IN(".$shipment['shipments'][0].")";
 				$this->db->updateData($sql);
 				$execution_order++;
 			}
@@ -869,7 +869,7 @@ class loadShipment extends Library
         $sql .= "WHERE (SH.session_id = '" . $this->access_token . "') AND (CA.current_status = 'C')";*/
 
         //commented by nishant. address book table is now separated
-		
+
 		//address record will be fetched from shipments table only(comment added by kavita 13feb2018)
 		$sql = "SELECT `R2`.`route_type`,`SH`.`shipment_type`,`SH`.`job_type`,`R2`.`temp_route_id`, `SH`.`drag_temp_route_id`, `SH`.`drop_execution_order`, `SH`.`distancemiles`, `SH`.`estimatedtime`, `R2`.`custom_route`, `R2`.`route_id`, `R2`.`session_id`, ";
         $sql .= "`R2`.`route_name`, CONCAT(route_name,SH.temp_route_id) AS `route_name_display`, `R2`.`is_optimized`, `R2`.`optimized_type`, `R2`.`last_optimized_time`, `SH`.drop_name, ";
@@ -886,64 +886,64 @@ class loadShipment extends Library
         $sql .= "`ABT`.`postcode` AS `postcode`,`ABT`.`latitude` AS `shipment_latitude`, `ABT`.`longitude` AS `shipment_longitude`, `ABT`.`country` AS `shipment_customer_country`, `CA`.`instaDispatch_loadGroupTypeCode`, `CA`.`shipment_service_type`, `CA`.`icargo_execution_order`, `R2`.`warehouse_id`, `CA`.error_flag, `CA`.shipment_required_service_date AS service_date, `CA`.is_receivedinwarehouse, `CA`.shipment_total_attempt ";
         $sql .= "FROM `" . DB_PREFIX . "temp_routes` AS `R2` LEFT JOIN `" . DB_PREFIX . "temp_routes_shipment` AS `SH` ON R2.temp_route_id = SH.temp_route_id ";
         $sql .= "LEFT JOIN `" . DB_PREFIX . "shipment` AS `CA` ON SH.shipment_id = CA.shipment_id ";
-        $sql .= "LEFT JOIN `" . DB_PREFIX . "address_book` AS `ABT` ON ABT.id = CA.address_id "; 
+        $sql .= "LEFT JOIN `" . DB_PREFIX . "address_book` AS `ABT` ON ABT.id = CA.address_id ";
         $sql .= "WHERE (R2.session_id = '" . $this->access_token . "')";*/
 
         $getAllDropsBySession = $this->db->getAllRecords($sql);
-		$containerarray       = array(); 
+		$containerarray       = array();
 		foreach($getAllDropsBySession as $keysdrop => $valuedrop){
-			
+
 			$drop = $valuedrop['drop_name'];
 			$containerarray[$valuedrop['temp_route_id']][$drop]['last_optimized_time'] = $this->_date_format($valuedrop['last_optimized_time'], true);
 			$containerarray[$valuedrop['temp_route_id']][$drop]['route_name']      = $valuedrop['route_name'];
             $containerarray[$valuedrop['temp_route_id']][$drop]['postcode']        = $valuedrop['postcode'];
-			
+
 			if($valuedrop['instaDispatch_loadGroupTypeCode']!='' AND $valuedrop['shipment_service_type']!=''){
 				$load_type = $valuedrop['instaDispatch_loadGroupTypeCode'].'_'.$valuedrop['shipment_service_type'];
 				$load_group_type                                                       = $this->_get_load_type($load_type);
 				$service_type                                                          = $this->_get_service_type($valuedrop['shipment_service_type']);
 				$containerarray[$valuedrop['temp_route_id']][$drop]['shipments'][]     = array('shipment_type'=>$valuedrop['shipment_type'],'shipment_volume'=>$valuedrop['shipment_volume'],'shipment_weight'=>$valuedrop['shipment_weight'],'shipment_id'=>$valuedrop['shipment_id'],'ticket'=>$valuedrop['shipment_ticket'],'error_flag'=>$valuedrop['error_flag'],'shipment_total_item'=>$valuedrop['shipment_total_item'],'docket_number'=>$valuedrop['docket_number'],'type'=>$service_type,'postcode'=>$valuedrop['postcode'],'service_date'=>$this->_date_format($valuedrop['service_date']),'warehouse_status'=>$valuedrop['is_receivedinwarehouse'],'total_attempt'=>$valuedrop['shipment_total_attempt'],
-				'create_date'=>$this->_date_format($valuedrop['shipment_create_date'])); 
-						
-			
+				'create_date'=>$this->_date_format($valuedrop['shipment_create_date']));
+
+
 			$shipment_count = count($containerarray[$valuedrop['temp_route_id']][$drop]['shipments']);
 			$containerarray[$valuedrop['temp_route_id']][$drop]['shipment_count']  = $shipment_count;
 			$containerarray[$valuedrop['temp_route_id']][$drop]['drop_type']       = $load_group_type;
 			}
-			
+
 			$containerarray[$valuedrop['temp_route_id']][$drop]['temp_route_id']   = $valuedrop['temp_route_id'];
 			$containerarray[$valuedrop['temp_route_id']][$drop]['route_type']      = $valuedrop['route_type'];
 			$containerarray[$valuedrop['temp_route_id']][$drop]['latitude']        = $valuedrop['shipment_latitude'];
 			$containerarray[$valuedrop['temp_route_id']][$drop]['longitude']       = $valuedrop['shipment_longitude'];
 
             $containerarray[$valuedrop['temp_route_id']][$drop]['shipment_latlong'] = $valuedrop['shipment_latitude'].','.$valuedrop['shipment_longitude'];
-			
+
 
             $containerarray[$valuedrop['temp_route_id']][$drop]['execution_order'] = $valuedrop['drop_execution_order'];
 			$containerarray[$valuedrop['temp_route_id']][$drop]['warehouse_id']    = $valuedrop['warehouse_id'];
-			
+
 			//$containerarray[$valuedrop['temp_route_id']][$drop]['drop_error']  = 0;
-			
+
 			if(!isset($containerarray[$valuedrop['temp_route_id']][$drop]['drop_error']) || $containerarray[$valuedrop['temp_route_id']][$drop]['drop_error']!=1){
 				$containerarray[$valuedrop['temp_route_id']][$drop]['drop_error']  = $valuedrop['error_flag'];
 			}
-			
-			
+
+
 			$tdrop                                                                 = ($valuedrop['estimatedtime'] != '') ? $valuedrop['estimatedtime'] + ceil((($shipment_count * $this->buffer_time_of_each_shipment) + $this->buffer_time_of_drop) / 60) : 0;
 			$containerarray[$valuedrop['temp_route_id']][$drop]['eta']             = $tdrop;
-			//$containerarray[$valuedrop['temp_route_id']][$drop]['drop_type']       = $load_group_type;	
+			//$containerarray[$valuedrop['temp_route_id']][$drop]['drop_type']       = $load_group_type;
 		}
 		//ksort($containerarray);
         return $containerarray;
 	}
     //Roopesh
 	public function addRouteBox(){
-        
-       
+
+
 		$getLastCustomRoute = $this->db->getOneRecord("SELECT temp_route_id,route_name FROM `icargo_temp_routes` where custom_route = 'Y' AND session_id = '".$this->access_token."' ORDER BY `icargo_temp_routes`.`temp_route_id` DESC");
 		if($getLastCustomRoute!=''){
 			$customRoute = explode('_',$getLastCustomRoute['route_name']);
-			$routeName = $customRoute[1] + 1; 
+			$routeName = $customRoute[1] + 1;
 			$routeName = 'Custom_'.$routeName;
 			$insertData =  $this->db->save("temp_routes",array('custom_route'=>'Y','route_id'=>0,'route_name'=>$routeName,'session_id'=>$this->access_token,'status'=>1,'company_id'=>$this->company_id,'warehouse_id'=>$this->warehouse_id,'route_type'=>$this->routetype));
 		}else{
@@ -959,7 +959,7 @@ class loadShipment extends Library
 		}
 		return $response;
 	}
-	
+
 	public function removeRouteBox($routeId){
 		$deleteData =  $this->db->delete("DELETE FROM `icargo_temp_routes` WHERE `icargo_temp_routes`.`temp_route_id` = $routeId");
 		if($deleteData!= NULL){
@@ -977,9 +977,9 @@ class loadShipment extends Library
 		}
 		return $response;
 	}
-	
+
 	private function _add_temp_routes($roughtkey, $drops,$routeType)
-    {  
+    {
         /*foreach ($drops as $key => $row) {
             $mid[$key] = $row['instaDispatch_docketNumber'];
         }
@@ -1022,7 +1022,7 @@ class loadShipment extends Library
                         $count       = 0;
                         if($shipment_service_type != 'p'){
                            $this->collectionShip['shipment_ticket'] = $this->collectionShip['shipment_ticket'].'V'.rand(45,230);
-                           $this->_add_temp_shipment($this->collectionShip, $temprouteId, $executionorder);  
+                           $this->_add_temp_shipment($this->collectionShip, $temprouteId, $executionorder);
                         }
                     }
                     if ($loopcounter > 0) {
@@ -1039,13 +1039,13 @@ class loadShipment extends Library
         }
     }
 	private function _get_drop($data)
-	{ 
+	{
 		return $this->common_obj->getDropName(array("postcode"=>$data['shipment_postcode'],"address_1"=>$data['shipment_address1']),true);
 		//return $data['shipment_postcode'].' '.$data['shipment_address1'];
 	}
     private function _add_temp_shipment($valData, $tempRid, $ordernum)
     {
-       
+
 		$drop                            = $this->_get_drop($valData);
 		$dataArr                         = array();
 		$dataArr['drop_name']            = $drop;
@@ -1065,11 +1065,11 @@ class loadShipment extends Library
 		$dataArr['company_id']           = $this->company_id;
 		$this->db->save("temp_routes_shipment", $dataArr);
     }
-    
+
     private function _get_route_name($roughtkey)
     {
         $route_name = "";
-        
+
         foreach($this->route_postcode as $route_postcode)
         {
             if($route_postcode['route_id']==$roughtkey)
@@ -1080,12 +1080,12 @@ class loadShipment extends Library
         }
         return $route_name;
     }
-    
+
     private function _create_temp_route($roughtkey,$routeType)
     {
-        
+
         $route_name = $this->_get_route_name($roughtkey);
-        
+
         $routeArray                 = array();
         $routeArray['custom_route'] = ($roughtkey == 0) ? 'Y' : 'N';
         $routeArray['route_id']     = $roughtkey;
@@ -1097,12 +1097,12 @@ class loadShipment extends Library
         $routeArray['company_id']   = $this->company_id;
 		$routeArray['warehouse_id'] = $this->warehouse_id;
         $routeArray['route_type']   = $routeType;
-        
+
         /*if($roughtkey==2){
-            
+
 
         }*/
-        
+
         return $this->db->save("temp_routes", $routeArray);
     }
     private function _get_allowed_drop_of_route($rid)
@@ -1126,9 +1126,6 @@ class loadShipment extends Library
     }
     public function sameDayDriverAssign($data)
     {
-        require_once dirname(dirname(__FILE__))."/firebase/route-assign.php";
-        require_once dirname(dirname(__FILE__))."/firebase/model/rest.php";
-        
         $common_obj = new Common();
         $shipment_tickets    = explode(',', $this->shipment_ticket);
         $vehicleIdofDriver = $this->_get_driver_data_by_id($this->driver_id);
@@ -1139,25 +1136,26 @@ class loadShipment extends Library
 			$assign_date = date('Y-m-d',$timestamp);
             // Create a Route
             $insertData = array(
-                'route_id' => '0',
+                'route_id'          => '0',
                 'custom_route'      => 'Y',
-                'route_name'        => $this->route_name,//'custom_1.' . rand(1, 50),
+                'route_name'        => $this->route_name,
                 'driver_id'         => $this->driver_id,
                 'create_date'       => date("Y-m-d"),
-                'assign_start_time' => date("h:i:s", $timestamp),//str_replace(' ', '', $this->assign_time . ':00'),
+                'assign_start_time' => date("h:i:s", $timestamp),
                 'is_active'         => 'Y',
                 'is_optimized'      => 'NO',
                 'optimized_type'    => 'N',
                 'status'            => '1',
                 'company_id'        => $this->company_id,
-                'warehouse_id'      => $this->warehouse_id
+                'warehouse_id'      => $this->warehouse_id,
+                'service_date'      => date('Y-m-d H:i:s', $timestamp)
             );
-            
+
             $shipment_routed_id    = $this->db->save('shipment_route', $insertData);
             // Assign Route to Driver
             foreach ($shipment_tickets as $shipment_ticket) {
                 $shipdata      = $this->_get_shipment_detail_sameday($shipment_ticket);
-               
+
                 $insertData    = array(
                     'shipment_ticket'   => $shipment_ticket,
                     'driver_id'         => $this->driver_id,
@@ -1184,18 +1182,21 @@ class loadShipment extends Library
                 );
                 $drshipid      = $this->db->save('driver_shipment', $insertData);
                 // Update Cargo shipment
-                
+
                 $status        = $this->db->updateData("UPDATE " . DB_PREFIX . "shipment SET shipment_assigned_service_date = '".$assign_date."',shipment_assigned_service_time = '".$assign_time."', is_driver_assigned = 1,company_id='$this->company_id',warehouse_id='$this->warehouse_id',shipment_assigned_service_time='" . date("H:m:s") . "',is_shipment_routed='1',assigned_driver='$this->driver_id',assigned_vehicle='" . $vehicleIdofDriver['vehicle_id'] . "',current_status='O',icargo_execution_order='" . $shipdata['shipment_executionOrder'] . "',distancemiles='" . $shipdata['distancemiles'] . "',estimatedtime='" . $shipdata['estimatedtime'] . "',shipment_routed_id='$shipment_routed_id' WHERE shipment_ticket = '$shipment_ticket'");
 
                 $historyOfShip = $common_obj->addShipmentlifeHistory($shipment_ticket, 'Assign to Driver', $this->driver_id, $shipment_routed_id, $this->company_id, $this->warehouse_id, "ASSIGNTODRIVER", 'controller');
             }
             if($historyOfShip) {
                 $firebaseObj = new Firebase_Route_Assign(array("driver_id"=>$this->driver_id,"route_id"=>$shipment_routed_id,"warehouse_id"=>$this->warehouse_id,"email"=>$this->email,"company_id"=>$this->company_id));
-                
+                $postId = $firebaseObj->getCurrentAssignedRouteData();
+                $this->db->update('shipment_route',array("firebase_id"=>$postId), "shipment_route_id='$shipment_routed_id'");
+
+                //save tracking history
+                Find_Save_Tracking::_getInstance()->saveRouteTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "user_type"=>"Controller"));
                 return array(
-                    'status' => true,
-                    'message' => 'Requested Route has been Assigned to driver',
-                    'post_data' => $firebaseObj->getCurrentAssignedRouteData()
+                    'status' => "success",
+                    'message' => 'Requested Route has been Assigned to driver'
                 );
             }
         }
@@ -1275,11 +1276,11 @@ class loadShipment extends Library
         $companyid   = $this->company_id;
         $warehouseid = $this->warehouse_id;
         $ticketids   = '"' . implode('","', $jsonData) . '"';
-        
-        
-        
+
+
+
         $reqDate = date('Y-m-d');
-        
+
         $status      = $this->db->updateData("UPDATE " . DB_PREFIX . "shipment SET current_status = 'Dis',disputeid= $disputeid,disputedate='$reqDate',company_id='" . $companyid . "',warehouse_id='" . $warehouseid . "' WHERE shipment_ticket IN(" . $ticketids . ")");
         if ($status) {
             foreach ($jsonData as $ticket) {
@@ -1326,7 +1327,7 @@ class loadShipment extends Library
     }
 
     public function getRunsheetData($routeId){
-        $sql = "SELECT R1.icargo_execution_order, R1.instaDispatch_docketNumber,ABT.postcode AS shipment_postcode,ABT.address_line1 AS address_line1,ABT.address_line2 AS address_line2,R1.shipment_total_item,R1.shipment_required_service_date,R1.shipment_required_service_endtime,R1.shipment_required_service_starttime,R1.shipment_customer_name AS consignee_name 
+        $sql = "SELECT R1.icargo_execution_order, R1.instaDispatch_docketNumber,ABT.postcode AS shipment_postcode,ABT.address_line1 AS address_line1,ABT.address_line2 AS address_line2,R1.shipment_total_item,R1.shipment_required_service_date,R1.shipment_required_service_endtime,R1.shipment_required_service_starttime,R1.shipment_customer_name AS consignee_name
         FROM " . DB_PREFIX ."shipment AS `R1`
         INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=R1.address_id WHERE R1.shipment_routed_id = $routeId";
         $records = $this->db->getAllRecords($sql);
@@ -1339,11 +1340,11 @@ class loadShipment extends Library
 		$records = $this->db->getAllRecords($sql);
 		return $records;
 	}
-    
+
 	public function getSearchData($serchParam){
 		$sql = 'SELECT t1.*,t2.route_name as route_name,t3.name as driver_name FROM `icargo_shipment` as t1 LEFT JOIN `icargo_shipment_route` AS t2 ON t1.shipment_routed_id = t2.shipment_route_id LEFT JOIN `icargo_users` AS t3 ON t2.driver_id = t3.id WHERE t1.company_id = "'.$this->company_id.'" AND (t1.`shipment_postcode` LIKE "%'.$serchParam.'%" OR t1.`instaDispatch_docketNumber` LIKE "%'.$serchParam.'%" OR t1.`shipment_ticket` LIKE "%'.$serchParam.'%")';
 		$records = $this->db->getAllRecords($sql);
-		//return $records;	
+		//return $records;
         $temp    = array();
         $data = array();
         foreach ($records as $key => $record) {
@@ -1365,11 +1366,11 @@ class loadShipment extends Library
             }
             //suppressing type variable temporary
             $type = $load_group_type_code;
-            
+
             if($load_group_type_code =="phone" || $load_group_type_code =="vendor"){
                 $type = "retail";
             }
-			   
+
                $data[$key]["docket_no"]       = $record["instaDispatch_docketNumber"];
 			   $data[$key]["reference_no"]    = $record["instaDispatch_loadIdentity"];
 			   $data[$key]["service_type"]    = $service_type;//"$service_type(" . $data[$key]["count"] . ")";
@@ -1418,22 +1419,22 @@ class loadShipment extends Library
         $aoColumn = array("Docket No","Reference No","Service Type","Service Date","Address 1","Postcode","Shipment Ticket","Route Name","Driver Name","Action");
         return array("aoColumn" => $aoColumn,"aaData" => array_values($data));
 	}
-    
+
     public function addRouteBoxShipment($temprouteId){
         if($this->routetype=='SAMEDAY'){
         $date = date('Y-m-d');
         $sql     = "SELECT t1.* FROM " . DB_PREFIX . "temp_routes_shipment AS t1  WHERE t1.session_id = '$this->access_token' AND CAST(t1.create_date AS DATE) = '$date' AND t1.company_id = '$this->company_id' AND t1.shipment_type = 'P' AND t1.job_type = 'SAME'";
         $collectionship = $this->db->getRowRecord($sql);
-        $valData =  array(); 
+        $valData =  array();
         $valData['shipment_ticket'] = $collectionship['temp_shipment_ticket'].'V'.rand(45,230);
         $valData['shipment_id'] = $collectionship['shipment_id'];
         $valData['shipment_postcode'] = $collectionship['drop_name'];
         $valData['shipment_address1'] = '';
         $valData['instaDispatch_loadGroupTypeCode'] = 'SAME';
         $valData['instaDispatch_loadIdentity'] = $collectionship['load_identity'];
-        $valData['shipment_service_type'] = 'P'; 
+        $valData['shipment_service_type'] = 'P';
         $this->_add_temp_shipment($valData, $temprouteId,1);
-      } 
+      }
     }
 }
 ?>

@@ -1,14 +1,16 @@
 <?php
-
+require_once 'dbConnect.php';
 class DbHandler {
 
-    private $conn;
+    private static $_db = NULL;
 
     function __construct() {
-        require_once 'dbConnect.php';
+        if(self::$_db==NULL){
+            self::$_db = new dbConnect();
+        }
         // opening db connection
-        $db = new dbConnect();
-        $this->conn = $db->connect();
+        //$db = new dbConnect();
+        $this->conn = self::$_db->connect();
     }
     /**
      * Start transaction
@@ -33,18 +35,17 @@ class DbHandler {
      */
     public function getOneRecord($query) {
         $r = $this->conn->query($query.' LIMIT 1') or die($this->conn->error.__LINE__);
-        return $result = $r->fetch_assoc();    
+        return $result = $r->fetch_assoc();
     }
 	/**
      * Fetching all matching records
      */
     public function getAllRecords($query) {
-		$result = array();
-		$stmt = $this->conn->query($query) or die($this->conn->error.__LINE__);
-		//print_r($query);die;
-		while ($row = $stmt->fetch_assoc()) {
-			array_push($result, $row);
-		}
+    		$result = array();
+    		$stmt = $this->conn->query($query) or die($this->conn->error.__LINE__);
+    		while ($row = $stmt->fetch_assoc()) {
+    		    array_push($result, $row);
+    		}
         return $result;//$stmt->fetch_all();
     }
 	/**
@@ -72,7 +73,7 @@ class DbHandler {
             $values = $values."'".$$desired_key."',";
         }
         $query = "INSERT INTO ".$table_name."(".trim($columns,',').") VALUES(".trim($values,',').")";
-        
+
         //try{
             $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 
@@ -86,7 +87,7 @@ class DbHandler {
             return $e;
         }*/
     }
-	
+
 	private function _prepare_sql_col_val_statement($data){
 		$stmt = array();
 		foreach($data as $key => $value){
@@ -95,7 +96,7 @@ class DbHandler {
 		$stmt = implode(",",$stmt);
 		return $stmt;
 	}
-	
+
 	public function delete($query){
 		//$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
         $r = $this->conn->query($query);
@@ -104,7 +105,7 @@ class DbHandler {
 		}
 		return $r;
 	}
-	
+
 	public function update($table_name, $data, $condition = ""){
 		$query = $this->_prepare_sql_col_val_statement($data);
 		$query = "UPDATE `" . DB_PREFIX . "$table_name` SET $query";
@@ -119,7 +120,7 @@ class DbHandler {
 		//$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 		//return $r;
 	}
-	
+
 	public function save($table_name, $data){
 		$query = $this->_prepare_sql_col_val_statement($data);
 		$query = "INSERT INTO `" . DB_PREFIX . "$table_name` SET $query;";
@@ -134,7 +135,7 @@ class DbHandler {
         }
 
 	}
-	
+
 	public function getSession(){
 		if (!isset($_SESSION)) {
 			session_start();
@@ -154,7 +155,7 @@ class DbHandler {
 		}
 		return $sess;
 	}
-	
+
 	public function destroySession(){
 		if (!isset($_SESSION)) {
 		session_start();
@@ -177,32 +178,39 @@ class DbHandler {
 		}
 		return $msg;
 	}
-	
+
 	public function updateAccessTokenById($access_token,$id){
 		$query = "UPDATE ".DB_PREFIX."users SET access_token = '".$access_token."' WHERE id = $id";
         $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 		return $r;
 	}
-	
+
 	public function removeAccessToken($userId){
 		$query = "UPDATE ".DB_PREFIX."users SET access_token = '' WHERE id = $userId";
         $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 		return $r;
 	}
-	
+
     public function executeQuery($query){
 		$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
         return $this->conn->insert_id;//$r;
 	}
-    
+
 	public function updateData($query){
 		$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 		return $r;
 	}
-    
+
     public function getAffectedRows(){
 		return $this->conn->affected_rows;
 	}
-}
 
+	public function deleteData($query){
+		$r = $this->conn->query($query);
+		if(!$r){
+            throw new Exception($this->conn->error.__LINE__);
+		}
+		return $this->conn->affected_rows;
+	}
+}
 ?>

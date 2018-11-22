@@ -63,8 +63,9 @@ class loadRouteDetails extends Library
 	}
 	
     private function getAssignedRouteDetails(){
+        $routeInfo = $this->modelObj->findAssignedDriverAndRouteInfo($this->route_id);
 		$data = $this->modelObj->getAssignedShipmentData($this->company_id,$this->warehouse_id,$this->route_id);
-       
+        
 		$tempdata = array();
         if(is_array($data) and count($data)>0){ 
 			foreach($data as $key => $value){
@@ -127,14 +128,15 @@ class loadRouteDetails extends Library
                 
                $ticketID  = "'".$value['shipment_ticket']."'";	
 			   $tempdata[$key]['parcels'] 	  = $this->modelObj->getShipmentParcels($ticketID);
-               $tempdata[$key]['current_status'] = $shipmentCurrentStaus; 
-               //$data[$key]['action'] = '<a ng-href="#shipmentedetails/'.$ticketID.'">Action</a>'; 
+               $tempdata[$key]['current_status'] = $shipmentCurrentStaus;
                $tempdata[$key]['action'] = "Action";     
             }
-        } 
-	return array("aaData"=>$tempdata);
+        }
+	return array("aaData"=>$tempdata, "routeInfo"=>$routeInfo);
 	}
 	private function getUnAssignedRouteDetails(){
+        $routeInfo = $this->modelObj->getShipmentRouteByShipmentRouteId($this->route_id);
+
 		$data = $this->modelObj->getUnAssignedShipmentData($this->company_id,$this->warehouse_id,$this->route_id);
 		$tempdata = array();
         if(is_array($data) and count($data)>0){
@@ -170,7 +172,7 @@ class loadRouteDetails extends Library
             $tempdata[$key]['action'] = "Action";
          }
         } 
-	return array("aaData"=>$tempdata);
+	return array("aaData"=>$tempdata, "routeInfo"=>array("route_name"=>$routeInfo["route_name"]));
 	}
 	
     

@@ -57,7 +57,7 @@ class Voucher_Model
     public function getAllInvice($whareHouseId,$componyId){
         $record = array();
         $sqldata = 'V.voucher_type,
-                    V.amount,
+                    V.total as amount,
                     V.shipment_reference,
                     V.create_date,
                     V.is_invoiced,

@@ -1,6 +1,6 @@
 <?php
     class Common{
-        
+
         public function __construct()
         {
             static $inst = null;
@@ -9,7 +9,7 @@
             }
             $this->db = $inst;
         }
-        
+
         public function getDropName($param, $bool=false)
         {
             /*if($bool)
@@ -19,8 +19,8 @@
             return $drop;*/
             return $param['postcode'];
         }
-        
-        public function getShipmentParcelStatusDetail($ticket) 
+
+        public function getShipmentParcelStatusDetail($ticket)
         {
             //$sql = "SELECT T2.parcel_ticket, T2.instaDispatch_pieceIdentity, T2.instaDispatch_loadIdentity AS instaDispatch_loadIdentity_parcel FROM `" . DB_PREFIX . "shipment` AS T1 LEFT JOIN `" . DB_PREFIX . "shipments_parcel` AS T2 ON T2.shipment_ticket = T1.shipment_ticket WHERE `T1`.`shipment_ticket` = '$ticket'";
             $sql = "SELECT T2.parcel_ticket, T2.instaDispatch_pieceIdentity, T2.instaDispatch_loadIdentity AS instaDispatch_loadIdentity_parcel FROM `" . DB_PREFIX . "shipments_parcel` AS T2 WHERE `T2`.`shipment_ticket` = '$ticket'";
@@ -66,7 +66,7 @@
                     $this->db->save('shipment_life_history', $shipmentHistoryData);
                 }
             }else {
-                    
+
                     $shipmentHistoryData = array();
                     $shipmentHistoryData['shipment_ticket'] = $tickets;
                     $shipmentHistoryData['parcel_ticket'] = "";
@@ -88,16 +88,65 @@
             }
             return true;
         }
-		
+
 		public function getAddressBookSearchString($arr)
         {
-           return $arr->address_1.$arr->address_2.$arr->postcode.$arr->city.$arr->state;//.$arr->country->short_name
+             $temp = array();
+             if(isset($arr->address_1))
+                 array_push($temp, $arr->address_1);
+
+             if(isset($arr->address_2))
+                 array_push($temp, $arr->address_2);
+
+             if(isset($arr->postcode))
+                 array_push($temp, $arr->postcode);
+
+             if(isset($arr->city))
+                 array_push($temp, $arr->city);
+
+             if(isset($arr->state))
+                 array_push($temp, $arr->state);
+
+             if(isset($arr->country))
+                 array_push($temp, $arr->country);
+
+             if(isset($arr->name))
+                 array_push($temp, $arr->name);
+
+             if(isset($arr->email))
+                 array_push($temp, $arr->email);
+
+             if(isset($arr->company_id))
+                 array_push($temp, $arr->company_id);
+
+             $addressString = implode("", $temp);
+
+			       return strtolower(preg_replace('/\s+/','',$addressString));
         }
 
-        public function countryList(){
-            $sql = "SELECT * FROM `" . DB_PREFIX . "countries`";
-            $records = $this->db->getAllRecords($sql);
+        public function countryList($searchData = array())
+        {
+            $cond = ( isset($searchData['id']) && !empty($searchData['id']) ) ? 'where `id`='.$searchData['id'] : '';
+            $sql = "SELECT * FROM `" . DB_PREFIX . "countries` ".$cond;
+
+            if($cond) {
+                $records = $this->db->getRowRecord($sql);
+            } else {
+                $records = $this->db->getAllRecords($sql);
+            }
+            //print_r($records); die;
             return $records;
         }
+
+        public function checkDutiableCountry($data = array())
+        {
+            $collectionCountry = $data->collection_country;
+            $deliveryCountry = $data->delivery_country;
+            $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";
+            $records = $this->db->getRowRecord($sql);
+            //print_r($records);
+            return $records['dutiable'];
+        }
+
     }
 ?>

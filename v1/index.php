@@ -1,4 +1,8 @@
 <?php
+//error_reporting(E_ALL);
+//ini_set("display_errors", 1);
+ini_set('date.timezone', 'Europe/London');
+
 require_once 'constant.php';
 require_once '../Credentials.php';
 require_once 'dbHandler.php';
@@ -6,22 +10,12 @@ require_once 'passwordHash.php';
 require_once 'array_column.php';
 require '.././libs/Slim/Slim.php';
 require '../vendor/autoload.php';
-
 \Slim\Slim::registerAutoloader();
 
 use Firebase\JWT\JWT;
 
 $app = new \Slim\Slim();
-
-/*$corsOptions = array(
-    //"origin" => array('*'),
-    "origin" => array('https://app-tree.co.uk','https://route.instadispatch.com'),
-    //"exposeHeaders" => array("X-My-Custom-Header", "X-Another-Custom-Header"),
-    "maxAge" => 1728000,
-    "allowCredentials" => false,
-    "allowMethods" => array("POST, GET, PUT, PATCH, PATCH, DELETE, HEAD, OPTIONS"),
-    "allowHeaders" => array("X-PINGOTHER, Accept, Content-Type, Pragma, X-Requested-With")
-);*/
+$app->config('debug', true);
 
 // User id from db - Global Variable
 $user_id = NULL;
@@ -38,11 +32,20 @@ require_once 'vehicle.php';
 //validate and beautify postcode
 require_once 'postcode.php';
 
+
+require_once 'module/configuration/GridConfiguration.php';
+require_once 'module/configuration/CustomFilterConfiguration.php';
+require_once 'module/driver/DriverController.php';
+require_once './module/chargebee/SubscriptionController.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
 require_once 'dev.test.php';
+//require_once('../vendor/setasign/fpdf/fpdf.php');
+//require_once('../vendor/setasign/fpdi/src/autoload.php');
+//require_once 'module/fpdf/ConcatPdf.php';
 
+//require_once('../vendor/dompdf/autoload.inc.php');
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
 
@@ -54,6 +57,8 @@ require_once 'module/shipment/load-assign.php';
 require_once 'module/shipment/view-support.php';
 require_once 'module/shipment/optimize.php';
 require_once 'module/shipment/load-route-details.php';
+require_once 'module/shipment/Shipment_Sameday_Release.php';
+require_once 'module/shipment/Route_Release.php';
 
 require_once 'module/company/company.php';
 require_once 'module/company/setup.php';
@@ -62,10 +67,17 @@ require_once 'module/ws/idriver.php';
 require_once 'module/push_notification/Push_Notification_Index.php';
 
 require_once 'module/firebase/model/rest.php';
-require_once 'module/firebase/firebase.php';
-require_once 'module/firebase/shipment-withdraw-from-route.php';
+require_once 'module/firebase/Firebase.php';
+require_once 'module/firebase/Firebase_Api.php';
+require_once 'module/firebase/Firebase_Shipment_Withdraw_From_Route.php';
+require_once 'module/firebase/Firebase_Shipment_Deliver_From_Route.php';
 require_once 'module/firebase/route-accept.php';
-require_once 'module/firebase/route-assign.php';
+require_once 'module/firebase/Firebase_Route_Assign.php';
+require_once 'module/firebase/Firebase_Withdraw_Route.php';
+require_once 'module/firebase/Firebase_User_Management.php';
+require_once 'module/firebase/User_Management.php';
+require_once 'module/firebase/model/Model.php';
+
 require_once 'module/firebase/route-release.php';
 
 require_once 'module/chargebee/Chargebee.php';
@@ -74,6 +86,7 @@ require_once 'module/chargebee/Webhook.php';
 //require_once 'module/carrier/customer.php';
 require_once 'module/google/api.php';
 require_once 'module/coreprime/api.php';
+require_once 'module/coreprime/model/api.php';
 require_once 'module/addressbook/addressbook.php';
 require_once 'module/import/Profile.php';
 require_once 'module/configuration/FormConfiguration.php';
@@ -113,19 +126,35 @@ require_once 'module/booking/Shipment.php';
 require_once 'module/booking/Booking.php';
 
 require_once 'module/carrier/Carrier.php';
-require_once 'module/carrier/Ukmail.php';
+require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
+require_once 'module/carrier/Coreprime/Dhl/Dhl.php';
 require_once 'module/nextday/Nextday.php';
+require_once 'module/pickup/Pickup.php';
+
 require_once 'module/allshipment/allshipments.php';
 require_once 'module/allshipment/model/allshipments.php';
 
 require_once 'module/shipment/shipment_tracking.php';
 
-require_once 'pod_signature.php';//no need to keep separate file to save image. This is already defined in libraray
+require_once 'Pod.php';//no need to keep separate file to save image. This is already defined in libraray
 
 require_once 'module/package/Module_Package_Index.php';
 
 require_once 'module/booking/collection.php';
+require_once 'module/tracking/Easypost_Tracking.php';
+require_once 'module/tracking/Find_Save_Tracking.php';
+require_once 'module/tracking/Create_Tracking.php';
 
+require_once 'module/service_provider/ServiceProvider.php';
+require_once 'module/service_provider/model/ServiceProviderModel.php';
+require_once 'module/custom_labels/Custom_Label.php';
+
+//Country file included
+require_once 'module/country/model/country.php';
+
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 /**
  * Verifying required params posted or not
@@ -204,9 +233,39 @@ EOD;
     //echo json_encode($response);
 }
 
+function encodeJwtData($data) {
+    $privateKey = <<<EOD
+-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQC8kGa1pSjbSYZVebtTRBLxBz5H4i2p/llLCrEeQhta5kaQu/Rn
+vuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t0tyazyZ8JXw+KgXTxldMPEL9
+5+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4ehde/zUxo6UvS7UrBQIDAQAB
+AoGAb/MXV46XxCFRxNuB8LyAtmLDgi/xRnTAlMHjSACddwkyKem8//8eZtw9fzxz
+bWZ/1/doQOuHBGYZU8aDzzj59FZ78dyzNFoF91hbvZKkg+6wGyd/LrGVEB+Xre0J
+Nil0GReM2AHDNZUYRv+HYJPIOrB0CRczLQsgFJ8K6aAD6F0CQQDzbpjYdx10qgK1
+cP59UHiHjPZYC0loEsk7s+hUmT3QHerAQJMZWC11Qrn2N+ybwwNblDKv+s5qgMQ5
+5tNoQ9IfAkEAxkyffU6ythpg/H0Ixe1I2rd0GbF05biIzO/i77Det3n4YsJVlDck
+ZkcvY3SK2iRIL4c9yY6hlIhs+K9wXTtGWwJBAO9Dskl48mO7woPR9uD22jDpNSwe
+k90OMepTjzSvlhjbfuPN1IdhqvSJTDychRwn1kIJ7LQZgQ8fVz9OCFZ/6qMCQGOb
+qaGwHmUK6xzpUbbacnYrIM6nLSkXgOAwv7XXCojvY614ILTK3iXiLBOxPu5Eu13k
+eUz9sHyD6vkgZzjtxXECQAkp4Xerf5TGfQXGXhxIX52yH+N2LtujCdkQZjXAsGdm
+B2zNzvrlgRmgBrklMTrMYgm1NPcW+bRLGcwgW2PTvNM=
+-----END RSA PRIVATE KEY-----
+EOD;
+
+    $publicKey = <<<EOD
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8kGa1pSjbSYZVebtTRBLxBz5H
+4i2p/llLCrEeQhta5kaQu/RnvuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t
+0tyazyZ8JXw+KgXTxldMPEL95+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4
+ehde/zUxo6UvS7UrBQIDAQAB
+-----END PUBLIC KEY-----
+EOD;
+    $jwtString = JWT::encode($data, $privateKey, 'RS256');
+    return $jwtString;
+}
+
 function rootPath(){
     return dirname(dirname(dirname(__FILE__)));
 }
 
 $app->run();
-?>

@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_courier_vs_company` ADD `authentication_token` VARCHAR(255) NOT NULL AFTER `icon`, ADD `authentication_token_created_at` VARCHAR(255) NOT NULL AFTER `authentication_token`;
