@@ -81,9 +81,7 @@ class Authentication{
 
 	}
 
-
-
-	public function process(){
+    public function process(){
 		$response = array();
         
         switch($this->_getLoginType()){

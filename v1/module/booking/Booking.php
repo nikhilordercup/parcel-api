@@ -9,7 +9,7 @@ class Booking extends Icargo
         $this->modelObj = new Booking_Model_Booking();
 
         $this->postcodeObj = new Postcode();
-		
+
 		$this->db = new DbHandler();
     }
 
@@ -86,7 +86,6 @@ class Booking extends Icargo
 			}else{
 				$address_type = "";
 			}
-			$addressType =
             $param["postcode"]      = $data->postcode;
             $param["address_line1"] = (isset($data->address_line1)) ? $data->address_line1 : "";
             $param["address_line2"] = (isset($data->address_line2)) ? $data->address_line2 : "";
@@ -97,6 +96,9 @@ class Booking extends Icargo
             $param["first_name"]    = (isset($data->name)) ? $data->name : "";
             $param["last_name"]     = "";
             $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
+            $param["phone"]    	    = (isset($data->phone)) ? $data->phone : "";
+            $param["name"]          = (isset($data->name)) ? $data->name : "";
+            $param["email"]         = (isset($data->email)) ? $data->email : "";
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = (isset($data->company_name)) ? $data->company_name : "";
 
@@ -116,12 +118,12 @@ class Booking extends Icargo
             $param["billing_address"] = "N";
 
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
-			
-			if($data->address_origin=='api'){
+
+			if(isset($data->address_origin) and $data->address_origin=='api'){
 				$param["version_id"] = "version_1";
 				$address_id = $this->modelObj->saveAddress($param);
 				return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
-				
+
 			}else{
 				if(!$addressVersion["address_id"]){
 					if(($address_op===null) OR ($address_op=="add")){
@@ -137,7 +139,7 @@ class Booking extends Icargo
 					$param["version_id"] = "version_".($version[1]+1);
 					return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
 				}
-			} 
+			}
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }

@@ -2487,41 +2487,36 @@ $app->post('/fixDrivingModeAndRoundTrip', function() use ($app){//delete after e
 	}
 });
 
-/*$app->post('/readUser', function() use ($app){
-    $filePath = "../../../../../Users/nishant/Downloads/icargo_users - icargo_users.csv";
+$app->post('/podDuplicateFix', function() use ($app){//delete after execution
+	$db = new DbHandler();
+	$sql = "SELECT count(1) as num_count, GROUP_CONCAT(pod_id) as pod_id FROM `icargo_shipments_pod` group by shipment_ticket, create_date, pod_name having num_count>1";
+	$records = $db->getAllRecords($sql);
 
-		$userObj = new Firebase_User_Management();
-		$db = new DbHandler();
+	foreach($records as $record){
+		  $pod_id = explode(",",$record["pod_id"]);
+			foreach($pod_id as $key => $pod){
+			    if($key>0){
+						  $sql = "DELETE FROM icargo_shipments_pod WHERE pod_id='$pod'";
+					    $db->delete($sql);
+					}
+			}
+	}
+});
 
-		$file = fopen($filePath, "r");
-		$i=0;
-		while(! feof($file))
-		{
-				$row = fgetcsv($file);
-				if($i>0){
+$app->post('/fixAddressBookSearchString', function() use ($app){//delete after execution
+$db = new DbHandler();
+$sql = "SELECT * FROM `icargo_address_book`";
+$records = $db->getAllRecords($sql);
+$commonObj = new Common();
 
-					  $data = explode(";", $row[0]);
-						$email = str_replace('"', '', $data[2]);
-						$password = "123456";
-						$result = $userObj->test($email, $password);
-				    if($result["status"]=="error"){
-							$result = $userObj->test1($email);
-						}
-
-						$uid = $result["data"]->uid;
-						$email = $result["data"]->email;
-
-						$sql = "UPDATE icargo_users SET `uid`='$uid' WHERE email LIKE '$email';";
-
-						echo $sql; echo "<br>";
-
-				}
-				$i++;
-		}
-
-		fclose($file);
-
-});*/
+foreach($records as $record){
+$temp = array("address_1"=>$record['address_line1'],"address_2"=>$record['address_line2'],"postcode"=>$record['postcode'],"city"=>$record['city'],"state"=>$record['state'],"country"=>$record['country'],"name"=>$record['first_name'],"email"=>$record['email'],"company_id"=>$record['company_name']);	
+$addressString = addslashes($commonObj->getAddressBookSearchString((object)$temp));
+$address_id = $record["id"];
+ $sql = "UPDATE icargo_address_book SET search_string='$addressString' WHERE id='$address_id'";
+$db->executeQuery($sql);
+}
+});
 
 $app->post('/fileupload', function() use ($app){//delete after execution
 	$r = json_decode($app->request->getBody());

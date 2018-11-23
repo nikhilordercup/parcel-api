@@ -419,7 +419,7 @@ class AllShipment_Model
         }
   public  function getShipmentPodByShipmentTicket($tickets){
         $record = array();
-        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ('$tickets') ORDER BY create_date DESC";
+        $sql = "SELECT R1.* FROM " . DB_PREFIX . "shipments_pod AS R1 WHERE R1.shipment_ticket IN ('$tickets') AND pod_name='signature' ORDER BY create_date DESC";
         $record = $this->db->getAllRecords($sql);
         return $record;
         }
@@ -724,13 +724,19 @@ class AllShipment_Model
         $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS load_Identity FROM " . DB_PREFIX . "shipment AS S";
         $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=S.instaDispatch_loadIdentity";
         $sql .= " WHERE $filter ";
-        $sql .= " AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')";
+        $sql .= " AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca' OR S.current_status = 'Cancel')";
         $sql .= " AND (`S`.`instaDispatch_loadGroupTypeCode` = 'SAME' OR `S`.`instaDispatch_loadGroupTypeCode` = 'NEXT')";
         $sql .= " ORDER BY S.shipment_id DESC";
         $sql .= " LIMIT $start, $end";
-
+        //echo $sql;
         $record = $this->db->getAllRecords($sql);
         return $record;
+    }
+
+    public function getShipmentPodInfo($shipment_ticket, $tracking_code){
+        $sql = "SELECT T1.pod_id, STT.code AS tracking_code, T1.shipment_ticket AS shipment_ticket, T1.value AS pod_path, T1.pod_name AS pod_name, T1.create_date AS create_date FROM " . DB_PREFIX . "shipments_pod AS T1 INNER JOIN " . DB_PREFIX . "tracking_pod AS T2 ON T1.pod_id=T2.pod_id INNER JOIN " . DB_PREFIX . "shipment_tracking AS STT ON T2.tracking_id=STT.id WHERE STT.shipment_ticket='$shipment_ticket' AND STT.code='$tracking_code'";
+        $record = $this->db->getAllRecords($sql);
+        return  $record;
     }
 
     public function getAllShipments($ticket_string){
@@ -741,21 +747,22 @@ class AllShipment_Model
         LEFT JOIN icargo_users AS UTT ON UTT.id = S.customer_id
         LEFT JOIN icargo_users AS UT ON UT.id = S.booked_by
         LEFT JOIN icargo_shipment_service AS SST ON SST.load_identity = S.instaDispatch_loadIdentity
-        LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
+        LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.courier_id = SST.carrier AND COMCOUR.account_number = SST.accountkey
         LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
         LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
         WHERE S.instaDispatch_loadIdentity IN ('$ticket_string')
         ORDER BY S.shipment_id DESC, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
+        //#LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
-	
+
 	public function getCarrierByLoadIdentity($load_identity){
 		$sql = "SELECT CT.code AS carrier_code FROM ".DB_PREFIX."shipment_service AS ST INNER JOIN ".DB_PREFIX."courier AS CT ON CT.id = ST.carrier WHERE ST.load_identity='$load_identity'";
 		$record = $this->db->getOneRecord($sql);
 		return  $record['carrier_code'];
 	}
-	
+
     public function getTrackingName(){
         $sql = "SELECT SMT.code, SMT.name AS code_text FROM " . DB_PREFIX . "shipments_master AS SMT";
         $record = $this->db->getAllRecords($sql);
