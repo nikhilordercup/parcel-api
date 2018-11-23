@@ -46,7 +46,66 @@ class Find_Save_Tracking{
 
     private
 
+    function _saveTrackingPod($tracking_id){
+        //save tracking pod
+        if(count($this->podData)>0){
+            foreach($this->podData as $podData){
+                //$recordExist = $this->modelObj->findPodTrackingHistory(array("tracking_id"=>$tracking_id, "pod_id"=>$podData));
+                //if($recordExist["exist"]==0){
+                    $this->modelObj->saveTrackingPod(array("tracking_id"=>$tracking_id, "pod_id"=>$podData)); 
+                //}   
+            }
+            $this->podData = array();
+        }
+    }
+
+    private
+
+    function _saveTrackingStatusNishant($status){
+        $historyInfo = $this->modelObj->findTrackingHistory(array(
+            "shipment_ticket" => $status["shipment_ticket"],
+            "load_identity" => $status["load_identity"],
+            "code" => $status["tracking_code"]
+        ));
+
+
+        $historyData = array(
+            "shipment_ticket" => $status["shipment_ticket"],
+            "load_identity" => $status["load_identity"],
+            "code" => $status["tracking_code"],
+            "load_type" => $status["load_type"],
+            "service_type" => $status["service_type"]
+        );
+
+        $tracking_id = 0;
+
+        if(count($historyInfo)>0){
+            //no need to update
+            $historyData["create_date"] = $historyInfo["create_date"];
+            $historyData["id"] = $historyInfo["id"];
+            $historyData["pod_id"] = $historyInfo["pod_id"];
+
+            $tracking_id = $historyInfo["id"];
+           
+        }else{
+            $tracking_id = $this->modelObj->saveTrackingHistory($historyData);
+        }
+
+        $this->_saveTrackingPod($tracking_id);
+        $this->_saveTrackingcode();
+    }
+
+    private
+
     function _saveTrackingStatus($status){
+
+        //nishant testing
+        return $this->_saveTrackingStatusNishant($status);
+        if($status["shipment_ticket"]=="ICARGOS2448041"){
+            $this->_saveTrackingStatusNishant($status);
+        }
+        //end of testing
+        else{
         //find history info
         $historyInfo = $this->modelObj->findTrackingHistory(array(
             "shipment_ticket" => $status["shipment_ticket"],
@@ -72,19 +131,23 @@ class Find_Save_Tracking{
         if(count($historyInfo)>0){
             $historyData["create_date"] = $historyInfo["create_date"];
         }
+            $trackingId = $this->modelObj->saveTrackingHistory($historyData);
 
-        $trackingId = $this->modelObj->saveTrackingHistory($historyData);
-
-        //save tracking pod
-        if(count($this->podData)>0){
-            foreach($this->podData as $podData){
-                //$recordExist = $this->modelObj->findPodTrackingHistory(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
-                //if($recordExist["exist"]==0){
-                    $this->modelObj->saveTrackingPod(array("tracking_id"=>$trackingId, "pod_id"=>$podData)); 
-                //}   
+            //save tracking pod
+            if(count($this->podData)>0){
+                foreach($this->podData as $podData){
+                    //$recordExist = $this->modelObj->findPodTrackingHistory(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
+                    //if($recordExist["exist"]==0){
+                        $this->modelObj->saveTrackingPod(array("tracking_id"=>$trackingId, "pod_id"=>$podData)); 
+                    //}   
+                }
+                //$this->podData = array();
             }
-            $this->podData = array();
-        }
+       
+
+       }
+
+
         //update tracking status
         $this->_saveTrackingcode();
     }
