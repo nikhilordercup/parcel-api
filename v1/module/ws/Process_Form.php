@@ -108,7 +108,7 @@ class Process_Form
         return $track_id;
     }
 
-    private function _findPod($ticket, $driver_id, $type, $pod_name){
+    private function _findPod($ticket, $driver_id, $type, $pod_name){return false;
         $podFound = $this->model_rest->findPod($ticket, $driver_id, $type, $pod_name, $this->text, $this->contact_name, $this->latitude, $this->longitude);
         if($podFound["shipment_count"]>0)
             return true;
