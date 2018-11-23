@@ -284,7 +284,7 @@ class Tracking_Model_Index
 
     function findTrackingHistory($param)
     {
-        return $this->_db->getRowRecord("SELECT create_date AS create_date FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
+        return $this->_db->getRowRecord("SELECT id, create_date AS create_date, pod_id FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
     }
 
     public
@@ -293,13 +293,13 @@ class Tracking_Model_Index
     {
         //$sql ="UPDATE " . DB_PREFIX . "shipments_pod SET  tracking_id='".$param["tracking_id"]."'";
 
-        $this->_db->update("shipments_pod", array(
+        /*$this->_db->update("shipments_pod", array(
             "tracking_id" => $param["tracking_id"]
         ), "pod_id='".$param["pod_id"]."'");
 
         $this->_db->update("shipment_tracking", array(
             "pod_id" => $param["pod_id"]
-        ), "tracking_id='".$param["tracking_id"]."'");
+        ), "tracking_id='".$param["tracking_id"]."'");*/
 
         return $this->_db->save("tracking_pod", $param);
     }
@@ -310,6 +310,13 @@ class Tracking_Model_Index
     {
         //return $this->_db->getRowRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "tracking_pod WHERE pod_id='" . $param["pod_id"] . "'");
         return $this->_db->getRowRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "tracking_pod WHERE pod_id='" . $param["pod_id"] . "' AND tracking_id='" . $param["tracking_id"] . "'");
+    }
+
+    public
+
+    function updateTrackingHistory($param, $id)
+    {
+        return $this->_db->update("shipment_tracking", $param, "id='$id'");
     }
 
     /*public

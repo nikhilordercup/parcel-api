@@ -108,7 +108,7 @@ class Process_Form
         return $track_id;
     }
 
-    private function _findPod($ticket, $driver_id, $type, $pod_name){
+    private function _findPod($ticket, $driver_id, $type, $pod_name){return false;
         $podFound = $this->model_rest->findPod($ticket, $driver_id, $type, $pod_name, $this->text, $this->contact_name, $this->latitude, $this->longitude);
         if($podFound["shipment_count"]>0)
             return true;
@@ -118,6 +118,7 @@ class Process_Form
     private function _savePod($ticket, $driver_id, $type){
         $result = array();
         $podObj  = new Pod();
+       
         if(isset($this->sign) and $this->sign!=""){
             if(!$this->_findPod($ticket, $driver_id, $type, 'signature')){
                 $podPath = $podObj->savePodSignature($ticket, $this->sign);
@@ -338,7 +339,7 @@ class Process_Form
                     'message' => "Shipment($ticket) Already Processed By Controller",
                     'success' => true,
                     'status' => "success",
-                    'pod_status' => array()
+                    'pod_status' => $this->_savePod($ticket, $driver_id, 'carded') 
                 );
             }
             return array(
@@ -477,6 +478,7 @@ class Process_Form
                 if ($data['status'] == "success") {
                     $common_obj = new Common();
                     $data         = $this->_carded_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->service_message, 'Ca');
+
                     if($data['status'] == "success") {
                         $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
                         if ($shipmentData["shipment_service_type"] == "P") {
