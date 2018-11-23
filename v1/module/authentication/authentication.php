@@ -4,6 +4,9 @@ class Authentication{
 	private $_email;
 	private $_password;
 	private $_access_token;
+    private $_login_type; 
+    
+        
 	public $db;
 
 	private function _setEmail($v){
@@ -25,6 +28,7 @@ class Authentication{
     public function __construct($data){
 	    $this->_setEmail($data->auth->email);
 		$this->_setPassword($data->auth->password);
+        $this->_setLoginType($data->loginType);
 		$this->db = new DbHandler();
 	}
 
@@ -35,7 +39,14 @@ class Authentication{
 	private function _getAccessToken(){
 		return $this->_access_token;
 	}
-
+    
+    private function _setLoginType($v){
+		$this->_login_type = $v;
+	}
+    private function _getLoginType(){
+		return $this->_login_type;
+	}
+    
     private function _getCompanyList($param){
         $records = $this->db->getAllRecords("SELECT `id` AS `company_id`, `name` AS `company_name` FROM ".DB_PREFIX."users as UT WHERE UT.`id`='".$param['user_id']."' AND UT.`status`=1 AND user_level=2");
 		return $records;
@@ -74,8 +85,17 @@ class Authentication{
 
 	public function process(){
 		$response = array();
-		$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.`user_level` <> 5");
-		if ($user != NULL) {
+        
+        switch($this->_getLoginType()){
+            case 'controllerLogin':
+                $user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.`user_level` <> 5");
+            break;
+            case 'custLogin':
+                $user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.`user_level` = 5");
+            break;
+                
+        }
+        if ($user != NULL) {
 			//if(passwordHash::check_password($user['password'],$this->_getPassword())){
 				$access_token = $this->_setAccessToken($user['id']);
 				$access_token = $this->_getAccessToken();

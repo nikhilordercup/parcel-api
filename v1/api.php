@@ -2522,3 +2522,10 @@ $app->post('/fixDrivingModeAndRoundTrip', function() use ($app){//delete after e
 		fclose($file);
 
 });*/
+
+$app->post('/fileupload', function() use ($app){//delete after execution
+	$r = json_decode($app->request->getBody());
+    $obj = new Module_Reconciled_Reconciled($r);
+    $response = $obj->setReconsiledData($r);
+    echoResponse(200, $response);
+});
