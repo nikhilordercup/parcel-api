@@ -61,7 +61,7 @@ class Find_Save_Tracking{
 
     private
 
-    function _saveTrackingStatusNishant($status){
+    function _saveTrackingStatus($status){
         $historyInfo = $this->modelObj->findTrackingHistory(array(
             "shipment_ticket" => $status["shipment_ticket"],
             "load_identity" => $status["load_identity"],
@@ -97,7 +97,7 @@ class Find_Save_Tracking{
 
     private
 
-    function _saveTrackingStatus($status){
+    function _saveTrackingStatusBKP($status){
 
         //nishant testing
         return $this->_saveTrackingStatusNishant($status);
