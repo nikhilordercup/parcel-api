@@ -4,7 +4,7 @@ class Route_Model{
         $this->_db = new DbHandler();
     }
     public function findRouteCountBetweenDate($type, $start_date, $end_date, $company_id){
-        $sql = "SELECT DISTINCT(shipment_routed_id) AS route_count FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadGroupTypeCode='$type' AND company_id='$company_id' AND shipment_create_date BETWEEN '$start_date' AND '$end_date'";
+        $sql = "SELECT DISTINCT(shipment_routed_id) AS route_count FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadGroupTypeCode='$type' AND company_id='$company_id' AND shipment_create_date BETWEEN '$start_date' AND '$end_date' AND shipment_routed_id>0";
         return $this->_db->getRowRecord($sql);
     }
 
