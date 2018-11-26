@@ -33,11 +33,10 @@ class Route_Model{
         return $this->_db->getAllRecords($sql);
     }
 
-    public function findAllActiveReportByCompanyId($company_id, $type)
-        {
+    public function findAllActiveReportByCompanyId($company_id, $type){
         $type = 'sameday';
         $sql = "SELECT t1.id as report_id, t1.name AS report_name, t1.code FROM " . DB_PREFIX . "report_master AS t1 WHERE t1.company_id = '$company_id' AND t1.status = 1 AND t1.type='$type'";
         return $this->_db->getAllRecords($sql);
-        }
+    }
 }
 ?>
