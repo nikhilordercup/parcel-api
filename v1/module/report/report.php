@@ -3,7 +3,6 @@ require_once "../v1/module/report/model/Route_Model.php";
 
 class Report extends Icargo
     {
-
     private $_user_id;
     protected $_parentObj;
 
@@ -11,6 +10,7 @@ class Report extends Icargo
     var $reportLists = array();
     var $dailyDropRate = 0;
     var $averageTimePerDrop = 0;
+    var $revenuePricePerJob = .95;
 
     private function _setUserId($v)
         {
@@ -76,19 +76,41 @@ class Report extends Icargo
 				return $service_type;
 				}
 
+    private function _findSamedayRevenue()
+        {
+        $loadIdentityStr = implode("','", $this->driverShipmentInfo["load_identity"]);
+        $item = $this->modelObj->findSamedayRevenue($loadIdentityStr);
+        if(isset($item["carrier_price"]))
+            return $item["carrier_price"];
+        return 0;
+        }
+
+    private function _findRevenuePrice($job_count)
+        {
+        $revenuePrice = 0;
+        if($this->_getServiceTypeName()=="SAME")
+            $revenuePrice = $this->_findSamedayRevenue();
+        else
+            $revenuePrice = $this->revenuePricePerJob * $job_count;
+        return round($revenuePrice, 2);
+        }
+
     private function _findDriverShipmentBetweenDate($driver_id)
         {
-        $items = $this->modelObj->findDriverShipmentBetweenDate($this->param->start_date, $this->param->end_date, $this->param->company_id, $driver_id);
-        $totalJobs = count($items);
+        $items = $this->modelObj->findDriverShipmentBetweenDate($this->param->start_date, $this->param->end_date, $this->param->company_id, $driver_id, $this->_getServiceTypeName());
+        $totalDrops = count($items);
         $this->driverShipmentInfo = array();
         $driverShipmentInfo = array();
+        $loadIdentity = array();
         foreach($items as $item){
             $dropName = $this->commonObj->getDropName(array("postcode"=>$item["shipment_postcode"], "address_1"=>$item["shipment_address1"]));
-            $driverShipmentInfo[$item["load_Identity"]] = $dropName;
+            $driverShipmentInfo[$item["load_identity"]] = $dropName;
+            $loadIdentity[$item["load_identity"]] = $item["load_identity"];
         }
         $this->driverShipmentInfo = array(
-          "total_jobs" => $totalJobs,
-          "total_drops" => count($driverShipmentInfo)
+          "total_jobs" => count($loadIdentity),
+          "total_drops" => $totalDrops,
+          "load_identity" => $loadIdentity
         );
         }
 
@@ -202,13 +224,13 @@ class Report extends Icargo
             $this->_findAverageTimePerDrop();
 
             $reportData[$driverId]["total_time_taken"] = $this->totalTime;
-            $reportData[$driverId]['total_distance_meter'] = $this->totalDistanceMeter;
-            $reportData[$driverId]['total_distance_miles'] = $this->totalDistanceMiles;
+            $reportData[$driverId]['total_distance_meter'] = ($this->param->service_type=="sameday") ? $this->totalDistanceMeter : "N/A";
+            $reportData[$driverId]['total_distance_miles'] = ($this->param->service_type=="sameday") ? $this->totalDistanceMiles : "N/A";
 
             $reportData[$driverId]["no_of_jobs"] = $this->driverShipmentInfo["total_jobs"];
             $reportData[$driverId]["no_of_drops"] = $this->driverShipmentInfo["total_drops"];
 
-            $reportData[$driverId]['average_speed'] = $this->averageSpeed;
+            $reportData[$driverId]['average_speed'] = ($this->param->service_type=="sameday") ? $this->averageSpeed : "N/A";
             $reportData[$driverId]['driver_name'] = $driverName;
 
             $reportData[$driverId]['daily_drop_rate'] = $this->dailyDropRate;
@@ -219,6 +241,8 @@ class Report extends Icargo
             $reportData[$driverId]['time_taken_in_hr_min'] = $this->_getTimeInHourMinutes($this->totalTime);
 
             $reportData[$driverId]['no_of_days'] = $noOfDays;
+
+            $reportData[$driverId]['revenue'] = $this->_findRevenuePrice($this->driverShipmentInfo["total_jobs"]);
 
             $this->driverShipmentInfo = array();
             $this->dailyDropRate = 0;
@@ -238,6 +262,8 @@ class Report extends Icargo
     public function generateReport($param)
         {
         $this->param = $param;
+        $this->param->start_date = date("Y-m-d" , strtotime($this->param->start_date));
+        $this->param->end_date = date("Y-m-d" , strtotime($this->param->end_date));
         if($param->report_type=="DER")
             return $this->_generateDerReport();
         }
