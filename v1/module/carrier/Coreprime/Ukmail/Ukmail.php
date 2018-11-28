@@ -94,9 +94,9 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             $size = getimagesize ($image);
             $width = $size[0];
             $height = $size[1];
-            $mpdf->Image($image,60,50,$width,$height,'png','',true, true);
+            $mpdf->Image($image,10,10,100,100,'png','',true, true);
         }
-        try{
+        try{echo "$this->labelPath/$this->loadIdentity.pdf";
             $mpdf->Output("$this->labelPath/$this->loadIdentity.pdf","F");
             return true;
         }catch(Exception $e){
