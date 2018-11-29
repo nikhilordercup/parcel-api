@@ -212,23 +212,38 @@ class Report extends Icargo
         $nextDayInfo = isset($driver_time_info["NEXT"]) ? $driver_time_info["NEXT"] : array();
         $lastMileInfo = isset($driver_time_info["Vendor"]) ? $driver_time_info["Vendor"] : array();
 
+        $samedayDriverList = array();
+        $nextdayDriverList = array();
+        $lastmileDriverList = array();
+
         $samedayJobs = 0;
         $nextdayJobs = 0;
         $lastmileJobs = 0;
 
         foreach($driver_time_info as $key => $item){
             if($key=="SAME")
-                $samedayJobs = array_keys($item);
+                $samedayDriverList = array_keys($item);
             elseif($key=="NEXT")
-                $nextdayJobs = array_keys($item);
+                $nextdayDriverList = array_keys($item);
             elseif($key=="Vendor")
-                $lastmileJobs = array_keys($item);
+                $lastmileDriverList = array_keys($item);
         }
 
-        $driverId = implode(",", $samedayJobs);
-        $samedayJobs = $this->_findAllDriverShipmentBetweenDate($driverId, "SAME");
-        $nextdayJobs = $this->_findAllDriverShipmentBetweenDate($driverId, "NEXT");
-        $lastmileJobs = $this->_findAllDriverShipmentBetweenDate($driverId, "Vendor");
+        if(count($samedayDriverList)>0)
+            {
+            $driverId = implode(",", $samedayDriverList);
+            $samedayJobs = $this->_findAllDriverShipmentBetweenDate($driverId, "SAME");
+            }
+        if(count($nextdayDriverList)>0)
+            {
+            $driverId = implode(",", $nextdayDriverList);
+            $nextdayJobs = $this->_findAllDriverShipmentBetweenDate($driverId, "NEXT");
+            }
+        if(count($lastmileDriverList)>0)
+            {
+            $driverId = implode(",", $lastmileDriverList);
+            $lastmileJobs = $this->_findAllDriverShipmentBetweenDate($driverId, "Vendor");
+            }
 
         return array(
             "sameday_job_count" => $samedayJobs,
