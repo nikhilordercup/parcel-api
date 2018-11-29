@@ -93,8 +93,55 @@ class Carrier{
 		$labelInfo = $this->modelObj->getLabelByLoadIdentity($loadIdentity);
 		return $labelInfo;
 	}
-
+	
 	public function mergePdf($labelPdfArr){
+		$rootPath = dirname(dirname(dirname(dirname(__FILE__))));
+        $outFile = uniqid().'.pdf'; 
+		$labelPath = $rootPath. '/label/';
+		$filenames = array();		
+		foreach ($labelPdfArr as $file) {
+			$loadIdentity = $file['load_identity'];
+			$carrierCode = strtolower($file['carrier_code']);
+			$pathArr = explode('/',$file['label_file_pdf']);
+			$filePath = $labelPath.$loadIdentity.'/'.$carrierCode.'/'.$pathArr[ count($pathArr) - 1];
+			array_push($filenames,$filePath);
+		}		
+		if ($filenames) {
+			try{
+				$config = array('mode' => 'c','margin_left' => 15,'margin_right' => 0,'margin_top' => 5,'format' => array(101,152),'orientation' => 'L');
+				$mpdf = new \Mpdf\Mpdf($config);
+				$filesTotal = sizeof($filenames);
+				$fileNumber = 1;
+				$mpdf->SetImportUse();
+				if (!file_exists($outFile)) {
+					$handle = fopen($outFile, 'w');
+					fclose($handle);
+				}
+				foreach ($filenames as $fileName) {
+					if (file_exists($fileName)) {
+						$pagesInFile = $mpdf->SetSourceFile($fileName);
+						for ($i = 1; $i <= $pagesInFile; $i++) {
+							$tplId = $mpdf->ImportPage($i);
+							$mpdf->UseTemplate($tplId);
+							if (($fileNumber < $filesTotal) || ($i != $pagesInFile)) {
+								$mpdf->WriteHTML('<pagebreak />');
+							}
+						}
+					}
+					$fileNumber++;
+				}	
+				$mpdf->Output($rootPath.'/temp/'.$outFile);
+			}catch(Exception $e){
+                print_r($e);die;
+            }
+			$fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST']."/".LABEL_URL;
+            return array("status"=>"success","file_path" => $fileUrl."/temp/".$outFile);
+		}else{
+			return array("status"=>"error","file_path" => "");
+		}		
+	}
+	
+	/* public function mergePdf($labelPdfArr){
             try{
                 $labelArr = array();
                 //print_r($labelPdfArr); die;
@@ -119,7 +166,7 @@ class Carrier{
             }
             $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
             return array("status"=>"success","file_path" => $fileUrl."/temp/".$fileName);
-	}
+	} */
 
 
     private function _getEnvironment(){

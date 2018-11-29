@@ -432,7 +432,6 @@ class Customer extends Icargo{
        if($isRowExist >0){
             $data = array();
             $historyId =  $this->saveccfHistoryForCarrier($param,'CUSTOMER_CARRIER');
-
             $data['company_ccf_operator_service'] = isset($param->data->ccf_operator)?$param->data->ccf_operator:'NONE';
             $data['company_ccf_operator_surcharge'] = isset($param->data->surcharge_operator)?$param->data->surcharge_operator:'NONE';
             $data['ccf_history'] = $historyId;
@@ -916,8 +915,10 @@ public function getAllCourierDataOfSelectedCustomerwithStatus($param){
 public function getAllCourierServicesForSelectedCustomer($param){
      // $data = $this->modelObj->getAllCourierServicesForCustomer($param->company_id,$param->cid);
       $data = $this->modelObj->getAllCourierServicesForCustomer($param->company_id/* ,$param->viewid */);
+	  print_r($data);echo '<br/>';
        foreach($data as $key=>$val){
         $innerdata  = $this->modelObj->getAllAllowedCourierServicesofCompanyCustomer($val['service_id'],$val['id'],$val['courier_id'],$param->company_id,$param->customer_id);
+		print_r($innerdata);
           $data[$key]['customer_status']    =  isset($innerdata['status'])?$innerdata['status']:0;
           $data[$key]['customer_ccf']       =  isset($innerdata['customer_ccf'])?$innerdata['customer_ccf']:0.00;
           $data[$key]['action'] = 'editSelectedcustomerServiceAccountStatusFromView';

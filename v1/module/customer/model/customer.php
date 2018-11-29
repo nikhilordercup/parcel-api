@@ -573,8 +573,8 @@ class Customer_Model
 
     public function setDefaultAddress($param)
     {
-        if (isset($param->address_list->id))
-            $param->address_list->address_id = $param->address_list->id;
+        /* if (isset($param->address_list->id))
+            $param->address_list->address_id = $param->address_list->id; */
 
         $addressExist = $this->isExist("user_id='" . $param->userid . "' AND address_id=" . $param->address_list->address_id . "", "user_address");
         if ($addressExist) {

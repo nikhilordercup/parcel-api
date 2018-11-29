@@ -1477,10 +1477,10 @@ class shipment extends Library{
             $data["address_line2"] = (isset($address["address_line2"])) ? addslashes($address["address_line2"]) : "";
 
 			$data["first_name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
-			//$data["phone"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
-			//$data["email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
+			$data["phone"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
+			$data["email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
 
-			//$data["name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
+			$data["name"] = (isset($address["name"])) ? addslashes($address["name"]) : "";
 			$data["contact_no"] = (isset($address["phone"])) ? addslashes($address["phone"]) : "";
 			$data["contact_email"] = (isset($address["email"])) ? addslashes($address["email"]) : "";
 
@@ -1492,7 +1492,7 @@ class shipment extends Library{
 
             $data["company_name"] = (isset($address["company_name"])) ? addslashes($address["company_name"]) : "";
 
-            $addressData = array("address_1"=>$data['address_line1'],"address_2"=>$data['address_line2'],"name"=>$data['first_name'],"city"=>$data['city'],"state"=>$data['state'],"company_id"=>$data['company_name'],"country"=>$data['country'],"email"=>$data['contact_email'],"postcode"=>$data['postcode']);
+            $addressData = array("address_1"=>$data['address_line1'],"address_2"=>$data['address_line2'],"name"=>$data['first_name'],"city"=>$data['city'],"state"=>$data['state'],"company_id"=>$data['company_name'],"country"=>$data['country'],"email"=>$data['contact_email'],"postcode"=>$data['postcode'],"phone"=>$data["phone"]);
 
             $data["search_string"] = $commonObj->getAddressBookSearchString((object)$addressData);//str_replace(' ','',implode('',$data));
 

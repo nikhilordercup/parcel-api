@@ -401,7 +401,6 @@ class allShipments extends Icargo
             $basicInfo['insurencevalue']           = "N/A";
             $basicInfo['handcost']                 = "N/A";
             $basicInfo['flowtype']                 = "Domestic";
-
             $basicInfo['customer_reference1']      = $shipmentsInfoData[0]['customer_reference1'];
             $basicInfo['customer_reference2']      = $shipmentsInfoData[0]['customer_reference2'];
 
@@ -417,6 +416,8 @@ class allShipments extends Icargo
             }
             foreach ($shipmentsInfoData as $key => $val) {
                 if ($val['shipment_type'] == 'P') {
+					$basicInfo['collectioninstruction']     = ($val['shipment_instruction']!=''||$val['shipment_instruction']!=NULL) ? $val['shipment_instruction'] : 'N/A';
+					$basicInfo['collectioncompanyname']     = $val['company_name'];
                     $basicInfo['collectedby']                = $val['collectedby'];
                     $basicInfo['collectioncustomername']     = $val['customername'];
                     $basicInfo['collectioncustomeraddress1'] = $val['address_line1'];
@@ -431,6 +432,8 @@ class allShipments extends Icargo
                     $basicInfo['shipment_ticket'][]          = $val['shipment_ticket'];
                 } else {
                     $data                             = array();
+					$data['deliveryinstruction']      = ($val['shipment_instruction']!=''||$val['shipment_instruction']!=NULL) ? $val['shipment_instruction'] : 'N/A';
+					$data['deliverycompanyname']      = $val['company_name'];
                     $data['deliverycustomername']     = $val['customername'];
                     $data['deliverycustomeraddress1'] = $val['address_line1'];
                     $data['deliverycustomeraddress2'] = $val['address_line2'];
@@ -1531,7 +1534,8 @@ class allShipments extends Icargo
 					return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
 				else
 					return array("status"=>"error","file_path"=>"","message"=>"label not found!");
-			}elseif(count($labelInfo)>1){
+			}
+			elseif(count($labelInfo)>1){
 				foreach($labelInfo as $data){
 					if($data['label_file_pdf'] ==''){
 						return array("status"=>"error","file_path"=>"","message"=>"label not found for all selected shipments!");

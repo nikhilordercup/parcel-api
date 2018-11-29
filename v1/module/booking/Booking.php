@@ -97,6 +97,7 @@ class Booking extends Icargo
             $param["first_name"]    = (isset($data->name)) ? $data->name : "";
             $param["last_name"]     = "";
             $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
+			$param["phone"]    		= (isset($data->phone)) ? $data->phone : "";
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = (isset($data->company_name)) ? $data->company_name : "";
 

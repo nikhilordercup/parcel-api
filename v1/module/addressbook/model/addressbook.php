@@ -85,5 +85,10 @@ class Addressbook_Model extends Icargo{
 	     $data = array("search_string"=>$search_string);
          return $this->_db->update("address_book",$data,"id = $id");
     }
+	public function getCompanyNameByCompanyId($company_id){
+	     $sql = "SELECT name as company_name FROM " . DB_PREFIX . "users AS ABT WHERE id ='$company_id'";
+         $record = $this->_db->getRowRecord($sql);
+		 return $record['company_name'];
+    }
 }
 ?>

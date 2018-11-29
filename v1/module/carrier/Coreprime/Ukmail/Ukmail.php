@@ -85,9 +85,38 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 
     private function joinImages(){
         $config = array(
-            "mode" => "c",
-            "format" => "A4-L",
-            "debug" => true
+            'mode' => 'c',
+			'margin_left' => 15,
+            'margin_right' => 0,
+            'margin_top' => 5,
+            //'margin_bottom' => 25,
+            //'margin_header' => 16,
+            //'margin_footer' => 13,
+			//'format' => 'A4',
+			'format' => array(101,152),
+			'orientation' => 'L'
+        );
+        $mpdf = new \Mpdf\Mpdf($config);
+        foreach($this->images as $image) {
+            $size = getimagesize ($image);
+            $width = $size[0];
+            $height = $size[1];
+            $mpdf->Image($image,250,140,$width,$height,'png','',true, true);
+        }
+        try{
+            $mpdf->Output("$this->labelPath/$this->loadIdentity.pdf","F");die;
+            return true;
+        }catch(Exception $e){
+            return false;
+        }
+  }
+  
+  
+  /* private function joinImages(){
+        $config = array(
+            'mode' => 'c',
+			'format' => 'A4-L',
+			'debug' => true
         );
         $mpdf = new \Mpdf\Mpdf($config);
         foreach($this->images as $image) {
@@ -97,12 +126,12 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             $mpdf->Image($image,60,50,$width,$height,'png','',true, true);
         }
         try{
-            $mpdf->Output("$this->labelPath/$this->loadIdentity.pdf","F");
+            $mpdf->Output("$this->labelPath/$this->loadIdentity.pdf","F");die;
             return true;
         }catch(Exception $e){
             return false;
         }
-  }
+  } */
 
   public function getShipmentDataFromCarrier($loadIdentity,$allData = array())
     {

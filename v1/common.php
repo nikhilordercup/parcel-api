@@ -118,7 +118,10 @@
 
              if(isset($arr->company_id))
                  array_push($temp, $arr->company_id);
-
+			 
+			 if(isset($arr->phone))
+                 array_push($temp, $arr->phone);
+			 
              $addressString = implode("", $temp);
 
 			       return strtolower(preg_replace('/\s+/','',$addressString));
