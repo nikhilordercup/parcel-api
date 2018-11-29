@@ -199,8 +199,7 @@ class Module_Addressbook_Addressbook extends Icargo{
 			"country"   => (isset($param->country)) ? $param->country : "",
 			"name"      => (isset($param->name)) ? $param->name : "",
 			"email"     => (isset($param->address_email)) ? $param->address_email : "",
-			"company_id"=> (isset($param->company_name)) ? $param->company_name : ""//,
-			//"phone"		=> (isset($param->phone)) ? $param->phone : "",
+			"company_id"=> (isset($param->company_name)) ? $param->company_name : "",
 		);
 
 		$commonObj = new Common();
@@ -221,7 +220,6 @@ class Module_Addressbook_Addressbook extends Icargo{
 		foreach($records as $record){
 			$data = strtolower(preg_replace('/\s+/','',$record['search_string']));
 			$update = Addressbook_Model::_getInstance()->updateAddressById($record['id'],$data);
-			print_r($update);
 		}
 	}
 

@@ -22,7 +22,6 @@
 
         public function getShipmentParcelStatusDetail($ticket)
         {
-            //$sql = "SELECT T2.parcel_ticket, T2.instaDispatch_pieceIdentity, T2.instaDispatch_loadIdentity AS instaDispatch_loadIdentity_parcel FROM `" . DB_PREFIX . "shipment` AS T1 LEFT JOIN `" . DB_PREFIX . "shipments_parcel` AS T2 ON T2.shipment_ticket = T1.shipment_ticket WHERE `T1`.`shipment_ticket` = '$ticket'";
             $sql = "SELECT T2.parcel_ticket, T2.instaDispatch_pieceIdentity, T2.instaDispatch_loadIdentity AS instaDispatch_loadIdentity_parcel FROM `" . DB_PREFIX . "shipments_parcel` AS T2 WHERE `T2`.`shipment_ticket` = '$ticket'";
             $records = $this->db->getAllRecords($sql);
             return $records;
@@ -137,7 +136,6 @@
             } else {
                 $records = $this->db->getAllRecords($sql);
             }
-            //print_r($records); die;
             return $records;
         }
 
@@ -147,7 +145,6 @@
             $deliveryCountry = $data->delivery_country;
             $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";
             $records = $this->db->getRowRecord($sql);
-            //print_r($records);
             return $records['dutiable'];
         }
 
