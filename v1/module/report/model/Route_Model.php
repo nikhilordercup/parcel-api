@@ -5,7 +5,7 @@ class Route_Model{
     }
 
     public function findDriverTimeInfo($start_date, $end_date, $service_type, $company_id){
-        $sql = "SELECT t1.driver_id, t1.time_taken, t1.shipment_route_id FROM " . DB_PREFIX . "driver_time_tracking as t1 INNER JOIN " . DB_PREFIX . "shipment as t2 ON t2.shipment_routed_id=t1.shipment_route_id WHERE t2.actual_given_service_date BETWEEN '$start_date' AND '$end_date' AND t2.instaDispatch_loadGroupTypeCode='$service_type' AND t2.company_id='$company_id'";
+        $sql = "SELECT t2.shipment_address1 AS shipment_address1, t2.shipment_postcode AS shipment_postcode, t2.instaDispatch_loadIdentity AS load_identity, instaDispatch_loadGroupTypeCode AS shipment_type, t1.driver_id, t1.time_taken, t1.shipment_route_id FROM " . DB_PREFIX . "driver_time_tracking as t1 INNER JOIN " . DB_PREFIX . "shipment as t2 ON t2.shipment_routed_id=t1.shipment_route_id WHERE t2.actual_given_service_date BETWEEN '$start_date' AND '$end_date' AND t2.company_id='$company_id'";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -40,8 +40,8 @@ class Route_Model{
         return $this->_db->getRowRecord($sql);
     }
 
-    public function findShipmentBetweenDate($start_date, $end_date, $company_id, $type, $driver_id){
-        $sql = "SELECT shipment_address1 AS shipment_address1, shipment_postcode AS shipment_postcode, instaDispatch_loadIdentity AS load_identity FROM " . DB_PREFIX . "shipment WHERE company_id='$company_id' AND assigned_driver='$driver_id' AND actual_given_service_date BETWEEN '$start_date' AND '$end_date' AND current_status='D' AND instaDispatch_loadGroupTypeCode='$type'";
+    public function findAllDriverShipmentBetweenDate($start_date, $end_date, $company_id, $driver_id, $type){
+        $sql = "SELECT shipment_address1 AS shipment_address1, shipment_postcode AS shipment_postcode, instaDispatch_loadIdentity AS load_identity FROM " . DB_PREFIX . "shipment WHERE company_id='$company_id' AND assigned_driver IN($driver_id) AND actual_given_service_date BETWEEN '$start_date' AND '$end_date' AND current_status='D' AND instaDispatch_loadGroupTypeCode='$type'";
         return $this->_db->getAllRecords($sql);
     }
 }
