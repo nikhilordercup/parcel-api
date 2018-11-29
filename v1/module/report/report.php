@@ -208,9 +208,9 @@ class Report extends Icargo
 
     private function _findDriverAllShipmentCount($driver_time_info)
         {
-        $sameDayInfo = $driver_time_info["SAME"];
-        $nextDayInfo = $driver_time_info["NEXT"];
-        $lastMileInfo = $driver_time_info["Vendor"];
+        $sameDayInfo = isset($driver_time_info["SAME"]) ? $driver_time_info["SAME"] : array();
+        $nextDayInfo = isset($driver_time_info["NEXT"]) ? $driver_time_info["NEXT"] : array();
+        $lastMileInfo = isset($driver_time_info["Vendor"]) ? $driver_time_info["Vendor"] : array();
 
         $samedayJobs = 0;
         $nextdayJobs = 0;
