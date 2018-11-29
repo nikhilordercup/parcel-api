@@ -46,9 +46,9 @@ class Report extends Icargo
 		    return gmdate("H:i", $sec);
 				}
 
-		private function _getJobCountByType($type, $start_date, $end_date, $company_id)
+		private function _getJobCountByType($type, $driver_id)
 				{
-        $items = $this->modelObj->findShipmentBetweenDate($this->param->start_date, $this->param->end_date, $this->param->company_id, $type);
+        $items = $this->modelObj->findShipmentBetweenDate($this->param->start_date, $this->param->end_date, $this->param->company_id, $type, $driver_id);
         $loadIdentity = array();
         foreach($items as $item){
             $loadIdentity[$item["load_identity"]] = $item["load_identity"];
@@ -56,14 +56,23 @@ class Report extends Icargo
         return count($loadIdentity);
 				}
 
-		private function _getAllRouteCount()
+		/*private function _getAllRouteCount()
 				{
 		    return array(
 				    "nextday_route_count" => $this->_getJobCountByType('NEXT', $this->param->start_date, $this->param->end_date, $this->param->company_id),
 						"sameday_route_count" => $this->_getJobCountByType('SAME', $this->param->start_date, $this->param->end_date, $this->param->company_id),
 						"lastmile_route_count" => $this->_getJobCountByType('Vendor', $this->param->start_date, $this->param->end_date, $this->param->company_id)
 				);
-				}
+      }*/
+
+    /*private function _getAllJobCount($driver_id)
+				{
+		    return array(
+				    "nextday_job_count" => $this->_getJobCountByType('NEXT', $driver_id),
+						"sameday_job_count" => $this->_getJobCountByType('SAME', $driver_id),
+						"lastmile_job_count" => $this->_getJobCountByType('Vendor', $driver_id)
+				);
+      }*/
 
 		private function _getServiceTypeName()
 				{
@@ -206,12 +215,18 @@ class Report extends Icargo
 
     private function _generateDerReport()
         {
-				$routeCountInfo = $this->_getAllRouteCount();
+				//$routeCountInfo = $this->_getAllRouteCount();
 				$driverTimeInfo = $this->_findDriverInfo();
         $noOfDays = $this->_findDaysDiff();
         $allActiveReportByCompanyId = $this->_findAllActiveReportByCompanyId();
 
         $reportData = array();
+        $jobCountInfo = array(
+          "nextday_job_count" =>array(),
+          "sameday_job_count" =>array(),
+          "lastmile_job_count" =>array()
+        );
+
         for($i=0; $i<count($driverTimeInfo);$i++){
             $driverId = $driverTimeInfo[$i]['driver_id'];
             $driverName = $driverTimeInfo[$i]['driver_name'];
@@ -245,16 +260,20 @@ class Report extends Icargo
 
             $reportData[$driverId]['revenue'] = $this->_findRevenuePrice($this->driverShipmentInfo["total_jobs"]);
 
+            $jobCountInfo["nextday_job_count"][] = $this->_getJobCountByType('NEXT', $driverId);
+            $jobCountInfo["sameday_job_count"][] = $this->_getJobCountByType('SAME', $driverId);
+            $jobCountInfo["lastmile_job_count"][]= $this->_getJobCountByType('Vendor', $driverId);
+
             $this->driverShipmentInfo = array();
             $this->dailyDropRate = 0;
             $this->averageTimePerDrop = 0;
         }
-
+        //print_r($jobCountInfo);
         return array(
           "status" => "success",
-          "nextday_route_count" => $routeCountInfo["nextday_route_count"],
-          "sameday_route_count" => $routeCountInfo["sameday_route_count"],
-          "lastmile_route_count" => $routeCountInfo["lastmile_route_count"],
+          "nextday_route_count" => array_sum($jobCountInfo["nextday_job_count"]),
+          "sameday_route_count" => array_sum($jobCountInfo["sameday_job_count"]),
+          "lastmile_route_count" => array_sum($jobCountInfo["lastmile_job_count"]),
           "report_data" => $reportData,
           "report_list" => $this->reportLists
         );
