@@ -252,38 +252,40 @@ class Report extends Icargo
           "lastmile_job_count" =>array()
         );
 
-        foreach($driverTimeInfo[$this->_getServiceTypeName()] as $item){
-            $driverId = $item["driver_id"];
-            $driverName = $item["driver_name"];
-            $shipment_route_id = implode(",", $item['shipment_route_id']);
+        if(isset($driverTimeInfo[$this->_getServiceTypeName()])){
+            foreach($driverTimeInfo[$this->_getServiceTypeName()] as $item){
+                $driverId = $item["driver_id"];
+                $driverName = $item["driver_name"];
+                $shipment_route_id = implode(",", $item['shipment_route_id']);
 
-            $this->_findTotalTime($item["time_taken"]);
-            $this->_findTotalMiles($shipment_route_id);
-            $this->_findDriverShipmentBetweenDate($driverId);
-            $this->_findAverageSpeedMiles();
-            $this->_findDailyDropRate();
-            $this->_findAverageTimePerDrop();
+                $this->_findTotalTime($item["time_taken"]);
+                $this->_findTotalMiles($shipment_route_id);
+                $this->_findDriverShipmentBetweenDate($driverId);
+                $this->_findAverageSpeedMiles();
+                $this->_findDailyDropRate();
+                $this->_findAverageTimePerDrop();
 
-            $reportData[$driverId]["total_time_taken"] = $this->totalTime;
-            $reportData[$driverId]['total_distance_meter'] = ($this->param->service_type=="sameday") ? $this->totalDistanceMeter : "N/A";
-            $reportData[$driverId]['total_distance_miles'] = ($this->param->service_type=="sameday") ? $this->totalDistanceMiles : "N/A";
+                $reportData[$driverId]["total_time_taken"] = $this->totalTime;
+                $reportData[$driverId]['total_distance_meter'] = ($this->param->service_type=="sameday") ? $this->totalDistanceMeter : "N/A";
+                $reportData[$driverId]['total_distance_miles'] = ($this->param->service_type=="sameday") ? $this->totalDistanceMiles : "N/A";
 
-            $reportData[$driverId]["no_of_jobs"] = $this->driverShipmentInfo["total_jobs"];
-            $reportData[$driverId]["no_of_drops"] = $this->driverShipmentInfo["total_drops"];
+                $reportData[$driverId]["no_of_jobs"] = $this->driverShipmentInfo["total_jobs"];
+                $reportData[$driverId]["no_of_drops"] = $this->driverShipmentInfo["total_drops"];
 
-            $reportData[$driverId]['average_speed'] = ($this->param->service_type=="sameday") ? $this->averageSpeed : "N/A";
-            $reportData[$driverId]['driver_name'] = $driverName;
+                $reportData[$driverId]['average_speed'] = ($this->param->service_type=="sameday") ? $this->averageSpeed : "N/A";
+                $reportData[$driverId]['driver_name'] = $driverName;
 
-            $reportData[$driverId]['daily_drop_rate'] = $this->dailyDropRate;
-            $reportData[$driverId]['start_date'] = $this->libObj->date_format($this->param->start_date);
-            $reportData[$driverId]['end_date'] = $this->libObj->date_format($this->param->end_date);
+                $reportData[$driverId]['daily_drop_rate'] = $this->dailyDropRate;
+                $reportData[$driverId]['start_date'] = $this->libObj->date_format($this->param->start_date);
+                $reportData[$driverId]['end_date'] = $this->libObj->date_format($this->param->end_date);
 
-            $reportData[$driverId]['average_time_per_drop'] = $this->_getTimeInHourMinutes($this->averageTimePerDrop);
-            $reportData[$driverId]['time_taken_in_hr_min'] = $this->_getTimeInHourMinutes($this->totalTime);
+                $reportData[$driverId]['average_time_per_drop'] = $this->_getTimeInHourMinutes($this->averageTimePerDrop);
+                $reportData[$driverId]['time_taken_in_hr_min'] = $this->_getTimeInHourMinutes($this->totalTime);
 
-            $reportData[$driverId]['no_of_days'] = $noOfDays;
+                $reportData[$driverId]['no_of_days'] = $noOfDays;
 
-            $reportData[$driverId]['revenue'] = $this->_findRevenuePrice($this->driverShipmentInfo["total_jobs"]);
+                $reportData[$driverId]['revenue'] = $this->_findRevenuePrice($this->driverShipmentInfo["total_jobs"]);
+            }
         }
 
         $allJobCount = $this->_findDriverAllShipmentCount($driverTimeInfo);
