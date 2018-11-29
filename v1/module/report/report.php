@@ -46,21 +46,22 @@ class Report extends Icargo
 		    return gmdate("H:i", $sec);
 				}
 
-		private function _getRouteCountByType($type, $start_date, $end_date, $company_id)
+		private function _getJobCountByType($type, $start_date, $end_date, $company_id)
 				{
-		    $result = $this->modelObj->findRouteCountBetweenDate($type, $start_date, $end_date, $company_id);
-        if(isset($result["route_count"]))
-				    return $result["route_count"];
-        else
-            return 0;
+        $items = $this->modelObj->findShipmentBetweenDate($this->param->start_date, $this->param->end_date, $this->param->company_id, $type);
+        $loadIdentity = array();
+        foreach($items as $item){
+            $loadIdentity[$item["load_identity"]] = $item["load_identity"];
+        }
+        return count($loadIdentity);
 				}
 
 		private function _getAllRouteCount()
 				{
 		    return array(
-				    "nextday_route_count" => $this->_getRouteCountByType('NEXT', $this->param->start_date, $this->param->end_date, $this->param->company_id),
-						"sameday_route_count" => $this->_getRouteCountByType('SAME', $this->param->start_date, $this->param->end_date, $this->param->company_id),
-						"lastmile_route_count" => $this->_getRouteCountByType('Vendor', $this->param->start_date, $this->param->end_date, $this->param->company_id)
+				    "nextday_route_count" => $this->_getJobCountByType('NEXT', $this->param->start_date, $this->param->end_date, $this->param->company_id),
+						"sameday_route_count" => $this->_getJobCountByType('SAME', $this->param->start_date, $this->param->end_date, $this->param->company_id),
+						"lastmile_route_count" => $this->_getJobCountByType('Vendor', $this->param->start_date, $this->param->end_date, $this->param->company_id)
 				);
 				}
 
