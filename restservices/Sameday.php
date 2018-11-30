@@ -377,7 +377,7 @@ class Sameday extends  Booking
             $carrierCode = (isset($param->carrier_id) && ($param->carrier_id)>0)?$param->carrier_id:0;
             $carrier = $this->modelObjCorePrime->getCustomerCarrierDataByServiceId($param->customer_id,$param->service_id, $param->company_id,$carrierCode);
         }else{
-            $carrier = $this->modelObjCorePrime->getCustomerCarrierData($param->customer_id, $param->company_id);
+            $carrier = $this->modelObjCorePrime->getCustomerInternalCarrierData($param->customer_id, $param->company_id);
         }
        
         if(count($carrier)>0){
