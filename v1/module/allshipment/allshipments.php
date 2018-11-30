@@ -345,10 +345,11 @@ class allShipments extends Icargo
 		$parcelData            = $this->modelObj->getAllParcelsByIdentity($identity);
 		$temp = array();
 		$parcelInfo = array();
+		$parcelCount = 1;
 		foreach($parcelData as $data){
-			$temp[$data['parcel_height'].$data['parcel_length'].$data['parcel_width']][$data['package']][$data['parcel_weight']] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package']);
+			$tempKey = strtolower(preg_replace('/\s+/',"",implode("",$data)));
+			$temp[$tempKey] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package'],'parcel_quantity'=>$parcelCount++);
 		}
-
 		foreach($temp as $data){
 			$parcelInfo['package'][] = $data;
 		}

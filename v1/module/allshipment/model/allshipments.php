@@ -202,7 +202,7 @@ class AllShipment_Model
       }
 
 	public function getAllParcelsByIdentity($identity){
-      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package,total_weight FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity'";
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package_name as package,total_weight,shipment_ticket FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' AND parcel_type='P'";
 	  $record = $this->db->getAllRecords($sql);
       return $record;
     }

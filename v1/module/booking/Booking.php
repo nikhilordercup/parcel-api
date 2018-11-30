@@ -296,7 +296,8 @@ class Booking extends Icargo
         $parcelData['instaDispatch_loadIdentity'] = $loadidentity;
         $parcelData['shipment_ticket'] = $shipment_ticket;
 
-        $parcelData['package']       = $parcel->package_code;
+        $parcelData['package_name']  = $parcel->name;
+		$parcelData['package']       = $parcel->package_code;
         $parcelData['parcel_ticket'] = $parcelTicketNumber;
         $parcelData['parcel_weight'] = round($parcel->weight/$parcel->quantity,2);
 		$parcelData['total_weight'] =  $parcel->weight;
