@@ -24,7 +24,7 @@ class Module_Coreprime_Api extends Icargo
 
         $this->apiConn = "stagging";
     		//if(ENV=='live')
-    		    $this->apiConn = "live";
+    		    //$this->apiConn = "live";
 
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];
