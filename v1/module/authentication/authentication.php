@@ -63,7 +63,7 @@ class Authentication{
 	private function _getCompanyId($param){
 		if($param['user_code']=="company"){
 			return $param['user_id'];
-		} else if($param['user_code']=="controller" || $param['user_code']=="customer"){
+		} else if($param['user_code']=="controller" || $param['user_code']=="customer" || $param['user_code']=="user"){
 			$record = $this->db->getOneRecord("SELECT `company_id` FROM ".DB_PREFIX."company_users as UT WHERE UT.`user_id`='".$param['user_id']."' AND UT.`status`=1");
 			return $record['company_id'];
 		}/* else if($param['user_code']=="customer"){

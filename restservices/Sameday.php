@@ -437,7 +437,7 @@ class Sameday extends  Booking
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = []; //print_r($post_data);die;
-        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
+        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data),true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
         $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);
 		if(!empty($data)){   
             $transitdata   =  array();

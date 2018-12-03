@@ -126,7 +126,7 @@ class Booking extends Icargo
 
 			}else{
 				if(!$addressVersion["address_id"]){
-					if(($address_op===null) OR ($address_op=="add")){
+					if(($address_op == null) OR ($address_op == "add")){
 						$param["version_id"] = "version_1";
 						$address_id = $this->modelObj->saveAddress($param);
 					}else{
