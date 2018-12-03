@@ -108,6 +108,13 @@ class RateEngineModel
 
     public function searchZone($address, $carrierId)
     {
+        if(strlen($address->country)==3){
+            $t=$this->iso3Toiso2($address->country);
+            $address->country=$t['alpha2_code'];
+        }
+        if(!isset($address->city)){
+            $address->city="";
+        }
         if ($address->country == 'GB') {
             if ($address->zip == trim($address->zip) && strpos($address->zip, ' ') == false) {
                 $address->zip = substr_replace($address->zip, ' ', -3, -3);
@@ -120,11 +127,14 @@ class RateEngineModel
                 . "OR ZD.country='" . $address->country . "') AND ZF.carrier_id=" . $carrierId;
             $rec = $this->_db->getAllRecords($query);
             $city = [];
+            $country=[];
             $zip = $this->searchUkPost($rec, $address->zip);
             if (empty($zip)) {
                 foreach ($rec as $r) {
-                    if ($r['city'] == $address->city) {
+                    if ($r['level']=='City' && $r['city'] == $address->city) {
                         $city = $r;
+                    }elseif ($r['level']=='Country' && $r['country']==$address->country){
+                        $country=$r;
                     }
                 }
             }
@@ -136,13 +146,16 @@ class RateEngineModel
                 . "OR ZD.country='" . $address->country . "') AND ZF.carrier_id=" . $carrierId;
             $rec = $this->_db->getAllRecords($query);
             $city = [];
+            $country=[];
             $zip = [];
 
             foreach ($rec as $r) {
-                if ($r['post_code'] == $address->zip) {
+                if ($r['level']=='Post Code' && $r['post_code'] == $address->zip) {
                     $zip = $r;
-                } else if ($r['city'] == $address->city) {
+                } else if ($r['level']=='City' && $r['city'] == $address->city) {
                     $city = $r;
+                }elseif ($r['level']=='Country' && $r['country']==$address->country){
+                    $country=$r;
                 }
             }
         }
@@ -154,7 +167,7 @@ class RateEngineModel
         } else if (count($city)) {
             return $city;
         } else {
-            return [];
+            return $country;
         }
     }
 
@@ -240,7 +253,10 @@ class RateEngineModel
         if ($zip == trim($zip) && strpos($zip, ' ') == false) {
             $zip = substr_replace($zip, ' ', -3, -3);
         }
-        foreach ($rec as $r) {
+        foreach ($rec as $r) {//print_r($r);
+            if(isset($r['level']) && $r['level']!='Post Code'){
+                continue;
+            }
             for ($i = strlen($zip); $i >= 2; $i--) {
                 if ($surcharge) {
                     if (trim($r) == substr($zip, 0, $i)) {
@@ -257,13 +273,11 @@ class RateEngineModel
     public function getServices($courierId = 0, $companyId = 0)
     {
         if ($courierId > 0 && $companyId > 0) {
-            $query = "SELECT DISTINCT(CSC.service_id),CS.service_name "
-                . "FROM " . DB_PREFIX . "courier_vs_services_vs_company  AS CSC "
-                . "LEFT JOIN " . DB_PREFIX . "courier_vs_company AS CC "
-                . "ON CC.id=CSC.courier_id "
-                . "LEFT JOIN " . DB_PREFIX . "courier_vs_services AS CS "
-                . "ON CS.id=CSC.service_id "
-                . "WHERE CC.courier_id=$courierId AND CSC.company_id=$companyId ";
+            $query = "SELECT DISTINCT(CS.id),CS.service_name 
+FROM ".DB_PREFIX."courier_vs_services AS CS  
+LEFT JOIN ".DB_PREFIX."courier_vs_services_vs_company AS CSC ON CS.id=CSC.service_id 
+LEFT JOIN ".DB_PREFIX."courier_vs_company AS CC ON CC.courier_id=CSC.courier_id 
+WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         } else if ($courierId > 0 && $companyId == 0) {
             $query = "SELECT DISTINCT  * FROM " . DB_PREFIX . "courier_vs_services_vs_company "
                 . "WHERE courier_id=$courierId  ";
@@ -351,6 +365,69 @@ LEFT JOIN icargo_service_providers AS EP ON EP.id=CSP.provider_endpoint_id
 WHERE EP.provider_type='$providerType' AND CSP.request_type='$callType' AND SP.app_env='$env'
 ";
         return $this->_db->getAllRecords($query);
+    }
+    public function iso3Toiso2($iso3){
+        $query="SELECT alpha2_code FROM `".DB_PREFIX."countries` WHERE alpha3_code='$iso3'";
+        return $this->_db->getOneRecord($query);
+    }
+    public function addCarrier($name,$code,$desc,$icon="",$companyId=0){
+        $data=[
+            'name'=>$name,
+            'code'=>$code,
+            'icon'=>$icon,
+            'description'=>$desc,
+            'is_self'=>'YES',
+            'company_id'=>$companyId,
+            'is_apiused'=>'YES',
+            'status'=>1
+        ];
+        return $this->_db->save('courier',$data);
+    }
+    public function addService($name,$code,$desc,$serviceType,$carrierId,$icon="",$createrId=0,$flowType=""){
+        $data=[
+            'courier_id'=>$carrierId,
+            'service_name'=>$name,
+            'service_code'=>$code,
+            'service_icon'=>$icon,
+            'service_description'=>$desc,
+            'created_by'=>$createrId,
+            'status'=>1,
+            'service_type'=>$serviceType,
+            'flow_type'=>$flowType
+        ];
+        return $this->_db->save('courier_vs_services',$data);
+    }
+    public function updateCarrier($carrierId,$newData){
+        return $this->_db->update('courier',$newData,"id=$carrierId");
+    }
+    public function updateService($serviceId,$newData){
+        return $this->_db->update('courier_vs_services',$newData,"id=$serviceId");
+    }
+    public function addServiceOption($data){
+        $d=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."service_options 
+        WHERE service_id=".$data['service_id']);
+        if(!$d) {
+            return $this->_db->save('service_options', $data);
+        }else{
+            return $this->updateServiceOption($d['id'],$data);
+        }
+    }
+    public function updateServiceOption($optionId,$newData){
+        return $this->_db->update('service_options',
+            $newData,"id=$optionId");
+    }
+    public function getAllCarriers(){
+        return $this->_db->getAllRecords("SELECT * FROM ".DB_PREFIX."courier WHERE status=1");
+    }
+    public function getAllServicesByCarrier($carrierId){
+
+        return $this->_db->getAllRecords("SELECT CS.*,C.company_id,C.name as carrier_name, C.is_self
+        FROM ".DB_PREFIX."courier_vs_services AS CS LEFT JOIN
+        ".DB_PREFIX."courier AS C ON CS.courier_id=C.id
+        WHERE CS.status=1 AND CS.courier_id=$carrierId");
+    }
+    public function getServiceOption($serviceId){
+        return $this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."service_options WHERE service_id=$serviceId");
     }
 
 }

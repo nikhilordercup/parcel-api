@@ -23,6 +23,9 @@ class RateEngineController {
     private $_excelBuilder;
     private $_excelReader;
     private $_rateEngineModel;
+    /**
+     * @var RateEngineController
+     */
     private static $_rateEngine;
 
     //put your code here
@@ -37,6 +40,9 @@ class RateEngineController {
             self::$_rateEngine = new RateEngineController;
     }
 
+    /**
+     * @param $app \Slim\Slim
+     */
     public static function initRoutes($app) {
         $app->post('/getCsv', function () use ($app) {
             $carrierId = $app->request->post('carrier_id');
@@ -106,6 +112,41 @@ class RateEngineController {
             self::createInstance();
             $data = self::$_rateEngine->deleteSurcharge($r);
             echoResponse(200, $data);
+        });
+        $app->post("/rate-engine/save-carrier", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->saveCarrierInfo($r);
+        });
+        $app->post("/rate-engine/save-service", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->saveServiceInfo($r);
+        });
+        $app->post("/rate-engine/save-service-options", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->perpareAndSaveServiceOption($r);
+        });
+        $app->post("/rate-engine/get-carriers", function() use ($app) {
+            json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->fetchAllCarriers();
+        });
+        $app->post("/rate-engine/get-services", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->fetchAllServices($r);
+        });
+        $app->post("/rate-engine/get-service-options", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->getServiceOption($r->id);
+        });
+        $app->post("/rate-engine/delete-carrier-or-service", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            self::$_rateEngine->deleteCarrierOrService($r);
         });
     }
 
@@ -285,5 +326,115 @@ class RateEngineController {
     public function deleteSurcharge($d){
         return $this->_rateEngineModel->deleteSurcharge($d->id);
     }
+    public function saveCarrierInfo($request){
+        $id=$this->_rateEngineModel
+            ->addCarrier($request->name,$request->code,$request->desc,
+                "",$request->company_id);
+        if($id){
+            echoResponse(200,['success'=>true]);
+        }else{
+            echoResponse(200,['success'=>false]);
+        }
 
+    }
+    public function saveServiceInfo($request){
+        $id=$this->_rateEngineModel
+            ->addService($request->name,$request->code,$request->desc,
+                $request->service_type,$request->carrier_id,
+                "",$request->company_id);
+        if($id){
+            echoResponse(200,['success'=>true]);
+        }else{
+            echoResponse(200,['success'=>false]);
+        }
+    }
+    public function perpareAndSaveServiceOption($request){
+        $data=[
+            'service_id'=>$request->service_id,
+            'residential'=>(int)$request->residential??0,
+            'am_delivery'=>(int)$request->am_delivery??0,
+            'saturday_delivery'=>(int)$request->saturday_delivery??0,
+            'duitable'=>(int)$request->duitable??0,
+            'hold_at_location'=>(int)$request->hold_at_location??0,
+            'holiday_delivery'=>(int)$request->holiday_delivery??0,
+            'length'=>$request->length??'',
+            'width'=>$request->width??'',
+            'height'=>$request->height??'',
+            'dimension_unit'=>$request->dimension_unit??'',
+            'girth'=>(int)$request->girth??0,
+            'service_type'=>$request->service_type??'',
+            'service_level'=>$request->service_level??'',
+            'barcode_value'=>$request->barcode_value??'',
+            'max_waiting_time'=>$request->max_waiting_time??'',
+            'time_unit'=>$request->time_unit??'',
+            'change_from_base'=>(int)$request->change_from_base??0,
+            'min_weigth'=>$request->min_weigth??'',
+            'max_weight'=>$request->max_weight??'',
+            'min_box_weight'=>$request->min_box_weight??'',
+            'max_box_weight'=>$request->max_box_weight??'',
+            'weight_unit'=>$request->weight_unit??'',
+            'max_box_count'=>$request->max_box_count??'',
+            'updated_at'=>$request->updated_at??date('Y-m-d H:i:s'),
+            'status'=>1
+        ];
+        $id=$this->_rateEngineModel->addServiceOption($data);
+        if($id){
+            echoResponse(200,['success'=>true]);
+        }else{
+            echoResponse(200,['success'=>false]);
+        }
+    }
+    public function fetchAllCarriers(){
+        $data=$this->_rateEngineModel->getAllCarriers();
+        echoResponse(200,$data);
+    }
+    public function fetchAllServices($request){
+        $data=$this->_rateEngineModel->getAllServicesByCarrier($request->carrier_id);
+        echoResponse(200,$data);
+    }
+
+    public function deleteCarrierOrService($r){
+        if($r->entity_type=='carrier'){
+            $this->_rateEngineModel->updateCarrier($r->id,['status'=>0]);
+        }elseif ($r->entity_type=='service'){
+            $this->_rateEngineModel->updateService($r->id,['status'=>0]);
+        }
+        echoResponse(200,['success'=>true]);
+    }
+    public function getServiceOption($serviceId){
+        $rec=$this->_rateEngineModel->getServiceOption($serviceId);
+        if(!$rec)$rec=[];
+        $rec=(array)$rec;
+        $data=[
+            'service_id'=>$serviceId,
+            'residential'=>(bool)($rec['residential']??'0'),
+            'am_delivery'=>(bool)($rec['am_delivery']??'0'),
+            'saturday_delivery'=>(bool)($rec['saturday_delivery']??'0'),
+            'duitable'=>(bool)($rec['duitable']??'0'),
+            'hold_at_location'=>(bool)($rec['hold_at_location']??'0'),
+            'holiday_delivery'=>(bool)($rec['holiday_delivery']??'0'),
+            'length'=>$rec['length']??'',
+            'width'=>$rec['width']??'',
+            'height'=>$rec['height']??'',
+            'dimension_unit'=>$rec['dimension_unit']??'',
+            'girth'=>(bool)($rec['girth']??'0'),
+            'service_type'=>$rec['service_type']??'',
+            'service_level'=>$rec['service_level']??'',
+            'barcode_value'=>$rec['barcode_value']??'',
+            'max_waiting_time'=>$rec['max_waiting_time']??'',
+            'time_unit'=>$rec['time_unit']??'',
+            'change_from_base'=>(bool)($rec['change_from_base']??'0'),
+            'min_weigth'=>$rec['min_weigth']??'',
+            'max_weight'=>$rec['max_weight']??'',
+            'min_box_weight'=>$rec['min_box_weight']??'',
+            'max_box_weight'=>$rec['max_box_weight']??'',
+            'weight_unit'=>$rec['weight_unit']??'',
+            'max_box_count'=>$rec['max_box_count']??''
+        ];
+        echoResponse(200,$data);
+    }
+    public function saveImageToFile($imageBase64,$fileName){
+        $imageBase64 = substr($imageBase64, 1+strrpos($imageBase64, ','));
+        file_put_contents($fileName, base64_decode($imageBase64));
+    }
 }

@@ -56,13 +56,13 @@ class Module_Coreprime_Api extends Icargo
         }
         $pd=$this->filterServiceProvider($data);
         $finalPrice=[];
-        if(isset($pd['Coreprime'])){
+        if(isset($pd['Coreprime']) && count($pd['Coreprime'])){
             $cpData=$data;
             $cpData['carriers']=$pd['Coreprime'];
             $cpRate=$this->postToCorePrime($cpData);
             $this->mergePrice($finalPrice,$cpRate);
         }
-        if(isset($pd['Local'])){
+        if(isset($pd['Local']) && count($pd['Local'])){
             $lcData=$data;
             $lcData['carriers']=$pd['Local'];
             $localRate=$this->postToRateEngine('Local',$lcData);
@@ -97,9 +97,9 @@ class Module_Coreprime_Api extends Icargo
                                             $total_tax = 0;
                                             $carrier = $this->modelObj->getCarrierIdByCode($company_id,$customer_id,$accountkey);
                                             $res = $this->_calculateSamedayServiceccf($servicecode,$item['rate'],$carrier['id'],$customer_id,$company_id);
-                                            $res['service_options'] = $item['service_options'];
+                                            $res['service_options'] = $item['service_options']??[];
                                             //$res['taxes'] = $item['taxes'];
-                                            $res['taxes'] = ($is_tax_exempt)?array():$item['taxes'];
+                                            $res['taxes'] = ($is_tax_exempt)?array():$item['taxes']??[];
                                             $res['info']['accountkey'] = $accountkey;
                                             $res['ccf_surcharges'] = new StdClass();
                                             $res['ccf_surcharges']->alldata = array();
@@ -128,16 +128,16 @@ class Module_Coreprime_Api extends Icargo
                                             $temparray["rate"][$carriercode][$key]["service_name"] = $res['service_name'];
                                             $temparray["rate"][$carriercode][$key]["charge_from_base"] =  ($charge_from_warehouse)?'1':'0';
                                             $temparray["rate"][$carriercode][$key]["rate_type"] = $res['rate_type'];
-                                            $temparray["rate"][$carriercode][$key]["message"] = $res['message'];
-                                            $temparray["rate"][$carriercode][$key]["currency"] = $res['currency'];
+                                            $temparray["rate"][$carriercode][$key]["message"] = $res['message']??'';
+                                            $temparray["rate"][$carriercode][$key]["currency"] = $res['currency']??'GBP';
                                             $temparray["rate"][$carriercode][$key]["total_price"] = $total_price;
                                             $temparray["rate"][$carriercode][$key]["otherinfo"] = $res['info'];
                                             $temparray["rate"][$carriercode][$key]["base_price"] = $base_price;
-                                            $temparray["rate"][$carriercode][$key]["icon"] = $res['service_options']['icon'];
-                                            $temparray["rate"][$carriercode][$key]["max_delivery_time"] = $res['service_options']['max_delivery_time'];
-                                            $temparray["rate"][$carriercode][$key]["dimensions"] = $res['service_options']['dimensions'];
-                                            $temparray["rate"][$carriercode][$key]["weight"] = $res['service_options']['weight'];
-                                            $temparray["rate"][$carriercode][$key]["time"] = $res['service_options']['time'];
+                                            $temparray["rate"][$carriercode][$key]["icon"] = $res['service_options']['icon']??'';
+                                            $temparray["rate"][$carriercode][$key]["max_delivery_time"] = $res['service_options']['max_delivery_time']??'';
+                                            $temparray["rate"][$carriercode][$key]["dimensions"] = $res['service_options']['dimensions']??'';
+                                            $temparray["rate"][$carriercode][$key]["weight"] = $res['service_options']['weight']??'';
+                                            $temparray["rate"][$carriercode][$key]["time"] = $res['service_options']['time']??'';
                                             $temparray["rate"][$carriercode][$key]["surcharges"] = array();
                                             $temparray["rate"][$carriercode][$key]["surchargesinfo"] = array();
                                             if(isset($res['surcharges'])){
@@ -488,6 +488,7 @@ class Module_Coreprime_Api extends Icargo
         return $server_output;
     }
     public function mergePrice(&$finalArray,$price){
+        if(trim($price)==="")return false;
         $price=json_decode($price);
         foreach ($price->rate as $k=>$p){
             $finalArray['rate'][$k]=$p;

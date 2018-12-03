@@ -20,6 +20,8 @@ class RateApiController {
      */
     private $_reateEngineModel;
     private $_responseData = [];
+    public $_isSameDay=false;
+    public $_isLabelCall=false;
 
     //put your code here
     private function __construct() {
@@ -29,9 +31,20 @@ class RateApiController {
     public static function initRoutes($app) {
         $app->post('/rate-engine/getRate', function() use ($app) {
             $r = json_decode($app->request->getBody());
-//            verifyRequiredParams(array('access_token'), $r);
             $controller = new RateApiController;
-            $controller->breakRequest($r);
+            $date = date('Y-m-d');
+            $match_date = date('Y-m-d',strtotime($r->ship_date));
+            if($date==$match_date) {
+                $controller->_isSameDay=true;
+            }
+            if(isset($r->label)){
+                $controller->_isLabelCall=true;
+            }
+            if(!$controller->_isLabelCall) {
+                $controller->breakRequest($r);
+            }else{
+                //Process Label Label Provider Request
+            }
         });
     }
 
@@ -51,6 +64,10 @@ class RateApiController {
                         $surchargeList = $this->_reateEngineModel->fetchSurcharge($ca['courier_id'], [], [$ca['id']], []);
                         foreach ($surchargeList as $i => $l) {
                             $this->_responseData['surchargeList'][$c->name][$a->credentials->account_number][$l['serviceCode']][] = $l;
+                        }
+                        if(!isset($this->_responseData['surchargeList'][$c->name][$a->credentials->account_number]))
+                        {
+                            $this->_responseData['surchargeList'][$c->name][$a->credentials->account_number]=[];
                         }
                         if (!isset($this->_responseData['surchargeList'])) {
                             $this->_responseData['surchargeList'] = [];
@@ -111,9 +128,6 @@ class RateApiController {
         $packages = $request->package;
         $packagesCount = count($packages);
         $packagesWeight = $this->calculateWeight($packages);
-//        foreach ($packages as $package) {
-//            $packagesWeight += $package->weight;
-//        }
 
         $distance = 0;
         $time = 0;
@@ -127,8 +141,10 @@ class RateApiController {
         }
 
         $transitData = compact('distance', 'time', 'waitTime', 'drops');
-        if (!isset($this->_responseData['rate']))
+        if (!isset($this->_responseData['rate'])) {
+            unset($this->_responseData['surchargeList']);
             return FALSE;
+        }
         foreach ($this->_responseData['rate'] as $name => $d) {
             foreach ($d as $k => $p) {
                 foreach ($p as $z => $t) {
@@ -136,9 +152,13 @@ class RateApiController {
                         $f = $f['rate'];
                         switch ($f["rate_type"]) {
                             case 'Weight':
+                                if($this->_isSameDay){
+                                    break;
+                                }
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = round($this->filterRateFormRange($f, $packagesWeight),2);
                                 break;
                             case 'Box':
+                                if($this->_isSameDay)break;
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packagesCount);
                                 break;
                             case 'Time':
@@ -151,19 +171,23 @@ class RateApiController {
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $drops);
                                 break;
                         }
-                        if ($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
+                        if (!isset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost']) || $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
                             unset($this->_responseData['rate'][$name][$k][$z][$key]);
                             continue;
                         }
                         if (count($this->_responseData['rate'][$name][$k][$z])) {
-                            $manager = new SurchargeManager();
-                            $manager->filterSurcharge($this->_responseData['surchargeList'][$name][$k][$z], $transitData, $packages, $this->_responseData['rate'][$name][$k][$z][$key]['rate'], $request);
-                            $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
-                            $this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'];
-                            $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
-                            unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
+//                            try {
+                                $manager = new SurchargeManager();
+                                $manager->filterSurcharge($this->_responseData['surchargeList'][$name][$k][$z]??null, $transitData, $packages, $this->_responseData['rate'][$name][$k][$z][$key]['rate'], $request);
+                                $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
+                                $this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'];
+                                $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
+                                unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
+//                            }catch (Exception $ex){
+//                                echo $ex->getMessage();echo $ex->getLine();
+//                                print_r($this->_responseData['surchargeList']);exit;
+//                            }
                         }
-//                        $this->_responseData['rate'][$name][$k][$z]= array_values($this->_responseData['rate'][$name][$k][$z]);
                     }
                 }
             }
@@ -173,6 +197,7 @@ class RateApiController {
     public function calculateWeight($packages) {
         $totalWeight = 0;
         foreach ($packages as $p) {
+            if(!isset($p->length))continue;
             $volWeight = ($p->length * $p->width * $p->height) / 4000;
             $weight = $p->weight;
             $totalWeight += ($weight > $volWeight) ? $weight : $volWeight;
@@ -181,7 +206,7 @@ class RateApiController {
     }
 
     public function filterRateFormRange($priceInfo, $units) {
-        if ($priceInfo["end_unit"] >= $units && $priceInfo["start_unit"] < $units) {
+        if ($priceInfo["end_unit"] >= $units && $priceInfo["start_unit"] <= $units) {
             $extra =$units -($priceInfo["start_unit"]) ;
             if ($extra > 0 && $priceInfo["additional_base_unit"] >0) {
                 $chargableUnits = $extra / $priceInfo["additional_base_unit"];
@@ -241,6 +266,9 @@ class RateApiController {
             }
         }
         unset($this->_responseData['accountInfo'], $this->_responseData['zone']);
+    }
+    public function getLabelProvider(){
+
     }
 
 }
