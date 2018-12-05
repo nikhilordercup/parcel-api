@@ -429,5 +429,32 @@ WHERE EP.provider_type='$providerType' AND CSP.request_type='$callType' AND SP.a
     public function getServiceOption($serviceId){
         return $this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."service_options WHERE service_id=$serviceId");
     }
-
+    public function getTaxDetails($countryId){
+        return $this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."tax_details WHERE country_id=$countryId");
+    }
+    public function saveTaxDetails($countryId,$request){
+        $tax=$this->getTaxDetails($countryId);
+        if($tax){
+            $data=[
+                'tax_type'=>$request->tax_type,
+                'tax_factor'=>$request->tax_factor,
+                'tax_factor_value'=>$request->tax_factor_value,
+                'updated_at'=>date('Y-m-d H:i:s')
+                ];
+            return $this->_db->update('tax_details',$data,"country_id=$countryId");
+        }else{
+            $data=[
+                'tax_type'=>$request->tax_type,
+                'tax_factor'=>$request->tax_factor,
+                'tax_factor_value'=>$request->tax_factor_value,
+                'country_id'=>$countryId
+            ];
+            return $this->_db->save('tax_details',$data);
+        }
+    }
+    public function getTaxInfoByIso2($iso){
+        $sql="SELECT T.* FROM ".DB_PREFIX."countries AS C LEFT JOIN 
+                ".DB_PREFIX."tax_details AS T ON C.id=T.country_id WHERE C.alpha2_code='$iso'";
+        return $this->_db->getOneRecord($sql);
+    }
 }

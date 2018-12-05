@@ -10,3 +10,10 @@ CREATE TABLE IF NOT EXISTS `icargo_service_options`
   `max_box_weight` VARCHAR(20) NOT NULL , `weight_unit` VARCHAR(20) NOT NULL ,
   `max_box_count` VARCHAR(20) NOT NULL , `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `updated_at` TIMESTAMP NOT NULL , `status` BOOLEAN NOT NULL , PRIMARY KEY (`id`)) ENGINE = MyISAM;
+
+  ALTER TABLE `icargo_service_options` ADD `min_transit_days`
+  INT NOT NULL AFTER `max_box_count`,
+  ADD `max_transit_days` INT NOT NULL AFTER `min_transit_days`,
+  ADD `service_time` VARCHAR(50) NOT NULL AFTER `max_transit_days`;
+
+  ALTER TABLE `icargo_service_options` ADD `weight_per` VARCHAR(15) NOT NULL AFTER `service_time`;

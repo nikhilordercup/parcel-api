@@ -148,6 +148,23 @@ class RateEngineController {
             self::createInstance();
             self::$_rateEngine->deleteCarrierOrService($r);
         });
+        $app->post("/rate-engine/save-tax-details", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+//            $rec=[
+//                'tax_type'=>$r->tax_type,
+//                'tax_factor'=>$r->tax_factor,
+//                'tax_factor_value'=>$r->tax_factor_value,
+//            ];
+            $data=self::$_rateEngine->_rateEngineModel->saveTaxDetails($r->country_id,$r);
+            echoResponse(200,$data);
+        });
+        $app->post("/rate-engine/get-tax-details", function() use ($app) {
+            $r = json_decode($app->request->getBody());
+            self::createInstance();
+            $data=self::$_rateEngine->_rateEngineModel->getTaxDetails($r->country_id);
+            echoResponse(200,$data);
+        });
     }
 
     public function getServiceAndAccounts($request) {
@@ -374,6 +391,10 @@ class RateEngineController {
             'max_box_weight'=>$request->max_box_weight??'',
             'weight_unit'=>$request->weight_unit??'',
             'max_box_count'=>$request->max_box_count??'',
+            'max_transit_days'=>$request->max_transit_days??'',
+            'min_transit_days'=>$request->min_transit_days??'',
+            'servie_time'=>$request->servie_time??'',
+            'weight_per'=>$request->weight_per??'',
             'updated_at'=>$request->updated_at??date('Y-m-d H:i:s'),
             'status'=>1
         ];
@@ -429,7 +450,11 @@ class RateEngineController {
             'min_box_weight'=>$rec['min_box_weight']??'',
             'max_box_weight'=>$rec['max_box_weight']??'',
             'weight_unit'=>$rec['weight_unit']??'',
-            'max_box_count'=>$rec['max_box_count']??''
+            'max_box_count'=>$rec['max_box_count']??'',
+            'max_transit_days'=>$rec['max_transit_days']??'',
+            'min_transit_days'=>$rec['min_transit_days']??'',
+            'service_time'=>$rec['service_time']??'',
+            'weight_per'=>$rec['weight_per']??''
         ];
         echoResponse(200,$data);
     }
