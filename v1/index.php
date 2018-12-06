@@ -33,6 +33,16 @@ require_once 'vehicle.php';
 require_once 'postcode.php';
 
 
+//Dashboard
+require_once 'module/dashboard/dashboard.php';
+require_once 'module/dashboard/dashboard-api.php';
+//End Dashboard
+
+//Tuffnells
+require_once 'module/rate-engine/tuffnells/tuffnells.php';
+require_once 'module/rate-engine/tuffnells/rate-engine-api.php';
+//End Tuffnells
+
 require_once 'module/configuration/GridConfiguration.php';
 require_once 'module/configuration/CustomFilterConfiguration.php';
 require_once 'module/driver/DriverController.php';
@@ -50,7 +60,6 @@ require_once 'dev.test.php';
 //require_once('../vendor/dompdf/autoload.inc.php');
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
-
 
 require_once 'module/shipment/model/shipment.php';
 require_once 'module/shipment/save.php';

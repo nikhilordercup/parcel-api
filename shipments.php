@@ -1,5 +1,6 @@
 <?php
-$url = "http://localhost/icargor/icargo/track.php";
+//$url = "http://localhost/icargor/icargo/track.php";
+$url = "http://cargo.example.com/track.php";
 
 $data_string = '{"from":{"name":"Nishant","company":"1 Manor Farm Barns","street1":"1 Manor Farm Barns","street2":"Henton","city":"1 Manor Farm Barns","state":"Oxfordshire","zip":"OX39 4AE","country_name":"England","alpha3_code":"GBR"},"to":{"zip":"OX39 4AE","alpha3_code":"GBR","alpha2_code":"GB","country_name":"United Kingdom"},"ship_date":"2018-04-07","extra":{},"package":[{"packaging_type":"Parcels","width":"12","length":"12","height":"12","dimension_unit":"cm","weight":"12","weight_unit":"KG"}],"customer_id":"181","user_id":"335","booked_by":"10","carrier":"ukmail","currency":"GBP","endPointUrl":"getNextdayAvailableCarrier"}';
 

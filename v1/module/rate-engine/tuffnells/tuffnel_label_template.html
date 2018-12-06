@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>instadispatch</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,700,800,900" rel="stylesheet">
+
+
+    <style type="text/css">
+        .container-box {
+            width: 600px;
+            margin: auto;
+            position: relative;
+        }
+
+        .top-heading div {
+            font-size: 75px;
+            font-weight: 600
+        }
+
+        .top-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .top-heading span {
+            display: block;
+            font-size: 24px;
+            text-align: right;
+            font-weight: 700;
+            top: -11px;
+            position: relative;
+            right: 15px;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .side-box {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+        }
+
+        .side-box > table > tbody > tr > th {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .left-section h1, h5, h6 {
+            margin: 0
+        }
+
+        .left-section h1 {
+            font-size: 45px
+        }
+
+        .right-image {
+            position: absolute;
+            top: 0px;
+            transform: rotate(90deg);
+            bottom: 0;
+            left: 6px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container-box">
+    <div class="top-heading">
+        <div>P1</div>
+        <div>SHF
+            <span>R021</span>
+        </div>
+    </div>
+
+    <table border="1" width="600px" cellspacing="0" cellpadding="4">
+        <tr>
+            <td style="width:350px">
+                <h6 style="margin: 0">Consignment Ref.</h6>
+                <h1 style="margin: 0; font-size: 45px">14</h1>
+
+            </td>
+
+            <td>
+                <h6 style="text-transform: uppercase; margin: 0">jamestest<br>
+                    shepcote house<br>
+                    shrpcote lane<br>
+                    sheffield<br>
+                    south yorkshire s91 uw
+                </h6>
+            </td>
+        </tr>
+    </table>
+
+
+    <table border="1" width="600px" cellspacing="0" cellpadding="4">
+        <tr>
+            <td style="width: 150px" class="left-section">
+                <h6>Item</h6>
+                <h1>001</h1>
+                <h6>of</h6>
+                <h1>004</h1>
+                <h6>Total Weight kg</h6>
+                <h1>10</h1>
+                <h6>Dispatched</h6>
+                <h5 style="font-size: 25px">25/08/18</h5>
+            </td>
+            <td rowspan="2" style="position: relative;">
+                <h6 style="margin: 0;font-weight: 400; margin-bottom: 4px">Deliver To</h6>
+                <h5 style="text-transform: uppercase; margin: 0; font-size: 15px">
+                    tufnells parcels express ltd.<br>
+                    james test<br>
+                    shepcote house<br>
+                    shepcote lane<br><br>
+                    sheffield<br>
+                    south yorkshire
+                </h5>
+
+                <h1 style="margin: 0;font-size: 45px">s9 1uw</h1>
+
+                <div class="tel" style="display: flex; margin-top: 20px">
+                    <div><h6 style="margin: 0;font-weight: 400; margin-bottom: 4px;margin-right: 10px"> Tel:</h6></div>
+                    <div><h5 style="margin: 0; font-size: 30px">0114 256 4880</h5></div>
+                </div>
+
+                <div class="side-box">
+                    <table border="1" cellspacing="0">
+                        <tr>
+                            <th>T/L</th>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                        </tr>
+
+
+                        <tr>
+                            <th>ALT</th>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                        </tr>
+
+                        <tr>
+                            <th>RPO</th>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+
+
+        <tr>
+            <td class="left-section" style="text-align: center;">
+                <h5 style="font-size: 15px">Tuffnells</h5>
+                <h6>Parcels Express<br>
+                    01142564880
+                </h6>
+                <h6 style="margin-top: 10px">1111109</h6>
+                <h6 style="font-weight: 900">28/R021</h6>
+                <h6 style="text-align: right;">EZ.W</h6>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2" style="text-transform: uppercase; font-weight: 600; font-size: 15px">
+                these are special instructions
+            </td>
+        </tr>
+    </table>
+    <img src="{{horizontal}}" width="100%" height="120px" style="margin-top: 10px">
+    <div class="right-image" style="position: absolute;">
+        <img src="{{vertical}}" style="width: 75%; height: 45px;position: relative; left: 47px">
+    </div>
+</div>
+</body>
+</html>

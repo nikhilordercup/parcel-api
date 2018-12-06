@@ -74,7 +74,8 @@ class Authentication{
 
 	public function process(){
 		$response = array();
-		$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.`user_level` <> 5");
+		//$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.`user_level` <> 5");
+		$user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1");
 		if ($user != NULL) {
 			//if(passwordHash::check_password($user['password'],$this->_getPassword())){
 				$access_token = $this->_setAccessToken($user['id']);
