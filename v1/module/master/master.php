@@ -405,6 +405,9 @@ class Master extends Icargo{
     }
 
     public function saveCarrier($param){
+
+
+
         try{
             $this->_parentObj->db->startTransaction();
             $exist = $this->checkAccountExist($param->company_id,$param->carrier_id,$param->account_number);
