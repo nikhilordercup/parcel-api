@@ -25,6 +25,7 @@ class RateApiController
     public $_isSameDay = false;
     public $_isLabelCall = false;
     private $_taxRate=null;
+    private $_requestedServices=[];
 
     //put your code here
     private function __construct()
@@ -65,6 +66,7 @@ class RateApiController
 
                 $ca = $this->_reateEngineModel
                     ->fetchCarrierByAccountNumber($a->credentials->account_number);
+                $this->_requestedServices[$a->credentials->account_number]=array_merge($this->_requestedServices[$a->credentials->account_number]??[],explode(',',$a->services));
 
                 if ($ca) {
                     if (!isset($this->_responseData['surchargeList'][$ca['courier_id']][$ca['id']])) {
@@ -112,9 +114,11 @@ class RateApiController
             if (count($carrier["fromZone"]) && count($carrier["toZone"])) {
                 $rates = $this->_reateEngineModel->searchPriceForZone(
                     $param['zone'][$name]["fromZone"]['carrier_id'], $param['zone'][$name]["fromZone"]['zone_id'], $param['zone'][$name]["toZone"]['zone_id']);
-
                 foreach ($rates as $k => $r) {
-                    $this->_responseData['rate'][$name][$r['account_number']][$r['service_code']][]['rate'] = $rates[$k];
+                    $result=array_search($r['service_code'],$this->_requestedServices[$r['account_number']]);
+                    if(gettype($result)=='integer' && $result>=0){
+                        $this->_responseData['rate'][$name][$r['account_number']][$r['service_code']][]['rate'] = $rates[$k];
+                    }
                 }
             } else {
 
