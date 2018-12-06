@@ -169,7 +169,10 @@ class Report extends Icargo
 
     private function _findAverageSpeedMiles()
         {
-        $avg_speed = $this->totalDistanceMeter / $this->totalTime;
+        $avg_speed = 0;
+        if($this->totalTime>0)
+            $avg_speed = $this->totalDistanceMeter / $this->totalTime;
+
         $this->averageSpeed = $this->_getMeterToMiles($avg_speed);
         }
 
