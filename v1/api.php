@@ -2521,3 +2521,17 @@ $app->post('/fixAddressBookSearchString', function () use ($app) {//delete after
         $db->executeQuery($sql);
     }
 });
+
+$app->post('/saveChildAccountData', function () use ($app) {
+    $r = json_decode($app->request->getBody());
+    $obj = new Customer($r);
+    $response = $obj->saveChildAccountData($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/getChildAccountData', function () use ($app) {
+    $r = json_decode($app->request->getBody());
+    $obj = new Customer($r);
+    $response = $obj->getChildAccountData($r);
+    echoResponse(200, $response);
+});

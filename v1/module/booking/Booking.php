@@ -359,6 +359,7 @@ class Booking extends Icargo
             $service_data["courier_commission"] = $serviceOpted->rate->info->ccf_value;
             $service_data["courier_commission_value"] = $serviceOpted->rate->info->price;
             $service_data["accountkey"] = isset( $serviceOpted->rate->act_number) ? $serviceOpted->rate->act_number : '';
+			$service_data["parent_account_key"] = isset( $serviceOpted->rate->act_number) ? $serviceOpted->rate->act_number : '';
             $service_data["base_price"] = $serviceOpted->rate->info->original_price;
             $service_data["surcharges"] = $surchargeAndTaxValue["total_surcharge_value"];
             $service_data["taxes"] = $surchargeAndTaxValue["total_tax_value"];

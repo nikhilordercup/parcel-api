@@ -1660,5 +1660,51 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
                    }
                 }
             }
+			
+		public function saveChildAccountData($postData){
+			$checkChildAccountData = $this->modelObj->checkChildAccountData($postData->company_id,$postData->carrier->customer_id,$postData->carrier->courier_id,$postData->carrier->parent_account_number);
+			
+			//update existing
+			if($checkChildAccountData['account_exist']>0){
+				$childAccountId = $checkChildAccountData['id'];
+				$updateData = array("account_number"=>$postData->carrier->account_no,"username"=>$postData->carrier->user_name,"password"=>$postData->carrier->password,"token"=>$postData->carrier->coreprime_token);
+				$condition = "id = $childAccountId";
+				$updateChildAccount = $this->modelObj->editContent('customer_courier_child_accont',$updateData,$condition);
+				if($updateChildAccount)
+					return array("status"=>"success","message"=>"child account data updated successfully");
+				else
+					return array("status"=>"error","message"=>"error while updating child account data, please try again later!");
+			}
+			
+			//save new child account for customer
+			else{
+				$data = array("courier_id"=>$postData->carrier->courier_id,
+							  "company_id"=>$postData->company_id,
+							  "customer_id"=>$postData->carrier->customer_id,
+							  "parent_account_number"=>$postData->carrier->parent_account_number,
+							  "account_number"=>$postData->carrier->account_no,
+							  "username"=>$postData->carrier->user_name,
+							  "password"=>$postData->carrier->password,
+							  "token"=>$postData->carrier->coreprime_token);
+							  
+				$saveChildAccount = $this->modelObj->addContent('customer_courier_child_accont',$data);
+				if($saveChildAccount)
+					return array("status"=>"success","message"=>"child account saved successfully");
+				else
+					return array("status"=>"error","message"=>"error while adding child account, please try again later!");
+				
+			}
+		  
+		}
+
+		public function getChildAccountData($param){
+			$checkChildAccountData = $this->modelObj->checkChildAccountData($param->company_id,$param->customer_id,$param->courier_id,$param->parent_account_number);
+			if($checkChildAccountData['account_exist']>0){
+				return array("status"=>"success","child_acount_data"=>$checkChildAccountData,"message"=>"child account found");
+			}else{
+				return array("status"=>"error","child_acount_data"=>array(),"message"=>"no child account found");
+			}
+		  
+		}
     }
 ?>

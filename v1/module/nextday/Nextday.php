@@ -687,7 +687,6 @@ final class Nextday extends Booking
         if ($this->data["status"] == "success")
         {
             $requestStr = json_encode($this->data);
-
             $responseStr = $this->_postRequest($this->data);
             $response = json_decode($responseStr);
             $response = $this->_getCarrierInfo($response->rate);
@@ -747,8 +746,6 @@ final class Nextday extends Booking
         $this->startTransaction();
         $execution_order = 0;
         $collection_date_time = $this->_param->service_opted->collection_carrier->collection_date_time;
-
-
         $collection_end_at = $this->_param->service_opted->collection_carrier->collection_end_at;
         $carrier_account_number = $this->_param->service_opted->collection_carrier->account_number;
         $is_internal = $this->_param->service_opted->collection_carrier->is_internal;
@@ -982,6 +979,13 @@ final class Nextday extends Booking
                 $statusArr = array(
                     "status" => "success"
                 );
+				
+				/*start of update ukmail child account data*/
+				if ((strtolower($carrier_code) == 'ukmail') && (isset($labelInfo['child_account_data']) && count($labelInfo['child_account_data'])>0)){
+				    $this->modelObj->updateChildAccountData("shipment_service",array("accountkey"=>$labelInfo['child_account_data']['child_account_number']),"load_identity='".$loadIdentity."'");
+					$this->modelObj->updateChildAccountData("shipment",array("carrier_account_number"=>$labelInfo['child_account_data']['child_account_number']),"instaDispatch_loadIdentity='".$loadIdentity."'");
+				}
+				/*end of update ukmail child account data*/
                 $this->modelObj->updateBookingStatus($statusArr, $loadIdentity);
                 $autoPrint = $this->modelObj->getAutoPrintStatusByCustomerId($this->_param->customer_id);
                 $checkPickupExist = array();

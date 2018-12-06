@@ -38,7 +38,12 @@ class Carrier{
 
 
                 if( $shipmentInfo['status'] == 'success' ) {
-                    return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json']);
+					if(isset($shipmentInfo['child_account_data'])){
+						return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json'],"child_account_data"=>$shipmentInfo['child_account_data']);
+					}else{
+						return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json']);
+					}
+                    
                 } else {
                     return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
                 }
