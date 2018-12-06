@@ -344,7 +344,8 @@ class Report extends Icargo
                 $item->total_miles,
                 $item->daily_drop_rate,
                 $item->average_speed,
-                $item->average_time_per_drop
+                $item->average_time_per_drop,
+                $item->revenue
             ));
             }
         $fileName = time() . ".csv";
@@ -364,7 +365,8 @@ class Report extends Icargo
             'Total Miles',
             'Daily Drop Rate',
             'Average Speed',
-            'Average Time Per Drop'
+            'Average Time Per Drop',
+            'Revenue'
         );
         fputcsv($file, $headers);
         // output each row of the data
