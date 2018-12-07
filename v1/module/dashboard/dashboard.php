@@ -27,12 +27,10 @@ class Dashboard extends Icargo
             $whereClause = '';
         }
 
-       $sql = "SELECT carrier_code, customer_id, instaDispatch_loadGroupTypeCode, COUNT(*) as shipment_count FROM " . DB_PREFIX . "shipment WHERE $whereClause (carrier_code IS NOT NULL AND carrier_code!='') 
-                AND customer_id = $customer_id GROUP BY carrier_code";
+       $sql = "SELECT carrier_code, disputeid, customer_id, instaDispatch_loadGroupTypeCode, COUNT(*) as shipment_count FROM " . DB_PREFIX . "shipment WHERE $whereClause (carrier_code IS NOT NULL AND carrier_code!='') 
+                AND customer_id = $customer_id AND disputeid = 0 GROUP BY carrier_code";
         $result = $this->db->getAllRecords($sql);
         return array("status" => "success", "data" => $result);
-
-
     }
 
 

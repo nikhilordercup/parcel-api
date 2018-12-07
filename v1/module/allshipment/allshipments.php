@@ -1526,6 +1526,7 @@ class allShipments extends Icargo
 				}
 			}
 
+
 			if(count($labelInfo)==1){
 				if($labelInfo[0]['label_file_pdf']!=='')
 					return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");

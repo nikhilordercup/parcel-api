@@ -246,16 +246,16 @@
         },
         {
             "name": "giggsey/libphonenumber-for-php",
-            "version": "8.10.1",
+            "version": "8.10.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/giggsey/libphonenumber-for-php.git",
-                "reference": "818b406ec1f725ff045cd7febfb2c08fc9a8d33d"
+                "reference": "a71f260c2efce10ded8af030a20fa13edfb0e9be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/818b406ec1f725ff045cd7febfb2c08fc9a8d33d",
-                "reference": "818b406ec1f725ff045cd7febfb2c08fc9a8d33d",
+                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/a71f260c2efce10ded8af030a20fa13edfb0e9be",
+                "reference": "a71f260c2efce10ded8af030a20fa13edfb0e9be",
                 "shasum": ""
             },
             "require": {
@@ -310,7 +310,7 @@
                 "phonenumber",
                 "validation"
             ],
-            "time": "2018-11-22T11:48:16+00:00"
+            "time": "2018-12-06T10:42:08+00:00"
         },
         {
             "name": "giggsey/locale",
@@ -635,32 +635,33 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "1.4.2",
+            "version": "1.5.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "f5b8a8512e2b58b0071a7280e39f14f72e05d87c"
+                "reference": "9f83dded91781a01c63574e387eaa769be769115"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/f5b8a8512e2b58b0071a7280e39f14f72e05d87c",
-                "reference": "f5b8a8512e2b58b0071a7280e39f14f72e05d87c",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/9f83dded91781a01c63574e387eaa769be769115",
+                "reference": "9f83dded91781a01c63574e387eaa769be769115",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.4.0",
-                "psr/http-message": "~1.0"
+                "psr/http-message": "~1.0",
+                "ralouphie/getallheaders": "^2.0.5"
             },
             "provide": {
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "~4.0"
+                "phpunit/phpunit": "~4.8.36 || ^5.7.27 || ^6.5.8"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.4-dev"
+                    "dev-master": "1.5-dev"
                 }
             },
             "autoload": {
@@ -690,13 +691,14 @@
             "keywords": [
                 "http",
                 "message",
+                "psr-7",
                 "request",
                 "response",
                 "stream",
                 "uri",
                 "url"
             ],
-            "time": "2017-03-20T17:10:46+00:00"
+            "time": "2018-12-04T20:46:45+00:00"
         },
         {
             "name": "kreait/firebase-php",
@@ -1092,16 +1094,16 @@
         },
         {
             "name": "mpdf/mpdf",
-            "version": "v7.1.6",
+            "version": "v7.1.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mpdf/mpdf.git",
-                "reference": "ef5d8cf2c63def40fb76fc0a9e286721cb4dffcd"
+                "reference": "ac60286a7dc5250c293afebd2bd9414e58a02466"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mpdf/mpdf/zipball/ef5d8cf2c63def40fb76fc0a9e286721cb4dffcd",
-                "reference": "ef5d8cf2c63def40fb76fc0a9e286721cb4dffcd",
+                "url": "https://api.github.com/repos/mpdf/mpdf/zipball/ac60286a7dc5250c293afebd2bd9414e58a02466",
+                "reference": "ac60286a7dc5250c293afebd2bd9414e58a02466",
                 "shasum": ""
             },
             "require": {
@@ -1109,7 +1111,7 @@
                 "ext-mbstring": "*",
                 "myclabs/deep-copy": "^1.7",
                 "paragonie/random_compat": "^1.4|^2.0|9.99.99",
-                "php": "^5.6 || ~7.0.0 || ~7.1.0 || ~7.2.0",
+                "php": "^5.6 || ~7.0.0 || ~7.1.0 || ~7.2.0 || ~7.3.0",
                 "psr/log": "^1.0",
                 "setasign/fpdi": "1.6.*"
             },
@@ -1149,14 +1151,14 @@
                     "role": "Developer (retired)"
                 }
             ],
-            "description": "A PHP class to generate PDF files from HTML with Unicode/UTF-8 and CJK support",
+            "description": "PHP library generating PDF files from UTF-8 encoded HTML",
             "homepage": "https://mpdf.github.io",
             "keywords": [
                 "pdf",
                 "php",
                 "utf-8"
             ],
-            "time": "2018-10-18T11:37:12+00:00"
+            "time": "2018-11-29T18:21:32+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",
@@ -1639,6 +1641,46 @@
                 "simple-cache"
             ],
             "time": "2017-10-23T01:57:42+00:00"
+        },
+        {
+            "name": "ralouphie/getallheaders",
+            "version": "2.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ralouphie/getallheaders.git",
+                "reference": "5601c8a83fbba7ef674a7369456d12f1e0d0eafa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ralouphie/getallheaders/zipball/5601c8a83fbba7ef674a7369456d12f1e0d0eafa",
+                "reference": "5601c8a83fbba7ef674a7369456d12f1e0d0eafa",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~3.7.0",
+                "satooshi/php-coveralls": ">=1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/getallheaders.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ralph Khattar",
+                    "email": "ralph.khattar@gmail.com"
+                }
+            ],
+            "description": "A polyfill for getallheaders.",
+            "time": "2016-02-11T07:05:27+00:00"
         },
         {
             "name": "rize/uri-template",
