@@ -74,8 +74,8 @@ class Carrier{
 				$filesTotal = sizeof($filenames);
 				$fileNumber = 1;
 				$mpdf->SetImportUse();
-				if (!file_exists($outFile)) {
-					$handle = fopen($outFile, 'w');
+				if (!file_exists($rootPath.'/temp/'.$outFile)) {
+					$handle = fopen($rootPath.'/temp/'.$outFile, 'w');
 					fclose($handle);
 				}
 				foreach ($filenames as $fileName) {
