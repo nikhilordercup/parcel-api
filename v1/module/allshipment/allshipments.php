@@ -1531,10 +1531,18 @@ class allShipments extends Icargo
 			}
 
 			if(count($labelInfo)==1){
-				if($labelInfo[0]['label_file_pdf']!=='')
-					return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
-				else
+				if($labelInfo[0]['label_file_pdf']!==''){
+					if($labelInfo[0]['invoice_created']==1){
+						$libObj = new Library();
+						$fileUrl = $libObj->get_api_url();
+						return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"invoice_file"=>$fileUrl."/label/".$param->load_identity.'/dhl/'.$param->load_identity.'-custom.pdf',"message"=>"");
+					}else{
+						return array("status"=>"success","file_path"=>$labelInfo[0]['label_file_pdf'],"message"=>"");
+					}
+					
+				}else{
 					return array("status"=>"error","file_path"=>"","message"=>"label not found!");
+				}
 			}
 			elseif(count($labelInfo)>1){
 				foreach($labelInfo as $data){
