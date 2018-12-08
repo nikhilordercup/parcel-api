@@ -16,6 +16,7 @@ final class Nextday extends Booking
         $this->_param = $data;
         $this->customerccf = new CustomerCostFactor();
         $this->collectionModel = Collection::_getInstance(); //new Collection();
+		$this->libObj = new Library();
     }
 
     private
@@ -968,7 +969,8 @@ final class Nextday extends Booking
                     "label_tracking_number" => isset($labelInfo['label_tracking_number']) ? $labelInfo['label_tracking_number'] : '0',
                     "label_files_png" => isset($labelInfo['label_files_png']) ? $labelInfo['label_files_png'] : '',
                     "label_file_pdf" => isset($labelInfo['file_path']) ? $labelInfo['file_path'] : '',
-                    "label_json" => isset($labelInfo['label_json']) ? $labelInfo['label_json'] : ''
+                    "label_json" => isset($labelInfo['label_json']) ? $labelInfo['label_json'] : '',
+					"invoice_created"=>isset($labelInfo['invoice_created']) ? $labelInfo['invoice_created'] : 0
                 );
                 $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
 
@@ -1011,14 +1013,29 @@ final class Nextday extends Booking
                         "warehouse_id" => $this->_param->warehouse_id,
                         "customer_id" => $this->_param->customer_id
                     ));
-                    return array(
-                        "status" => "success",
-                        "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
-                        "file_path" => $labelInfo['file_path'],
-                        "auto_print" => $autoPrint['auto_label_print'],
-                        'pickups' => $checkPickupExist,
-                        'carrier_code' => strtolower($carrier_code)
-                    );
+					
+					if(isset($labelInfo['invoice_created']) && $labelInfo['invoice_created']==1){
+						$fileUrl = $this->libObj->get_api_url();
+						return array(
+							"status" => "success",
+							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"file_path" => $labelInfo['file_path'],
+							"invoice_file"=>$fileUrl."/label/".$loadIdentity.'/dhl/'.$loadIdentity.'-custom.pdf',
+							"auto_print" => $autoPrint['auto_label_print'],
+							'pickups' => $checkPickupExist,
+							'carrier_code' => strtolower($carrier_code)
+						);
+					}else{
+						return array(
+							"status" => "success",
+							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"file_path" => $labelInfo['file_path'],
+							"auto_print" => $autoPrint['auto_label_print'],
+							'pickups' => $checkPickupExist,
+							'carrier_code' => strtolower($carrier_code)
+						);
+					}
+                    
                 }
                 else
                 {

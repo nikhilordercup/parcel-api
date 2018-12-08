@@ -26,6 +26,8 @@ CREATE TABLE `icargo_customer_courier_child_accont` (
 --
 ALTER TABLE `icargo_courier_child_accont`
   ADD PRIMARY KEY (`id`);
+  
+  ALTER TABLE `icargo_customer_courier_child_accont` CHANGE `id` `id` INT(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -39,10 +41,10 @@ ALTER TABLE `icargo_courier_child_accont`
   
 ALTER TABLE `icargo_customer_courier_child_accont` CHANGE `coreprime_token` `token` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;  
 
-ALTER TABLE `icargo_customer_courier_child_accont` CHANGE `authentiaction_token` `authentication_token` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;  
-
-ALTER TABLE `icargon`.`icargo_customer_courier_child_accont` ADD UNIQUE`unique` (`parent_account_number`, `customer_id`); 
-
 ALTER TABLE `icargo_customer_courier_child_accont` CHANGE `currency` `currency` VARCHAR(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'GBP'; 
 
 ALTER TABLE `icargo_customer_courier_child_accont` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1';   
+
+ALTER TABLE `icargo_customer_courier_child_accont` CHANGE `collection_start_at` `collection_start_at` DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00';
+
+ALTER TABLE `icargo_customer_courier_child_accont` CHANGE `collection_end_at` `collection_end_at` DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00';

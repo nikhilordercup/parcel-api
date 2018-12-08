@@ -306,6 +306,7 @@ class Booking extends Icargo
         $parcelData['parcel_width']  = $parcel->width;
         //$parcelData["quantity"]      = $parcel->quantity;
         $parcelData['parcel_type']   = $parcel_type;//($valuedata['purposeTypeName'] == 'Collection') ? 'P' : 'D';
+		$parcelData['is_document']   = isset($parcel->is_document) ? 'Y' : 'N';
 
         $parcelData['dataof'] = $company_code;
         $parcelData['status'] = '1';
