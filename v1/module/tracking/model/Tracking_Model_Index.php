@@ -284,7 +284,7 @@ class Tracking_Model_Index
 
     function findTrackingHistory($param)
     {
-        return $this->_db->getRowRecord("SELECT id, create_date AS create_date, pod_id FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
+        return $this->_db->getRowRecord("SELECT id, create_date AS create_date FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
     }
 
     public

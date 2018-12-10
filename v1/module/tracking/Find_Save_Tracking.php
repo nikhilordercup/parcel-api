@@ -83,7 +83,7 @@ class Find_Save_Tracking{
             //no need to update
             $historyData["create_date"] = $historyInfo["create_date"];
             $historyData["id"] = $historyInfo["id"];
-            $historyData["pod_id"] = $historyInfo["pod_id"];
+            //$historyData["pod_id"] = $historyInfo["pod_id"];
 
             $tracking_id = $historyInfo["id"];
            
