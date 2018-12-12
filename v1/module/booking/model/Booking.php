@@ -654,6 +654,15 @@ class Booking_Model_Booking
 		return $this->_db->update($tableName,$data,$condition);
 	}
 	
+	public
+
+    function getCredentialDataForChildAccount($carrierAccountNumber)
+    {		
+        $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "customer_courier_child_accont AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
+        $credentailData = $this->_db->getRowRecord($sql);
+        return $credentailData;
+    }
+	
 }
 
 ?>
