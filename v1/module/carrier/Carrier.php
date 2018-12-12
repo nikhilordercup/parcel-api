@@ -204,11 +204,16 @@ class Carrier{
 		$obj = new Carrier_Coreprime_Request();
 		$requestArr = array();
 		$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
-		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
+		//$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
 		if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' ){
 			$labelArr = json_decode($labelInfo[0]['label_json']);
+			
+			//get credentials for child account
+			if($labelInfo[0]['accountkey']!=$labelInfo[0]['parent_account_key'])
+				$credentialData = $this->modelObj->getCredentialDataForChildAccount($labelArr->label->accountnumber);
+			else //get credentials for parent account
+				$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
 
-			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
 			$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>'','token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
             //$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
 

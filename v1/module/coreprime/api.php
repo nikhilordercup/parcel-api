@@ -23,6 +23,7 @@ class Module_Coreprime_Api extends Icargo
         $this->customerccf = new CustomerCostFactor();
 
         $this->apiConn = "stagging";
+        $this->apiConn = "live";  
 		/* if(ENV=='live')
 			$this->apiConn = "live"; */
 
