@@ -394,9 +394,9 @@ class Library
     public
 
     function base_path()
-    {   
+    {
         $path = "./../";
-        return $path; 
+        return $path;
         //return dirname(dirname(__FILE__));
     }
 

@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipment_service` ADD `invoice_created` TINYINT(1) NOT NULL DEFAULT '0' COMMENT 'used for dhl label invoice generation in case of export shipment' AFTER `manualbooking_ref`;

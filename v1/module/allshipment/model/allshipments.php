@@ -156,6 +156,7 @@ class AllShipment_Model
          S.waitAndReturn as waitandreturn,
          SST.label_tracking_number as carrierreference,
          CI.accountnumber as carrierbillingacount,
+		 S.shipment_companyName AS company_name,
          S.shipment_customer_phone as customerphone,
          S.shipment_customer_name as customername,
          S.shipment_customer_email as customeremail,
@@ -181,7 +182,8 @@ class AllShipment_Model
          UT.name as customer_desc,
          SST.load_identity as customerreference,
          SST.customer_reference1 AS customer_reference1,
-         SST.customer_reference2 AS customer_reference2
+         SST.customer_reference2 AS customer_reference2,
+		 S.shipment_instruction AS shipment_instruction
         ';
       $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment AS S
                     LEFT JOIN " . DB_PREFIX . "shipment_service AS SST ON (SST.load_identity = S.instaDispatch_loadIdentity AND S.shipment_service_type = 'P')
@@ -200,7 +202,7 @@ class AllShipment_Model
       }
 
 	public function getAllParcelsByIdentity($identity){
-      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package,total_weight FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity'";
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package_name as package,total_weight,shipment_ticket FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' AND parcel_type='P'";
 	  $record = $this->db->getAllRecords($sql);
       return $record;
     }

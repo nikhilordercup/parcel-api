@@ -126,7 +126,7 @@ class Booking extends Icargo
 
 			}else{
 				if(!$addressVersion["address_id"]){
-					if(($address_op===null) OR ($address_op=="add")){
+					if(($address_op == null) OR ($address_op == "add")){
 						$param["version_id"] = "version_1";
 						$address_id = $this->modelObj->saveAddress($param);
 					}else{
@@ -296,7 +296,8 @@ class Booking extends Icargo
         $parcelData['instaDispatch_loadIdentity'] = $loadidentity;
         $parcelData['shipment_ticket'] = $shipment_ticket;
 
-        $parcelData['package']       = $parcel->package_code;
+        $parcelData['package_name']  = $parcel->name;
+		$parcelData['package']       = $parcel->package_code;
         $parcelData['parcel_ticket'] = $parcelTicketNumber;
         $parcelData['parcel_weight'] = round($parcel->weight/$parcel->quantity,2);
 		$parcelData['total_weight'] =  $parcel->weight;
@@ -305,6 +306,7 @@ class Booking extends Icargo
         $parcelData['parcel_width']  = $parcel->width;
         //$parcelData["quantity"]      = $parcel->quantity;
         $parcelData['parcel_type']   = $parcel_type;//($valuedata['purposeTypeName'] == 'Collection') ? 'P' : 'D';
+		$parcelData['is_document']   = isset($parcel->is_document) ? 'Y' : 'N';
 
         $parcelData['dataof'] = $company_code;
         $parcelData['status'] = '1';
@@ -358,6 +360,7 @@ class Booking extends Icargo
             $service_data["courier_commission"] = $serviceOpted->rate->info->ccf_value;
             $service_data["courier_commission_value"] = $serviceOpted->rate->info->price;
             $service_data["accountkey"] = isset( $serviceOpted->rate->act_number) ? $serviceOpted->rate->act_number : '';
+			$service_data["parent_account_key"] = isset( $serviceOpted->rate->act_number) ? $serviceOpted->rate->act_number : '';
             $service_data["base_price"] = $serviceOpted->rate->info->original_price;
             $service_data["surcharges"] = $surchargeAndTaxValue["total_surcharge_value"];
             $service_data["taxes"] = $surchargeAndTaxValue["total_tax_value"];

@@ -348,7 +348,7 @@ class Booking_Model_Booking
 
     function getLabelByLoadIdentity($loadIdentity)
     {
-        $sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+        $sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -636,11 +636,24 @@ class Booking_Model_Booking
         return $record;
       }
 	  
-	  public function getDeliveryInstructionByLoadIdentity($load_identity)
+	 public function getDeliveryInstructionByLoadIdentity($load_identity)
 		{
 			$sql = "SELECT shipment_instruction FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$load_identity' AND shipment_service_type = 'D'";
 			return $this->_db->getOneRecord($sql);
 		}
+		
+	public function getChildAccountData($accountNumber,$loadIdentity){
+		$customer_id = $this->_db->getRowRecord("SELECT customer_id FROM " . DB_PREFIX . "shipment_service AS t1 WHERE t1.load_identity = '$loadIdentity'");
+		$customer_id = $customer_id['customer_id'];
+		$sql = "SELECT * FROM " . DB_PREFIX . "customer_courier_child_accont AS t1 WHERE t1.customer_id = $customer_id AND t1.parent_account_number = '$accountNumber'";
+		$record  = $this->_db->getRowRecord($sql);
+		return $record;
+	}
+
+	public function updateChildAccountData($tableName,$data,$condition){
+		return $this->_db->update($tableName,$data,$condition);
+	}
+	
 }
 
 ?>
