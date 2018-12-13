@@ -1,7 +1,8 @@
 <?php
 require_once 'modal/Rateengine.php';
-
+use Dompdf\Adapter\CPDF;
 use Dompdf\Dompdf;
+use Dompdf\Exception;
 
 class TuffnellsLabels extends Icargo
 {
@@ -20,65 +21,8 @@ class TuffnellsLabels extends Icargo
         return new Rate_Engine_Modal();
     }
 
-
-    public function childAccounts($postBody)
-    {
-        $courier_id = $postBody->courier_id;
-        $childAccountNumber = array_column($postBody->data, 'child_account');
-        $implodeArray = implode("','", $childAccountNumber);
-        $checkAccount = $this->getInstance()->checkChildAcoountNumber($implodeArray, $courier_id);
-        if ($checkAccount['status'] == 'Account exist') {
-            return $checkAccount;
-        } else {
-            return $this->saveChildAccounts($postBody);
-        }
-    }
-
-
-    private function saveChildAccounts($postBody)
-    {
-
-        $tb_name = DB_PREFIX . 'child_account';
-        $company_id = $postBody->company_id;
-        $user_id = $postBody->user_id;
-        $email = $postBody->email;
-        $customer_id = $postBody->customer_id;
-        $account_number = $postBody->account_number;
-        $courier_id = $postBody->courier_id;
-        $courierAndcompanyID = $postBody->id;
-        $dataCount = count($postBody->data);
-        $column_names = array('account_number', 'ftp_host', 'ftp_user', 'ftp_password', 'ftp_location', 'courier_id', 'upload_time', 'company_id', 'user_id', 'email', 'customer_id',
-            'courier_company_id', 'parent_account_number', 'created_date');
-        $count = 1;
-        foreach ($postBody->data as $postvalue) {
-            $args = array(
-                'account_number' => $postvalue->child_account, 'ftp_host' => $postvalue->ftp_host, 'ftp_user' => $postvalue->ftp_user, 'ftp_password' => $postvalue->ftp_password,
-                'ftp_location' => $postvalue->folder_location, 'courier_id' => $courier_id, 'upload_time' => $postvalue->upload_time, 'company_id' => $company_id, 'user_id' => $user_id,
-                'email' => $email, 'customer_id' => $customer_id, 'courier_company_id' => $courierAndcompanyID, 'parent_account_number' => $account_number,
-                'created_date' => date("Y-m-d H:i:s")
-            );
-            $insertStmt = $this->db->insertIntoTable($args, $column_names, $tb_name);
-            if ($insertStmt) {
-                if ($dataCount == $count) {
-                    return array('status' => 'success');
-                }
-            }
-            $count++;
-        }
-
-    }
-
-
     public function tuffnellLabelData($postData)
     {
-
-        /*$array = $this->tuffnelServiceType();
-        $search = array_search('Next day before 10.30', array_column($array, 'desc'));
-        $keys = array_keys($array);
-        $key = $keys[$search];
-        print_r($array[$key]);
-        print_r($search); die;*/
-
         $tbname = DB_PREFIX . 'rateengine_labels';
         $postvalues = array(
             'credential_info' => json_encode($postData->label->credentials),
@@ -133,13 +77,7 @@ class TuffnellsLabels extends Icargo
         }
     }
 
-
-    public function genrateLabel($data, $lastid)
-    {
-
-        $loader = new Twig_Loader_Filesystem(__DIR__);
-        $twig = new Twig_Environment($loader);
-
+    public function genrateBarcodeNumber($data, $lastid){
 
         $postalcode = $data->label;
         $zipCode = $postalcode->to->zip;
@@ -147,38 +85,73 @@ class TuffnellsLabels extends Icargo
         $explode = explode(' ', $postcode);
         $firstPcode = $explode[0];
         $scondCode = substr($explode[1], 0, 1);
-        $pcode = $firstPcode . ' ' . $scondCode;
+        $pcode = $firstPcode.' '.$scondCode;
         //Depot Code
         $depotCode = $this->getInstance()->getDeliveryDepotCode($pcode);
+        $deliveryDepoNumber = sprintf("%03d",($depotCode['delivery_depot_number']));
+        $depPostCode = $depotCode['post_code'];
+        $deliveryRound = $depotCode['delivery_round'];
+        $delivery_depot_code = $depotCode['delivery_depot_code'];
+        $post_code = $depotCode['post_code'];
+
+
+        //Service Code
+        $service_args = $this->tuffnelServiceType();
+        $key = array_keys(array_combine(array_keys($service_args), array_column($service_args, 'desc')),$data->label->service);
+        $keyval = $key[0];
+        $serviceTypeCode = $service_args[$keyval]['service_type_code'];
+
         //====Sequence Number=====//
         $current_date = date("Y-m-d");
         $sequence_number = $this->getInstance()->genrateSequenceNumber($data->credentials->account_number, $current_date, $lastid);
         $formatted_sequence_number = sprintf("%04d", $sequence_number['account']);
         //======End Sequence Number=====//
+
         $account_number = substr($data->credentials->account_number, -7);
         $ship_date = strtotime($data->ship_date);
-        $ship_month = date('m', $ship_date);
-        $shipDate = date('d', $ship_date);
-
+        $ship_month = date('m',$ship_date);
+        $shipDate = date('d',$ship_date);
+        //$sequence_number = mt_rand(001, 9999);
         $number_of_item = count($data->label->package);
         $padding_package_number = sprintf("%03d", $number_of_item);
-        $barcode_number = '010' . $depotCode['delivery_depot_number'] . $account_number . $ship_month . $shipDate . $formatted_sequence_number . $padding_package_number;
+        $barcode_number = $serviceTypeCode.$deliveryDepoNumber.$account_number.$ship_month.$shipDate.$formatted_sequence_number.$padding_package_number;
         $barnumber = preg_replace('/(?<=\d)\s+(?=\d)/', '', $barcode_number);
 
+        return array('barcode' => $barnumber, 'service_code' => $serviceTypeCode, 'delivery_depot_number' => $deliveryDepoNumber,
+            'depo_post_code' => $depPostCode, 'delivery_round' => $deliveryRound, 'post_code' => $post_code, 'delivery_depot_code' => $delivery_depot_code);
+
+    }
+
+
+    public function genrateLabel($data, $lastid){
+        
         $html = "";
         $filepath = "";
-        $text = $barnumber;
+        $loader = new Twig_Loader_Filesystem(__DIR__);
+        $twig = new Twig_Environment($loader);
+
+        $barCode = $this->genrateBarcodeNumber($data, $lastid);
+        $bar_code = $barCode['barcode'];
+        $serviceCode = $barCode['service_code'];
+        $deliveryDepotCode = $barCode['delivery_depot_code'];
+        $depoPostCode = $barCode['depo_post_code'];
+        $delivery_round = $barCode['delivery_round'];
+        $postCode = $barCode['post_code'];
+        $deliveryDepotNumber = $barCode['delivery_depot_number'];
+
+
+        $text = $bar_code;
         $size = "70";
         $orientation = "horizontal";
         $code_type = "code128";
         $print = true;
         $sizefactor = 1;
-        $horizontal = uniqid() . time() . 'h.png';
-        $vertical = uniqid() . time() . 'v.png';
+        $horizontal = uniqid().time().'h.png';
+        $vertical = uniqid().time().'v.png';
         //Horizental
-        $this->barcode($horizontal, $text, $size, $orientation, $code_type, $print, $sizefactor);
+        $this->barcode($horizontal,$text,$size,$orientation,$code_type,$print,$sizefactor);
         //Vertical
-        $this->barcode($vertical, $text, $size, 'vertical', $code_type, false, $sizefactor);
+        $this->barcode($vertical,$text, $size,'vertical',$code_type,false, $sizefactor);
 
         $specialInstruction = $data->extra->special_instruction;
         $collectionAddress = $data->label;
@@ -189,7 +162,7 @@ class TuffnellsLabels extends Icargo
         $toStreet2 = $collectionAddress->from->street2;
         $toCity = $collectionAddress->from->city;
         $toZip = $collectionAddress->from->zip;
-        $colAddress = $toName . '<br />' . $toCompany . '<br />' . $toPhone . '<br />' . $toStreet1 . '<br />' . $toStreet2 . '<br />' . $toCity . '<br />' . $toZip;
+        $colAddress = $toName.'<br />'.$toCompany.'<br />'.$toPhone.'<br />'.$toStreet1.'<br />'.$toStreet2.'<br />'.$toCity.'<br />'.$toZip;
 
         $deliveryAddress = $data->label;
         $fromName = $deliveryAddress->to->name;
@@ -199,13 +172,18 @@ class TuffnellsLabels extends Icargo
         $fromStreet2 = $deliveryAddress->to->street2;
         $fromCity = $deliveryAddress->to->city;
         $fromZip = $deliveryAddress->to->zip;
-        $delAddress = $fromName . '<br />' . $fromCompany . '<br />' . $fromPhone . '<br />' . $fromStreet1 . '<br />' . $fromStreet2 . '<br />' . $fromCity . '<br />' . $fromZip;
+        $delAddress = $fromName.'<br />'.$fromCompany.'<br />'.$fromPhone.'<br />'.$fromStreet1.'<br />'.$fromStreet2.'<br />'.$fromCity.'<br />'.$fromZip;
         $totalPackage = count($data->label->package);
         $totalWeight = array_column($data->label->package, 'weight');
 
-        $htmlParser = $twig->render('tuffnel_label_template.html', array('pageBreak' => 'Hello', 'labelData' => $data->label->package, 'depot_code' => 'SHFEEE', 'total_weight' => array_sum($totalWeight),
-            'total_package' => $totalPackage, 'collection_address' => $colAddress, 'delivery_address' => $delAddress, 'special_instruction' => $specialInstruction, 'vertical' => $vertical, 'horizontal' => $horizontal, 'post_code' => $depotCode['post_code'], 'delivery_depot_code' => $depotCode['delivery_depot_code'],
-            'delivery_round' => $depotCode['delivery_round'], 'delivery_depot_number' => $depotCode['delivery_depot_number'], 'dispatchDate' => $data->ship_date));
+        $htmlParser = $twig->render('tuffnel_label_template.html', array('pageBreak'=>'Hello','labelData'=>$data->label->package,
+                'depot_code' => $deliveryDepotCode, 'total_weight' => array_sum($totalWeight), 'total_package' => $totalPackage,
+                'collection_address' => $colAddress, 'delivery_address' => $delAddress, 'special_instruction' => $specialInstruction,
+                'vertical' => $vertical, 'horizontal' => $horizontal, 'post_code' => $depoPostCode,
+                'delivery_depot_code' => $deliveryDepotCode, 'delivery_round' => $delivery_round,
+                'delivery_depot_number' => $deliveryDepotNumber, 'dispatchDate' => $data->ship_date, 'tel' => $fromPhone)
+        );
+
 
         $dompdf = new Dompdf();
         $dompdf->setPaper('A4', 'potrait');
@@ -215,12 +193,12 @@ class TuffnellsLabels extends Icargo
         $directory = dirname(dirname(dirname(dirname(__FILE__))));
         $dir = dirname(dirname(dirname(dirname(__FILE__))));
         $uid = uniqid();
-        $mkdir = $dir . '/label/' . $uid . '/';
+        $mkdir = $dir.'/label/'.$uid.'/';
         mkdir($mkdir, 0777, true);
-        file_put_contents($mkdir . $uid . '.pdf', $output);
-        unlink($directory . '/v1/' . $horizontal);
-        unlink($directory . '/v1/' . $vertical);
-        $pdfUrl = PDFURL . '/' . $uid . '/' . $uid . '.pdf';
+        file_put_contents($mkdir.$uid.'.pdf', $output);
+        unlink($directory.'/v1/'.$horizontal);
+        unlink($directory.'/v1/'.$vertical);
+        $pdfUrl = PDFURL.'/'.$uid.'/'.$uid.'.pdf';
         $arrayval = array(
             "label" => array(
                 "tracking_number" => '22222',
@@ -237,8 +215,7 @@ class TuffnellsLabels extends Icargo
     }
 
 
-    public function paperManifestLabel($data)
-    {
+    public function paperManifestLabel($data){
 
         $checkAllMainfest = $this->getInstance()->paperManifestByDate($data->date);
         $twigLoader = new Twig_Loader_Filesystem(__DIR__);
@@ -261,10 +238,10 @@ class TuffnellsLabels extends Icargo
         $output = $dompdf->output();
         $directory = dirname(dirname(dirname(dirname(__FILE__))));
         $dir = dirname(dirname(dirname(dirname(__FILE__))));
-        $uid = 'PAPER_MANIFEST' . uniqid();
-        $mkdir = $dir . '/label/' . $uid . '/';
+        $uid = 'PAPER_MANIFEST'.uniqid();
+        $mkdir = $dir.'/label/'.$uid.'/';
         mkdir($mkdir, 0777, true);
-        file_put_contents($mkdir . $uid . '.pdf', $output);
+        file_put_contents($mkdir.$uid.'.pdf', $output);
 
     }
 
@@ -400,137 +377,99 @@ class TuffnellsLabels extends Icargo
         }
     }
 
-
-    public function ftp_file($ftpservername, $ftpusername, $ftppassword, $ftpsourcefile, $ftpdirectory, $ftpdestinationfile)
-    {
-        $conn_id = ftp_connect($ftpservername);
-        if ($conn_id == false) {
-            echo "FTP open connection failed to $ftpservername \n";
-            return false;
-        }
-        $login_result = ftp_login($conn_id, $ftpusername, $ftppassword);
-        if ((!$conn_id) || (!$login_result)) {
-            echo "FTP connection has failed!\n";
-            echo "Attempted to connect to " . $ftpservername . " for user " . $ftpusername . "\n";
-            return false;
-        } else {
-            echo "Connected to " . $ftpservername . ", for user " . $ftpusername . "\n";
-        }
-        if (strlen($ftpdirectory) > 0) {
-            if (ftp_chdir($conn_id, $ftpdirectory)) {
-                echo "Current directory is now: " . ftp_pwd($conn_id) . "\n";
-            } else {
-                echo "Couldn't change directory on $ftpservername\n";
-                return false;
-            }
-        }
-        ftp_pasv($conn_id, true);
-        $upload = ftp_put($conn_id, $ftpdestinationfile, $ftpsourcefile, FTP_ASCII);
-        if (!$upload) {
-            echo "$ftpservername: FTP upload has failed!\n";
-            return false;
-        } else {
-            echo "Uploaded " . $ftpsourcefile . " to " . $ftpservername . " as " . $ftpdestinationfile . "\n";
-        }
-        ftp_close($conn_id);
-        return true;
-    }
-
-
-    public function tuffnelServiceType()
-    {
+    public function tuffnelServiceType(){
         $args = array(
+
             'P1' => [
-                'service' => 'P1',
-                'desc' => 'Next Day',
-                'surcharge' => '',
+                'service'=>'P1',
+                'desc'=>'Next Day',
+                'surcharge'=>'',
                 'service_type_code' => '01'
             ],
-            'P1 AM' => [
+            'P2' => [
                 'service' => 'P1',
                 'desc' => 'Next day before noon',
                 'surcharge' => 'BN',
                 'service_type_code' => '01'
             ],
-            'P10.30' => [
+            'P3' => [
                 'service' => 'PT',
                 'desc' => 'Next day before 10.30',
                 'surcharge' => '30',
                 'service_type_code' => '01'
             ],
-            'P09.30' => [
+            'P4' => [
                 'service' => 'P1',
                 'desc' => 'Next day before 09.30',
                 'surcharge' => '9T',
                 'service_type_code' => '01'
             ],
-            'SATAM' => [
+            'P5' => [
                 'service' => 'P1',
                 'desc' => 'Saturday AM',
                 'surcharge' => 'SM',
                 'service_type_code' => '01'
             ],
-            'SAT' => [
+            'P6' => [
                 'service' => 'P1',
                 'desc' => 'Saturday delivery',
                 'surcharge' => 'SD',
                 'service_type_code' => ''
             ],
-            'P2' => [
+            'P7' => [
                 'service' => 'P2',
                 'desc' => '2 day service',
                 'surcharge' => '',
                 'service_type_code' => '02'
             ],
-            'P3' => [
+            'P8' => [
                 'service' => 'P3',
                 'desc' => '3 day service',
                 'surcharge' => '',
-                'service_type_code' => '03',
-                'service_type_code' => '01'
+                'service_type_code' => '03'
             ],
-            'P1Offs' => [
+            'P9' => [
                 'service' => 'OF',
                 'desc' => 'Next day offshore',
                 'surcharge' => 'P1'
             ],
-            'Offs' => [
+            'P10' => [
                 'service' => 'OF',
                 'desc' => '3 day offshore',
                 'surcharge' => '9T',
                 'service_type_code' => '03'
             ],
-            'P1' => [
+            'P11' => [
                 'service' => 'DB',
                 'desc' => 'Next day databag',
                 'surcharge' => '',
                 'service_type_code' => '04'
             ],
-            'AM' => [
+            'P12' => [
                 'service' => 'DB',
                 'desc' => 'Next day databag before noon',
                 'surcharge' => 'BN',
                 'service_type_code' => '04'
             ],
-            '10.30' => [
+            'P13' => [
                 'service' => 'DT',
                 'desc' => 'Next day databad before 10:30',
                 'surcharge' => '30',
                 'service_type_code' => '04'
             ],
-            '09.30' => [
+            'P14' => [
                 'service' => 'DB',
                 'desc' => 'Next day before 09.30',
                 'surcharge' => '9T',
                 'service_type_code' => '04'
             ],
-            'SatAM' => [
+            'P15' => [
                 'service' => 'DB',
                 'desc' => 'Saturday AM databag',
                 'surcharge' => 'SM',
                 'service_type_code' => '04'
             ],
-            'Sat' => [
+            'P16' => [
                 'service' => 'DB',
                 'desc' => 'Saturday databag',
                 'surcharge' => 'SD',
@@ -541,27 +480,62 @@ class TuffnellsLabels extends Icargo
         return $args;
     }
 
-    public function prep_postcode($str)
-    {
+    public function prep_postcode($str){
         $str = strtoupper($str);
         $str = trim($str);
-        if (substr($str, -4, 1) != ' ')
+        if(substr($str, -4, 1) != ' ')
             $str = substr($str, 0, strlen($str) - 3) . " " . substr($str, -3);
         return $str;
     }
 
-    public function is_postcode($postcode)
-    {
-        $postcode = str_replace(' ', '', $postcode);
+    public function is_postcode($postcode){
+        $postcode = str_replace(' ','',$postcode);
         return
             preg_match("/^[A-Z]{1,2}[0-9]{2,3}[A-Z]{2}$/", $postcode)
             || preg_match("/^[A-Z]{1,2}[0-9]{1}[A-Z]{1}[0-9]{1}[A-Z]{2}$/", $postcode)
             || preg_match("/^GIR0[A-Z]{2}$/", $postcode);
     }
 
-    public function getSequence($num)
-    {
+    public function getSequence($num) {
         return sprintf("%'.05d\n", $num);
+    }
+
+
+    public function ftp_file( $ftpservername, $ftpusername, $ftppassword, $ftpsourcefile, $ftpdirectory, $ftpdestinationfile )
+    {
+        $conn_id = ftp_connect($ftpservername);
+        if ( $conn_id == false )
+        {
+            echo "FTP open connection failed to $ftpservername \n" ;
+            return false;
+        }
+        $login_result = ftp_login($conn_id, $ftpusername, $ftppassword);
+        if ((!$conn_id) || (!$login_result)) {
+            echo "FTP connection has failed!\n";
+            echo "Attempted to connect to " . $ftpservername . " for user " . $ftpusername . "\n";
+            return false;
+        } else {
+            echo "Connected to " . $ftpservername . ", for user " . $ftpusername . "\n";
+        }
+        if ( strlen( $ftpdirectory ) > 0 )
+        {
+            if (ftp_chdir($conn_id, $ftpdirectory )) {
+                echo "Current directory is now: " . ftp_pwd($conn_id) . "\n";
+            } else {
+                echo "Couldn't change directory on $ftpservername\n";
+                return false;
+            }
+        }
+        ftp_pasv ( $conn_id, true ) ;
+        $upload = ftp_put( $conn_id, $ftpdestinationfile, $ftpsourcefile, FTP_ASCII );
+        if (!$upload) {
+            echo "$ftpservername: FTP upload has failed!\n";
+            return false;
+        } else {
+            echo "Uploaded " . $ftpsourcefile . " to " . $ftpservername . " as " . $ftpdestinationfile . "\n";
+        }
+        ftp_close($conn_id);
+        return true;
     }
 
 } 
