@@ -307,6 +307,7 @@ final class Nextday extends Booking
                                     "code" => $this->carrierList[$accountNumber]["carrier_code"],
                                     "description" => $this->carrierList[$accountNumber]["description"],
                                     "account_number" => $this->carrierList[$accountNumber]["account_number"],
+                                    "account_id" => $this->carrierList[$accountNumber]["account_id"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
                                 );
                                 $service->service_info = array(
@@ -425,6 +426,7 @@ final class Nextday extends Booking
                                     "code" => $this->carrierList[$accountNumber]["carrier_code"],
                                     "description" => $this->carrierList[$accountNumber]["description"],
                                     "account_number" => $this->carrierList[$accountNumber]["account_number"],
+                                    "account_id" => $this->carrierList[$accountNumber]["account_id"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
                                 );
                                 $service->service_info = array(
@@ -557,6 +559,7 @@ final class Nextday extends Booking
                                     "code" => $this->carrierList[$accountNumber]["carrier_code"],
                                     "description" => $this->carrierList[$accountNumber]["description"],
                                     "account_number" => $this->carrierList[$accountNumber]["account_number"],
+                                    "account_id" => $this->carrierList[$accountNumber]["account_id"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
                                 );
                                 $service->service_info = array(
@@ -1260,6 +1263,7 @@ final class Nextday extends Booking
             'code' => $selectedCarrier['code'],
             'description' => 'courier information goes here',
             'account_number' => $selectedCarrier['account_number'],
+            'account_id' => $selectedCarrier['account_id'],
             'is_internal' => $selectedCarrier['is_internal']
         );
         $innerData['service_info'] = array(

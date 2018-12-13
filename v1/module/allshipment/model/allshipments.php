@@ -768,5 +768,23 @@ class AllShipment_Model
         $record = $this->db->getAllRecords($sql);
         return  $record;
     }
+    public function getLoadIdentity($trackingNumber,$courier_id,$company_id){
+         $sql = "SELECT A.load_identity,A.tracking_code FROM " . DB_PREFIX . "shipment_service as A
+                                           INNER JOIN " . DB_PREFIX . "courier_vs_company as B on B.id = A.carrier
+                                           WHERE B.company_id = ".$company_id." AND  B.courier_id = ".$courier_id." AND A.label_tracking_number = ".$trackingNumber;
+        $record = $this->db->getRowRecord($sql);
+        return $record;
+     }
+     public function getShipmentPricebreakdownDetailsReconciled($identity,$priceVersion){
+       $record = array();
+         $sqldata = 'IF(S.api_key = "service", C.reconciled_code, B.reconciled_code) as reconciled_code,S.*';
+          $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_price AS S
+                LEFT JOIN " . DB_PREFIX . "courier_vs_surcharge as B on B.id = S.service_id AND S.api_key = 'surcharges'
+                LEFT JOIN " . DB_PREFIX . "courier_vs_services as C on C.id = S.service_id AND S.api_key = 'service'
+                WHERE S.load_identity = '" . $identity . "' AND S.version = '" . $priceVersion . "'
+                AND show_for != 'C'";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+      }
   }
 ?>

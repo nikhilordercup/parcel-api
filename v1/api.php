@@ -2524,3 +2524,18 @@ $app->post('/fileupload', function() use ($app){//delete after execution
     $response = $obj->setReconsiledData($r);
     echoResponse(200, $response);
 });
+
+$app->post('/getUniqueCarriersofCompany', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','email','access_token'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getUniqueCarriersofCompany($r);
+    echoResponse(200, $response);
+});
+$app->post('/getallreconciled', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','email','access_token'),$r);
+    $obj = new Module_Reconciled_Reconciled($r);
+    $response = $obj->getAllReconciled($r);
+    echoResponse(200, $response);
+});
