@@ -14,35 +14,8 @@
             position: relative;
         }
 
-        .top-heading div {
-            font-size: 75px;
-            font-weight: 600
-        }
-
-        .top-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .top-heading span {
-            display: block;
-            font-size: 24px;
-            text-align: right;
-            font-weight: 700;
-            top: -11px;
-            position: relative;
-            right: 15px;
-        }
-
         body {
             font-family: 'Raleway', sans-serif;
-        }
-
-        .side-box {
-            position: absolute;
-            right: 0;
-            bottom: 0;
         }
 
         .side-box > table > tbody > tr > th {
@@ -58,41 +31,32 @@
             font-size: 45px
         }
 
-        .right-image {
-            position: absolute;
-            top: 0px;
-            transform: rotate(90deg);
-            bottom: 0;
-            left: 6px;
-        }
-
     </style>
 </head>
 <body>
+{% for pack in labelData %}
+<div class="container-box" style="page-break-after:always;">
 
-<div class="container-box">
-    <div class="top-heading">
-        <div>P1</div>
-        <div>SHF
-            <span>R021</span>
-        </div>
-    </div>
+    <table width="600px">
+        <tr>
+            <td style="width: 50%; font-size: 75px;font-weight: 600;padding: 0">P1</td>
+            <td style="width: 50%; text-align: right;font-size: 75px;font-weight: 600;">{{depot_code}}
+                <div style="text-align: right;padding: 0; font-size: 25px; font-weight: 600">{{delivery_round}}</div>
+            </td>
+        </tr>
+    </table>
+
 
     <table border="1" width="600px" cellspacing="0" cellpadding="4">
         <tr>
             <td style="width:350px">
                 <h6 style="margin: 0">Consignment Ref.</h6>
-                <h1 style="margin: 0; font-size: 45px">14</h1>
+                <h1 style="margin: 0; font-size: 45px">{{consignmentRef}}</h1>
 
             </td>
 
             <td>
-                <h6 style="text-transform: uppercase; margin: 0">jamestest<br>
-                    shepcote house<br>
-                    shrpcote lane<br>
-                    sheffield<br>
-                    south yorkshire s91 uw
-                </h6>
+                <h6 style="text-transform: uppercase; margin: 0">{{collection_address|raw}}</h6>
             </td>
         </tr>
     </table>
@@ -102,34 +66,25 @@
         <tr>
             <td style="width: 150px" class="left-section">
                 <h6>Item</h6>
-                <h1>001</h1>
+                <h1>{{ "%03d"|format(loop.index) }}</h1>
                 <h6>of</h6>
-                <h1>004</h1>
+                <h1>{{ "%03d"|format(total_package) }}</h1>
                 <h6>Total Weight kg</h6>
-                <h1>10</h1>
+                <h1>{{total_weight}}</h1>
                 <h6>Dispatched</h6>
-                <h5 style="font-size: 25px">25/08/18</h5>
+                <h5 style="font-size: 25px">{{dispatchDate}}</h5>
             </td>
             <td rowspan="2" style="position: relative;">
                 <h6 style="margin: 0;font-weight: 400; margin-bottom: 4px">Deliver To</h6>
-                <h5 style="text-transform: uppercase; margin: 0; font-size: 15px">
-                    tufnells parcels express ltd.<br>
-                    james test<br>
-                    shepcote house<br>
-                    shepcote lane<br><br>
-                    sheffield<br>
-                    south yorkshire
-                </h5>
-
-                <h1 style="margin: 0;font-size: 45px">s9 1uw</h1>
+                <h5 style="text-transform: uppercase; margin: 0; font-size: 15px">{{delivery_address|raw}} </h5>
 
                 <div class="tel" style="display: flex; margin-top: 20px">
-                    <div><h6 style="margin: 0;font-weight: 400; margin-bottom: 4px;margin-right: 10px"> Tel:</h6></div>
-                    <div><h5 style="margin: 0; font-size: 30px">0114 256 4880</h5></div>
+                    <div><h6 style="margin: 0;font-weight: 400; margin-bottom: 4px;margin-right: 15px"> Tel:</h6></div>
+                    <div><h5 style="margin:0; font-size: 30px;margin-top: 10px">{{tel}}</h5></div>
                 </div>
 
-                <div class="side-box">
-                    <table border="1" cellspacing="0">
+                <div class="side-box" style="width: 38px; border: 1px solid #000; float: right;">
+                    <table cellspacing="0">
                         <tr>
                             <th>T/L</th>
                         </tr>
@@ -171,14 +126,15 @@
 
         <tr>
             <td colspan="2" style="text-transform: uppercase; font-weight: 600; font-size: 15px">
-                these are special instructions
+                {{special_instruction|raw}}
             </td>
         </tr>
     </table>
     <img src="{{horizontal}}" width="100%" height="120px" style="margin-top: 10px">
-    <div class="right-image" style="position: absolute;">
-        <img src="{{vertical}}" style="width: 75%; height: 45px;position: relative; left: 47px">
+    <div class="right-image" style="">
+        <img src="{{vertical}}" width="10%" style=" margin-top:-650px; position: absolute; right:-20px; height: 519px">
     </div>
 </div>
+{%endfor%}
 </body>
 </html>
