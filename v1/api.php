@@ -2430,7 +2430,7 @@ SubscriptionController::initRoutes($app);
 RateEngineController::initRoutes($app);
 RateApiController::initRoutes($app);
 DashboardApi::dashboardRoutes($app);
-RateengineApi::rateEngineRoutes($app);
+TuffnellsApi::rateEngineRoutes($app);
 
 $app->post('/apiLogin', function() use ($app){
 	$r = json_decode($app->request->getBody());

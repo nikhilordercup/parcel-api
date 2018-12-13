@@ -2,6 +2,7 @@
 
 require_once 'SurchargeManager.php';
 require_once 'ServiceOptions.php';
+require_once 'tuffnells/modal/TuffnellsModel.php';
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -24,8 +25,9 @@ class RateApiController
     private $_responseData = [];
     public $_isSameDay = false;
     public $_isLabelCall = false;
-    private $_taxRate=null;
-    private $_requestedServices=[];
+    private $_taxRate = null;
+    private $_requestData=null;
+    private $_requestedServices = [];
 
     //put your code here
     private function __construct()
@@ -38,6 +40,7 @@ class RateApiController
         $app->post('/rate-engine/getRate', function () use ($app) {
             $r = json_decode($app->request->getBody());
             $controller = new RateApiController;
+            $controller->_requestData=$r;
             $date = date('Y-m-d');
             $match_date = date('Y-m-d', strtotime($r->ship_date));
             if ($date == $match_date) {
@@ -49,7 +52,7 @@ class RateApiController
             if (!$controller->_isLabelCall) {
                 $controller->breakRequest($r);
             } else {
-                //Process Label Label Provider Request
+                $controller->getLabelProvider();
             }
         });
     }
@@ -66,7 +69,7 @@ class RateApiController
 
                 $ca = $this->_reateEngineModel
                     ->fetchCarrierByAccountNumber($a->credentials->account_number);
-                $this->_requestedServices[$a->credentials->account_number]=array_merge($this->_requestedServices[$a->credentials->account_number]??[],explode(',',$a->services));
+                $this->_requestedServices[$a->credentials->account_number] = array_merge($this->_requestedServices[$a->credentials->account_number] ?? [], explode(',', $a->services));
 
                 if ($ca) {
                     if (!isset($this->_responseData['surchargeList'][$ca['courier_id']][$ca['id']])) {
@@ -115,8 +118,8 @@ class RateApiController
                 $rates = $this->_reateEngineModel->searchPriceForZone(
                     $param['zone'][$name]["fromZone"]['carrier_id'], $param['zone'][$name]["fromZone"]['zone_id'], $param['zone'][$name]["toZone"]['zone_id']);
                 foreach ($rates as $k => $r) {
-                    $result=array_search($r['service_code'],$this->_requestedServices[$r['account_number']]);
-                    if(gettype($result)=='integer' && $result>=0){
+                    $result = array_search($r['service_code'], $this->_requestedServices[$r['account_number']]);
+                    if (gettype($result) == 'integer' && $result >= 0) {
                         $this->_responseData['rate'][$name][$r['account_number']][$r['service_code']][]['rate'] = $rates[$k];
                     }
                 }
@@ -199,7 +202,7 @@ class RateApiController
                             $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
                             $this->_responseData['rate'][$name][$k][$z][$key]['service_options'] = $serviceOptionManager->formatOptionForResponse();
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'];
-                            $this->_responseData['rate'][$name][$k][$z][$key]['taxes']=$this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price']);
+                            $this->_responseData['rate'][$name][$k][$z][$key]['taxes'] = $this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price']);
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
                             unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
                         }
@@ -290,21 +293,30 @@ class RateApiController
 
     public function getLabelProvider()
     {
+        if ('tuffnells' == 'tuffnells') {
+            $tuffnells=new TuffnellsLabels($this->_requestData);//print_r([]);exit;
+            $resp = $tuffnells->tuffnellLabelData($this->_requestData);
+            print_r($resp);exit;
+            //echoResponse(200,$resp);
+        }
+    }
 
+    public function loadTaxRate($fromAddress)
+    {
+        $this->_taxRate = $this->_reateEngineModel->getTaxInfoByIso2($fromAddress->country);
     }
-    public function loadTaxRate($fromAddress){
-        $this->_taxRate=$this->_reateEngineModel->getTaxInfoByIso2($fromAddress->country);
-    }
-    public function calculateTax($price){
-        if(is_null($this->_taxRate)){
+
+    public function calculateTax($price)
+    {
+        if (is_null($this->_taxRate)) {
             return [
-                'total_tax'=>0,
-                'tax_percentage'=>0
+                'total_tax' => 0,
+                'tax_percentage' => 0
             ];
-        }else{
+        } else {
             return [
-                'total_tax'=>(($this->_taxRate['tax_factor_value']/100)*$price),
-                'tax_percentage'=>$this->_taxRate['tax_factor_value']??0
+                'total_tax' => (($this->_taxRate['tax_factor_value'] / 100) * $price),
+                'tax_percentage' => $this->_taxRate['tax_factor_value'] ?? 0
             ];
         }
     }

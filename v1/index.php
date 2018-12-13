@@ -39,8 +39,8 @@ require_once 'module/dashboard/dashboard-api.php';
 //End Dashboard
 
 //Tuffnells
-require_once 'module/rate-engine/tuffnells/tuffnells.php';
-require_once 'module/rate-engine/tuffnells/rate-engine-api.php';
+require_once 'module/rate-engine/tuffnells/TuffnellsLabels.php';
+require_once 'module/rate-engine/tuffnells/TuffnellsApi.php';
 //End Tuffnells
 
 require_once 'module/configuration/GridConfiguration.php';

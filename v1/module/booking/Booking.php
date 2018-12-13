@@ -152,7 +152,9 @@ class Booking extends Icargo
         $parcelInfo = (object)$parcel;
 
         $ticketNumber = $this->modelObj->generateTicketNo($company_id);
-
+        global $_GLOBAL_CONTAINER;
+        $_GLOBAL_CONTAINER['loadIdentity']=$ticketNumber;
+        $this->_loadIdentity=$ticketNumber;
 
         if($ticketNumber){
 

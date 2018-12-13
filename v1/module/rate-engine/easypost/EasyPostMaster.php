@@ -6,7 +6,7 @@
  * Time: 05:20 PM
  */
 
-class EasyPostMaster extends \Easypost\EasyPost
+abstract class EasyPostMaster extends \Easypost\EasyPost
 {
     public function __construct($authData)
     {
