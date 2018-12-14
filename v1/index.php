@@ -1,6 +1,6 @@
 <?php
-error_reporting(E_ALL);
-ini_set("display_errors", 1);
+//error_reporting(E_ALL);
+//ini_set("display_errors", 1); 
 ini_set('date.timezone', 'Europe/London');
 
 require_once 'constant.php';
@@ -33,10 +33,21 @@ require_once 'vehicle.php';
 require_once 'postcode.php';
 
 
+
+
 require_once 'module/configuration/GridConfiguration.php';
 require_once 'module/configuration/CustomFilterConfiguration.php';
 require_once 'module/driver/DriverController.php';
 require_once './module/chargebee/SubscriptionController.php';
+
+
+//Dashboard
+require_once 'module/dashboard/dashboard.php';
+require_once 'module/dashboard/dashboard-api.php';
+//End Dashboard
+
+
+
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
@@ -48,6 +59,7 @@ require_once 'dev.test.php';
 //require_once('../vendor/dompdf/autoload.inc.php');
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
+
 
 
 require_once 'module/shipment/model/shipment.php';
@@ -184,7 +196,7 @@ function verifyRequiredParams($required_fields,$request_params) {
     }
 }
 
-function echoResponse($status_code, $response) {//print_r($response);die;
+function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
 
     $privateKey = <<<EOD

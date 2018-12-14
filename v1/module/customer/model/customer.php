@@ -104,7 +104,7 @@ class Customer_Model
               WHERE t1.company_id  = '" . $componyId . "'
               AND   t1.courier_id  = '" . $courier_id . "'
               AND   t1.customer_id  = '" . $customerId . "'
-              AND   t1.company_courier_account_id  = '" . $company_courier_account_id . "'";
+              AND   t1.company_courier_account_id  = '" . $company_courier_account_id . "'";	  
         $record  = $this->db->getRowRecord($sql);
         return $record;
     }
@@ -573,8 +573,8 @@ class Customer_Model
 
     public function setDefaultAddress($param)
     {
-        if (isset($param->address_list->id))
-            $param->address_list->address_id = $param->address_list->id;
+        /* if (isset($param->address_list->id))
+            $param->address_list->address_id = $param->address_list->id; */
 
         $addressExist = $this->isExist("user_id='" . $param->userid . "' AND address_id=" . $param->address_list->address_id . "", "user_address");
         if ($addressExist) {
@@ -896,10 +896,16 @@ class Customer_Model
         return $record;
     }
 
-		public function getCompanyConfiguration($companyId){
-			$sql     = "SELECT configuration_json FROM " . DB_PREFIX . "configuration AS t1 WHERE t1.company_id = '$companyId'";
-			$record  = $this->db->getRowRecord($sql);
-			return $record;
-		}
+	public function getCompanyConfiguration($companyId){
+		$sql     = "SELECT configuration_json FROM " . DB_PREFIX . "configuration AS t1 WHERE t1.company_id = '$companyId'";
+		$record  = $this->db->getRowRecord($sql);
+		return $record;
+	}
+	
+	public function checkChildAccountData($companyId,$customerId,$courierId,$accountNo){
+		$sql = "SELECT COUNT(1) as account_exist, t1.* FROM " . DB_PREFIX . "customer_courier_child_accont AS t1 WHERE t1.company_id = $companyId AND t1.courier_id = $courierId AND t1.customer_id = $customerId AND t1.parent_account_number='$accountNo'";
+		$record  = $this->db->getRowRecord($sql);
+		return $record;
+	}
 }
 ?>
