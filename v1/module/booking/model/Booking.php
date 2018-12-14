@@ -330,7 +330,7 @@ class Booking_Model_Booking
 
     function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity)
     {
-
+		
         $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
         $credentailData = $this->_db->getRowRecord($sql);
         return $credentailData;
@@ -348,7 +348,7 @@ class Booking_Model_Booking
 
     function getLabelByLoadIdentity($loadIdentity)
     {
-        $sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+        $sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -653,6 +653,15 @@ class Booking_Model_Booking
 	public function updateChildAccountData($tableName,$data,$condition){
 		return $this->_db->update($tableName,$data,$condition);
 	}
+	
+	public
+
+    function getCredentialDataForChildAccount($carrierAccountNumber)
+    {		
+        $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "customer_courier_child_accont AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
+        $credentailData = $this->_db->getRowRecord($sql);
+        return $credentailData;
+    }
 	
 }
 
