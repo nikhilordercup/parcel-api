@@ -9,12 +9,12 @@ abstract class Singleton
      * @var Singleton[]
      */
     private static $_instances = array();
+    public static $_db = NULL;
 
-    /**
-     * Creates or returns the only instance of the a class.
-     *
-     * @return Singleton the only instance of the a class.
-     */
+   /**
+    * Creates or returns the only instance of the a class.
+    * @return Object
+    */
     final public static function getInstance()
     {
         $calledClassName = get_called_class();
@@ -23,8 +23,10 @@ abstract class Singleton
         {
             self::$_instances[ $calledClassName ] = new $calledClassName();
         }
-
-        return self::$_instances[ $calledClassName ];
+        
+        $classObj = self::$_instances[ $calledClassName ];
+        $classObj->db = new DbHandler();
+        return $classObj;
     }
 
     /**

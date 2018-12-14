@@ -2427,6 +2427,7 @@ GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
 SubscriptionController::initRoutes($app);
+UkMailTracking::initRoutes($app);
 
 $app->post('/apiLogin', function() use ($app){
 	$r = json_decode($app->request->getBody());

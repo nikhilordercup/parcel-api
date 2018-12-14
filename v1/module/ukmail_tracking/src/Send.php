@@ -24,8 +24,13 @@ class Send extends Singleton{
     return array_values($constructor);
   }
 
-  public function postRequest(array $config = []){
-    print_r($this->_initConstructorParams($config));die;
+  /**
+   * 
+   * @param array $config
+   */
+  public function postRequest(array $config = [])
+  {          
+                  
   }
 }
 ?>
