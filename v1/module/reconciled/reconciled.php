@@ -7,7 +7,12 @@ class Module_Reconciled_Reconciled extends Icargo{
     public $modelObj = null; 
     
     public $allShipObj = null;   
-    
+    public $carrierObj = null;   
+    public $paramData = null; 
+    public $fileUpload = null; 
+    public $bufferAmt = null; 
+   
+        
     public  function __construct($data){
 	    $this->_parentObj = parent::__construct(array("email"=>$data->email, "access_token"=>$data->access_token));
         $this->reconciledModelObj   = Reconciled_Model::_getInstance();
@@ -15,14 +20,6 @@ class Module_Reconciled_Reconciled extends Icargo{
 	}
     
     public function setReconsiledData($param){
-      
-       /* Background Process Start */
-      return  $this->startReconsiled($param);
-        //exec($this->startReconsiled($param));
-       /* Background Process End */
-    }
-    
-    public function startReconsiled($param){
           $resultArray = array();
           $param->applyonaccount = (isset($param->applyonaccount))?$param->applyonaccount:false;
           if(count($param->data)>1){
@@ -36,47 +33,54 @@ class Module_Reconciled_Reconciled extends Icargo{
         }
           $param->selectedCarrier = json_decode($param->selectedCarrier);
           $uploadStatus = $this->createCsvFile($resultArray,$param->filename,$param->selectedCarrier->name,'request');
-           if($uploadStatus['status']){
-             $carrierObj =  call_user_func($param->selectedCarrier->name. '::getInstance');
-             if(!$carrierObj->validHeader($resultArray[0])){
+          if($uploadStatus['status']){
+             $this->carrierObj =  call_user_func($param->selectedCarrier->name. '::getInstance');
+             if(!$this->carrierObj->validHeader($resultArray[0])){
                  return array("status"=>"error", "message"=>"Please upload carrier (".$param->selectedCarrier->name.") csv "); 
              }else{ 
-                 $shipmentData = $carrierObj->getCsvData($param->data);
-                 $rowdata = array();
-                 $isEligibleCounter = 0;
-                 foreach($shipmentData as $shipkey=>$shipval){
-                   $jobstatus =   $this->checkCarrierPriceAndApply($shipkey,$shipval,$param->selectedCarrier->courier_id,$param->company_id,$param->user,$param->applyonaccount);
-                   $rowdata =  $rowdata + $jobstatus['data']['row'];
-                   if($jobstatus['isEligible'] == 'YES'){
-                      $isEligibleCounter++;
-                   }
-                 }
-              }
-             if(count($rowdata)>0){
-                    $csvData     =  $carrierObj->getCarrierCsvData($uploadStatus['fullpath'],$rowdata);
-                    $responceCSV = $this->createCsvFile($csvData,$param->filename,$param->selectedCarrier->name,'response');
-                    $data = array();
-                    $data['total_requested_shipment'] = count($shipmentData);
-                    $data['total_eligible_shipment'] = $isEligibleCounter;
-                    $data['processed_date']     = date("Y-m-d");
-                    $data['apply_with_account'] = ($param->applyonaccount)?'YES':'NO';
-                    $data['requested_csv_path'] = $uploadStatus['file'];
-                    $data['responded_csv_path'] = $responceCSV['file'];
-                    $data['carrier'] = $param->selectedCarrier->courier_id;
-                    $data['company_id'] = $param->company_id;
-                    $data['status'] = '1';
-                    $this->reconciledModelObj->addContent('reconciled_reports', $data);
-                    return array("status"=>"success", "message"=>"Uploading csv has been done!!");
-             }
-             else{
-                 return array("status"=>"error", "message"=>"Please upload csv with header and data"); 
-              } 
-           }
+                 $this->paramData = $param; 
+                 $this->fileUpload = $uploadStatus; 
+                 shell_exec('php '.$this->startReconsiled()); 
+                 return array("status"=>"success", "message"=>"Uploading csv has been done!!");
+               }
+            }
            else{
             return array("status"=>"error", "message"=>"Please upload csv with header and data");   
           }
        }
-     }
+    }
+    
+    public function startReconsiled(){
+         $param =  $this->paramData;
+         $uploadStatus =  $this->fileUpload;
+         $shipmentData = $this->carrierObj->getCsvData($param->data);
+         $rowdata = array();
+         $isEligibleCounter = 0;
+         foreach($shipmentData as $shipkey=>$shipval){
+            $jobstatus =   $this->checkCarrierPriceAndApply($shipkey,$shipval,$param->selectedCarrier->courier_id,$param->company_id,$param->user,$param->applyonaccount);
+            $rowdata =  $rowdata + $jobstatus['data']['row'];
+            if($jobstatus['isEligible'] == 'YES'){
+              $isEligibleCounter++;
+            }
+         }
+         if(count($rowdata)>0){
+            $csvData     =  $this->carrierObj->getCarrierCsvData($uploadStatus['fullpath'],$rowdata);
+            $responceCSV = $this->createCsvFile($csvData,$param->filename,$param->selectedCarrier->name,'response');
+            $data = array();
+            $data['total_requested_shipment'] = count($shipmentData);
+            $data['total_eligible_shipment'] = $isEligibleCounter;
+            $data['processed_date']     = date("Y-m-d");
+            $data['apply_with_account'] = ($param->applyonaccount)?'YES':'NO';
+            $data['requested_csv_path'] = $uploadStatus['file'];
+            $data['responded_csv_path'] = $responceCSV['file'];
+            $data['carrier'] = $param->selectedCarrier->courier_id;
+            $data['company_id'] = $param->company_id;
+            $data['status'] = '1';
+            $this->reconciledModelObj->addContent('reconciled_reports', $data);
+            //return array("status"=>"success", "message"=>"Uploading csv has been done!!");
+        }
+        
+    }
     
     public function createCsvFile($data,$file,$carrier,$mode){
         try{
@@ -115,6 +119,7 @@ class Module_Reconciled_Reconciled extends Icargo{
             if($loadIdentity['tracking_code'] === 'CANCELLED'){
                 $return =  array('row'=>array($serviceDetails['service']['rownumber']=>array(array("status"=>"error","message"=>"Shipment are CANCELLED in our records for selected carrier","localprice"=>"","requestedprice"=>"","taxinfo"=>"","tracking"=>$trackingNumber))));
             }else{
+                $this->bufferAmt       = $this->reconciledModelObj->getCompanyReconciledBuffer($companyId);
                 $getLastPriceVersion   = $this->modelObj->getShipmentPriceDetails($loadIdentity['load_identity']);
                 $priceVersion          = $getLastPriceVersion['price_version'];
                 $getLastPriceBreakdown = $this->modelObj->getShipmentPricebreakdownDetailsReconciled($loadIdentity['load_identity'],$priceVersion);
@@ -156,15 +161,18 @@ class Module_Reconciled_Reconciled extends Icargo{
     
     public function checkEligibleForReconciled($serviceDetails,$data,$trackingNumber){ 
         $returnArray = array();
-        $serviceDiff = bcsub($data['service']['reconciled']['nettcharge'], $data['service']['localdata']['baseprice']);
+        $serviceDiff = bcsub($data['service']['reconciled']['nettcharge'], $data['service']['localdata']['baseprice'],2);
+        $totalDiff = 0;
         if($serviceDiff >0 || $serviceDiff <0){
            $diff = ($data['service']['reconciled']['nettcharge'] - $data['service']['localdata']['baseprice']);
-           $returnArray['row'][$data['service']['reconciled']['rownumber']][] = array("status"=>"success", "message"=>"mismatch found in ".$data['service']['reconciled']['operation_code']." with $diff in service ","localprice"=>$data['service']['localdata']['baseprice'],"requestedprice"=>$data['service']['reconciled']['nettcharge'],"taxinfo"=>""  ,"tracking"=>$trackingNumber); 
+           $totalDiff += $diff;
+            $returnArray['row'][$data['service']['reconciled']['rownumber']][] = array("status"=>"success", "message"=>"mismatch found in ".$data['service']['reconciled']['operation_code']." with $diff in service ","localprice"=>$data['service']['localdata']['baseprice'],"requestedprice"=>$data['service']['reconciled']['nettcharge'],"taxinfo"=>""  ,"tracking"=>$trackingNumber); 
         }
         if(is_array($data['surcharges']) && count($data['surcharges'])>0){
             foreach($data['surcharges'] as $nkey=>$nval){
                if(($nval['reconciled']['nettcharge'] != $nval['localdata']['baseprice'])){
                  $diff = ($nval['reconciled']['nettcharge'] - $nval['localdata']['baseprice']);
+                 $totalDiff += $diff;
                  $returnArray['row'][$nval['reconciled']['rownumber']][] = array("status"=>"success", "message"=>"mismatch found in ".$nval['reconciled']['operation_code']." with $diff ","localprice"=>$nval['localdata']['baseprice'],"requestedprice"=>$nval['reconciled']['nettcharge'],"taxinfo"=>""  ,"tracking"=>$trackingNumber); 
              }
            }
@@ -172,18 +180,33 @@ class Module_Reconciled_Reconciled extends Icargo{
         if(is_array($data['newsurcharges']) && count($data['newsurcharges'])>0){
             foreach($data['newsurcharges'] as $keyNewSur => $valNewSur){
                 $diff = ($data['newsurchargesprice'][$keyNewSur]);
+                $totalDiff += $diff;
                 $returnArray['row'][$data['newsurchargerow'][$keyNewSur]][] = array("status"=>"success", "message"=>"new surcharge found as ".$valNewSur." with difference $diff ","localprice"=>0,"requestedprice"=>$data['newsurchargesprice'][$keyNewSur],"taxinfo"=>"","tracking"=>$trackingNumber); 
            } 
         }
         if($data['tax']['reconciled'] != $data['tax']['localdata']['price']){
            $taxdiff = ($data['tax']['reconciled'] - $data['tax']['localdata']['price']);
-           if(!empty($returnArray)){
+           $totalDiff += $taxdiff;
+            if(!empty($returnArray)){
                $returnArray['row'][$data['service']['reconciled']['rownumber']]['taxinfo'][] = "tax difference found with $taxdiff in tax head";
            }
         }
-        return $returnArray;
-    }
-    
+        if($totalDiff>0){
+          $totalDiff =   bcsub($totalDiff,$this->bufferAmt,2);
+          if($totalDiff >0) {
+              return $returnArray;
+          }else{
+             return array(); 
+          }   
+         }else{
+           $totalDiff = bcadd($totalDiff,$this->bufferAmt,2);
+           if($totalDiff>0){
+               return array();
+           }else{
+               return $returnArray;
+           }
+         }
+      }
     public function applyPriceChanges($getLastPriceBreakdown,$param,$priceVersion,$getLastPriceVersion,$customerId, $carrierId){
         foreach ($getLastPriceBreakdown as $key => $val) {
             if (array_key_exists($val['id'], $param['data'])) {

@@ -72,5 +72,9 @@ class Reconciled_Model {
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
+    public function getCompanyReconciledBuffer($company_id){
+      $record = $this->db->getRowRecord("SELECT reconciled_buffer_amt FROM " . DB_PREFIX . "configuration WHERE company_id = ".$company_id);
+      return $record['reconciled_buffer_amt'];
+     }
 }
 ?>

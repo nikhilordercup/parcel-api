@@ -36,3 +36,6 @@ ADD COLUMN `fual_surcharge` FLOAT(10,2) NULL DEFAULT 0.00 AFTER `cancelation_cha
 
 ALTER TABLE `icargo_reconciled_reports` 
 ADD COLUMN `company_id` INT(11) NULL DEFAULT 0 AFTER `status`;
+
+ALTER TABLE `icargo_configuration` 
+ADD COLUMN `reconciled_buffer_amt` FLOAT(10,2) NULL DEFAULT 0.00 AFTER `url`;
