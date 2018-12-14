@@ -13,7 +13,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 
 
 
-	private function _getLabel($loadIdentity, $json_data)
+	private function _getLabel($loadIdentity,$json_data,$child_account_data)
     {
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label", $json_data);
@@ -29,7 +29,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 
             $label_path = "../label";
 			$this->labelPath = "$label_path/$loadIdentity/ukmail";
-      $fileUrl = $this->libObj->get_api_url();//.LABEL_URL;
+			$fileUrl = $this->libObj->get_api_url();//.LABEL_URL;
 			//$fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST']."/".LABEL_URL;
 
             if (!file_exists("$label_path/$loadIdentity/ukmail/")) {
@@ -48,7 +48,8 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 					"label_tracking_number" => $labelArr->label->tracking_number,
 					"label_files_png" => implode(',', $this->images),
 					"label_file_pdf" => $fileUrl . "/label/" . $this->loadIdentity . '/ukmail/' . $this->loadIdentity . '.pdf',
-					"label_json" => json_encode($labelArr)
+					"label_json" => json_encode($labelArr),
+					"child_account_data" =>$child_account_data
 				);
 			}else{
 				return array(
@@ -85,9 +86,38 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
 
     private function joinImages(){
         $config = array(
-            "mode" => "c",
-            "format" => "A4-L",
-            "debug" => true
+            'mode' => 'c',
+			'margin_left' => 15,
+            'margin_right' => 0,
+            'margin_top' => 5,
+            //'margin_bottom' => 25,
+            //'margin_header' => 16,
+            //'margin_footer' => 13,
+			//'format' => 'A4',
+			'format' => array(101,152),
+			'orientation' => 'L'
+        );
+        $mpdf = new \Mpdf\Mpdf($config);
+        foreach($this->images as $image) {
+            $size = getimagesize ($image);
+            $width = $size[0];
+            $height = $size[1];
+            $mpdf->Image($image,250,140,$width,$height,'png','',true, true);
+        }
+        try{
+            $mpdf->Output("$this->labelPath/$this->loadIdentity.pdf","F");
+            return true;
+        }catch(Exception $e){
+            return false;
+        }
+  }
+  
+  
+  /* private function joinImages(){
+        $config = array(
+            'mode' => 'c',
+			'format' => 'A4-L',
+			'debug' => true
         );
         $mpdf = new \Mpdf\Mpdf($config);
         foreach($this->images as $image) {
@@ -97,12 +127,12 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             $mpdf->Image($image,60,50,$width,$height,'png','',true, true);
         }
         try{
-            $mpdf->Output("$this->labelPath/$this->loadIdentity.pdf","F");
+            $mpdf->Output("$this->labelPath/$this->loadIdentity.pdf","F");die;
             return true;
         }catch(Exception $e){
             return false;
         }
-  }
+  } */
 
   public function getShipmentDataFromCarrier($loadIdentity,$allData = array())
     {
@@ -201,8 +231,19 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         $response['currency']    = $serviceInfo['currency'];
         $response['service']     = $serviceInfo['service_code'];
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
+		
+		/*start of binding child account data*/
+		if($response['credentials']['is_child_account']=='yes'){
+			$child_account_data = array("is_child_account"=>$response['credentials']['is_child_account'],
+										"parent_account_number"=>$response['credentials']['parent_account_number'],
+										"child_account_number"=>$response['credentials']['credentials']['account_number']);
+		}else{
+			$child_account_data = array();
+		}
+		/*end of binding child account data*/
+		
+		$response['credentials'] = $response['credentials']['credentials'];
 
-        /**********start of static data from requet json ***************/
         $response['extra']           = array(
             "service_key" => $serviceInfo['service_code'],
             "long_length" => "",
@@ -249,8 +290,8 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         );
         $response['label']           = array();
         $response['method_type']     = "post";
-        /**********end of static data from requet json ***************/
-        return $this->_getLabel($loadIdentity, json_encode($response));
+		
+        return $this->_getLabel($loadIdentity,json_encode($response),$child_account_data);
         //return $response;
 
     }
@@ -282,7 +323,21 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
     public function getCredentialInfo($carrierAccountNumber, $loadIdentity)
     {
         $credentialData = array();
-        $credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
+		/*start of check if customer have any ukmail child account or not*/
+		$getChildAccountData = $this->modelObj->getChildAccountData($carrierAccountNumber,$loadIdentity);
+		/*end of check if customer have any ukmail child account or not*/
+		if(count($getChildAccountData)>0){
+			$credentialData = $getChildAccountData;
+			$parent_account_number = $carrierAccountNumber;
+			$carrierAccountNumber = $getChildAccountData['account_number'];
+			$is_child_account = "yes";
+		}else{
+			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
+			$is_child_account = "no";
+			$parent_account_number = "";
+		}
+		
+        
 
         $credentialInfo["username"]                        = $credentialData["username"];
         $credentialInfo["password"]                        = $credentialData["password"];
@@ -308,7 +363,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         $credentialInfo["earliest_time"]="14:00:00";
         $credentialInfo["carrier_account_type"] = array("1"); */
 
-        return $credentialInfo;
+        return array("credentials"=>$credentialInfo,"is_child_account"=>$is_child_account,"parent_account_number"=>$parent_account_number);
     }
 
     private function validate($data)
