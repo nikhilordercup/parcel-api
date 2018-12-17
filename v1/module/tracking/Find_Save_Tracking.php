@@ -52,8 +52,8 @@ class Find_Save_Tracking{
             foreach($this->podData as $podData){
                 //$recordExist = $this->modelObj->findPodTrackingHistory(array("tracking_id"=>$tracking_id, "pod_id"=>$podData));
                 //if($recordExist["exist"]==0){
-                    $this->modelObj->saveTrackingPod(array("tracking_id"=>$tracking_id, "pod_id"=>$podData)); 
-                //}   
+                    $this->modelObj->saveTrackingPod(array("tracking_id"=>$tracking_id, "pod_id"=>$podData));
+                //}
             }
             $this->podData = array();
         }
@@ -86,7 +86,7 @@ class Find_Save_Tracking{
             $historyData["pod_id"] = $historyInfo["pod_id"];
 
             $tracking_id = $historyInfo["id"];
-           
+
         }else{
             $tracking_id = $this->modelObj->saveTrackingHistory($historyData);
         }
@@ -138,12 +138,12 @@ class Find_Save_Tracking{
                 foreach($this->podData as $podData){
                     //$recordExist = $this->modelObj->findPodTrackingHistory(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
                     //if($recordExist["exist"]==0){
-                        $this->modelObj->saveTrackingPod(array("tracking_id"=>$trackingId, "pod_id"=>$podData)); 
-                    //}   
+                        $this->modelObj->saveTrackingPod(array("tracking_id"=>$trackingId, "pod_id"=>$podData));
+                    //}
                 }
                 //$this->podData = array();
             }
-       
+
 
        }
 
