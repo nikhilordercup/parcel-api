@@ -1,5 +1,5 @@
 <?php
-require_once 'modal/Rateengine.php';
+require_once 'modal/TuffnellsModel.php';
 use Dompdf\Adapter\CPDF;
 use Dompdf\Dompdf;
 use Dompdf\Exception;
@@ -191,13 +191,13 @@ class TuffnellsLabels extends Icargo
         $dompdf->render();
         $output = $dompdf->output();
         $directory = dirname(dirname(dirname(dirname(__FILE__))));
-        $dir = dirname(dirname(dirname(dirname(__FILE__))));
+        $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
         $uid = uniqid();
         $mkdir = $dir.'/label/'.$uid.'/';
         mkdir($mkdir, 0777, true);
         file_put_contents($mkdir.$uid.'.pdf', $output);
-        unlink($directory.'/v1/'.$horizontal);
-        unlink($directory.'/v1/'.$vertical);
+        unlink($directory.DIRECTORY_SEPARATOR.$horizontal);
+        unlink($directory.DIRECTORY_SEPARATOR.$vertical);
         $pdfUrl = PDFURL.'/'.$uid.'/'.$uid.'.pdf';
         $arrayval = array(
             "label" => array(
@@ -237,7 +237,7 @@ class TuffnellsLabels extends Icargo
         $dompdf->render();
         $output = $dompdf->output();
         $directory = dirname(dirname(dirname(dirname(__FILE__))));
-        $dir = dirname(dirname(dirname(dirname(__FILE__))));
+        $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
         $uid = 'PAPER_MANIFEST'.uniqid();
         $mkdir = $dir.'/label/'.$uid.'/';
         mkdir($mkdir, 0777, true);

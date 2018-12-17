@@ -117,6 +117,7 @@ class RateApiController
             if (count($carrier["fromZone"]) && count($carrier["toZone"])) {
                 $rates = $this->_reateEngineModel->searchPriceForZone(
                     $param['zone'][$name]["fromZone"]['carrier_id'], $param['zone'][$name]["fromZone"]['zone_id'], $param['zone'][$name]["toZone"]['zone_id']);
+//                print_r($rates);exit;
                 foreach ($rates as $k => $r) {
                     $result = array_search($r['service_code'], $this->_requestedServices[$r['account_number']]);
                     if (gettype($result) == 'integer' && $result >= 0) {
@@ -294,10 +295,9 @@ class RateApiController
     public function getLabelProvider()
     {
         if ('tuffnells' == 'tuffnells') {
-            $tuffnells=new TuffnellsLabels($this->_requestData);//print_r([]);exit;
+            $tuffnells=new TuffnellsLabels($this->_requestData);
             $resp = $tuffnells->tuffnellLabelData($this->_requestData);
-            print_r($resp);exit;
-            //echoResponse(200,$resp);
+            echoResponse(200,$resp);
         }
     }
 

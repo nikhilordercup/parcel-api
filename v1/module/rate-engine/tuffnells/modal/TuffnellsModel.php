@@ -24,7 +24,7 @@ class Rate_Engine_Modal{
     }
 
     public function paperManifestByDate($date){
-        $date_val = '2018-11-19';
+        $date_val = $date;
         $sql = "SELECT * FROM ".DB_PREFIX ."rateengine_labels WHERE date(created_date) = '$date_val' ORDER BY label_id ASC";
         $results = $this->_db->getAllRecords($sql);
         try{

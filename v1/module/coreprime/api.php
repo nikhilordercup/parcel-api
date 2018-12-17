@@ -51,6 +51,7 @@ class Module_Coreprime_Api extends Icargo
     function _postRequest($data)
     {
         global $_GLOBAL_CONTAINER;
+      //  print_r(json_encode($data));exit;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
         }
@@ -70,8 +71,10 @@ class Module_Coreprime_Api extends Icargo
             $lcData = $data;
             $lcData['carriers'] = $pd['Local'];
             $localRate = $this->postToRateEngine('Local', $lcData);
+
             $this->mergePrice($finalPrice, $localRate);
         }
+//        exit(json_encode($finalPrice));
         return json_encode($finalPrice);
     }
 
@@ -504,7 +507,7 @@ class Module_Coreprime_Api extends Icargo
     public function mergePrice(&$finalArray, $price)
     {
         if (trim($price) === "") return false;
-        $price = json_decode($price);
+        $price = json_decode($price);//print_r($price);
         foreach ($price->rate as $k => $p) {
             $finalArray['rate'][$k] = $p;
         }

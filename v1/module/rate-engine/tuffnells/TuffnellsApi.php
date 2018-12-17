@@ -1,6 +1,6 @@
 <?php
 
-class RateengineApi
+class TuffnellsApi
 {
     private $_db;
     private $_app;
