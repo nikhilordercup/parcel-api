@@ -55,7 +55,7 @@ class UkMailModel extends Singleton
             //Getting load_identity by consignment number
             $query1 = "SELECT `load_identity` FROM ".DB_PREFIX."shipment_service WHERE label_tracking_number = '$consignmentNumber'";
             $res = $this->db->getOneRecord($query1);         
-            $load_identity = $res['load_identity'];
+            $load_identity = ($res['load_identity'] != '') ? $res['load_identity'] : $consignmentNumber;
             ///////////////////////////////////////////        
             $statusCode = $ConsignmentDetailInfo->StatusCode;
             $statusMessage = $ConsignmentDetailInfo->StatusMessage;
