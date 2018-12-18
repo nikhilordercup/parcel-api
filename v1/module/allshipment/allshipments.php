@@ -1,6 +1,6 @@
 <?php
-class allShipments extends Icargo
-{
+ class allShipments extends Icargo
+ {
     public $modelObj = null;
 
     public function __construct($param)
@@ -2074,6 +2074,18 @@ public function getCarriersofCompany($param){
         }
         return $returndata;
 }
+public function getUniqueCarriersofCompany($param){
+        $returndata          = array();
+        if ($param->company_id != 0) {
+            $returndata = $this->modelObj->getCarriersofCompany($param->company_id);
+            $tempdata = array();
+            foreach($returndata as $data){
+              $tempdata[$data['courier_id']] =  $data;
+            }
+             
+        }
+        return $tempdata;
+}
 public function getNextDayCarriersofCompany($param){
         $returndata          = array();
         if ($param->company_id != 0) {
@@ -2081,8 +2093,7 @@ public function getNextDayCarriersofCompany($param){
         }
         return $returndata;
 }
-
-    public function _findShipmentInstructionByLoadIdentity($load_identity){
+public function _findShipmentInstructionByLoadIdentity($load_identity){
         $service = array(
             "P" =>"collection",
             "D" =>"delivery"

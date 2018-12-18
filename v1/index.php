@@ -164,6 +164,9 @@ require_once 'module/custom_labels/Custom_Label.php';
 //Country file included
 require_once 'module/country/model/country.php';
 
+require_once 'module/reconciled/reconciled.php';
+require_once 'module/reconciled/model/reconciled.php';
+
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
