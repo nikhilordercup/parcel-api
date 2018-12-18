@@ -52,10 +52,13 @@ class UkMailModel extends Singleton
             $errors = $ConsignmentDetailInfo->Errors = '';
             $consignmentNumber = $ConsignmentDetailInfo->ConsignmentNumber; 
 
-            //Getting load_identity by consignment number
-            $query1 = "SELECT `load_identity` FROM ".DB_PREFIX."shipment_service WHERE label_tracking_number = '$consignmentNumber'";
-            $res = $this->db->getOneRecord($query1);         
-            $load_identity = ($res['load_identity'] != '') ? $res['load_identity'] : $consignmentNumber;
+            //Getting load_identity by consignment number                    
+            $load_identity = $this->getLoadIdentityByConsignmentNo($consignmentNumber);
+            
+            //Getting shipment_ticket as delivery type and load_identity           
+            $deliveryType = ($ConsignmentDetailInfo->StatusCode > 2) ? 'D':'P';            
+            $shipment_ticket = $this->getShipmentTicket($deliveryType, $load_identity);
+                        
             ///////////////////////////////////////////        
             $statusCode = $ConsignmentDetailInfo->StatusCode;
             $statusMessage = $ConsignmentDetailInfo->StatusMessage;
@@ -132,43 +135,107 @@ class UkMailModel extends Singleton
             // We are updating shipment_tracking table        
             if($lastInsertId > 0 )
             {
+                $trackingId = '';
                 $consignmentStatus = $ConsignmentDetailInfo->ConsignmentStatus->GetConsignmentDetailsStatus;
                 $queryContinue = FALSE;
                 if(count($consignmentStatus) > 0)
                 { 
-                    $cStatusQuery = "insert into ".DB_PREFIX."shipment_tracking(shipment_ticket,load_identity,code,create_date,carrier,status_detail,event_id)values";
+                    $cStatusQuery = "insert into ".DB_PREFIX."shipment_tracking(shipment_ticket,load_identity,code,create_date,carrier,status_detail,event_id,origin)values";
                     foreach($consignmentStatus as $conStatus)
                     {
                         $statusCode1 = self::$consignmentStatus[$conStatus->StatusCode];                    
-                        $q1 = "select * from ".DB_PREFIX."shipment_tracking 
-                               where load_identity = '$load_identity' and carrier = 'UKMAIL' and code = '$statusCode1'";
-                        $res1 = $this->db->getAllRecords($q1);
-                        if( count($res1) > 0 ){ continue; }
-
+                        $q1 = "select id from ".DB_PREFIX."shipment_tracking 
+                               where load_identity = '$load_identity'  and carrier = 'UKMAIL' and code = '$statusCode1'";
+                        $res1 = $this->db->getOneRecord($q1);
+                        $res1 = ($res1 != NULL) ? $res1 : array();
+                        
+                        if( count($res1) > 0 ){ $trackingId = $res1['id']; continue; }
+                        
                         $queryContinue = TRUE;
                         $statusCode = self::$consignmentStatus[$conStatus->StatusCode]; 
                         $statusDescription = $conStatus->StatusDescription;
                         $statusSequence = $conStatus->StatusSequence;
                         $statusTimeStamp = date("Y-m-d H:i:s", strtotime($conStatus->StatusTimeStamp)); 
-                        $cStatusQuery .= "('$load_identity','$load_identity','$statusCode','$statusTimeStamp','UKMAIL','$statusDescription','$statusSequence')"; 
+                        $cStatusQuery .= "('$shipment_ticket','$load_identity','$statusCode','$statusTimeStamp','UKMAIL','$statusDescription','$statusSequence','API')"; 
                         $cStatusQuery .= ",";                    
                     }
                     $cStatusQuery = rtrim($cStatusQuery,',');   
                     if($queryContinue)
                     {
-                        $this->db->executeQuery($cStatusQuery); 
+                        $trackingId = $this->db->executeQuery($cStatusQuery);                        
                     }
                     
+                    // Making new row for shipments_pod table
+                    $podId = '';
+                    $query3 = "SELECT pod_id, shipment_ticket FROM ".DB_PREFIX."shipments_pod WHERE shipment_ticket = '$shipment_ticket' order by pod_id desc";
+                    $res3 = $this->db->getOneRecord($query3);                         
+                    $res3 = ($res3 != NULL) ? $res3 : array();
+                    if(count($res3) > 0)
+                    {
+                        $podId = $res3['pod_id'];
+                    }
+                    else
+                    {
+                        $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;                                                                                                
+                        $sql1 = "insert into ".DB_PREFIX."shipments_pod
+                        (
+                            shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
+                        )
+                        values( 
+                            '$shipment_ticket','0','','','$podObj->PodDescription','$podObj->PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
+                            ,'0','$trackingId'       
+                        )"; 
+                        $podId = $this->db->executeQuery($sql1);
+                    }
+                    
+                    // Making new row for tracking_pod table                                        
+                    $query4 = "SELECT id,tracking_id,pod_id FROM ".DB_PREFIX."tracking_pod WHERE tracking_id = '$trackingId' and pod_id = '$podId'";
+                    $res4 = $this->db->getOneRecord($query4);    
+                    $res4 = ($res4 != NULL) ? $res3 : array();
+                    if(count($res4) == 0)
+                    {
+                        $sql1 = "insert into ".DB_PREFIX."tracking_pod(tracking_id,pod_id)values( '$trackingId','$podId')";
+                        $this->db->executeQuery($sql1);
+                    }
+                                                                                
                     // Updating shipment_service table column tracking_code by latest status
                     $lastConsignmentStatusInfo = $consignmentStatus[count($consignmentStatus) - 1];
                     $lastConsignmentStatus = self::$consignmentStatus[$lastConsignmentStatusInfo->StatusCode];                    
                     $qToUShipSer = "UPDATE `".DB_PREFIX."shipment_service` 
-                            SET `tracking_code` = '".$lastConsignmentStatus."'                         
+                            SET `tracking_code` = '".$lastConsignmentStatus."',`status`='$lastConsignmentStatus',`load_identity`='$load_identity'                         
                             WHERE  `load_identity` =  '$load_identity'";              
                     $this->db->updateData($qToUShipSer);                    
                 }            
             }
         }        
+    }
+    
+    /**
+     * This function gives load_identity by consignment number
+     * @param type $consignmentNumber
+     * @return type
+     */
+    public function getLoadIdentityByConsignmentNo($consignmentNumber)
+    {
+        //Getting load_identity by consignment number
+        $query1 = "SELECT `load_identity` FROM ".DB_PREFIX."shipment_service WHERE label_tracking_number = '$consignmentNumber'";
+        $res = $this->db->getOneRecord($query1);         
+        $load_identity = ($res['load_identity'] != '') ? $res['load_identity'] : $consignmentNumber;
+        return $load_identity;
+    }
+    
+    /**
+     * This ticket give shipment_ticket on basis of delivery type and load identity
+     * @param type $deliveryType
+     * @param type $loadIdentity
+     * @return type
+     */
+    public function getShipmentTicket($deliveryType, $loadIdentity)
+    {
+        $query2 = "SELECT `shipment_ticket` FROM ".DB_PREFIX."shipment WHERE shipment_service_type = '$deliveryType' and instaDispatch_loadIdentity = '$loadIdentity'";
+        $res2 = $this->db->getOneRecord($query2);         
+        $shipment_ticket = $res2['shipment_ticket'];
+        return $shipment_ticket;
     }
    
 
