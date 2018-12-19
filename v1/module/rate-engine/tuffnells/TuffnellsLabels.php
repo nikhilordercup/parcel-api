@@ -25,11 +25,11 @@ class TuffnellsLabels extends Icargo
     {
         $tbname = DB_PREFIX . 'rateengine_labels';
         $postvalues = array(
-            'credential_info' => json_encode($postData->label->credentials),
-            'collection_info' => json_encode($postData->label->from),
-            'delivery_info' => json_encode($postData->label->to),
-            'package_info' => json_encode($postData->label->package),
-            'extra_info' => json_encode($postData->label->extra),
+            'credential_info' => json_encode($postData->credentials),
+            'collection_info' => json_encode($postData->from),
+            'delivery_info' => json_encode($postData->to),
+            'package_info' => json_encode($postData->package),
+            'extra_info' => json_encode($postData->extra),
             'insurance_info' => json_encode($postData->insurance),
             'constants_info' => json_encode($postData->constants),
             'billing_coounts' => json_encode($postData->billing_account),
@@ -37,7 +37,7 @@ class TuffnellsLabels extends Icargo
             'currency' => $postData->currency,
             'carrier' => $postData->carrier,
             'service_type' => $postData->service,
-            'labels' => isset($postData->label_options) ? $postData->label_options : "",
+            'labels' => isset($postData_options) ? $postData_options : "",
             'custom' => isset($postData->customs) ? $postData->customs : "",
             'account_number' => $postData->credentials->account_number,
             'reference_id' => $postData->extra->reference_id,
@@ -79,7 +79,7 @@ class TuffnellsLabels extends Icargo
 
     public function genrateBarcodeNumber($data, $lastid){
 
-        $postalcode = $data->label;
+        $postalcode = $data;
         $zipCode = $postalcode->to->zip;
         $postcode = $this->prep_postcode($zipCode);
         $explode = explode(' ', $postcode);
@@ -97,7 +97,7 @@ class TuffnellsLabels extends Icargo
 
         //Service Code
         $service_args = $this->tuffnelServiceType();
-        $key = array_keys(array_combine(array_keys($service_args), array_column($service_args, 'desc')),$data->label->service);
+        $key = array_keys(array_combine(array_keys($service_args), array_column($service_args, 'desc')),$data->service);
         $keyval = $key[0];
         $serviceTypeCode = $service_args[$keyval]['service_type_code'];
 
@@ -112,7 +112,7 @@ class TuffnellsLabels extends Icargo
         $ship_month = date('m',$ship_date);
         $shipDate = date('d',$ship_date);
         //$sequence_number = mt_rand(001, 9999);
-        $number_of_item = count($data->label->package);
+        $number_of_item = count($data->package);
         $padding_package_number = sprintf("%03d", $number_of_item);
         $barcode_number = $serviceTypeCode.$deliveryDepoNumber.$account_number.$ship_month.$shipDate.$formatted_sequence_number.$padding_package_number;
         $barnumber = preg_replace('/(?<=\d)\s+(?=\d)/', '', $barcode_number);
@@ -154,7 +154,7 @@ class TuffnellsLabels extends Icargo
         $this->barcode($vertical,$text, $size,'vertical',$code_type,false, $sizefactor);
 
         $specialInstruction = $data->extra->special_instruction;
-        $collectionAddress = $data->label;
+        $collectionAddress = $data;
         $toName = $collectionAddress->from->name;
         $toCompany = $collectionAddress->from->company;
         $toPhone = $collectionAddress->from->phone;
@@ -164,7 +164,7 @@ class TuffnellsLabels extends Icargo
         $toZip = $collectionAddress->from->zip;
         $colAddress = $toName.'<br />'.$toCompany.'<br />'.$toPhone.'<br />'.$toStreet1.'<br />'.$toStreet2.'<br />'.$toCity.'<br />'.$toZip;
 
-        $deliveryAddress = $data->label;
+        $deliveryAddress = $data;
         $fromName = $deliveryAddress->to->name;
         $fromCompany = $deliveryAddress->to->company;
         $fromPhone = $deliveryAddress->to->phone;
@@ -173,15 +173,16 @@ class TuffnellsLabels extends Icargo
         $fromCity = $deliveryAddress->to->city;
         $fromZip = $deliveryAddress->to->zip;
         $delAddress = $fromName.'<br />'.$fromCompany.'<br />'.$fromPhone.'<br />'.$fromStreet1.'<br />'.$fromStreet2.'<br />'.$fromCity.'<br />'.$fromZip;
-        $totalPackage = count($data->label->package);
-        $totalWeight = array_column($data->label->package, 'weight');
+        $totalPackage = count($data->package);
+        $totalWeight = array_column($data->package, 'weight');
 
-        $htmlParser = $twig->render('tuffnel_label_template.html', array('pageBreak'=>'Hello','labelData'=>$data->label->package,
+        $htmlParser = $twig->render('tuffnel_label_template.html', array('pageBreak'=>'Hello','labelData'=>$data->package,
                 'depot_code' => $deliveryDepotCode, 'total_weight' => array_sum($totalWeight), 'total_package' => $totalPackage,
                 'collection_address' => $colAddress, 'delivery_address' => $delAddress, 'special_instruction' => $specialInstruction,
                 'vertical' => $vertical, 'horizontal' => $horizontal, 'post_code' => $depoPostCode,
                 'delivery_depot_code' => $deliveryDepotCode, 'delivery_round' => $delivery_round,
-                'delivery_depot_number' => $deliveryDepotNumber, 'dispatchDate' => $data->ship_date, 'tel' => $fromPhone)
+                'delivery_depot_number' => $deliveryDepotNumber, 'dispatchDate' => $data->ship_date,
+                'tel' => $fromPhone,'loadIdentity'=>$data->loadIdentity)
         );
 
 
@@ -201,7 +202,7 @@ class TuffnellsLabels extends Icargo
         $pdfUrl = PDFURL.'/'.$uid.'/'.$uid.'.pdf';
         $arrayval = array(
             "label" => array(
-                "tracking_number" => '22222',
+                "tracking_number" => $data->loadIdentity,
                 "file_url" => $pdfUrl,
                 "accountnumber" => $data->credentials->account_number,
                 "accountstatus" => "nil",

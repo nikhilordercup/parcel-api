@@ -51,13 +51,14 @@ class Module_Coreprime_Api extends Icargo
     function _postRequest($data)
     {
         global $_GLOBAL_CONTAINER;
-      //  print_r(json_encode($data));exit;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
         }
+
         if (isset($data->label)) {
             $this->_isLabelCall = true;
-            return $this->doLabelCall($data);
+            $label=$this->doLabelCall($data);
+            return $label;
         }
         $pd = $this->filterServiceProvider($data);
         $finalPrice = [];
@@ -465,6 +466,7 @@ class Module_Coreprime_Api extends Icargo
                 $url = $ep['rate_endpoint'];
             }
         }
+
         $data_string = json_encode($data);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -520,15 +522,16 @@ class Module_Coreprime_Api extends Icargo
             $env = 'PROD';
         }
         $rateEngModel = new RateEngineModel();
-        $providerList = $rateEngModel->getProviderInfo('LABEL', $env);
-        $obj = json_decode($data);
+        $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'PROVIDER');
+        $obj = is_object ($data)?$data:json_decode($data);
         foreach ($providerList as $p) {
             if (strtolower($p['code']) == strtolower($obj->carrier)) {
                 if ($p['provider'] == 'Coreprime') {
                     return $this->postToCorePrime($data);
                 }
                 if ($p['provider'] == 'Local') {
-                    return $this->postToRateEngine($data);
+                    $this->_endpoints []=$p;
+                    return $this->postToRateEngine($p['provider'],$data);
                 }
             }
 

@@ -25,10 +25,14 @@ class Carrier{
 				//$response['ship_date'] = $data['shipment_required_service_date'];
 			}
 		} */
+        global $_GLOBAL_CONTAINER;
+        if(class_exists('Coreprime_' . ucfirst(strtolower($deliveryCarrier)))) {
+            $coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
+        }else{
+            $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
+        }
 
-		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($deliveryCarrier));
-
-		$carrierObj = new $coreprimeCarrierClass();
+		$carrierObj = new $coreprimeCarrierClass($this);
 
                 if( strtolower($deliveryCarrier) == 'dhl' ) {
                     $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
@@ -36,7 +40,7 @@ class Carrier{
                     $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
                 }
 
-
+                //print_r($shipmentInfo);exit;
                 if( $shipmentInfo['status'] == 'success' ) {
                     return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json']);
                 } else {
