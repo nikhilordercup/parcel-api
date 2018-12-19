@@ -33,11 +33,11 @@ class Process_Route
         }
         if(isset($param->latitude))
         {
-            $this->latitude = $param->latitude;
+            $this->latitude = ($param->latitude!='geo-location-not-found') ? $param->latitude : "0.000";
         }
         if(isset($param->longitude))
         {
-            $this->longitude = $param->longitude;
+            $this->longitude = ($param->longitude!='geo-location-not-found') ? $param->longitude : "0.000";
         }
         if(isset($param->shipment_route_id))
         {

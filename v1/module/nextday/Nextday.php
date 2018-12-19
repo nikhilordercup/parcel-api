@@ -493,6 +493,13 @@ final class Nextday extends Booking
                                         $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
                                     }
                                 }
+								
+								if((isset($services[0]->rate->total_tax)) && ($services[0]->rate->total_tax!=0)){
+									$service->taxes = (object)array();
+									$service->taxes->total_tax = 0;
+									$service->taxes->total_tax = number_format($services[0]->rate->total_tax, 2);
+									$service->taxes->tax_percentage = 20.00;
+								}
 
                                 $surchargeWithCcfPrice = 0;
                                 $surchargePrice = 0;
