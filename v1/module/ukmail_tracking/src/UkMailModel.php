@@ -12,6 +12,10 @@ class UkMailModel extends Singleton
         ,'4' =>  'OUTFORDELIVERY'
         ,'5' =>  'DELIVERYSUCCESS'
     );
+    
+    public static $PodDeliveryTypeCode = array(
+        'DT01' => 'signature'
+    );
     /**
      * This function update table icargo_carrier_user_token
      * @param type $username
@@ -175,14 +179,18 @@ class UkMailModel extends Singleton
                         $podId = $res3['pod_id'];
                     }
                     else
-                    {
-                        $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;                                                                                                
+                    {                       
+                        $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
+                        $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
+                        $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+                                
+                                                                                                                      
                         $sql1 = "insert into ".DB_PREFIX."shipments_pod
                         (
                             shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
                         )
                         values( 
-                            '$shipment_ticket','0','','','$podObj->PodDescription','$podObj->PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
+                            '$shipment_ticket','0','','','$PodDeliveryType','$PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
                             ,'0','$trackingId'       
                         )"; 
                         $podId = $this->db->executeQuery($sql1);
