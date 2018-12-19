@@ -5,7 +5,7 @@
  * Date: 03-12-2018
  * Time: 05:37 PM
  */
-
+namespace v1\module\RateEngine;
 class ServiceOptions
 {
     private $_serviceOptions = null;

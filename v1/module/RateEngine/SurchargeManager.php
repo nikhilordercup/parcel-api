@@ -5,7 +5,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
+namespace v1\module\RateEngine;
 /**
  * This class is responsible for all type of surcharge calculation.
  *
@@ -68,8 +68,8 @@ class SurchargeManager {
         $this->_transitData = $transitData;
         $this->_requestData = $request;
 
-        $date = new DateTime();
-        $match_date = new DateTime($request->ship_date);
+        $date = new \DateTime();
+        $match_date = new \DateTime($request->ship_date);
         $interval = $date->diff($match_date);
         if($interval->days == 0) {
             $this->_isSameDay=true;

@@ -9,11 +9,11 @@ class Module_Coreprime_Api extends Icargo
     private $_environment = array(
         "live" => array(
             "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImRldmVsb3BlcnNAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Njk5MzU0N30.cpm3XYPcLlwb0njGDIf8LGVYPJ2xJnS32y_DiBjSCGI",
-            "access_url" => "http://api.icargo.in/v1/rate-engine/getRate"
+            "access_url" => "http://api.icargo.in/v1/RateEngine/getRate"
         ),
         "stagging" => array(
             "authorization_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Im1hcmdlc2guc29uYXdhbmVAb3JkZXJjdXAuY29tIiwiaXNzIjoiT3JkZXJDdXAgb3IgaHR0cHM6Ly93d3cub3JkZXJjdXAuY29tLyIsImlhdCI6MTQ5Mzk2ODgxMX0.EJc4SVQXIwZibVuXFxkTo8UjKvH8S9gWyuFn9bsi63g",
-            "access_url" => "http://api.icargo.in/v1/rate-engine/getRate"
+            "access_url" => "http://api.icargo.in/v1/RateEngine/getRate"
         )
     );
 
@@ -22,7 +22,7 @@ class Module_Coreprime_Api extends Icargo
     function __construct($data)
     {
         if (!class_exists('RateEngineModel')) {
-            require_once '../rate-engine/RateEngineModel.php';
+            require_once '../RateEngine/RateEngineModel.php';
         }
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->modelObj = new Coreprime_Model_Api();

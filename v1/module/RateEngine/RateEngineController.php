@@ -1,8 +1,8 @@
 <?php
-
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'ExcelBuilder.php';
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'ExcelReader.php';
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'RateEngineModel.php';
+namespace v1\module\RateEngine;
+use v1\module\RateEngine\ExcelBuilder;
+use v1\module\RateEngine\ExcelReader;
+use v1\module\RateEngine\RateEngineModel;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -18,7 +18,7 @@ class RateEngineController {
 
     /**
      *
-     * @var ExcelBuilder
+     * @var \v1\module\RateEngine\ExcelBuilder
      */
     private $_excelBuilder;
     private $_excelReader;
@@ -31,7 +31,7 @@ class RateEngineController {
     //put your code here
     private function __construct() {
         $this->_excelBuilder = new ExcelBuilder();
-        $this->_rateEngineModel = new RateEngineModel;
+        $this->_rateEngineModel = new RateEngineModel();
         $this->_excelReader = new ExcelReader;
     }
 

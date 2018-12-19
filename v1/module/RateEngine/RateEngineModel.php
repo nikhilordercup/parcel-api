@@ -5,7 +5,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
+namespace v1\module\RateEngine;
 /**
  * Description of RateEngineModel
  *
@@ -19,7 +19,7 @@ class RateEngineModel
     //put your code here
     public function __construct()
     {
-        $this->_db = new DbHandler();
+        $this->_db = new \DbHandler();
     }
 
     public function getAllCountry()

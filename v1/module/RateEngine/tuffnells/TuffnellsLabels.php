@@ -1,10 +1,11 @@
 <?php
-require_once 'modal/TuffnellsModel.php';
+namespace v1\module\RateEngine\tuffnells;
+use v1\module\RateEngine\tuffnells\model\TuffnellsModel;
 use Dompdf\Adapter\CPDF;
 use Dompdf\Dompdf;
 use Dompdf\Exception;
 
-class TuffnellsLabels extends Icargo
+class TuffnellsLabels extends \Icargo
 {
 
 
@@ -18,7 +19,7 @@ class TuffnellsLabels extends Icargo
 
     public function getInstance()
     {
-        return new Rate_Engine_Modal();
+        return new TuffnellsModel();
     }
 
     public function tuffnellLabelData($postData)

@@ -1,4 +1,5 @@
 <?php
+namespace v1\module\RateEngine\tuffnells;
 
 class TuffnellsApi
 {

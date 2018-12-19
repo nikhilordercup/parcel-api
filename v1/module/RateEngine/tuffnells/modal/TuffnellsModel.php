@@ -1,12 +1,13 @@
 <?php
-class Rate_Engine_Modal{
+namespace v1\module\RateEngine\tuffnells\model;
+class TuffnellsModel{
 
     public static $_dbObj = NULL;
 
     public function __construct()
     {
         if(self::$_dbObj==null){
-            self::$_dbObj = new DbHandler();
+            self::$_dbObj = new \DbHandler();
         }
         $this->_db = self::$_dbObj;
     }
@@ -54,7 +55,7 @@ class Rate_Engine_Modal{
             }
 
             return $data;
-        }catch (PDOException $exception){
+        }catch (\PDOException $exception){
             echo $exception->getMessage();
             return false;
         }
@@ -66,12 +67,17 @@ class Rate_Engine_Modal{
         try{
             $stmt = $this->_db->getAllRecords($sql);
             return $stmt[0];
-        }catch(PDOException $exception){
+        }catch(\PDOException $exception){
             echo $exception->getMessage();
             return false;
         }
     }
 
+    /**
+     * @param $account_number
+     * @param $courier_id
+     * @return array|bool
+     */
     public function checkChildAcoountNumber($account_number, $courier_id){
         $sql = "SELECT id, account_number, customer_id, user_id, company_id, courier_id FROM ". DB_PREFIX ."child_account WHERE account_number IN('$account_number') AND courier_id = '$courier_id'";
         try{
@@ -86,7 +92,7 @@ class Rate_Engine_Modal{
              }else{
                  return array('status' => 'Not exist');
              }
-        }catch (PDOException $exception){
+        }catch (\PDOException $exception){
             echo $exception->getMessage();
             return false;
         }

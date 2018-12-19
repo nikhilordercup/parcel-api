@@ -41,6 +41,6 @@ CREATE TABLE IF NOT EXISTS `icargo_service_providers` (
 INSERT INTO `icargo_service_providers` (`id`, `provider`, `rate_endpoint`, `label_endpoint`, `auth_config`, `provider_type`, `app_env`) VALUES
 (1, 'Easypost', 'http://occore.ordercup.com/api/v1/rate', 'http://occore.ordercup.com/api/v1/rate', '', 'PROVIDER', 'DEV'),
 (2, 'Coreprime', 'http://occore.ordercup1.com/api/v1/rate', 'http://occore.ordercup1.com/api/v1/rate', '', 'ENDPOINT', 'DEV'),
-(3, 'Local', 'http://api.icargo.in/v1/rate-engine/getRate', 'http://api.icargo.in/v1/rate-engine/getRate', '', 'ENDPOINT', 'DEV'),
+(3, 'Local', 'http://api.icargo.in/v1/RateEngine/getRate', 'http://api.icargo.in/v1/RateEngine/getRate', '', 'ENDPOINT', 'DEV'),
 (4, 'Coreprime', 'http://occore.ordercup.com/api/v1/rate', 'http://occore.ordercup.com/api/v1/rate', '', 'ENDPOINT', 'PROD'),
-(5, 'Local', 'http://api.icargo.in/v1/rate-engine/getRate', 'http://api.icargo.in/v1/rate-engine/getRate', '', 'ENDPOINT', 'PROD');
+(5, 'Local', 'http://api.icargo.in/v1/RateEngine/getRate', 'http://api.icargo.in/v1/RateEngine/getRate', '', 'ENDPOINT', 'PROD');

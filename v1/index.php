@@ -38,17 +38,10 @@ require_once 'module/dashboard/dashboard.php';
 require_once 'module/dashboard/dashboard-api.php';
 //End Dashboard
 
-//Tuffnells
-require_once 'module/rate-engine/tuffnells/TuffnellsLabels.php';
-require_once 'module/rate-engine/tuffnells/TuffnellsApi.php';
-//End Tuffnells
-
 require_once 'module/configuration/GridConfiguration.php';
 require_once 'module/configuration/CustomFilterConfiguration.php';
 require_once 'module/driver/DriverController.php';
 require_once './module/chargebee/SubscriptionController.php';
-require_once './module/rate-engine/RateEngineController.php';
-require_once './module/rate-engine/RateApiController.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';

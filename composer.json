@@ -20,6 +20,7 @@
     "php-units-of-measure/php-units-of-measure": "^2.1",
     "twig/twig": "^2.0",
     "postmen/sdk-php": "^1.0",
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-pdo": "*"
   }
 }

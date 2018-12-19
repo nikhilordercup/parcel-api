@@ -1,13 +1,12 @@
 <?php
-
-require_once 'SurchargeManager.php';
-require_once 'ServiceOptions.php';
-require_once 'tuffnells/modal/TuffnellsModel.php';
+namespace v1\module\RateEngine;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
+use v1\module\RateEngine\tuffnells\TuffnellsLabels;
 
 /**
  * Description of RateApiController
@@ -39,7 +38,7 @@ class RateApiController
     {
         $app->post('/rate-engine/getRate', function () use ($app) {
             $r = json_decode($app->request->getBody());
-            $controller = new RateApiController;
+            $controller = new RateApiController();
             $controller->_requestData=$r;
             $date = date('Y-m-d');
             $match_date = date('Y-m-d', strtotime($r->ship_date));
@@ -194,11 +193,11 @@ class RateApiController
                         }
                         if (count($this->_responseData['rate'][$name][$k][$z])) {
                             $serviceOption = $this->_reateEngineModel->getServiceOption($this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id']);
-                            $serviceOptionManager = new ServiceOptions($request, $serviceOption);
+                            $serviceOptionManager = new \v1\module\RateEngine\ServiceOptions($request, $serviceOption);
                             if (!$serviceOptionManager->verifyRules()) {
                                 continue;
                             }
-                            $manager = new SurchargeManager();
+                            $manager = new \v1\module\RateEngine\SurchargeManager();
                             $manager->filterSurcharge($this->_responseData['surchargeList'][$name][$k][$z] ?? null, $transitData, $packages, $this->_responseData['rate'][$name][$k][$z][$key]['rate'], $request);
                             $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
                             $this->_responseData['rate'][$name][$k][$z][$key]['service_options'] = $serviceOptionManager->formatOptionForResponse();
