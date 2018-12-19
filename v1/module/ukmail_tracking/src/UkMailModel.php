@@ -16,8 +16,11 @@ class UkMailModel extends Singleton
     public static $PodDeliveryTypeCode = array(
         'DT01' => 'signature'
     );
+    
+    const UKMAIL = 2;
+    
     /**
-     * This function update table icargo_carrier_user_token
+     * This function update table carrier_user_token
      * @param type $username
      * @param type $authenticationKey
      */
@@ -45,7 +48,7 @@ class UkMailModel extends Singleton
     }
     
     /**
-     * This function save consignment tracking information into table icargo_ukmail_tracking and icargo_shipment_tracking
+     * This function save consignment tracking information into table ukmail_tracking and shipment_tracking
      * @param type $ConsignmentDetailInfo
      */
     public function saveTrackingInfo($ConsignmentDetailInfo)
@@ -210,7 +213,7 @@ class UkMailModel extends Singleton
                     $lastConsignmentStatusInfo = $consignmentStatus[count($consignmentStatus) - 1];
                     $lastConsignmentStatus = self::$consignmentStatus[$lastConsignmentStatusInfo->StatusCode];                    
                     $qToUShipSer = "UPDATE `".DB_PREFIX."shipment_service` 
-                            SET `tracking_code` = '".$lastConsignmentStatus."',`status`='$lastConsignmentStatus',`load_identity`='$load_identity'                         
+                            SET `tracking_code` = '".$lastConsignmentStatus."'
                             WHERE  `load_identity` =  '$load_identity'";              
                     $this->db->updateData($qToUShipSer);                    
                 }            
@@ -246,6 +249,44 @@ class UkMailModel extends Singleton
         return $shipment_ticket;
     }
    
+    /**
+     * This function gives array of shipments to be tracked
+     * @return Array
+     */
+    public function getShipmentToTrack()
+    {
+        $ukMailCarrierId = self::UKMAIL;
+        $query1 = "SELECT ss.id,ss.load_identity,ss.carrier,ss.`status`,ss.accountkey,ss.parent_account_key
+                   ,ss.label_tracking_number,ss.tracking_code,sh.company_id 
+                   FROM ".DB_PREFIX."shipment_service as ss
+                   
+                   JOIN ".DB_PREFIX."shipment AS sh
+                   ON ss.load_identity = sh.instaDispatch_loadIdentity
+                   AND sh.shipment_service_type = 'P'
 
+                   WHERE ss.carrier = $ukMailCarrierId 
+                   AND ss.accountkey != ''
+                   AND ss.parent_account_key != ''
+                   AND ss.`status` = 'success' 
+                   AND ss.tracking_code != 'DELIVERYSUCCESS'                       
+                   ";        
+        $shipments = $this->db->getAllRecords($query1);         
+        return $shipments;                    
+    }
+    
+    /**
+     * This function gives array of username and password for passed company and account
+     * @param Integer $companyId
+     * @param String $accoutNo
+     * @return Array
+     */
+    public function getAccountCredential($companyId, $accoutNo)
+    {
+        $query1 = "select username,password from ".DB_PREFIX."courier_vs_company
+                   where company_id = $companyId and account_number = '$accoutNo' 
+                   ";        
+        $credentials = $this->db->getAllRecords($query1);                         
+        return (count($credentials) > 0) ? $credentials[0]:array();
+    }
 }
 ?>

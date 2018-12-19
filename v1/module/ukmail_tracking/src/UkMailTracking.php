@@ -22,17 +22,23 @@ class UkMailTracking
     }
 
     public static function initRoutes($app){               
-        $app->post('/ukmailtracking', function() use ($app) {                                    
-           
-            //self::doLogin('test','test');
-            //self::doLogin(USERNAME, PASSWORD);
-            self::doTracking(USERNAME, PASSWORD,TOKEN,CONSIGNMENTNUMBER,CONSIGNMENTKEY);
-            //self::doTracking('malowany333@gmail.com', 'c78nx90i','','41400110000044',0);
-            
-            
+        $app->post('/ukmailtracking', function() use ($app) {                               
+            $ukMailModel = UkMailModel::getInstance();
+            $shipmentsToTrack = $ukMailModel->getShipmentToTrack(); 
+            if(count($shipmentsToTrack) > 0)
+            {                
+                foreach($shipmentsToTrack as $shipment)
+                { 
+                    $credentials = $ukMailModel->getAccountCredential($shipment['company_id'],$shipment['accountkey']);
+                    if(count($credentials) > 0)
+                    {                       
+                        self::doTracking($credentials['username'], $credentials['password'],'',$shipment['label_tracking_number'],0);
+                    }                                                            
+                }
+            }                                    
         });
     }
-    
+            
     public static function doLogin($username, $password)
     {                                                  
         $wsdl_url = 'https://api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';              
