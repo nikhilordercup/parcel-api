@@ -737,5 +737,10 @@ class Booking extends Icargo
     public function getBookedShipmentsCustomerInfo($customerId){
        return $this->modelObj->getBookedShipmentsCustomerInfo($customerId);
     }
-}           
+
+    public function _isInternalCarrier($carrier_code){
+       return $this->modelObj->isInternalCarrier($carrier_code);
+    }
+    
+}
 ?>

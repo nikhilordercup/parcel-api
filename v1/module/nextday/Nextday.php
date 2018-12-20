@@ -199,12 +199,13 @@ final class Nextday extends Booking
                 $this->getDhlServiceList($carrier_code, $lists);
                 break;
 
-            case 'PNP':
-                $this->getPNPServiceList($carrier_code, $lists);
-                break;
-                }
-            }
-
+                case 'PNP':
+                    $this->getPNPServiceList($carrier_code, $lists);
+                    break;
+		        default:
+                    $this->getPNPServiceList($carrier_code, $lists);
+              }
+           }
         return $data;
         }
 
@@ -909,12 +910,15 @@ final class Nextday extends Booking
         $carrier_code = $this->_param->service_opted->carrier_info->code;
         $rateDetail = (strtolower($carrier_code) == 'dhl') ? $this->_param->service_opted->rate : array();
         $this->commitTransaction();
+        $isInternalCarrier = $this->_isInternalCarrier($carrier_code);
         $labelHttpPath = Library::_getInstance()->base_url() . '/' . LABEL_FOLDER;
-        if ((strtolower($carrier_code) == 'pnp'))
-            {
-            $label_path = "$labelHttpPath/$loadIdentity/pnp/$loadIdentity.pdf";
+
+        
+        if (($isInternalCarrier==='YES'))
+        {
+            $label_path = "$labelHttpPath/$loadIdentity/$carrier_code/$loadIdentity.pdf";
             $customLabel = new Custom_Label();
-            $customLabel->createLabel($loadIdentity);
+            $customLabel->createLabel($loadIdentity,$carrier_code);
             $labelData = array(
                 "label_file_pdf" => $label_path
             );
@@ -967,8 +971,9 @@ final class Nextday extends Booking
                 }
             }
 
-        if((strtolower($carrier_code) != 'pnp') && $this->_param->manualbookingreference=='')
-            {
+
+        if(($isInternalCarrier ==='NO') && $this->_param->manualbookingreference=='')
+        {
             $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
             if ($labelInfo['status'] == 'success')
                 {
