@@ -147,6 +147,7 @@ class Pickup extends Icargo
             "close_time" => $pickupData['latest_pickup_time'],
             "number_of_pieces" => $pickupData['package_quantity'],
             "instructions" => $pickupData['instruction_todriver'],
+			"type_codes" => "S"
         );
         $pickupRequest['pickup_contact'] = array (
             "name" => $pickupData['name'],

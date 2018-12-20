@@ -28,7 +28,7 @@ class Module_Addressbook_Addressbook extends Icargo{
             if($addresses["status"]=="success")
             {
 		            $container = json_decode(json_encode((array)$addresses['data']), TRUE);
-				        $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
+				    $addresses = $pcaLookup->lookup($param->search_postcode,$param->country_code,$container[0]['id'][0]);
                 $records = array();
                 foreach($addresses["data"] as $key => $list)
                 {
@@ -38,6 +38,7 @@ class Module_Addressbook_Addressbook extends Icargo{
                         "street" => $list["street"]
                     ));
                 }
+				
                 $response = array("status"=>"success","data"=>$records,"origin"=>"api");
                 return $response;
 			}
@@ -167,7 +168,7 @@ class Module_Addressbook_Addressbook extends Icargo{
 			foreach($addresses as $key => $list)
                 {
 					array_push($records, array(
-						"address" => $list["address_line1"].", ".$list["address_line2"],
+						"address" => $list["company_name"].", ".$list["first_name"].", ".$list["address_line1"].", ".$list["address_line2"].", ".$list["postcode"],
 						"id" => $list["id"],
 						"street" => $list["city"]
 					));
@@ -198,12 +199,13 @@ class Module_Addressbook_Addressbook extends Icargo{
 			"country"   => (isset($param->country)) ? $param->country : "",
 			"name"      => (isset($param->name)) ? $param->name : "",
 			"email"     => (isset($param->address_email)) ? $param->address_email : "",
-			"company_id"=> (isset($param->company_name)) ? $param->company_name : "",
+			"company_id"=> (isset($param->company_name)) ? $param->company_name : ""
 		);
 
 		$commonObj = new Common();
 		$addressBookStr = $commonObj->getAddressBookSearchString($addressBookParam);
 		$record = Addressbook_Model::_getInstance()->searchAddressByAddressStringAndAddressId($param->address_id, $addressBookStr);
+
 		if($record){
 			$response = array("address_status"=>"not changed");
 		   //echo "record found";
@@ -219,7 +221,6 @@ class Module_Addressbook_Addressbook extends Icargo{
 		foreach($records as $record){
 			$data = strtolower(preg_replace('/\s+/','',$record['search_string']));
 			$update = Addressbook_Model::_getInstance()->updateAddressById($record['id'],$data);
-			print_r($update);
 		}
 	}
 

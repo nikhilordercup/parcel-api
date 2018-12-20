@@ -10,6 +10,7 @@ final class Coreprime_Dhl extends Carrier {
 
     public function __construct() {
         $this->modelObj = new Booking_Model_Booking();
+		$this->libObj = new Library();
     }
 
     private function _getLabel($loadIdentity, $json_data) {
@@ -17,6 +18,7 @@ final class Coreprime_Dhl extends Carrier {
         $label = $obj->_postRequest("label", $json_data);
 
         $labelArr = json_decode($label);
+		//print_r($labelArr);die;
         if( isset($labelArr->label) ) {
             $pdf_base64 = $labelArr->label->base_encode;
             $labels = explode(",", $labelArr->label->file_url);
@@ -211,6 +213,7 @@ final class Coreprime_Dhl extends Carrier {
         $response = $this->_getLabel($loadIdentity, json_encode($response));
         if( !$paperLessTrade && ($response['status'] != 'error') && $allData->dutiable ) {
             $customResp = $this->_getCustomInvoice($allData, $loadIdentity, $response);
+			$response['invoice_created'] = $customResp['invoice_created'];
         } else {
             unset($response['label_detail']);
         }
@@ -345,14 +348,51 @@ final class Coreprime_Dhl extends Carrier {
         unset($dompdf);
 
         $labelFilePath = $labelDetail['file_loc'];
+		
+		//label and invoice files
+		
+		//$filenames = array($label_path . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf',$invoiceName);
+		//$outFile = uniqid().'.pdf'; 	
+		
+		/* if ($filenames) {
+			try{
+				$config = array('mode' => 'c','margin_left' => 15,'margin_right' => 0,'margin_top' => 5,'format' => 'A4','orientation' => 'L');
+				$mpdf = new \Mpdf\Mpdf($config);
+				$filesTotal = sizeof($filenames);
+				$fileNumber = 1;
+				$mpdf->SetImportUse();
+				if (!file_exists($label_path.$loadIdentity.'/dhl/'.$outFile)) {
+					$handle = fopen($label_path.$loadIdentity.'/dhl/'.$outFile, 'w');
+					fclose($handle);
+				}
+				foreach ($filenames as $fileName) {
+					if (file_exists($fileName)) {
+						$pagesInFile = $mpdf->SetSourceFile($fileName);
+						for ($i = 1; $i <= $pagesInFile; $i++) {
+							$tplId = $mpdf->ImportPage($i);
+							$mpdf->UseTemplate($tplId);
+							if (($fileNumber < $filesTotal) || ($i != $pagesInFile)) {
+								$mpdf->WriteHTML('<pagebreak />');
+							}
+						}
+					}
+					$fileNumber++;
+				}	
+				$mpdf->Output($label_path.$loadIdentity.'/dhl/'.$outFile);
+			}catch(Exception $e){
+                print_r($e);die;
+            }
+		
+		} */
 
-        $pdf = new ConcatPdf();
+         /*$pdf = new ConcatPdf();
         $pdf->setFiles(array( $labelFilePath, $invoiceName));
         $pdf->concat();
-        $pdf->Output( $label_path . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf','F');
-        $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
+        $pdf->Output( $label_path . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf','F'); */
+		
+        $fileUrl = $this->libObj->get_api_url();
 
-        return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf');
+        return array("status" => "success", "message" => "label generated successfully", "file_path" => $fileUrl . "/label/" . $loadIdentity . '/dhl/' . $loadIdentity.'.pdf','invoice_created'=>1);
 
     }
 

@@ -23,8 +23,9 @@ class Module_Coreprime_Api extends Icargo
         $this->customerccf = new CustomerCostFactor();
 
         $this->apiConn = "stagging";
-    		//if(ENV=='live')
-    		    $this->apiConn = "live";
+        $this->apiConn = "live";  
+		/* if(ENV=='live')
+			$this->apiConn = "live"; */
 
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];
