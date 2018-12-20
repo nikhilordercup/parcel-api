@@ -202,6 +202,8 @@ final class Nextday extends Booking
                 case 'PNP':
                     $this->getPNPServiceList($carrier_code, $lists);
                     break;
+		default:
+                    $this->getPNPServiceList($carrier_code, $lists);
             }
         }
 
