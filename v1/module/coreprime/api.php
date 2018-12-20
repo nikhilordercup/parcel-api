@@ -21,9 +21,6 @@ class Module_Coreprime_Api extends Icargo
 
     function __construct($data)
     {
-        if (!class_exists('RateEngineModel')) {
-            require_once '../RateEngine/RateEngineModel.php';
-        }
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->modelObj = new Coreprime_Model_Api();
         $this->customerccf = new CustomerCostFactor();
@@ -72,7 +69,7 @@ class Module_Coreprime_Api extends Icargo
             $lcData = $data;
             $lcData['carriers'] = $pd['Local'];
             $localRate = $this->postToRateEngine('Local', $lcData);
-
+           // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
         }
 //        exit(json_encode($finalPrice));
@@ -445,7 +442,7 @@ class Module_Coreprime_Api extends Icargo
         if ($this->_isLabelCall) {
             $callType = 'LABEL';
         }
-        $rateEngModel = new RateEngineModel();
+        $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
         $providerList = $rateEngModel->getProviderInfo($callType, $env);
         $this->_endpoints = $providerList;
         $filteredData = [];
@@ -509,7 +506,7 @@ class Module_Coreprime_Api extends Icargo
     public function mergePrice(&$finalArray, $price)
     {
         if (trim($price) === "") return false;
-        $price = json_decode($price);//print_r($price);
+        $price = json_decode($price);//print_r($price->rate);exit;
         foreach ($price->rate as $k => $p) {
             $finalArray['rate'][$k] = $p;
         }

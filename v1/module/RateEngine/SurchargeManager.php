@@ -224,10 +224,17 @@ class SurchargeManager {
          * Vol Weight=L*H*W/Params
          * Params for DHL 5000
          */
-        $totalWeight = $this->calculateWeight();
-        $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('overWeight',$totalWeight);
-        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
-        $this->_countedSurcharge["overweight_surcharge"] = $finalSurcharge;
+        $extraWeight=0;
+        if($this->_surcharge->commonData->applyPer=='per_item'){
+            $extraWeight=$this->calculateBoxWeight($this->_surcharge->overWeight->freeWeight);
+        }else{
+            $totalWeight = $this->calculateWeight();
+            $allowedWeight=count($this->_packages)*$this->_surcharge->overWeight->freeWeight;
+            $extraWeight=$totalWeight-$allowedWeight;
+        }
+        $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('overWeight',$extraWeight);
+//        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
+        $this->_countedSurcharge["overweight_surcharge"] = $this->overUnitSlabCalculator($extraWeight,$rate);
     }
 
     /**
@@ -235,11 +242,14 @@ class SurchargeManager {
      * @param $rate
      */
     public function extraBoxSurcharge($rate) {
-
         $packageCount = count($this->_packages);
+        $allowedBox=$this->_surcharge->extraBox->freeBox;
+        $extraBox=$packageCount-$allowedBox;
+//        echo $extraBox;
+//        print_r($this->_surcharge);exit;
         $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('extraBox',$packageCount);
-        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
-        $this->_countedSurcharge["extrabox_surcharge"] = $finalSurcharge;
+//        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
+        $this->_countedSurcharge["extrabox_surcharge"] = $this->overUnitSlabCalculator($extraBox,$rate,'extraBox');
     }
 
     /**
@@ -380,6 +390,17 @@ class SurchargeManager {
         }
         return $totalWeight;
     }
+    public function calculateBoxWeight($allowedWeight) {
+        $totalWeight = 0;
+        foreach ($this->_packages as $p) {
+            $volWeight = ($p->length * $p->width * $p->height) / 4000;
+            $weight = $p->weight;
+            $realWeight = ($weight > $volWeight) ? $weight : $volWeight;
+            $extra=$realWeight-$allowedWeight;
+            $totalWeight += ($extra>0)?$extra:0;
+        }
+        return $totalWeight;
+    }
 
     public function getWeightSurchargeRate($weight) {
         $rate = 0;
@@ -399,7 +420,7 @@ class SurchargeManager {
         return $rate;
     }
     public function getOverUnitSurcharge($surchargeType,$unit){
-        $rate = 0;echo $unit;
+        $rate = 0;
         foreach ($this->_surcharge->{$surchargeType} as $item){
             if(!isset($item->from) || $item->from <= 0){
                 continue;
@@ -417,6 +438,37 @@ class SurchargeManager {
      */
     public function getAppliedSurcharge() {
         return $this->_countedSurcharge;
+    }
+
+    /**
+     * Overweight and Extra Box surcharge calculation between different slabs
+     * @param $extraUnit
+     * @param $type string extra unit type
+     * @return int
+     */
+    public function overUnitSlabCalculator($extraUnit,$rate,$type='overWeight'){
+        $charge=0;
+        foreach ($this->_surcharge->{$type} as $slab){
+            if($extraUnit<1 || !isset($slab->from)){
+                break;
+            }
+            $chargeable=0;
+            if($extraUnit >= $slab->to){
+                $chargeable=$slab->to;
+            }else{
+                $chargeable=$extraUnit;
+            }
+            $extraUnit -=$chargeable;
+            $unit=$slab->unit??1;
+            $chargeableUnit=($chargeable%$unit>0)?($chargeable/$unit)+1:$chargeable/$unit;
+            if($this->_surcharge->commonData->factor=='constant'){
+                $price=$slab->charge;
+            }else{
+                $price=($slab->charge/100)*$rate['rate'];
+            }
+            $charge += $chargeableUnit*$price;
+        }
+        return $charge;
     }
 
 }

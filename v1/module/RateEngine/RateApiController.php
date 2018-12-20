@@ -116,7 +116,6 @@ class RateApiController
             if (count($carrier["fromZone"]) && count($carrier["toZone"])) {
                 $rates = $this->_reateEngineModel->searchPriceForZone(
                     $param['zone'][$name]["fromZone"]['carrier_id'], $param['zone'][$name]["fromZone"]['zone_id'], $param['zone'][$name]["toZone"]['zone_id']);
-//                print_r($rates);exit;
                 foreach ($rates as $k => $r) {
                     $result = array_search($r['service_code'], $this->_requestedServices[$r['account_number']]);
                     if (gettype($result) == 'integer' && $result >= 0) {

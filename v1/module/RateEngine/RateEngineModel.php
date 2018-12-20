@@ -253,7 +253,7 @@ class RateEngineModel
         if ($zip == trim($zip) && strpos($zip, ' ') == false) {
             $zip = substr_replace($zip, ' ', -3, -3);
         }
-        foreach ($rec as $r) {//print_r($r);
+        foreach ($rec as $r) {
             if(isset($r['level']) && $r['level']!='Post Code'){
                 continue;
             }
