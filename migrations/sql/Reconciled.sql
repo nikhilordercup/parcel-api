@@ -39,3 +39,6 @@ ADD COLUMN `company_id` INT(11) NULL DEFAULT 0 AFTER `status`;
 
 ALTER TABLE `icargo_configuration` 
 ADD COLUMN `reconciled_buffer_amt` FLOAT(10,2) NULL DEFAULT 0.00 AFTER `url`;
+
+ALTER TABLE `icargo_accountbalancehistory` 
+CHANGE COLUMN `payment_for` `payment_for` ENUM('RECHARGE', 'BOOKSHIP', 'PAYINVOICE', 'VOUCHER', 'PRICECHANGE', 'CANCELSHIP', 'RECONCILED', 'NONE') NOT NULL DEFAULT 'NONE' ;
