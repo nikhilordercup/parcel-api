@@ -2092,6 +2092,18 @@ public function getCarriersofCompany($param){
         }
         return $returndata;
 }
+public function getUniqueCarriersofCompany($param){
+        $returndata          = array();
+        if ($param->company_id != 0) {
+            $returndata = $this->modelObj->getCarriersofCompany($param->company_id);
+            $tempdata = array();
+            foreach($returndata as $data){
+              $tempdata[$data['courier_id']] =  $data;
+            }
+             
+        }
+        return $tempdata;
+}
 public function getNextDayCarriersofCompany($param){
         $returndata          = array();
         if ($param->company_id != 0) {

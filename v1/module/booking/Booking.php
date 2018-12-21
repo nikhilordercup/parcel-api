@@ -378,7 +378,8 @@ class Booking extends Icargo
             $service_data["transit_distance_text"] = "NA";
 
             $service_data["transit_time_text"] = "NA";
-            $service_data["carrier"] = $serviceOpted->carrier_info->carrier_id;
+            //$service_data["carrier"] = $serviceOpted->carrier_info->carrier_id;
+            $service_data["carrier"] = $serviceOpted->carrier_info->account_id;
             $service_data["isInvoiced"] = "NO";
 
             $service_data["invoice_reference"] = "";
@@ -454,8 +455,8 @@ class Booking extends Icargo
         $price_breakdown["ccf_price"]     = $data->rate->info->price;
         $price_breakdown["price"]         = isset( $data->rate->info->price_with_ccf ) ? $data->rate->info->price_with_ccf : '0';
         $price_breakdown["service_id"]    = $data->rate->info->service_id;
-        $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
-
+        //$price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
+        $price_breakdown["carrier_id"]    = $data->carrier_info->account_id;
         $status = $this->modelObj->saveShipmentPrice($price_breakdown);
         if($status>0){
             //save surcharges
@@ -501,7 +502,8 @@ class Booking extends Icargo
                         $price_breakdown["version"] = $price_version;
                         $price_breakdown["api_key"] = "taxes";
                         $price_breakdown["inputjson"] = json_encode(array('originnal_tax_amt'=>$item));
-                        $price_breakdown["carrier_id"] = $data->carrier_info->carrier_id;
+                        //$price_breakdown["carrier_id"] = $data->carrier_info->carrier_id;
+                        $price_breakdown["carrier_id"]    = $data->carrier_info->account_id;
                     }elseif($key=='tax_percentage'){
                         $price = number_format((($price_without_tax *$item)/100),2,'.','');
                         $basetaxprice = number_format((($carriertotalpriceWithouttax *$item)/100),2,'.','');
