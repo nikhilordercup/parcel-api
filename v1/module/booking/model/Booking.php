@@ -664,5 +664,4 @@ class Booking_Model_Booking
     }
 	
 }
-
 ?>
