@@ -210,11 +210,18 @@ class allShipments extends Icargo
                     $data['action'] = 'sameday';
                     if (array_key_exists('P', $innerval['SAME'])) {
                         foreach ($innerval['SAME']['P'] as $pickupkey => $pickupData) {
+							$carrier_icon = $pickupData['carrier_icon'];
+							if(!$carrier_icon){
+								//get icon by carrier code
+								$carrier_icon = $this->modelObj->getCarrierIconByCode($pickupData['shipment_carrier']);
+							}
+							$data['carrier_icon']       = $carrier_icon;
                             $data['customer']           = $pickupData['shipment_customer_name'];
                             $data['account']            = $pickupData['shipment_customer_account'];
                             $data['service']            = $pickupData['shipment_service_name'];
                             $data['carrier']            = $pickupData['carrier'];
-							              $data['carrier_icon']       = $pickupData['carrier_icon'];
+							$data['carrier_code']= $pickupData['shipment_carrier'];
+							//$data['carrier_icon']       = $pickupData['carrier_icon'];
                             $data['amount']             = $pickupData['shipment_customer_price'];
                             $data['booked_by']          = $pickupData['booked_by'];
                             $data['isInvoiced']         = $pickupData['isInvoiced'];
@@ -225,8 +232,8 @@ class allShipments extends Icargo
                             $data['collectionpostcode'] = $pickupData['shipment_postcode'];
                             $data['collection']         = $pickupData['shipment_postcode'] . ', ' . $pickupData['shipment_customer_country'];
                             $data['pickup_date']        = Library::_getInstance()->date_format($pickupData['shipment_required_service_date']) . '  ' . Library::_getInstance()->time_format($pickupData['shipment_required_service_starttime']);
-              							$data['create_date']        = Library::_getInstance()->date_format($pickupData['shipment_create_date']);
-              							$data['cancel_status']      = $pickupData['cancel_status'];
+              				$data['create_date']        = Library::_getInstance()->date_format($pickupData['shipment_create_date']);
+              				$data['cancel_status']      = $pickupData['cancel_status'];
                             $data['collection_reference'] = "";
                             $data['shipment_status']    = $pickupData['current_status'];
                             $data['customer_reference1']    = $pickupData['customer_reference1'];
@@ -262,12 +269,20 @@ class allShipments extends Icargo
                             }else{
                                 $collectionReference = "";
                             }
+							
+							$carrier_icon = $pickupData['carrier_icon'];
+							if(!$carrier_icon){
+								//get icon by carrier code
+								$carrier_icon = $this->modelObj->getCarrierIconByCode($pickupData['shipment_carrier']);
+							}
+							$data['carrier_icon']       = $carrier_icon;
 
                             $data['customer']    = $pickupData['shipment_customer_name'];
                             $data['account']     = $pickupData['shipment_customer_account'];
                             $data['service']     = $pickupData['shipment_service_name'];
-                            $data['carrier']	   = $pickupData['carrier'];
-							              $data['carrier_icon']= $pickupData['carrier_icon'];//http://localhost/projects/icargo/.$pickupData[carrier_icon];
+                            $data['carrier']	 = $pickupData['carrier'];
+							$data['carrier_code']= $pickupData['shipment_carrier'];
+							//$data['carrier_icon']= $pickupData['carrier_icon'];
                             $data['amount']      = $pickupData['shipment_customer_price'];
                             $data['booked_by']   = $pickupData['booked_by'];
                             $data['isInvoiced']  = $pickupData['isInvoiced'];
@@ -363,6 +378,8 @@ class allShipments extends Icargo
 
         $basicInfo = array();
         if (count($shipmentsInfoData) > 0) {
+			$labelArr = json_decode($shipmentsInfoData[0]['label_json']);
+			$collectionjobnumber = isset($labelArr->label->collectionjobnumber) ? $labelArr->label->collectionjobnumber : 'NA';
             $basicInfo['totaldrop']            = count($shipmentsInfoData);
             $basicInfo['customer']             = $shipmentsInfoData[0]['customer'];
             $basicInfo['service']              = $shipmentsInfoData[0]['service'];
@@ -371,7 +388,8 @@ class allShipments extends Icargo
             $basicInfo['carrier']              = $shipmentsInfoData[0]['carrier'];
             $basicInfo['carriername']          = $shipmentsInfoData[0]['carriername'];
             $basicInfo['reference']            = $shipmentsInfoData[0]['reference'];
-            $basicInfo['carrierreference']     = $shipmentsInfoData[0]['carrierreference'];
+            $basicInfo['carrierreference']     = $collectionjobnumber;
+			$basicInfo['tracking_number']      = $shipmentsInfoData[0]['carrierreference'];
             $basicInfo['carrierbillingacount'] = $shipmentsInfoData[0]['carrierbillingacount'];
             $basicInfo['chargeablevalue']      = $shipmentsInfoData[0]['chargeablevalue'];
 

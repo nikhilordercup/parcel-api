@@ -130,7 +130,6 @@ class View_Support extends Icargo{
         $temp = array();
 
         $records = $this->modelObj->getActiveRoute($this->company_id);
-
         foreach($records as $key => $record){
             $shipmentData = $this->modelObj->getAssignRouteShipmentDetailsByShipmentRouteId($this->company_id, $record['shipment_route_id'], $record["driver_id"]);
             if(count($shipmentData)>0){
@@ -144,7 +143,8 @@ class View_Support extends Icargo{
             $temp[$record['shipment_route_id']]['info']['assign_driver'] = $record["driver_id"];
             $temp[$record['shipment_route_id']]['info']['route_name'] = $record["route_name"];
             $temp[$record['shipment_route_id']]['info']['route_status'] = $record["status"];
-            $temp[$record['shipment_route_id']]['info']['start_time'] = date("h:i A",strtotime($record['assign_start_time']));
+			$temp[$record['shipment_route_id']]['info']['start_time'] = date("d/m/y h:i",strtotime($record['assign_date_time']));
+            //$temp[$record['shipment_route_id']]['info']['start_time'] = date("h:i A",strtotime($record['assign_start_time']));
             $temp[$record['shipment_route_id']]['info']['post_id'] = $record['firebase_id'];
 
 
@@ -1052,6 +1052,7 @@ class View_Support extends Icargo{
 
 		$updatedRoute['driver_id']         = $driverid;
         $updatedRoute['assign_start_time'] = date("H:i:s", strtotime($start_time));
+		$updatedRoute['assign_date_time'] = date("Y-m-d H:i:s", strtotime($start_time));
         $updatedRoute['is_active']         = 'Y';
         $updatedRoute['status']            = '1';
 		$condition        = "shipment_route_id = '".$shipment_route_id."'";

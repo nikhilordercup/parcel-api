@@ -444,7 +444,7 @@ final class Nextday extends Booking
         }
     }
 
-    /*     * **********DHL Service list (Start from Here) ********* */
+    /************DHL Service list (Start from Here)**********/
     private
     function getDhlServiceList($carrier_code, $lists)
     {
@@ -458,6 +458,7 @@ final class Nextday extends Booking
                     {
                         if (!isset($services[0]->rate->error))
                         {
+							$services = $this->calculateSurchargesAndBasePrice($services);/**surcharges and base price calculation**/
                             $ratePrice = $services[0]->rate->weight_charge;
                             $accountId = isset($this->carrierList[$accountNumber]["account_id"]) ? $this->carrierList[$accountNumber]["account_id"] : $this->carrierList[$accountNumber]["carrier_id"];
                             $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $ratePrice, $accountId, $this->_param->customer_id, $this->_param->company_id);
@@ -480,19 +481,6 @@ final class Nextday extends Booking
                                         "message" => $service->rate->error
                                     );
                                 }
-
-                                if (isset($service->taxes))
-                                {
-                                    if (isset($service->taxes->total_tax))
-                                    {
-                                        $service->taxes->total_tax = number_format($service->taxes->total_tax, 2);
-                                    }
-
-                                    if (isset($service->taxes->tax_percentage))
-                                    {
-                                        $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
-                                    }
-                                }
 								
 								if((isset($services[0]->rate->total_tax)) && ($services[0]->rate->total_tax!=0)){
 									$service->taxes = (object)array();
@@ -510,10 +498,11 @@ final class Nextday extends Booking
                                 {
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice = 0;
-                                    isset($service->rate->fuel_surcharge) ? (@$services[$key5]->surcharges->fuel_surcharge = $service->rate->fuel_surcharge) : '';
-                                    isset($service->rate->remote_area_delivery) ? (@$services[$key5]->surcharges->remote_area_delivery = $service->rate->remote_area_delivery) : '';
-                                    isset($service->rate->insurance_charge) ? (@$services[$key5]->surcharges->insurance_charge = $service->rate->insurance_charge) : '';
-                                    isset($service->rate->over_weight_charge) ? (@$services[$key5]->surcharges->over_weight_charge = $service->rate->over_weight_charge) : '';
+									/*isset($service->rate->fuel_surcharge) ? (@$services[$key5]->surcharges->fuel_surcharge = $service->rate->fuel_surcharge) : '';
+									isset($service->rate->remote_area_delivery) ? (@$services[$key5]->surcharges->remote_area_delivery = $service->rate->remote_area_delivery) : '';
+									isset($service->rate->insurance_charge) ? (@$services[$key5]->surcharges->insurance_charge = $service->rate->insurance_charge) : '';
+									isset($service->rate->over_weight_charge) ? (@$services[$key5]->surcharges->over_weight_charge = $service->rate->over_weight_charge) : '';*/
+									
                                     if (isset($service->surcharges))
                                     {
                                         foreach($service->surcharges as $surcharge_code => $surcharge_price)
@@ -689,8 +678,6 @@ final class Nextday extends Booking
         $this->collection_postcode = $this->_param->collection->$key->postcode;
 
         $this->_setPostRequest();
-
-        //print_r($this->data); die;
 
         if ($this->data["status"] == "success")
         {
@@ -1336,4 +1323,71 @@ final class Nextday extends Booking
             "availiable_balence" => $available_credit['available_credit']
         );
     }
+	
+	public function calculateSurchargesAndBasePrice($services){
+	 foreach($services as $key => $service)
+		{
+			$services[$key]->surcharges = (object)array();
+			if((isset($services[0]->rate->total_tax)) && ($services[0]->rate->total_tax!=0)){			
+				if(isset($service->rate->fuel_surcharge)){
+					$service->rate->fuel_surcharge = ($service->rate->fuel_surcharge/6)*5;
+					$service->rate->fuel_surcharge = number_format($service->rate->fuel_surcharge,2);
+					$services[$key]->surcharges->fuel_surcharge = $service->rate->fuel_surcharge;
+				}else{
+					$services[$key]->surcharges->fuel_surcharge = '';
+				}
+				if(isset($service->rate->remote_area_delivery)){
+					$service->rate->remote_area_delivery = ($service->rate->remote_area_delivery/6)*5;
+					$service->rate->remote_area_delivery = number_format($service->rate->remote_area_delivery,2);
+					$services[$key]->surcharges->remote_area_delivery = $service->rate->remote_area_delivery;
+				}else{
+					$services[$key]->surcharges->remote_area_delivery = '';
+				}
+				if(isset($service->rate->insurance_charge)){
+					$service->rate->insurance_charge = ($service->rate->insurance_charge/6)*5;
+					$service->rate->insurance_charge = number_format($service->rate->insurance_charge,2);
+					$services[$key]->surcharges->insurance_charge = $service->rate->insurance_charge;
+				}else{
+					$services[$key]->surcharges->insurance_charge = '';
+				}
+				if(isset($service->rate->over_weight_charge)){
+					$service->rate->over_weight_charge = ($service->rate->over_weight_charge/6)*5;
+					$service->rate->over_weight_charge = number_format($service->rate->over_weight_charge,2);
+					$services[$key]->surcharges->over_weight_charge = $service->rate->over_weight_charge;
+				}else{
+					$services[$key]->surcharges->over_weight_charge = '';
+				}
+				
+				$service->rate->total_surcharge = $service->rate->fuel_surcharge + $service->rate->remote_area_delivery + $service->rate->insurance_charge + $service->rate->over_weight_charge;
+				$service->rate->weight_charge_with_tax = $service->rate->weight_charge;
+				$service->rate->weight_charge = $service->rate->weight_charge - ($service->rate->total_surcharge + $service->rate->total_tax);
+			}else{
+				if(isset($service->rate->fuel_surcharge)){
+					$service->rate->fuel_surcharge = number_format($service->rate->fuel_surcharge,2);
+					$services[$key]->surcharges->fuel_surcharge = $service->rate->fuel_surcharge;
+				}else{
+					$services[$key]->surcharges->fuel_surcharge = '';
+				}
+				if(isset($service->rate->remote_area_delivery)){
+					$service->rate->remote_area_delivery = number_format($service->rate->remote_area_delivery,2);
+					$services[$key]->surcharges->remote_area_delivery = $service->rate->remote_area_delivery;
+				}else{
+					$services[$key]->surcharges->remote_area_delivery = '';
+				}
+				if(isset($service->rate->insurance_charge)){
+					$service->rate->insurance_charge = number_format($service->rate->insurance_charge,2);
+					$services[$key]->surcharges->insurance_charge = $service->rate->insurance_charge;
+				}else{
+					$services[$key]->surcharges->insurance_charge = '';
+				}
+				if(isset($service->rate->over_weight_charge)){
+					$service->rate->over_weight_charge = number_format($service->rate->over_weight_charge,2);
+					$services[$key]->surcharges->over_weight_charge = $service->rate->over_weight_charge;
+				}else{
+					$services[$key]->surcharges->over_weight_charge = '';
+				}
+			}
+		}	
+		return $services;
+	}
 }
