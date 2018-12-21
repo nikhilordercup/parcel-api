@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipment_route` ADD `assign_date_time` DATETIME NULL DEFAULT NULL COMMENT 'date time chosen from calendar while assigning route to driver' AFTER `assign_start_time`;
