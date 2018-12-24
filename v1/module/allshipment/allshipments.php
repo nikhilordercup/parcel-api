@@ -210,6 +210,7 @@ class allShipments extends Icargo
                     $data['action'] = 'sameday';
                     if (array_key_exists('P', $innerval['SAME'])) {
                         foreach ($innerval['SAME']['P'] as $pickupkey => $pickupData) {
+							$data['carrier_amount'] = $this->modelObj->getCarrierPriceByJobIdentityAndVersion($data['job_identity'],$pickupData['price_version']);
 							$carrier_icon = $pickupData['carrier_icon'];
 							if(!$carrier_icon){
 								//get icon by carrier code
@@ -243,6 +244,8 @@ class allShipments extends Icargo
                             $data['tracking_no']        = $pickupData['tracking_no'];
                             $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]           = $pickupData['current_status'];
+							$data['total_item']       = 'NA';
+							$data['total_weight']       = 'NA';
                         }
                     }
                     if (array_key_exists('D', $innerval['SAME'])) {
@@ -260,8 +263,10 @@ class allShipments extends Icargo
                 }
                 if (key($innerval) == 'NEXT') {
                     $data['action'] = 'nextday';
-                    if (array_key_exists('P', $innerval['NEXT'])) {
+                    if (array_key_exists('P', $innerval['NEXT'])) { 
                         foreach ($innerval['NEXT']['P'] as $pickupkey => $pickupData) {
+							$data['carrier_amount'] = $this->modelObj->getCarrierPriceByJobIdentityAndVersion($data['job_identity'],$pickupData['price_version']);
+							$totalWeightAndItem = $this->modelObj->getTotalWeightAndItemByLoadIdentity($pickupData['instaDispatch_loadIdentity']);
                             $labelArr = json_decode($pickupData['label_json']);
 
                             if(is_object($labelArr) && count( (array)$labelArr)>0){
@@ -302,6 +307,8 @@ class allShipments extends Icargo
                             $data['tracking_no']        = $pickupData['tracking_no'];
                             $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
+							$data['total_item']       = $totalWeightAndItem['total_item'];
+							$data['total_weight']       = $totalWeightAndItem['total_weight'];
                         }
                     }
                     if (array_key_exists('D', $innerval['NEXT'])) {
