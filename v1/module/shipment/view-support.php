@@ -143,7 +143,7 @@ class View_Support extends Icargo{
             $temp[$record['shipment_route_id']]['info']['assign_driver'] = $record["driver_id"];
             $temp[$record['shipment_route_id']]['info']['route_name'] = $record["route_name"];
             $temp[$record['shipment_route_id']]['info']['route_status'] = $record["status"];
-			$temp[$record['shipment_route_id']]['info']['start_time'] = date("d/m/y h:i",strtotime($record['assign_date_time']));
+			$temp[$record['shipment_route_id']]['info']['start_time'] = date("d/m/y H:i",strtotime($record['assign_date_time']));
             //$temp[$record['shipment_route_id']]['info']['start_time'] = date("h:i A",strtotime($record['assign_start_time']));
             $temp[$record['shipment_route_id']]['info']['post_id'] = $record['firebase_id'];
 
