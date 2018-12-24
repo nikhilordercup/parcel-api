@@ -1,9 +1,11 @@
 <?php
-require_once("model/Chargebee.php");
-class Module_Chargebee_Webhook{
+namespace v1\module\chargebee;
+use v1\module\chargebee\model\ChargebeeModel;
+
+class ChargebeeWebhook{
 	
 	public function __construct(){
-		$this->modelObj = Chargebee_Model_Chargebee::getInstanse();	
+		$this->modelObj = ChargebeeModel::getInstanse();
 	}
 	
 	public function consume($params){

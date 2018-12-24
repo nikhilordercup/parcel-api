@@ -5,8 +5,11 @@
  * Date: 22-11-2018
  * Time: 05:20 PM
  */
+namespace v1\module\RateEngine\easypost;
 
-abstract class EasyPostMaster extends \Easypost\EasyPost
+use EasyPost\EasyPost;
+
+abstract class EasyPostMaster extends EasyPost
 {
     public function __construct($authData)
     {

@@ -106,14 +106,14 @@ $app->post('/signUp', function() use ($app) {
                 "customer_email"=>$r->company->email,"user_id"=>$user,'phone'=>$r->company->phone,'plan_limit'=>$basic_plan['shipment_limit']);
 
             //chargebee customer registration
-            $obj = new Module_Chargebee($chargebee_customer_data);
+            $obj = new \v1\module\chargebee\ChargebeeHelper($chargebee_customer_data);
             $customerData = $obj->createCustomer($chargebee_customer_data);
 
             //chargebee associate to trial plan
             $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
 
 
-            Chargebee_Model_Chargebee::getInstanse()->
+            \v1\module\chargebee\model\ChargebeeModel::getInstanse()->
             updateBillingInfo($user, $chargebee_customer_data->customer_id);
 
 

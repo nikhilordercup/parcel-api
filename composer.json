@@ -21,6 +21,8 @@
     "twig/twig": "^2.0",
     "postmen/sdk-php": "^1.0",
     "ext-json": "*",
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "illuminate/database": "^5.7",
+    "illuminate/events": "^5.7"
   }
 }

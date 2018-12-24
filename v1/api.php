@@ -708,7 +708,7 @@ $app->post('/getalldrivers', function() use ($app){
 $app->post('/createPlan', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('plan_name','invoice_name','invoice_notes','description','price','currency_code','period','period_unit', 'trial_period_unit','free_quantity','status','billing_cycle','controller_count','driver_count','warehouse_count','email','access_token'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->createPlan($r);
 	echoResponse(200, $response);
 });
@@ -716,7 +716,7 @@ $app->post('/createPlan', function() use ($app){
 $app->post('/listPlan', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->listPlan();
 	echoResponse(200, $response);
 });
@@ -724,7 +724,7 @@ $app->post('/listPlan', function() use ($app){
 $app->post('/getPlanById', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token','plan_id'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->getPlanById($r);
 	echoResponse(200, $response);
 });
@@ -732,7 +732,7 @@ $app->post('/getPlanById', function() use ($app){
 $app->post('/editPlan', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('plan_name','invoice_name','invoice_notes','description','price','currency_code','period','period_unit', 'trial_period_unit','free_quantity','status','billing_cycle','controller_count','driver_count','warehouse_count','email','access_token'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->updatePlan($r);
 	echoResponse(200, $response);
 });
@@ -740,7 +740,7 @@ $app->post('/editPlan', function() use ($app){
 $app->post('/createSubscription', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('plan_id','plan_quantity','plan_unit_price','start_date','trial_end','billing_cycles','auto_collection','terms_to_charge','invoice_notes','invoice_immediately','email','access_token'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->createSubscription($r);
 	echoResponse(200, $response);
 });
@@ -748,7 +748,7 @@ $app->post('/createSubscription', function() use ($app){
 $app->post('/getSubscriptionById', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token','chargebee_subscription_id'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->getSubscriptionById($r);
 	echoResponse(200, $response);
 });
@@ -760,7 +760,7 @@ $app->post('/editSubscription', function() use ($app){
 		$r->prorata = 0;
 	}
 	verifyRequiredParams(array('plan_id','auto_collection','billing_cycles','invoice_immediately','plan_unit_price','prorata','subscription_id'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->editSubscription($r);
 	echoResponse(200, $response);
 });
@@ -768,7 +768,7 @@ $app->post('/editSubscription', function() use ($app){
 $app->post('/listSubscription', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->listSubscription();
 	echoResponse(200, $response);
 });
@@ -776,7 +776,7 @@ $app->post('/listSubscription', function() use ($app){
 $app->post('/createCustomer', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('billing_city','billing_country','billing_first_name','billing_last_name','billing_line1','billing_state','billing_zip','first_name','last_name','customer_email'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->createCustomer($r);
 	echoResponse(200, $response);
 });
@@ -784,7 +784,7 @@ $app->post('/createCustomer', function() use ($app){
 $app->post('/getChargebeeCustomerById', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token','chargebee_customer_id'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->getChargebeeCustomerById($r);
 	echoResponse(200, $response);
 });
@@ -792,7 +792,7 @@ $app->post('/getChargebeeCustomerById', function() use ($app){
 $app->post('/editCustomer', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('billing_city','billing_country','billing_first_name','billing_last_name','billing_line1','billing_state','billing_zip','first_name','last_name','customer_email'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->editCustomer($r);
 	echoResponse(200, $response);
 });
@@ -800,13 +800,13 @@ $app->post('/editCustomer', function() use ($app){
 $app->post('/listCustomer', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->listCustomer();
 	echoResponse(200, $response);
 });
 
 $app->post('/listAllPlanForCustomerRegistration', function() use ($app){
-	$obj = new Module_Chargebee();
+	$obj = new \v1\module\chargebee\ChargebeeHelper();
 	$response = $obj->listAllPlanForCustomerRegistration();
 	echoResponse(200, $response);
 });
@@ -814,7 +814,7 @@ $app->post('/listAllPlanForCustomerRegistration', function() use ($app){
 $app->post('/listAllCustomerAndPlanForSubscription', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->listAllCustomerAndPlanForSubscription();
 	echoResponse(200, $response);
 });
@@ -822,7 +822,7 @@ $app->post('/listAllCustomerAndPlanForSubscription', function() use ($app){
 $app->post('/getPlanDetailForSubscription', function() use ($app){
 	$r = json_decode($app->request->getBody());
 	verifyRequiredParams(array('email','access_token','plan_id','start_date'),$r);
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->getPlanDetailForSubscription($r);
 	echoResponse(200, $response);
 });
@@ -832,7 +832,7 @@ $app->post('/saveCard', function() use ($app){
 	verifyRequiredParams(array('email','access_token','billing_address_line1','billing_address_line2','billing_city','billing_country','billing_postcode','billing_state','card_exp_month','card_exp_year','card_first_name','card_last_name','card_number','card_type','company_id','security_code','user_id'),$r);
 	$r->verifyChargeBee = false;
 
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->saveCard($r);
 	echoResponse(200, $response);
 });
@@ -843,7 +843,7 @@ $app->post('/customerCurrentPlan', function() use ($app){
 	verifyRequiredParams(array('email','access_token','company_id'),$r);
 	$r->verifyChargeBee = false;
 
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->getCustomerCurrentPlan($r);
 	echoResponse(200, $response);
 });
@@ -854,7 +854,7 @@ $app->post('/upgradeCustomerPlan', function() use ($app){
 	verifyRequiredParams(array('email','access_token','company_id','plan_id'),$r);
 	$r->verifyChargeBee = false;
 
-	$obj = new Module_Chargebee($r);
+	$obj = new \v1\module\chargebee\ChargebeeHelper($r);
 	$response = $obj->upgradeCustomerPlan($r);
 	echoResponse(200, $response);
 });
@@ -863,7 +863,7 @@ $app->post('/webHook', function() use ($app){
 	$response = array();
 	$r = json_decode($app->request->getBody());
 
-	$obj = new Module_Chargebee_Webhook();
+	$obj = new \v1\module\chargebee\ChargebeeWebhook();
 	$obj->consume($r);
 });
 

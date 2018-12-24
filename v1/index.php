@@ -5,11 +5,11 @@ ini_set('date.timezone', 'Europe/London');
 
 require_once 'constant.php';
 require_once '../Credentials.php';
-require_once 'dbHandler.php';
 require_once 'passwordHash.php';
 require_once 'array_column.php';
 require '.././libs/Slim/Slim.php';
 require '../vendor/autoload.php';
+require_once 'dbHandler.php';
 \Slim\Slim::registerAutoloader();
 
 use Firebase\JWT\JWT;
@@ -83,9 +83,6 @@ require_once 'module/firebase/User_Management.php';
 require_once 'module/firebase/model/Model.php';
 
 require_once 'module/firebase/route-release.php';
-
-require_once 'module/chargebee/Chargebee.php';
-require_once 'module/chargebee/Webhook.php';
 
 //require_once 'module/carrier/customer.php';
 require_once 'module/google/api.php';

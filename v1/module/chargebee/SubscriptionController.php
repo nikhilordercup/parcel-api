@@ -28,7 +28,7 @@ class SubscriptionController {
     }
     /**
      * Register routes for subscription data
-     * @param type $app
+     * @param \Slim\Slim $app
      */
     public static function initRoutes($app) {
         $app->post('/subscribePlan', function() use ($app) {
@@ -167,6 +167,11 @@ class SubscriptionController {
             $data = $self->paymentHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
+        $app->get('/test-db',function ()use ($app){
+            echo '<pre>';
+            print_r(\v1\module\Database\Model\UsersModel::query()->limit(2)->toSql());
+            exit;
+        });
     }    
     public function getSubscriptionInfo($company_id) {
         $sql = "SELECT CS.*, U.id, P.plan_type FROM " . DB_PREFIX . "chargebee_subscription AS CS "
@@ -206,7 +211,7 @@ class SubscriptionController {
         return $this->_db->updateData($sql);
     }
     public function updatePassword($token, $password) {
-        $sql = "UPDATE " . DB_PREFIX . "users SET password='$name' WHERE access_token='$token'";
+        $sql = "UPDATE " . DB_PREFIX . "users SET password='$password' WHERE access_token='$token'";
         return $this->_db->updateData($sql);
     }
     public function getCardInfo($token) {
