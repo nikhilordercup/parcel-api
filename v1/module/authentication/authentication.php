@@ -274,9 +274,4 @@ class Authentication
         return $countrydata['currency_code'];
         }
     }
-<<<<<<< HEAD
-}
 ?>
-=======
-?>
->>>>>>> release-1.0.0
