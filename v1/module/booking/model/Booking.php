@@ -330,7 +330,7 @@ class Booking_Model_Booking
 
     function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity)
     {
-
+		
         $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
         $credentailData = $this->_db->getRowRecord($sql);
         return $credentailData;
@@ -673,5 +673,4 @@ class Booking_Model_Booking
     }
 	
 }
-
 ?>

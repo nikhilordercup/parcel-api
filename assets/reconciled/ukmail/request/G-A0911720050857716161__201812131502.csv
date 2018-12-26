@@ -1,0 +1,5 @@
+customer,customerreference,consignment,invoice,taxpoint,value,jobdate,service,zone,items,weight,reference,address,outer,inner,vat,subtotal,vatamount,amountdue,vatrate,servicedesc,productdesc,bookincharge,iodcharge,iowcharge,longlengthcharge,heavyweightsurcharge,backkiloamount,insurancecharge,weighttype,_empty_
+A906588,,41449030000854,6077682,21/11/2018,4.68,12/11/2018,1,A,1,27,,"20 Colts Close",LE10,2HH,1,,,,0.2000,"Next Day","Premier 24",0.0000,0.0000,0.0000,0.00,0.0000,0.00000,0.0000,D,
+A906588,,,6077682,21/11/2018,5.41,,,,,,,,,,1,,,,0.2000,"FUEL SURCHARGE",,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,,,
+,,,,,,,,,,,,,,,,113.55,22.71,136.26,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

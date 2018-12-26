@@ -573,8 +573,8 @@ class Customer_Model
 
     public function setDefaultAddress($param)
     {
-        /* if (isset($param->address_list->id))
-            $param->address_list->address_id = $param->address_list->id; */
+        if (!isset($param->address_list->address_id))
+            $param->address_list->address_id = $param->address_list->id;
 
         $addressExist = $this->isExist("user_id='" . $param->userid . "' AND address_id=" . $param->address_list->address_id . "", "user_address");
         if ($addressExist) {
@@ -906,6 +906,12 @@ class Customer_Model
 		$sql = "SELECT COUNT(1) as account_exist, t1.* FROM " . DB_PREFIX . "customer_courier_child_accont AS t1 WHERE t1.company_id = $companyId AND t1.courier_id = $courierId AND t1.customer_id = $customerId AND t1.parent_account_number='$accountNo'";
 		$record  = $this->db->getRowRecord($sql);
 		return $record;
+	}
+	
+	public function getUserByCustomerId($customerId){
+		$sql = "SELECT id as user_id FROM ".DB_PREFIX."users AS t1 WHERE t1.parent_id = $customerId AND status!=2";
+		$records = $this->db->getAllRecords($sql);
+		return $records;
 	}
 }
 ?>

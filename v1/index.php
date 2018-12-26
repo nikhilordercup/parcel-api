@@ -47,7 +47,8 @@ require_once 'module/dashboard/dashboard-api.php';
 //End Dashboard
 
 
-
+require_once 'module/ukmail_tracking/src/Constant.php';
+require_once 'module/ukmail_tracking/src/UkMailTracking.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
@@ -163,6 +164,9 @@ require_once 'module/custom_labels/Custom_Label.php';
 
 //Country file included
 require_once 'module/country/model/country.php';
+
+require_once 'module/reconciled/reconciled.php';
+require_once 'module/reconciled/model/reconciled.php';
 
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);

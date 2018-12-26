@@ -109,142 +109,115 @@ class Authentication
         return $records;
         }
 
-    public
-    function process()
-        {
-        $response = array();
-        switch ($this->_getLoginType())
-            {
-        case 'controllerLogin':
-            $user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM " . DB_PREFIX . "users as UT INNER JOIN " . DB_PREFIX . "user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='" . $this->_getEmail() . "' or UT.`email`='" . $this->_getEmail() . "' AND UT.`email_verified`=1 AND (UT.`user_level` =  1 OR UT.`user_level` =  2 OR UT.`user_level` =  3)");
+	public function process(){
+		$response = array();
+		switch($this->_getLoginType()){
+            case 'controllerLogin':
+                $user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.status = 1 AND (UT.`user_level` =  1 OR UT.`user_level` =  2 OR UT.`user_level` =  3)");
             break;
-
-        case 'custLogin':
-            $user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM " . DB_PREFIX . "users as UT INNER JOIN " . DB_PREFIX . "user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='" . $this->_getEmail() . "' or UT.`email`='" . $this->_getEmail() . "' AND UT.`email_verified`=1 AND (UT.`user_level` =  5 OR UT.`user_level` =  6 )");
+            case 'custLogin':
+                $user = $this->db->getOneRecord("SELECT UT.`id`,UT.`name`,UT.`password`,UT.`email`,UT.`user_level`,UT.`create_date`,ULT.`user_type`, `UT`.`uid`,UT.`parent_id`, ULT.`code`, UT.profile_image, UT.profile_path,UT.country FROM ".DB_PREFIX."users as UT INNER JOIN ".DB_PREFIX."user_level as ULT ON UT.`user_level` = ULT.`id` WHERE UT.`phone`='".$this->_getEmail()."' or UT.`email`='".$this->_getEmail()."' AND UT.`email_verified`=1 AND UT.status = 1 AND (UT.`user_level` =  5 OR UT.`user_level` =  6 )");
             break;
-            }
+                
+        }
+		if ($user != NULL) {
+			//if(passwordHash::check_password($user['password'],$this->_getPassword())){
+				$access_token = $this->_setAccessToken($user['id']);
+				$access_token = $this->_getAccessToken();
+				$tokenUpdateSuccess = $this->db->updateAccessTokenById($access_token,$user['id']);
+				if($tokenUpdateSuccess){
 
-        if ($user != NULL)
-            {
-            $access_token = $this->_setAccessToken($user['id']);
-            $access_token = $this->_getAccessToken();
-            $tokenUpdateSuccess = $this->db->updateAccessTokenById($access_token, $user['id']);
-            if ($tokenUpdateSuccess)
-                {
-                if ($user["user_level"] == 2 || $user["user_level"] == 3)
-                    {
-                    $company_id = $this->_getCompanyId(array(
-                        'user_code' => $user['code'],
-                        'user_id' => $user['id']
-                    ));
-                    $setupObj = new Setup((object)array(
-                        "email" => $user['email'],
-                        "access_token" => $access_token,
-                        "user_id" => $company_id
-                    ));
-                    $setup_response = $setupObj->getDefaultRegistrationData();
-                    $response['company'] = $company_id;
-                    $response['company_list'] = $this->_getCompanyList(array(
-                        "user_id" => $user['id']
-                    ));
-                    if ($user["user_level"] == 2) $response['warehouse_list'] = $this->_getWarehouseList(array(
-                        "company_id" => $company_id,
-                        'user_id' => $user['id'],
-                        "user_level" => $user["user_level"]
-                    ));
-                    else $response['warehouse_list'] = $this->_getWarehouseList(array(
-                        "company_id" => $company_id,
-                        'user_id' => $user['id'],
-                        "user_level" => $user["user_level"]
-                    ));
-                    $response['default_warehouse_id'] = 0;
-                    $response['default_warehouse'] = "";
-                    if (isset($response['warehouse_list'][0]))
-                        {
-                        $response['default_warehouse_id'] = $response['warehouse_list'][0]['warehouse_id'];
-                        $response['default_warehouse'] = $response['warehouse_list'][0]['warehouse_name'];
-                        }
+					if($user["user_level"]==2 || $user["user_level"]==3){
+						$company_id = $this->_getCompanyId(array('user_code' => $user['code'],'user_id' => $user['id']));
+						$setupObj = new Setup((object) array("email"=>$user['email'], "access_token"=>$access_token, "user_id"=>$company_id));
+						$setup_response = $setupObj->getDefaultRegistrationData();
 
-                    $response['setup_completed'] = $setup_response['setup_status'];
-                    $response['incomplete_setup'] = $setup_response['setup_data'];
-                    $response['shipment_counts'] = $this->_getShipmentCount(array(
-                        "company_id" => $company_id,
-                        "warehouse_id" => $response['default_warehouse_id']
-                    ));
-                    }
-                elseif ($user["user_level"] == 5 || $user["user_level"] == 6)
-                    {
-                    $company_id = $this->_getCompanyId(array(
-                        'user_code' => $user['code'],
-                        'user_id' => $user['id']
-                    ));
-                    $response['company'] = $company_id;
-                    $response['company_list'] = $this->_getCompanyList(array(
-                        "user_id" => $user['parent_id']
-                    ));
-                    $response['warehouse_list'] = $this->_getWarehouseList(array(
-                        "company_id" => $company_id,
-                        'user_id' => $user['id'],
-                        "user_level" => $user["user_level"]
-                    ));
-                    $response['collection_address'] = $this->_getUserCollectionAddress($user['id']);
-                    $response['customer_info'] = $this->_getCustomerDetail($user['id']);
-                    $response['parent_id'] = $user['parent_id'];
-                    $response['default_warehouse_id'] = 0;
-                    $response['default_warehouse'] = "";
-                    if (isset($response['warehouse_list'][0]))
-                        {
-                        $response['default_warehouse_id'] = $response['warehouse_list'][0]['warehouse_id'];
-                        $response['default_warehouse'] = $response['warehouse_list'][0]['warehouse_name'];
-                        }
+						$response['company'] = $company_id;
+						$response['company_list'] = $this->_getCompanyList(array("user_id"=>$user['id']));
+						if($user["user_level"]==2)
+						$response['warehouse_list'] = $this->_getWarehouseList(array("company_id"=>$company_id,'user_id'=>$user['id'],"user_level"=>$user["user_level"]));
+					    else
+						$response['warehouse_list'] = $this->_getWarehouseList(array("company_id"=>$company_id,'user_id'=>$user['id'],"user_level"=>$user["user_level"]));
 
-                    $response['shipment_counts'] = $this->_getShipmentCount(array(
-                        "company_id" => $company_id,
-                        "warehouse_id" => $response['default_warehouse_id']
-                    ));
-                    }
-                elseif ($user["user_level"] == 1)
-                    {
-                    $response['company'] = 0;
-                    }
+						//$response['default_warehouse_id'] = $response['warehouse_list'][0]['warehouse_id'];
+						//$response['default_warehouse'] = $response['warehouse_list'][0]['warehouse_name'];
 
-                $response['status'] = "success";
-                $response['message'] = 'Logged in successfully.';
-                $response['name'] = $user['name'];
-                $response['id'] = $user['id'];
-                $response['email'] = $user['email'];
-                $response['create_date'] = $user['create_date'];
-                $response['user_level'] = $user['user_level'];
-                $response['user_type'] = $user['user_type'];
-                $response['access_token'] = $access_token;
-                $response['uid'] = $user['uid'];
-                $response['user_code'] = $user['code'];
-                $response['profile_image'] = $user['profile_image'];
-                $response['profile_path'] = $user['profile_path'];
-                $response['country_code'] = $this->_getCountryCode($user['country']);
-                $response['currency_code'] = $this->_getCurrencyCode($user['country']);
-                }
-              else
-                {
-                $response['status'] = "error";
-                $response['message'] = 'Authentication Failure!';
-                }
-            }
-          else
-            {
+						$response['default_warehouse_id'] = 0;
+						$response['default_warehouse'] = "";
+						if(isset($response['warehouse_list'][0])){
+							$response['default_warehouse_id'] = $response['warehouse_list'][0]['warehouse_id'];
+							$response['default_warehouse'] = $response['warehouse_list'][0]['warehouse_name'];
+						}
+
+						$response['setup_completed'] = $setup_response['setup_status'];
+						$response['incomplete_setup'] = $setup_response['setup_data'];
+						$response['shipment_counts'] = $this->_getShipmentCount(array("company_id"=>$company_id,"warehouse_id"=>$response['default_warehouse_id']));
+
+                    	//$response['default_warehouse_id'] = $response['default_warehouse_id'];
+					}
+					elseif($user["user_level"]==5 || $user["user_level"]==6){
+						$company_id = $this->_getCompanyId(array('user_code' => $user['code'],'user_id' => $user['id']));
+						//$setupObj = new Setup((object) array("email"=>$user['email'], "access_token"=>$access_token, "user_id"=>$company_id));
+						//$setup_response = $setupObj->getDefaultRegistrationData();
+
+						$response['company'] = $company_id;
+						$response['company_list'] = $this->_getCompanyList(array("user_id"=>$user['parent_id']));
+						$response['warehouse_list'] = $this->_getWarehouseList(array("company_id"=>$company_id,'user_id'=>$user['id'],"user_level"=>$user["user_level"]));
+						$response['collection_address'] = $this->_getUserCollectionAddress($user['id']);
+						$response['customer_info'] = $this->_getCustomerDetail($user['id']);
+						$response['parent_id'] = $user['parent_id'];
+						//$response['default_warehouse_id'] = $response['warehouse_list'][0]['warehouse_id'];
+						//$response['default_warehouse'] = $response['warehouse_list'][0]['warehouse_name'];
+
+						$response['default_warehouse_id'] = 0;
+						$response['default_warehouse'] = "";
+						if(isset($response['warehouse_list'][0])){
+							$response['default_warehouse_id'] = $response['warehouse_list'][0]['warehouse_id'];
+							$response['default_warehouse'] = $response['warehouse_list'][0]['warehouse_name'];
+						}
+
+						//$response['setup_completed'] = $setup_response['setup_status'];
+						//$response['incomplete_setup'] = $setup_response['setup_data'];
+						$response['shipment_counts'] = $this->_getShipmentCount(array("company_id"=>$company_id,"warehouse_id"=>$response['default_warehouse_id']));
+					}
+					elseif($user["user_level"]==1){
+						$response['company'] = 0;
+					}
+
+                    $response['status'] = "success";
+					$response['message'] = 'Logged in successfully.';
+                    $response['name'] = $user['name'];
+                    $response['id'] = $user['id'];
+                    $response['email'] = $user['email'];
+                    $response['create_date'] = $user['create_date'];
+                    $response['user_level'] = $user['user_level'];
+                    $response['user_type'] = $user['user_type'];
+                    $response['access_token'] = $access_token;
+                    $response['uid'] = $user['uid'];
+                    $response['user_code'] = $user['code'];
+                    $response['profile_image'] = $user['profile_image'];
+                    $response['profile_path'] = $user['profile_path'];
+                    $response['country_code'] = $this->_getCountryCode($user['country']);
+                    $response['currency_code'] = $this->_getCurrencyCode($user['country']);
+
+                }else {
+					$response['status'] = "error";
+					$response['message'] = 'Authentication Failure!';
+        		}
+			/*} else{
+				$response['status'] = "error";
+				$response['message'] = 'Login failed. Incorrect credentials!';
+        	}*/
+   		}else {
             $response['status'] = "error";
             $response['message'] = 'No such user is registered!';
-            }
-
-        if ($response['status'] == "success")
-            {
-            echoResponse(200, $response);
-            }
-          else
-            {
-            echoResponse(401, $response);
-            }
         }
+		if($response['status'] == "success"){
+			echoResponse(200, $response);
+		} else {
+			echoResponse(401, $response);
+		}
+	}
 
     private
     function _getShipmentCount($param)
@@ -301,4 +274,9 @@ class Authentication
         return $countrydata['currency_code'];
         }
     }
+<<<<<<< HEAD
+}
 ?>
+=======
+?>
+>>>>>>> release-1.0.0
