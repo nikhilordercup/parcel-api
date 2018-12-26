@@ -14,8 +14,6 @@ class Auth_provider{
 
     private function getFirebase(){
       return $this->firebaseObj->getFirebase();
-         //$firebaseObj = new Firebase_Api();
-         //return $firebaseObj->getFirebase();
     }
 
 	private function _handleException($e){
@@ -65,7 +63,5 @@ class Auth_provider{
       }
 
     }
-
-
 }
 ?>
