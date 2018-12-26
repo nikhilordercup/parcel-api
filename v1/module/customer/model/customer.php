@@ -907,5 +907,11 @@ class Customer_Model
 		$record  = $this->db->getRowRecord($sql);
 		return $record;
 	}
+	
+	public function getUserByCustomerId($customerId){
+		$sql = "SELECT id as user_id FROM ".DB_PREFIX."users AS t1 WHERE t1.parent_id = $customerId AND status!=2";
+		$records = $this->db->getAllRecords($sql);
+		return $records;
+	}
 }
 ?>
