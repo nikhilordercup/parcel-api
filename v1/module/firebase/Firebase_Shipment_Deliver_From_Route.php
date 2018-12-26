@@ -59,10 +59,12 @@ class Firebase_Shipment_Deliver_From_Route extends Firebase
         if($jobCount==0)
             $data["code"] = "route/completed";
 
-        foreach($items["shipments_drops"] as $drop_name=>$shipments){
-            foreach($shipments["shipments"] as $shipment_ticket=>$shipment){
-                $shipment_count++;
-                $data["shipment_drops/$drop_name/shipments/$shipment_ticket"] = null;
+        if(isset($items["shipments_drops"]) && is_array($items["shipments_drops"])){
+            foreach($items["shipments_drops"] as $drop_name=>$shipments){
+                foreach($shipments["shipments"] as $shipment_ticket=>$shipment){
+                    $shipment_count++;
+                    $data["shipment_drops/$drop_name/shipments/$shipment_ticket"] = null;
+                }
             }
         }
 
