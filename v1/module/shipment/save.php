@@ -480,7 +480,7 @@ class shipment extends Library
         $shipmentData['shipment_customer_country'] = !empty($data['countryCode']) ? $data['countryCode'] : '';
         $shipmentData['shipment_country_code'] = $data['countryCode'];
         $shipmentData['shipment_zone_code'] = $data['zoneCode'];
-        $shipmentData['shipment_instruction'] = json_encode($data['instruction']);
+        $shipmentData['shipment_instruction'] = $data['instruction'];
         $shipmentData['shipment_isDutiable'] = $data['isDutiable'];
         $shipmentData['shipment_shouldBookIn'] = $data['shouldBookIn'];
         $shipmentData['shipment_statusName'] = $data['statusName'];
@@ -806,6 +806,7 @@ class shipment extends Library
             $data['client'] = isset($this->tempdata->delivery->company) ? $this->tempdata->delivery->company : '';
             $data['address_origin'] = isset($this->tempdata->delivery->address_origin) ? $this->tempdata->delivery->address_origin : '';
             $shipdata = $this->_getSingleShipmentData((object)$data, $this->company_id);
+
             $shipid = $this->_add_shipment_data_uk_mail($shipdata);
             if ($shipid["status"] == "success")
                 {
@@ -1028,7 +1029,6 @@ class shipment extends Library
             $data['shipment_total_volume'] = $param["weight"];
             $data['shipment_statusName'] = "Un Attainded";
             $data['shipment_shouldBookIn'] = "false";
-            $data['shipment_companyName'] = "";
             $data['distancemiles'] = "0.00";
             $data['estimatedtime'] = "00:00:00";
             /**/
@@ -1098,8 +1098,9 @@ class shipment extends Library
             $data['carrier_code'] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
             $data['carrier_account_number'] = (isset($param["carrier_account_number"])) ? $param["carrier_account_number"] : "";
             $data["address_id"] = 0;
+						$data["shipment_companyName"] = (isset($param["company_name"])) ? $param["company_name"] : "";
             // save address first then save shipment detail with address id
-            $shipmentId = $this->db->save("shipment", $data);
+						$shipmentId = $this->db->save("shipment", $data);
             if ($shipmentId)
                 {
                 return array(
@@ -1670,7 +1671,6 @@ class shipment extends Library
         return ($param / 60);
         }
     public function bookSameDayShipment($data)
-
         {
         $bookingObj = new Booking(array(
             "email" => $data->email,
@@ -1757,7 +1757,7 @@ class shipment extends Library
                     "shipment_instruction" => $shipment_data->special_instruction,
                     "carrier_code" => $carrierCode
                 ));
-                $shipmentStatus = $this->_bookSameDayShipment(array(
+								$shipmentStatus = $this->_bookSameDayShipment(array(
                     "shipment_data" => $shipmentData,
                     "address_op" => $data->address_op
                 ));
