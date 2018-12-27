@@ -201,7 +201,7 @@ class RateApiController
                             $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
                             $this->_responseData['rate'][$name][$k][$z][$key]['service_options'] = $serviceOptionManager->formatOptionForResponse();
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'];
-                            $this->_responseData['rate'][$name][$k][$z][$key]['taxes'] = $this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price']);
+                            $this->_responseData['rate'][$name][$k][$z][$key]['taxes'] = $this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'],$this->_responseData['rate'][$name][$k][$z][$key]['surcharges']);
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
                             unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
                         }
@@ -304,8 +304,11 @@ class RateApiController
         $this->_taxRate = $this->_reateEngineModel->getTaxInfoByIso2($fromAddress->country);
     }
 
-    public function calculateTax($price)
+    public function calculateTax($price,$surcharges=[])
     {
+        foreach ($surcharges as $s){
+            $price+=$s;
+        }
         if (is_null($this->_taxRate)) {
             return [
                 'total_tax' => 0,

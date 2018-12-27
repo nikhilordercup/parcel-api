@@ -1,5 +1,8 @@
 <?php
 namespace v1\module\chargebee\model;
+use v1\module\Database\Model\ChargebeeCustomersModel;
+use v1\module\Database\Model\ChargebeeSubscriptionsModel;
+
 class ChargebeeModel {
 
     public static $model_instance = null;
@@ -166,6 +169,21 @@ class ChargebeeModel {
         } catch (Exception $ex) {
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
         }
+    }
+
+    /**
+     * @param $companyId
+     * @param $planType
+     * @return mixed
+     */
+    public function getSubscription($companyId,$planType){
+        return ChargebeeCustomersModel::query()
+            ->with('subscription')
+            ->whereHas('subscription',function ($query)use ($planType){
+                $query->whereIn("plan_type",[$planType,str_replace('_','',$planType)]);
+            })
+            ->where('user_id','=',$companyId)
+            ->first();
     }
 
 }

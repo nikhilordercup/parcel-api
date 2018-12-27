@@ -284,7 +284,7 @@ class RateEngineController {
         $zoneDefinationHeader = ['Zone', 'City', 'Post Code', 'Alpha 2', 'Flow Type',
             "Volume Base", 'Level'];
         $levels = 'City,Post Code,Country';
-        $flowTypes = 'Domastic,International';
+        $flowTypes = 'Domestic,International';
         $zoneDefination = $this->_rateEngineModel->getZoneDefinations($carrierId);
         $this->_excelBuilder->addSheet("Zone Definations")
                 ->changeSheetByName("Zone Definations")

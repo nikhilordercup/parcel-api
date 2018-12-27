@@ -50,7 +50,8 @@ class SurchargeManager {
         "same_day_drop_surcharge",
         "same_day_waiting_surcharge",
         "overwieght_surcharge",
-        "extrabox_surcharge"
+        "extrabox_surcharge",
+        "residential_surcharge"
     ];
 
     /**
@@ -118,6 +119,8 @@ class SurchargeManager {
                 case 18:
                     $this->extraBoxSurcharge($rate);
                     break;
+                case 19:
+                    $this->residentialSurcharge($rate);
                 default:
                     break;
             }
@@ -180,7 +183,7 @@ class SurchargeManager {
         $key = $this->surcharges[$key - 1];
         $chargableUnit = 0;
         if ($key == 'same_day_drop_surcharge') {
-            $free = $this->_surcharge->sameDay->drop??0;
+            $free = $this->_surcharge->sameDay->drops??0;
             $drops = $this->_requestData->transit[0]->number_of_drops;
             $chargableUnit = $drops - $free;
         } else {
@@ -266,12 +269,36 @@ class SurchargeManager {
             return 0;
         }
         foreach ($d->fuleSurcharge->applyOn as $id) {
-            if (array_key_exists($this->surcharges[$id - 1], $appliedSurcharges)) {
+            if (array_key_exists($this->surcharges[$id - 1], $appliedSurcharges) && $appliedSurcharges[$this->surcharges[$id - 1]]) {
                 $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate' => $appliedSurcharges[$this->surcharges[$id - 1]]]);
             }
         }
         $finalSurcharge += $this->calculateSurcharge($d->commonData, $rate);
         $this->_countedSurcharge["fuel_surcharge"] = round($finalSurcharge,2);
+    }
+
+    public function residentialSurcharge($rate){
+        $finalSurcharge=0;
+        if(isset($this->_requestData->from->is_res)&& $this->_requestData->from->is_res){
+           $finalSurcharge += $this->getItemBaseCalculation($rate);
+        }
+        if(isset($this->_requestData->to->is_res)&& $this->_requestData->to->is_res){
+            $finalSurcharge += $this->getItemBaseCalculation($rate);
+        }
+        $this->_countedSurcharge["residential_surcharge"] = round($finalSurcharge,2);
+    }
+    public function getItemBaseCalculation($rate){
+        $surcharge=$this->calculateSurcharge($this->_surcharge->commonData, $rate);
+
+        if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
+            if(isset($this->_requestData->package) && count($this->_requestData->package)>0){
+                $surcharge = $surcharge*count($this->_requestData->package);
+            }elseif (isset($this->_requestData->transit->number_of_drops)
+                && $this->_requestData->transit->number_of_drops>0){
+                $surcharge = $surcharge*$this->_requestData->transit->number_of_drops;
+            }
+        }
+        return $surcharge;
     }
 
     /**

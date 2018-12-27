@@ -167,10 +167,20 @@ class SubscriptionController {
             $data = $self->paymentHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-        $app->get('/test-db',function ()use ($app){
-            echo '<pre>';
-            print_r(\v1\module\Database\Model\UsersModel::query()->limit(2)->toSql());
-            exit;
+        $app->post('/cancel-subscription',function ()use ($app){
+            $r = json_decode($app->request->getBody());
+            $model=new \v1\module\chargebee\model\ChargebeeModel();
+            $d=$model->getSubscription(544,$r->plan_type);
+            if($d){
+                /**
+                 * @var $m \v1\module\Database\Model\ChargebeeSubscriptionsModel
+                 */
+                $m=$d->subscription;
+                ChargeBee_Subscription::delete($m->chargebee_subscription_id);
+                $m->status='subscription_cancelled';
+                $m->save();
+            }
+            echoResponse(200,['result'=>'success','message'=>'Subscription canceled successfully.']);
         });
     }    
     public function getSubscriptionInfo($company_id) {

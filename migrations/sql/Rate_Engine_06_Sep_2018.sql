@@ -48,7 +48,7 @@ CREATE TABLE `icargo_zone_details`
 `post_code` VARCHAR(250) NOT NULL , 
 `country` VARCHAR(250) NOT NULL , 
 `level` ENUM('Post Code','City','Country') NULL , 
-`flow_type` ENUM('Domastic','International') NULL , 
+`flow_type` ENUM('Domestic','International') NULL ,
 `volume_base` VARCHAR(250) NOT NULL , 
 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , 
 `modified_at` TIMESTAMP NULL , 
