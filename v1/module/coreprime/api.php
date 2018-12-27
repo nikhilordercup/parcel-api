@@ -518,7 +518,7 @@ class Module_Coreprime_Api extends Icargo
         if (ENV == 'live') {
             $env = 'PROD';
         }
-        $rateEngModel = new RateEngineModel();
+        $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
         $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'PROVIDER');
         $obj = is_object ($data)?$data:json_decode($data);
         foreach ($providerList as $p) {
