@@ -92,8 +92,6 @@ require_once 'module/firebase/model/Model.php';
 
 require_once 'module/firebase/route-release.php';
 
-require_once 'module/chargebee/Chargebee.php';
-require_once 'module/chargebee/Webhook.php';
 
 //require_once 'module/carrier/customer.php';
 require_once 'module/google/api.php';
