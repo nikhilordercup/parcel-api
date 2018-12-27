@@ -4,6 +4,16 @@ $app->post('/login', function() use ($app) {
     require_once 'passwordHash.php';
     require_once("module/authentication/authentication.php");
     $r = json_decode($app->request->getBody());
+    $r->loginType = 'controllerLogin';
+    verifyRequiredParams(array('email', 'password'),$r->auth);
+    $obj = new Authentication($r);
+    $obj->process();
+});
+$app->post('/custLogin', function() use ($app) {
+    require_once 'passwordHash.php';
+    require_once("module/authentication/authentication.php");
+    $r = json_decode($app->request->getBody());
+    $r->loginType = 'custLogin';
     verifyRequiredParams(array('email', 'password'),$r->auth);
     $obj = new Authentication($r);
     $obj->process();

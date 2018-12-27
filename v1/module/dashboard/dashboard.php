@@ -10,6 +10,7 @@ class Dashboard extends Icargo
 
     public function getCarrierShipment($dataval = array())
     {
+        $customer_id = $dataval->customer_id;
         if (isset($dataval->shipment_type)) {
             $shipment_type = strtoupper($dataval->shipment_type);
             if ($dataval->filter == 'customrange') {
@@ -26,10 +27,12 @@ class Dashboard extends Icargo
             $whereClause = '';
         }
 
-        $sql = "SELECT carrier_code, instaDispatch_loadGroupTypeCode, COUNT(*) as shipment_count FROM " . DB_PREFIX . "shipment WHERE $whereClause (carrier_code IS NOT NULL AND carrier_code!='') GROUP BY carrier_code";
+       $sql = "SELECT carrier_code, customer_id, instaDispatch_loadGroupTypeCode, COUNT(*) as shipment_count FROM " . DB_PREFIX . "shipment WHERE $whereClause (carrier_code IS NOT NULL AND carrier_code!='') 
+                AND customer_id = $customer_id GROUP BY carrier_code";
         $result = $this->db->getAllRecords($sql);
-
         return array("status" => "success", "data" => $result);
+
+
     }
 
 

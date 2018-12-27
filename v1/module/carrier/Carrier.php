@@ -13,18 +13,6 @@ class Carrier{
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
 		$deliveryCarrier = $shipmentInfo['carrier_code'];
-		/* foreach($shipmentInfo as $key=>$data){
-			if($data['shipment_service_type']=='P'){
-				$response['from'] = array("name"=>$data["shipment_customer_name"],"company"=>$data["shipment_companyName"],"phone"=>$data["shipment_customer_phone"],"street1"=>$data["shipment_address1"],"street2"=>$data["shipment_address2"],"city"=>$data["shipment_customer_city"],"state"=>$data["shipment_county"],"zip"=>$data["shipment_postcode"],"country"=>$data["shipment_country_code"],"country_name"=>$data["shipment_customer_country"],"is_apo_fpo"=>"");
-				$response['ship_date'] = $data['shipment_required_service_date'];
-
-			}elseif($data['shipment_service_type']=='D'){
-				$response['to'] = array("name"=>$data["shipment_customer_name"],"company"=>$data["shipment_companyName"],"phone"=>$data["shipment_customer_phone"],"street1"=>$data["shipment_address1"],"street2"=>$data["shipment_address2"],"city"=>$data["shipment_customer_city"],"state"=>$data["shipment_county"],"zip"=>$data["shipment_postcode"],"zip_plus4"=>"","country"=>$data["shipment_country_code"],"country_name"=>$data["shipment_customer_country"],"email"=>$data["shipment_customer_email"],"is_apo_fpo"=>"","is_residential"=>"");
-
-				$response['carrier'] = $data['carrier_code'];
-				//$response['ship_date'] = $data['shipment_required_service_date'];
-			}
-		} */
         global $_GLOBAL_CONTAINER;
         if(class_exists('Coreprime_' . ucfirst(strtolower($deliveryCarrier)))) {
             $coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
@@ -32,41 +20,25 @@ class Carrier{
             $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
         }
 
-		$carrierObj = new $coreprimeCarrierClass($this);
+		$carrierObj = new $coreprimeCarrierClass();
 
-                if( strtolower($deliveryCarrier) == 'dhl' ) {
-                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
-                } else {
-                    $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
-                }
+		if( strtolower($deliveryCarrier) == 'dhl' ) {
+			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
+		} else {
+			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
+		}
 
-                //print_r($shipmentInfo);exit;
-                if( $shipmentInfo['status'] == 'success' ) {
-                    return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json']);
-                } else {
-                    return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
-                }
-		//$finalRequestArr = json_encode(array_merge($response,$shipmentInfo));
-
-		/* $response['package'] = $this->getPackageInfo($loadIdentity);
-		$serviceInfo = $this->getServiceInfo($loadIdentity);
-		$response['currency'] = $serviceInfo['currency'];
-		$response['service'] = $serviceInfo['service_code'];
-		$response['credentials'] = $this->getCredentialInfo($loadIdentity); */
-
-		/**********start of static data from requet json ***************/
-		/* $response['extra'] = array("service_key"=>"1","long_length"=>"","bookin"=>"","exchange_on_delivery"=>"","reference_id"=>"","region_code"=>"","confirmation"=>"","is_document"=>"","auto_return"=>"","return_service_id"=>"","special_instruction"=>"","custom_desciption"=>"","custom_desciption2"=>"","custom_desciption3"=>"","customs_form_declared_value"=>"","document_only"=>"","no_dangerous_goods"=>"","in_free_circulation_eu"=>"","extended_cover_required"=>"","invoice_type"=>"");
-		$response['insurance'] = array("value"=>"","currency"=>"","insurer"=>"");
-		$response['constants'] = array("shipping_charge"=>"","weight_charge"=>"","fuel_surcharge"=>"","remote_area_delivery"=>"","insurance_charge"=>"","over_sized_charge"=>"","over_weight_charge"=>"","discounted_rate"=>"");
-		$response['label_options'] = "";
-		$response['customs'] = "";
-		$response['billing_account'] = array("payor_type"=>"","billing_account"=>"","billing_country_code"=>"","billing_person_name"=>"","billing_email"=>"");
-		$response['label'] = array();
-		$response['method_type'] = "post"; */
-		/**********end of static data from requet json ***************/
-
-		//print_r(json_encode($response));die;
-
+		if( $shipmentInfo['status'] == 'success' ) {
+			$invoice_created = (isset($shipmentInfo['invoice_created'])) ? $shipmentInfo['invoice_created'] : 0;
+			if(isset($shipmentInfo['child_account_data'])){
+				return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json'],"child_account_data"=>$shipmentInfo['child_account_data'],'invoice_created'=>$invoice_created);
+			}else{
+				return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json'],'invoice_created'=>$invoice_created);
+			}
+			
+		} else {
+			return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
+		}
 	}
 
 	public function getPackageInfo($loadIdentity){
@@ -83,22 +55,59 @@ class Carrier{
 		return $serviceInfo;
 	}
 
-	/*public function getCredentialInfo($loadIdentity){
-		$credentialData = array();
-		$credentialInfo = $this->modelObj->getCredentialDataByLoadIdentity('',$loadIdentity);
-		$credentialInfo["master_carrier_account_number"] = "";
-		$credentialInfo["latest_time"] = "";
-		$credentialInfo["earliest_time"] = "";
-		$credentialInfo["carrier_account_type"] = array();
-		return $credentialInfo;
-	}*/
-
 	public function getLabelByLoadIdentity($loadIdentity){
 		$labelInfo = $this->modelObj->getLabelByLoadIdentity($loadIdentity);
 		return $labelInfo;
 	}
-
+	
 	public function mergePdf($labelPdfArr){
+		$rootPath = dirname(dirname(dirname(dirname(__FILE__))));
+        $outFile = uniqid().'.pdf'; 
+		$labelPath = $rootPath. '/label/';
+		$filenames = array();		
+		foreach ($labelPdfArr as $file) {
+			$loadIdentity = $file['load_identity'];
+			$carrierCode = strtolower($file['carrier_code']);
+			$pathArr = explode('/',$file['label_file_pdf']);
+			$filePath = $labelPath.$loadIdentity.'/'.$carrierCode.'/'.$pathArr[ count($pathArr) - 1];
+			array_push($filenames,$filePath);
+		}		
+		if ($filenames) {
+			try{
+				$config = array('mode' => 'c','margin_left' => 15,'margin_right' => 0,'margin_top' => 5,'format' => array(101,152),'orientation' => 'L');
+				$mpdf = new \Mpdf\Mpdf($config);
+				$filesTotal = sizeof($filenames);
+				$fileNumber = 1;
+				$mpdf->SetImportUse();
+				if (!file_exists($rootPath.'/temp/'.$outFile)) {
+					$handle = fopen($rootPath.'/temp/'.$outFile, 'w');
+					fclose($handle);
+				}
+				foreach ($filenames as $fileName) {
+					if (file_exists($fileName)) {
+						$pagesInFile = $mpdf->SetSourceFile($fileName);
+						for ($i = 1; $i <= $pagesInFile; $i++) {
+							$tplId = $mpdf->ImportPage($i);
+							$mpdf->UseTemplate($tplId);
+							if (($fileNumber < $filesTotal) || ($i != $pagesInFile)) {
+								$mpdf->WriteHTML('<pagebreak />');
+							}
+						}
+					}
+					$fileNumber++;
+				}	
+				$mpdf->Output($rootPath.'/temp/'.$outFile);
+			}catch(Exception $e){
+                print_r($e);die;
+            }
+			$fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST']."/".LABEL_URL;
+            return array("status"=>"success","file_path" => $fileUrl."/temp/".$outFile);
+		}else{
+			return array("status"=>"error","file_path" => "");
+		}		
+	}
+	
+	/* public function mergePdf($labelPdfArr){
             try{
                 $labelArr = array();
                 //print_r($labelPdfArr); die;
@@ -123,7 +132,7 @@ class Carrier{
             }
             $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
             return array("status"=>"success","file_path" => $fileUrl."/temp/".$fileName);
-	}
+	} */
 
 
     private function _getEnvironment(){
@@ -200,11 +209,16 @@ class Carrier{
 		$obj = new Carrier_Coreprime_Request();
 		$requestArr = array();
 		$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
-		$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
+		//$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
 		if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' ){
 			$labelArr = json_decode($labelInfo[0]['label_json']);
+			
+			//get credentials for child account
+			if($labelInfo[0]['accountkey']!=$labelInfo[0]['parent_account_key'])
+				$credentialData = $this->modelObj->getCredentialDataForChildAccount($labelArr->label->accountnumber);
+			else //get credentials for parent account
+				$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
 
-			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
 			$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>'','token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
             //$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
 

@@ -10,7 +10,6 @@ class Sameday extends  Booking
     public $request         = null;
     public $allShipmentsObj = null;
     public $webApiToken     = null;
-
     public function __construct($data){
         $this->_parentObj = parent::__construct(array("email" => $data->email, "access_token" => $data->access_token));
         $this->_param = $data;
@@ -343,7 +342,7 @@ class Sameday extends  Booking
         $googleRequest['warehouse_latitude'] = $param->warehouse_latitude;
         $googleRequest['warehouse_longitude'] = $param->warehouse_longitude;
         $googleRequest['company_id'] = $param->company_id;
-        $googleRequest['customer_id'] = $param->customer_id;
+
 
         try{
               $distanceMatrixData = json_decode(json_encode($this->googleApi->getGeolocationAndDistanceMatrix( (object) $googleRequest)), FALSE);
@@ -378,7 +377,7 @@ class Sameday extends  Booking
             $carrierCode = (isset($param->carrier_id) && ($param->carrier_id)>0)?$param->carrier_id:0;
             $carrier = $this->modelObjCorePrime->getCustomerCarrierDataByServiceId($param->customer_id,$param->service_id, $param->company_id,$carrierCode);
         }else{
-            $carrier = $this->modelObjCorePrime->getCustomerCarrierData($param->customer_id, $param->company_id);
+            $carrier = $this->modelObjCorePrime->getCustomerInternalCarrierData($param->customer_id, $param->company_id);
         }
 
         if(count($carrier)>0){
@@ -438,7 +437,7 @@ class Sameday extends  Booking
         )];
         $post_data["extra"] = [];
         $post_data["insurance"] = []; //print_r($post_data);die;
-        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data), true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
+        $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data),true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
         $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);
 		if(!empty($data)){
             $transitdata   =  array();
@@ -759,7 +758,7 @@ class Sameday extends  Booking
 			$this->service_date = date("Y-m-d H:i:s", strtotime($data->service_date));
             $loadIdentity = "";
             $counter = 1;
-            $this->startTransaction();
+            $this->db->startTransaction();
             foreach($data->collection_address as $shipment_data){
                 $shipmentData = $this->_prepareShipmentData(
                         array("collection_user_id"      =>$data->customer_id,
@@ -874,7 +873,7 @@ class Sameday extends  Booking
                 }
                 $counter++;
             }
-            $this->commitTransaction();
+            $this->db->commitTransaction();
             Consignee_Notification::_getInstance()->sendSamedayBookingConfirmationNotification(array("load_identity"=>$loadIdentity,"company_id"=>$this->company_id,"warehouse_id"=>$this->warehouse_id,"customer_id"=>$data->customer_id));
             $response =  array("status"=>"success", "message"=>"Shipment booked successfully. Booking reference no $loadIdentity","identity"=>$loadIdentity);
             $temparray = array();
@@ -1006,7 +1005,7 @@ class Sameday extends  Booking
 
 
             //save address first then save shipment detail with address id
-            $shipmentId = $this->resrServiceModel->addContent("shipment", $data);
+            $shipmentId = $this->db->save("shipment", $data);
 
             if($shipmentId){
                 return array('status'=>"success",'message'=>'Shipment has been added successfully', "load_identity"=>$data['instaDispatch_loadIdentity']);
@@ -1112,7 +1111,7 @@ class Sameday extends  Booking
             $service_price_breakdown["service_id"] = $servicePriceinfoInfo['service_id'];
             $service_price_breakdown["carrier_id"] = $servicePriceinfoInfo['courier_id'];
             try{
-                $price_breakdown_id = $this->resrServiceModel->addContent("shipment_price", $service_price_breakdown);
+                $price_breakdown_id = $this->db->save("shipment_price", $service_price_breakdown);
                 array_push($response,$price_breakdown_id);
             }catch(Exception $e){
                 print_r($e);
@@ -1140,7 +1139,7 @@ class Sameday extends  Booking
                 $price_breakdown["surcharge_id"] = $surchargeInfo['surcharge_id'];
                 $price_breakdown["carrier_id"] = $surchargeInfo['carrier_id'];
                 try{
-                    $price_breakdown_id = $this->resrServiceModel->addContent("shipment_price", $price_breakdown);
+                    $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
                     array_push($response,$price_breakdown_id);
                 }catch(Exception $e){
                     print_r($e);
@@ -1173,7 +1172,7 @@ class Sameday extends  Booking
                     //
                 }
             }
-            $price_breakdown_id = $this->resrServiceModel->addContent("shipment_price", $price_breakdown);
+            $price_breakdown_id = $this->db->save("shipment_price", $price_breakdown);
             array_push($response,$price_breakdown_id);
 
         }
@@ -1218,7 +1217,7 @@ class Sameday extends  Booking
             $_attribute["value"] = $param->icon;
             $_attribute["api_key"] = "icon";
             $_attribute["load_identity"] = $param->load_identity;
-            $attribute_id = $this->resrServiceModel->addContent("shipment_attributes", $_attribute);
+            $attribute_id = $this->db->save("shipment_attributes", $_attribute);
             unset($param->icon);
         }
         if(isset($param->dimensions)){
@@ -1227,7 +1226,7 @@ class Sameday extends  Booking
                 $_attribute["value"] = $item;
                 $_attribute["api_key"] = "dimensions";
                 $_attribute["load_identity"] = $param->load_identity;
-                $attribute_id = $this->resrServiceModel->addContent("shipment_attributes", $_attribute);
+                $attribute_id = $this->db->save("shipment_attributes", $_attribute);
             }
             unset($param->dimensions);
         }
@@ -1237,7 +1236,7 @@ class Sameday extends  Booking
                 $_attribute["value"] = $item;
                 $_attribute["api_key"] = "weight";
                 $_attribute["load_identity"] = $param->load_identity;
-                $attribute_id = $this->resrServiceModel->addContent("shipment_attributes", $_attribute);
+                $attribute_id = $this->db->save("shipment_attributes", $_attribute);
             }
             unset($param->weight);
         }
@@ -1248,7 +1247,7 @@ class Sameday extends  Booking
                 $_attribute["value"] = ($item!="") ? $item : 0;
                 $_attribute["api_key"] = "time";
                 $_attribute["load_identity"] = $param->load_identity;
-                $attribute_id = $this->resrServiceModel->addContent("shipment_attributes", $_attribute);
+                $attribute_id = $this->db->save("shipment_attributes", $_attribute);
             }
             unset($param->time);
         }
@@ -1281,7 +1280,7 @@ class Sameday extends  Booking
                 $_data['booked_api_token_id']  = $this->webApiToken;
                 $_data['booked_quotation_ref']  = $quoteRef;
                 $_data['tracking_callbackurl']  = $callbackUrl;
-                $service_id = $this->resrServiceModel->addContent("shipment_service", $_data);
+                $service_id = $this->db->save("shipment_service", $_data);
         }
         return $service_id;
     }

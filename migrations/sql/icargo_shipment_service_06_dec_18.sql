@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipment_service` ADD `parent_account_key` VARCHAR(255) NULL DEFAULT NULL COMMENT 'ukmail parent account for label' AFTER `accountkey`;

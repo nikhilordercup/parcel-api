@@ -108,7 +108,7 @@ class Process_Form
         return $track_id;
     }
 
-    private function _findPod($ticket, $driver_id, $type, $pod_name){
+    private function _findPod($ticket, $driver_id, $type, $pod_name){return false;
         $podFound = $this->model_rest->findPod($ticket, $driver_id, $type, $pod_name, $this->text, $this->contact_name, $this->latitude, $this->longitude);
         if($podFound["shipment_count"]>0)
             return true;
@@ -118,6 +118,7 @@ class Process_Form
     private function _savePod($ticket, $driver_id, $type){
         $result = array();
         $podObj  = new Pod();
+       
         if(isset($this->sign) and $this->sign!=""){
             if(!$this->_findPod($ticket, $driver_id, $type, 'signature')){
                 $podPath = $podObj->savePodSignature($ticket, $this->sign);
@@ -268,7 +269,8 @@ class Process_Form
                         'grid_data' => $gridData,
                         'left' => $checkMoreShipmentofthisRouteDriver,
                         'ticket' => $ticket,
-                        'timestamp' => microtime(true)
+                        'timestamp' => microtime(true),
+                        'pod_status' => array()
                     );
                 }
                 return array(
@@ -278,7 +280,8 @@ class Process_Form
                     'grid_data' => $gridData,
                     'left' => $checkMoreShipmentofthisRouteDriver,
                     'ticket' => $ticket,
-                    'timestamp' => microtime(true)
+                    'timestamp' => microtime(true),
+                    'pod_status' => array()
                 );
             }
         } else {
@@ -335,7 +338,8 @@ class Process_Form
                 return array(
                     'message' => "Shipment($ticket) Already Processed By Controller",
                     'success' => true,
-                    'status' => "success"
+                    'status' => "success",
+                    'pod_status' => $this->_savePod($ticket, $driver_id, 'carded') 
                 );
             }
             return array(
@@ -427,75 +431,77 @@ class Process_Form
         $company_warehouse  = $this->_get_driver_company_warehouse();
         $this->company_id   = $company_warehouse['company_id'];
         $this->warehouse_id = $company_warehouse['warehouse_id'];
+        if(count($company_warehouse)>0){
+            if ($this->loadActionCode == 'processdriversuccessaction') {
 
-        if ($this->loadActionCode == 'processdriversuccessaction') {
-
-            $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $this->latitude, $this->longitude, $this->service_message);
-            Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
-                "shipment_ticket" => $this->shipment_ticket,
-                "company_id" => $this->company_id,
-                "warehouse_id" => $this->warehouse_id,
-                "trigger_code" => "successful"
-            ));
-            if ($data["status"] == "success") {
-                $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
-                 $common_obj   = new Common();
-                if($shipmentData){
-                if ($shipmentData["shipment_service_type"] == "P") {
-                    $actions            = "Collection successful";
-                    $internalActionCode = "COLLECTIONSUCCESS";
-                } elseif ($shipmentData["shipment_service_type"] == "D") {
-                    $actions            = "Delivery successful";
-                    $internalActionCode = "DELIVERYSUCCESS";
-                }
-                $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');
-
-                Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver", "pod_status"=> $data["pod_status"]));
-
-                $this->_add_driver_tacking();
-                }
-
-
-                if($data["left"]==0){
-                    $actions            = "Route completed";
-                    $internalActionCode = "ROUTECOMPLETED";
-                    $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');
-                }
+                $data = $this->_delivered_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->driver_name, $this->latitude, $this->longitude, $this->service_message);
                 Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
                     "shipment_ticket" => $this->shipment_ticket,
                     "company_id" => $this->company_id,
                     "warehouse_id" => $this->warehouse_id,
-                    "trigger_code" => "successful",
-                    "shipment_type" => $shipmentData["instaDispatch_loadGroupTypeCode"]
+                    "trigger_code" => "successful"
                 ));
-            }
-        } else if ($this->loadActionCode == 'processdriverfailaction') {
-            $data = $this->authenticate_driver();
-            if ($data['status'] == "success") {
-                $common_obj = new Common();
-                $data         = $this->_carded_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->service_message, 'Ca');
-                if($data['status'] == "success") {
+                if ($data["status"] == "success") {
                     $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
+                     $common_obj   = new Common();
+                    if($shipmentData){
                     if ($shipmentData["shipment_service_type"] == "P") {
-                        $actions            = "Collection failed";
-                        $internalActionCode = "COLLECTIONFAILED";
+                        $actions            = "Collection successful";
+                        $internalActionCode = "COLLECTIONSUCCESS";
                     } elseif ($shipmentData["shipment_service_type"] == "D") {
-                        $actions            = "Delivery failed";
-                        $internalActionCode = "DELIVERYFAILED";
+                        $actions            = "Delivery successful";
+                        $internalActionCode = "DELIVERYSUCCESS";
                     }
+                    $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');
 
                     Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver", "pod_status"=> $data["pod_status"]));
 
                     $this->_add_driver_tacking();
+                    }
 
+
+                    if($data["left"]==0){
+                        $actions            = "Route completed";
+                        $internalActionCode = "ROUTECOMPLETED";
+                        $common_obj->addShipmentlifeHistory($this->shipment_ticket, $actions, $this->driver_id, $this->shipment_route_id, $this->company_id, $this->warehouse_id, $internalActionCode, 'driver');
+                    }
                     Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
-                        "service_message" => $this->service_message,
                         "shipment_ticket" => $this->shipment_ticket,
                         "company_id" => $this->company_id,
                         "warehouse_id" => $this->warehouse_id,
-                        "trigger_code" => "failed",
+                        "trigger_code" => "successful",
                         "shipment_type" => $shipmentData["instaDispatch_loadGroupTypeCode"]
                     ));
+                }
+            } else if ($this->loadActionCode == 'processdriverfailaction') {
+                $data = $this->authenticate_driver();
+                if ($data['status'] == "success") {
+                    $common_obj = new Common();
+                    $data         = $this->_carded_shipment($this->shipment_ticket, $this->driver_id, $this->shipment_route_id, $this->service_message, 'Ca');
+
+                    if($data['status'] == "success") {
+                        $shipmentData = $this->model_rest->get_shipment_details_by_shipment_ticket($this->shipment_ticket);
+                        if ($shipmentData["shipment_service_type"] == "P") {
+                            $actions            = "Collection failed";
+                            $internalActionCode = "COLLECTIONFAILED";
+                        } elseif ($shipmentData["shipment_service_type"] == "D") {
+                            $actions            = "Delivery failed";
+                            $internalActionCode = "DELIVERYFAILED";
+                        }
+
+                        Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>$this->shipment_ticket, "form_code"=>$this->form_code, "user_type"=>"Driver", "pod_status"=> $data["pod_status"]));
+
+                        $this->_add_driver_tacking();
+
+                        Consignee_Notification::_getInstance()->sendShipmentCollectionDeliverNotification(array(
+                            "service_message" => $this->service_message,
+                            "shipment_ticket" => $this->shipment_ticket,
+                            "company_id" => $this->company_id,
+                            "warehouse_id" => $this->warehouse_id,
+                            "trigger_code" => "failed",
+                            "shipment_type" => $shipmentData["instaDispatch_loadGroupTypeCode"]
+                        ));
+                    }
                 }
             }
         }
