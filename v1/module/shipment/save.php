@@ -1092,7 +1092,7 @@ class shipment extends Library{
 
             $data["booking_ip"] = $_SERVER['REMOTE_ADDR'];
 
-            $data["notification_status"] = (isset($param['notification'])) ? $param['notification'] : 0;
+            $data["notification_status"] = (isset($param['notification']) and $param['notification'] == 'true') ? "1" : "0";
 
             $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
             $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
