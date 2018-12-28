@@ -1160,6 +1160,7 @@ class loadShipment extends Library
                 'driver_id'         => $this->driver_id,
                 'create_date'       => date("Y-m-d"),
                 'assign_start_time' => date("h:i:s", $timestamp),
+				'assign_date_time'  =>date('Y-m-d H:i:s', $timestamp),
                 'is_active'         => 'Y',
                 'is_optimized'      => 'NO',
                 'optimized_type'    => 'N',
