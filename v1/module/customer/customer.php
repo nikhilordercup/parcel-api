@@ -405,11 +405,29 @@ class Customer extends Icargo{
                   $data['updated_by'] = $param->user_id;
                   $condition = "id = '" . $param->data->customer . "'";
                   $infoStatus    = $this->modelObj->editContent("users",$data, $condition);
-                 if($infoStatus){
-                      return array("status"=>"success","message"=>"Action Perform successfully");
-                   }
-                   return array("status"=>"error","message"=>"Action not Performe");
-               break;
+				  if($infoStatus){
+					 //get all users by customer_id and change their status
+						 $userData = $this->modelObj->getUserByCustomerId($param->data->customer,$param->company_id);
+						 if(count($userData)>0){
+							 $data = array();
+							 foreach($userData as $key=>$value){
+								$data['status'] = $param->status;
+								$data['update_date'] = date('Y-m-d');
+								$data['updated_by'] = $param->user_id;
+								$condition = "id = '".$value['user_id']."'";
+								$userStatus = $this->modelObj->editContent("users",$data, $condition); 
+							 }
+							if($userStatus){
+							  return array("status"=>"success","message"=>"Action Perform successfully");
+							}
+							return array("status"=>"error","message"=>"Action not Performed successfully");	 
+						}else{
+							return array("status"=>"success","message"=>"Action Perform successfully");
+						}
+					}else{
+						return array("status"=>"error","message"=>"Action not Performed successfully");
+					}
+				break;
              case "editSelectedCustomerAccountStatusFromView":
                  $param->action = "editCustomerAccountStatus";
                  return $this-> editCustomerStatus($param);
@@ -442,29 +460,29 @@ class Customer extends Icargo{
             $condition = "customer_id = '" . $param->customer_id . "' AND courier_id = '" . $param->data->courier_id .
                         "' AND account_number = '" . $param->data->account_number . "' AND company_id = '" . $param->company_id . "' ";
             $infoStatus    = $this->modelObj->editContent("courier_vs_company_vs_customer",$data, $condition);
-                 if($infoStatus){
-                      return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
-                   }
-                   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
-                }else{
-                  $data = array();
-                  $data['customer_surcharge_value'] = $param->data->customer_surcharge;
-                  $data['customer_ccf_value'] = $param->data->customer_ccf;
-                  $data['company_id'] = $param->company_id;
-                  $data['company_courier_account_id'] = $param->data->id;
-                  $data['account_number'] = $param->data->account_number;
-                  $data['courier_id'] = $param->data->courier_id;
-                  $data['customer_id'] = $param->customer_id;
-                  $data['create_date'] = date('Y-m-d');
-                  $data['created_by'] = $param->user_id;
+			 if($infoStatus){
+				  return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
+			   }
+			   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
+			}else{
+			  $data = array();
+			  $data['customer_surcharge_value'] = $param->data->customer_surcharge;
+			  $data['customer_ccf_value'] = $param->data->customer_ccf;
+			  $data['company_id'] = $param->company_id;
+			  $data['company_courier_account_id'] = $param->data->id;
+			  $data['account_number'] = $param->data->account_number;
+			  $data['courier_id'] = $param->data->courier_id;
+			  $data['customer_id'] = $param->customer_id;
+			  $data['create_date'] = date('Y-m-d');
+			  $data['created_by'] = $param->user_id;
 
-                  $satatusId = $this->modelObj->addContent('courier_vs_company_vs_customer',$data);
-                   if($satatusId){
-                      return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
-                   }
-                   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
-                }
-              }
+			  $satatusId = $this->modelObj->addContent('courier_vs_company_vs_customer',$data);
+			   if($satatusId){
+				  return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
+			   }
+			   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
+			}
+	}
 
 
   public function editServiceAccountStatus($param){

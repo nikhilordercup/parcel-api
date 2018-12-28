@@ -4,7 +4,7 @@ class Custom_Label
 {
     public
 
-    function createLabel($load_identity)
+    function createLabel($load_identity,$carrier_code)
     {
         $config = array(
             'mode' => 'c',
@@ -19,7 +19,8 @@ class Custom_Label
 			//'orientation' => 'L'
         );
 
-        $dirPath = "../label/$load_identity/pnp";
+        $dirPath = "../label/$load_identity/$carrier_code";
+        echo $carrier_code;
         $path = "$dirPath/$load_identity.pdf";
         if (!file_exists($dirPath)) {
             mkdir($dirPath, 0777, true);

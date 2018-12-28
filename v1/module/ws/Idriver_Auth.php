@@ -1,4 +1,6 @@
 <?php
+require_once "./module/firebase/Firebase_Auth.php";
+
 class Idriver_Auth
 {
     public function __construct($params)
@@ -27,7 +29,6 @@ class Idriver_Auth
 
     public function getDriverDetails($data)
     {
-        //$driver_pictures                         = json_decode($data['driver_picture']);
         $detail                                    = array();
         $detail["lastAccessTime"]                  = '';
         $detail["geoLocationBrodcastingFrequency"] = 30000; //($data['maximum_tracking_time'] * 60000);
@@ -80,7 +81,9 @@ class Idriver_Auth
         $response = array();
         $user = $this->_process();
         if ($user != null) {
-            if (true) {
+            $fbAuthObj = new Firebase_Auth();
+            $authData = $fbAuthObj->authentication($this->email, $this->password);
+            if ($authData["status"]=="success") {
                 $access_token       = $this->_setAccessToken($user['id']);
                 $access_token       = $this->_getAccessToken();
                 $tokenUpdateSuccess = $this->db->updateAccessTokenById($access_token, $user['id']);
@@ -101,7 +104,7 @@ class Idriver_Auth
                                 }
 
                                 $response = array(
-                                    "success"=>true,
+                                    "status"=>"success",
                                     "message"=>"Authenticated successfully",
                                     "title"=>"User Authenication",
                                     "accessToken"=>$access_token,
@@ -121,28 +124,27 @@ class Idriver_Auth
                                     ),
                                     "system_configuration"=>$appConfiguration["config_data"],
                                     "form_json"=>$formData
-
                                 );
                             } else {
-                                $response['success'] = false;
+                                $response['status'] = "error";
                                 $response['message'] = 'Login failed! App configuration not found';
 
                             }
                         } else {
-                            $response['success'] = false;
+                            $response['status'] = "error";
                             $response['message'] = 'Login failed! Vehicle not assigned';
                         }
                     }
                 } else {
-                    $response['success'] = false;
+                    $response['status'] = "error";
                     $response['message'] = 'Authentication Failure!';
                 }
             } else {
-                $response['success'] = false;
-                $response['message'] = 'Login failed. Incorrect credentials!';
+                $response['status'] = "error";
+                $response['message'] = $authData["message"];
             }
         } else {
-            $response['success'] = false;
+            $response['status'] = "error";
             $response['message'] = 'No such user is registered!';
         }
         return $response;

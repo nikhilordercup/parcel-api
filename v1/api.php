@@ -1319,7 +1319,7 @@ $app->post('/getAllCourierDataOfSelectedCustomerwithStatus', function () use ($a
     verifyRequiredParams(array('access_token', 'company_id', 'customer_id', 'user_id'), $r);
     $obj = new Customer($r);
     $response = $obj->getAllCourierDataOfSelectedCustomerwithStatus($r);
-    \
+    
         echoResponse(200, $response);
 });
 $app->post('/getAllCourierServicesForSelectedCustomer', function () use ($app) {
@@ -2517,7 +2517,7 @@ $app->post('/fixAddressBookSearchString', function () use ($app) {//delete after
 	
 	foreach($records as $record){
 		$temp = array("address_1"=>$record['address_line1'],"address_2"=>$record['address_line2'],"postcode"=>$record['postcode'],"city"=>$record['city'],"state"=>$record['state'],"country"=>$record['country'],"name"=>$record['first_name'],"email"=>$record['contact_email'],"company_id"=>$record['company_name']);	
-		$addressString = $commonObj->getAddressBookSearchString((object)$temp);
+		$addressString = addslashes($commonObj->getAddressBookSearchString((object)$temp));
 		$address_id = $record["id"];
 
         $sql = "UPDATE icargo_address_book SET search_string='$addressString' WHERE id='$address_id'";
@@ -2536,5 +2536,26 @@ $app->post('/getChildAccountData', function () use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Customer($r);
     $response = $obj->getChildAccountData($r);
+    echoResponse(200, $response);
+});
+$app->post('/fileupload', function() use ($app){//delete after execution
+	$r = json_decode($app->request->getBody());
+    $obj = new Module_Reconciled_Reconciled($r);
+    $response = $obj->setReconsiledData($r);
+    echoResponse(200, $response);
+});
+
+$app->post('/getUniqueCarriersofCompany', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','email','access_token'),$r);
+    $obj = new allShipments($r);
+    $response = $obj->getUniqueCarriersofCompany($r);
+    echoResponse(200, $response);
+});
+$app->post('/getallreconciled', function() use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('company_id','email','access_token'),$r);
+    $obj = new Module_Reconciled_Reconciled($r);
+    $response = $obj->getAllReconciled($r);
     echoResponse(200, $response);
 });

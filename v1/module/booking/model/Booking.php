@@ -330,7 +330,7 @@ class Booking_Model_Booking
 
     function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity)
     {
-
+		
         $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
         $credentailData = $this->_db->getRowRecord($sql);
         return $credentailData;
@@ -662,7 +662,15 @@ class Booking_Model_Booking
         $credentailData = $this->_db->getRowRecord($sql);
         return $credentailData;
     }
+    
+     public
+
+    function isInternalCarrier($carrier_code)
+    {
+        $sql = "SELECT is_self AS is_internal  FROM " . DB_PREFIX . "courier WHERE code = '$carrier_code'";
+        $record = $this->_db->getRowRecord($sql);
+        return $record['is_internal'];
+    }
 	
 }
-
 ?>

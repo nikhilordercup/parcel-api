@@ -247,12 +247,6 @@ class User_Management{
       $addressBook['billing_address'] = "N";
       $addressBook['pickup_address'] = "Y";
       $addressId    = $this->modelObj->addContent("address_book",$addressBook);
-        /* if($addressId){
-        return array("status"=>"success","message"=>"Customer Pickup Address added successfully");
-       }
-      return array("status"=>"error","message"=>"Customer Pickup Address added. But firebase updateion failed"); */
     }
-
-
    }
 ?>
