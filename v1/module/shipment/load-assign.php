@@ -239,6 +239,7 @@ class Route_Assign
         $createdRoute['driver_id'] = $this->driver_id;
         $createdRoute['assign_start_time'] = date('H:i:s', $timeStamp);
         $createdRoute['service_date'] = date('Y-m-d H:i:s', $timeStamp);
+		$createdRoute['assign_date_time'] = date('Y-m-d H:i:s', $timeStamp);
         $createdRoute['is_active'] = 'Y';
         $createdRoute['status'] = '1';
         $createdRoute['company_id'] = $this->company_id;

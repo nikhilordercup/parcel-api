@@ -581,16 +581,17 @@ final class Nextday extends Booking
     function _getAddress($item)
     {
         return array(
-            "name" => "",
-            "company" => "",
-            "phone" => "",
+            "name" => (isset($item->name)) ? $item->name : "",
+            "company" => (isset($item->company_name)) ? $item->company_name : "",
+            "phone" => (isset($item->phone)) ? $item->phone : "",
             "street1" => (isset($item->address_line1)) ? $item->address_line1 : "",
             "street2" => (isset($item->address_line2)) ? $item->address_line2 : "",
             "city" => (isset($item->city) && !empty($item->city)) ? $item->city : "oxford",
             "state" => (isset($item->state)) ? $item->state : "",
             "zip" => $item->postcode,
             "country" => $item->country->alpha2_code,
-            "country_name" => $item->country->short_name
+            "country_name" => $item->country->short_name,
+			"is_res" => (isset($item->address_type) && $item->address_type=='Residential') ? true : false,
 
         );
     }
@@ -690,6 +691,7 @@ final class Nextday extends Booking
             $responseStr = $this->_postRequest($this->data);
             $response = json_decode($responseStr);
             $response = $this->_getCarrierInfo($response->rate);
+			
             if (isset($response->status) and $response->status = "error")
             {
                 return array(

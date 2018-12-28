@@ -1,1 +1,0 @@
-ALTER TABLE icargo_shipment_tracking DROP COLUMN pod_id;
