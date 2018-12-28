@@ -24,6 +24,7 @@ class TuffnellsLabels extends \Icargo
 
     public function tuffnellLabelData($postData)
     {
+
         $tbname = DB_PREFIX . 'rateengine_labels';
         $postvalues = array(
             'credential_info' => json_encode($postData->credentials),
@@ -87,6 +88,7 @@ class TuffnellsLabels extends \Icargo
         $firstPcode = $explode[0];
         $scondCode = substr($explode[1], 0, 1);
         $pcode = $firstPcode.' '.$scondCode;
+
         //Depot Code
         $depotCode = $this->getInstance()->getDeliveryDepotCode($pcode);
         $deliveryDepoNumber = sprintf("%03d",($depotCode['delivery_depot_number']));
@@ -98,9 +100,11 @@ class TuffnellsLabels extends \Icargo
 
         //Service Code
         $service_args = $this->tuffnelServiceType();
+        //print_r($service_args); die;
         $key = array_keys(array_combine(array_keys($service_args), array_column($service_args, 'desc')),$data->service);
         $keyval = $key[0];
         $serviceTypeCode = $service_args[$keyval]['service_type_code'];
+        $label_heading = $service_args[$keyval]['label_heading'];
 
         //====Sequence Number=====//
         $current_date = date("Y-m-d");
@@ -119,7 +123,8 @@ class TuffnellsLabels extends \Icargo
         $barnumber = preg_replace('/(?<=\d)\s+(?=\d)/', '', $barcode_number);
 
         return array('barcode' => $barnumber, 'service_code' => $serviceTypeCode, 'delivery_depot_number' => $deliveryDepoNumber,
-            'depo_post_code' => $depPostCode, 'delivery_round' => $deliveryRound, 'post_code' => $post_code, 'delivery_depot_code' => $delivery_depot_code);
+            'depo_post_code' => $depPostCode, 'delivery_round' => $deliveryRound, 'post_code' => $post_code, 'delivery_depot_code' => $delivery_depot_code,
+            'label_heading' => $label_heading);
 
     }
 
@@ -139,7 +144,7 @@ class TuffnellsLabels extends \Icargo
         $delivery_round = $barCode['delivery_round'];
         $postCode = $barCode['post_code'];
         $deliveryDepotNumber = $barCode['delivery_depot_number'];
-
+        $labelHeading = $barCode['label_heading'];
 
         $text = $bar_code;
         $size = "70";
@@ -177,13 +182,13 @@ class TuffnellsLabels extends \Icargo
         $totalPackage = count($data->package);
         $totalWeight = array_column($data->package, 'weight');
 
-        $htmlParser = $twig->render('tuffnel_label_template.html', array('pageBreak'=>'Hello','labelData'=>$data->package,
+        $htmlParser = $twig->render('tuffnel_label_template.html', array('labelData'=>$data->package,
                 'depot_code' => $deliveryDepotCode, 'total_weight' => array_sum($totalWeight), 'total_package' => $totalPackage,
                 'collection_address' => $colAddress, 'delivery_address' => $delAddress, 'special_instruction' => $specialInstruction,
                 'vertical' => $vertical, 'horizontal' => $horizontal, 'post_code' => $depoPostCode,
                 'delivery_depot_code' => $deliveryDepotCode, 'delivery_round' => $delivery_round,
                 'delivery_depot_number' => $deliveryDepotNumber, 'dispatchDate' => $data->ship_date,
-                'tel' => $fromPhone,'loadIdentity'=>$data->loadIdentity)
+                'tel' => $fromPhone,'loadIdentity'=>$data->loadIdentity, 'label_heading' => $labelHeading)
         );
 
 
@@ -383,9 +388,9 @@ class TuffnellsLabels extends \Icargo
         $args = array(
 
             'P1' => [
-                'service'=>'P1',
-                'desc'=>'Next Day',
-                'surcharge'=>'',
+                'service' => 'P1',
+                'desc' => 'Next Day',
+                'surcharge' => 'NULL',
                 'service_type_code' => '01',
                 'label_heading' => 'P1'
             ],
@@ -412,87 +417,80 @@ class TuffnellsLabels extends \Icargo
             ],
             'P5' => [
                 'service' => 'P1',
-                'desc' => 'Saturday AM',
+                'desc' => 'Saturday',
                 'surcharge' => 'SM',
                 'service_type_code' => '01',
                 'label_heading' => 'SatAM'
             ],
+
             'P6' => [
-                'service' => 'P1',
-                'desc' => 'Saturday delivery',
-                'surcharge' => 'SD',
-                'service_type_code' => '',
-                'label_heading' => 'Sat'
-            ],
-            'P7' => [
-                'service' => 'P2',
+                'service' => 'NULL',
                 'desc' => '2 day service',
-                'surcharge' => '',
+                'surcharge' => 'NULL',
                 'service_type_code' => '02',
                 'label_heading' => 'P2'
             ],
-            'P8' => [
-                'service' => 'P3',
+            'P7' => [
+                'service' => 'NULL',
                 'desc' => '3 day service',
-                'surcharge' => '',
+                'surcharge' => 'NULL',
                 'service_type_code' => '03',
                 'label_heading' => 'P3'
             ],
+            'P8' => [
+                'service' => 'NULL',
+                'desc' => '3 day offshore',
+                'surcharge' => 'NULL',
+                'service_type_code' => '03',
+                'label_heading' => 'Offs'
+            ],
+
             'P9' => [
                 'service' => 'OF',
                 'desc' => 'Next day offshore',
                 'surcharge' => 'P1',
+                'service_type_code' => '01',
                 'label_heading' => 'P1Offs'
             ],
+
             'P10' => [
-                'service' => 'OF',
-                'desc' => '3 day offshore',
-                'surcharge' => '9T',
-                'service_type_code' => '03',
-                'label_heading' => 'Offs'
-            ],
-            'P11' => [
                 'service' => 'DB',
                 'desc' => 'Next day databag',
-                'surcharge' => '',
+                'surcharge' => 'NULL',
                 'service_type_code' => '04',
                 'label_heading' => 'P1'
             ],
-            'P12' => [
+            'P11' => [
                 'service' => 'DB',
                 'desc' => 'Next day databag before noon',
                 'surcharge' => 'BN',
                 'service_type_code' => '04',
                 'label_heading' => 'AM'
             ],
-            'P13' => [
+
+            'P12' => [
                 'service' => 'DT',
                 'desc' => 'Next day databag before 10:30',
                 'surcharge' => '30',
                 'service_type_code' => '04',
                 'label_heading' => '10.30'
             ],
-            'P14' => [
+            'P13' => [
                 'service' => 'DB',
-                'desc' => 'Next day before 09.30',
+                'desc' => 'Next day databag before 09.30',
                 'surcharge' => '9T',
                 'service_type_code' => '04',
                 'label_heading' => '09.30'
             ],
-            'P15' => [
-                'service' => 'DB',
-                'desc' => 'Saturday AM databag',
-                'surcharge' => 'SM',
-                'service_type_code' => '04',
-                'label_heading' => 'SatAM'
-            ],
-            'P16' => [
+
+            'P14' => [
                 'service' => 'DB',
                 'desc' => 'Saturday databag',
                 'surcharge' => 'SD',
-                'service_type_code' => '',
+                'service_type_code' => '04',
                 'label_heading' => 'Sat'
-            ]
+            ],
+
         );
 
         return $args;
