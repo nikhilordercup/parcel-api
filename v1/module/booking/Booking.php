@@ -153,8 +153,7 @@ class Booking extends Icargo
 
         $ticketNumber = $this->modelObj->generateTicketNo($company_id);
         global $_GLOBAL_CONTAINER;
-        $_GLOBAL_CONTAINER['loadIdentity']=$ticketNumber;
-        $this->_loadIdentity=$ticketNumber;
+        $_GLOBAL_CONTAINER['loadIdentity']=(isset($param2->load_identity)) ? $param2->load_identity : $ticketNumber;
 
         if($ticketNumber){
 

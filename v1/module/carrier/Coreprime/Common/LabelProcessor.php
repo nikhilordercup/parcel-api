@@ -29,7 +29,7 @@ class LabelProcessor
         $labelArr=$labelArr['label'];
         if($labelArr['tracking_number']!=""){
             $labelArr['status']="success";
-            $labelArr['file_path']="";
+            $labelArr['file_path']=$labelArr['file_url'];
             $labelArr['label_tracking_number']=$labelArr['tracking_number'];
             $labelArr['label_files_png']=$labelArr['label_json']='';
         }

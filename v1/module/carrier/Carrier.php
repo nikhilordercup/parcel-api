@@ -20,7 +20,7 @@ class Carrier{
             $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
         }
 
-		$carrierObj = new $coreprimeCarrierClass();
+		$carrierObj = new $coreprimeCarrierClass($this);
 
 		if( strtolower($deliveryCarrier) == 'dhl' ) {
 			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
