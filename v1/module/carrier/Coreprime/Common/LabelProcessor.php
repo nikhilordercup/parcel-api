@@ -193,7 +193,7 @@ class LabelProcessor
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
 
         /*start of binding child account data*/
-        if ($response['credentials']['is_child_account'] == 'yes') {
+        if (isset($response['credentials']['is_child_account']) && $response['credentials']['is_child_account'] == 'yes') {
             $child_account_data = array("is_child_account" => $response['credentials']['is_child_account'],
                 "parent_account_number" => $response['credentials']['parent_account_number'],
                 "child_account_number" => $response['credentials']['credentials']['account_number']);
@@ -202,7 +202,7 @@ class LabelProcessor
         }
         /*end of binding child account data*/
 
-        $response['credentials'] = $response['credentials']['credentials'];
+        //$response['credentials'] = $response['credentials']['credentials'];
 
         $response['extra'] = array(
             "service_key" => $serviceInfo['service_code'],
