@@ -221,20 +221,27 @@ class RateEngineModel
 
     public function addNewRate($carrierId, $rates)
     {
+        $lc=[];
         foreach ($rates as $k => $r) {
-            $account = $this->_db->getOneRecord("SELECT id FROM " . DB_PREFIX . "courier_vs_company WHERE "
-                . " courier_id=$carrierId AND account_number=" . $r['account_number']);
+            if(!isset($lc[$r['account_number']])) {
+                $account = $this->_db->getOneRecord("SELECT id FROM " . DB_PREFIX . "courier_vs_company WHERE "
+                    . " courier_id=$carrierId AND account_number=" . $r['account_number']);
 
-            if (!$account) {
-                return [
-                    'error' => true,
-                    'message' => 'Account number not found:' . $r['account_number']
-                ];
+                if (!$account) {
+                    return [
+                        'error' => true,
+                        'message' => 'Account number not found:' . $r['account_number']
+                    ];
+                }
+                $deleteQuery = "DELETE FROM " . DB_PREFIX . "rate_info "
+                    . "WHERE  carrier_id=$carrierId AND account_id=" . $account['id'];
+                $this->_db->delete($deleteQuery);
+                $lc[$r['account_number']]=$account;
+            }else{
+                $account=$lc[$r['account_number']];
             }
-            $deleteQuery = "DELETE FROM " . DB_PREFIX . "rate_info "
-                . "WHERE  carrier_id=$carrierId AND account_id=" . $account['id'];
-            $this->_db->delete($deleteQuery);
-            $rates[$k]['account_id'] = $account['id'];
+                $rates[$k]['account_id'] = $account['id'];
+
         }
         $this->_db->startTransaction();
         foreach ($rates as $r) {
