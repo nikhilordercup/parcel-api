@@ -40,9 +40,9 @@ class RateApiController
             $r = json_decode($app->request->getBody());
             $controller = new RateApiController();
             $controller->_requestData=$r;
-            $date = date('Y-m-d');
-            $match_date = date('Y-m-d', strtotime($r->ship_date));
-            if ($date == $match_date) {
+//            $date = date('Y-m-d');
+//            $match_date = date('Y-m-d', strtotime($r->ship_date));
+            if (!isset($r->package) || count($r->package)==0) {
                 $controller->_isSameDay = true;
             }
             if (isset($r->label)) {
