@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instadispatch</title>
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
+    <style type="text/css">
+        .container-box {
+            width: 700px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .table-box {
+            border: 2px solid #000;
+        }
+
+        span.total {
+            float: left;
+            font-weight: bold;
+        }
+
+        .table-det table > tbody > tr > td {
+            padding: 13px 0;
+        }
+
+        td.border-class {
+            border-top: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-box">
+        <h2>Ezeelink.Remote Delivery Manifest 14/11/2007<br> for DAVID DUNHILL INC</h2>
+        <!-- dirst table layout -->
+        <!-- ======================= -->
+        <div class="table-box">
+            <table cellspacing="0" cellpadding="4" width="500px">
+                <tr>
+                    <th colspan="4" align="left" style="font-size: 19px">
+                        Delivery Consignment Summary
+                    </th>
+                </tr>
+
+                <table width="450px" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+                    <tr>
+                        <th>Service</th>
+                        <th style="width: 100px"></th>
+                        <th>Consignments</th>
+                        <th>Packages</th>
+                        <th>Weight(kg)</th>
+                    </tr>
+
+                    <tr align="right">
+                        <td style="text-align: center;">2 Day</td>
+                        <th style="width: 100px"></th>
+                        <td style="padding-right: 15px">{{number_of_consignment}}</td>
+                        <td style="padding-right: 15px">{{number_of_parcel}}</td>
+                        <td style="padding-right: 15px">{{weight_sum}}</td>
+                    </tr>
+
+                    <tr align="right" style="border-bottom: 1px solid #000;">
+                        <td></td>
+                        <th style="width: 100px"></th>
+                        <td class="border-class" style="padding-right: 15px"><span class="total">Totals</span>
+                            {{number_of_consignment}}
+                        </td>
+                        <td class="border-class" style="padding-right: 15px">{{number_of_parcel}}</td>
+                        <td class="border-class" style="padding-right: 15px">{{weight_sum}}</td>
+                    </tr>
+                </table>
+            </table>
+        </div>
+
+
+        <!-- second table layout -->
+        <!-- ========================= -->
+
+        <h3 align="left">2 Day</h3>
+
+        <div class="table-det">
+            <table cellpadding="4" width="750px" style="border-collapse: collapse;">
+                <tbody>
+                <tr style="border-bottom: 1px solid #000;">
+                    <th></th>
+                    <th>Ref.</th>
+                    <th>Delivery Address</th>
+                    <th>Collection Address</th>
+                    <th>Packages</th>
+                    <th>Wgt(kg)</th>
+                </tr>
+                {% for manifest in dataargs %}
+
+                <tr style="border-bottom: 1px solid #000;">
+                    <td class="border-class">{{manifest.account_number}}</td>
+                    <td class="border-class">{{manifest.reference_id}}</td>
+                    <td class="border-class">{{manifest['delivery_info'].company |nl2br}}
+                        {{manifest['delivery_info'].street1 |nl2br}}
+                        {{manifest['delivery_info'].street2 |nl2br}}
+                    </td>
+                    <td class="border-class">
+                        <b>{{manifest['collection_info'].company |nl2br}}
+                            {{manifest['collection_info'].street1 |nl2br}}
+                            {{manifest['collection_info'].street2 |nl2br}}</b>
+                    </td>
+                    <td class="border-class" style="text-align: center">{{manifest.total_parcel}}</td>
+                    <td class="border-class" style="text-align: center">{{manifest.total_weight}}</td>
+                </tr>
+                {%endfor%}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</body>
+</html>

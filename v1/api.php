@@ -2429,8 +2429,10 @@ GridConfiguration::initRoutes($app);
 CustomFilterConfiguration::initRoutes($app);
 DriverController::initRoutes($app);
 SubscriptionController::initRoutes($app);
+\v1\module\RateEngine\RateEngineController::initRoutes($app);
+\v1\module\RateEngine\RateApiController::initRoutes($app);
 DashboardApi::dashboardRoutes($app);
-UkMailTracking::initRoutes($app);
+\v1\module\RateEngine\tuffnells\TuffnellsApi::rateEngineRoutes($app);
 
 $app->post('/apiLogin', function () use ($app) {
     $r = json_decode($app->request->getBody());

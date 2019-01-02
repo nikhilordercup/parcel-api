@@ -25,7 +25,25 @@ class dbConnect {
         // returing connection resource
         return $this->conn;
     }
-
+    public static function bootGlobal()
+    {
+        if(!defined('DB_HOST')) {
+            require_once '../config.php';
+        }
+        $connectionManager = new \Illuminate\Database\Capsule\Manager();
+        $connectionManager->addConnection([
+            'driver' => 'mysql',
+            'host' => DB_HOST,
+            'database' => DB_NAME,
+            'username' => DB_USERNAME,
+            'password' => DB_PASSWORD,
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => DB_PREFIX,
+        ]);
+        $connectionManager->setEventDispatcher(new \Illuminate\Events\Dispatcher(new \Illuminate\Container\Container()));
+        $connectionManager->setAsGlobal();
+        $connectionManager->bootEloquent();
+    }
 }
-
-?>
+dbConnect::bootGlobal();
