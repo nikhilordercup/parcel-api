@@ -117,6 +117,7 @@ class RateApiController
                 $rates = $this->_reateEngineModel->searchPriceForZone(
                     $param['zone'][$name]["fromZone"]['carrier_id'], $param['zone'][$name]["fromZone"]['zone_id'], $param['zone'][$name]["toZone"]['zone_id']);
                 foreach ($rates as $k => $r) {
+			if(!isset($this->_requestedServices[$r['account_number']]))continue;
                     $result = array_search($r['service_code'], $this->_requestedServices[$r['account_number']]);
                     if (gettype($result) == 'integer' && $result >= 0) {
                         $this->_responseData['rate'][$name][$r['account_number']][$r['service_code']][]['rate'] = $rates[$k];

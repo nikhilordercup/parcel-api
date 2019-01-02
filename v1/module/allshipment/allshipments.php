@@ -15,6 +15,7 @@ class allShipments extends Icargo
     public function getallshipments($param)
     {
         $filterShipment = array();
+        $basefilter = array();
         if(isset($param->data)){
 
             if(isset($param->data->customer)){
@@ -22,11 +23,11 @@ class allShipments extends Icargo
                     $param->data->customer = array($param->data->customer);
 
                 $customer_id_string = implode("','", array_filter($param->data->customer));
-                $filterShipment["customer_filter"] = "S.customer_id IN('" . $customer_id_string . "')";
+                $filterShipment["customer_filter"] = "SST.customer_id IN('" . $customer_id_string . "')";
             }
 
             if(isset($param->warehouse_id)){
-                $filterShipment["warehouse_filter"] = "S.warehouse_id = '" . $param->warehouse_id . "'";
+                $basefilter["warehouse_filter"] = "S.warehouse_id = '" . $param->warehouse_id . "'";
             }
 
             if(isset($param->data->job_identity)){
@@ -81,7 +82,7 @@ class allShipments extends Icargo
             }
 
             if(isset($param->company_id)){
-                $filterShipment["company_filter"] = "S.company_id = '" . $param->company_id . "'";
+                $basefilter["company_filter"] = "S.company_id = '" . $param->company_id . "'";
             }
 
             if(isset($param->data->collection_date_filter)){
@@ -152,7 +153,7 @@ class allShipments extends Icargo
             }
 
             if(isset($param->data->amount) AND !empty($param->data->amount)){
-                $filterShipment["postcode_filter"] = "SST.grand_total = '" . $param->data->amount . "'";
+                $filterShipment["postcode_filter"] = "SST.grand_total = " . $param->data->amount . "";
             }
 
             if(isset($param->data->customer_reference1) AND !empty($param->data->customer_reference1)){
@@ -165,12 +166,15 @@ class allShipments extends Icargo
 
         }
 
-        $filterString = 1;
-        if(count($filterShipment)>0){
-            $filterString = implode(" AND ", $filterShipment);
+        $basefilterString = 1;
+        $filterString = '';
+        if(count($basefilter)>0){
+            $basefilterString = implode(" AND ", $basefilter);
         }
-
-        $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
+        if(count($filterShipment)>0){
+             $filterString = " AND ".implode(" AND ", $filterShipment);
+        }
+        $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost,$basefilterString);
 
         $filterLoadIdentity = array();
 
@@ -184,7 +188,6 @@ class allShipments extends Icargo
         $shipmentsData = $this->_prepareShipments($shipmentsData);
         return $shipmentsData;
     }
-
     private function _getCurrentTrackingStatusByLoadIdentity($load_identity){
         $currentTrackingStatus = $this->modelObj->getCurrentTrackingStatusByLoadIdentity($load_identity);
         return $currentTrackingStatus["code_translation"];
@@ -242,7 +245,7 @@ class allShipments extends Icargo
                             $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
                             $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
                             $data['tracking_no']        = $pickupData['tracking_no'];
-                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            //$data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]           = $pickupData['current_status'];
 							$data['total_item']       = 'NA';
 							$data['total_weight']       = 'NA';
@@ -305,7 +308,7 @@ class allShipments extends Icargo
                             $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
                             $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
                             $data['tracking_no']        = $pickupData['tracking_no'];
-                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            //$data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
 							$data['total_item']       = $totalWeightAndItem['total_item'];
 							$data['total_weight']       = $totalWeightAndItem['total_weight'];

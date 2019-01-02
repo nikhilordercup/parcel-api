@@ -26,7 +26,27 @@ class SurchargeManager {
     protected $_packages = null;
     protected $_rate = null;
     protected $_requestData = null;
-    protected $_countedSurcharge = [];
+    protected $_countedSurcharge = [
+	"long_length_surcharge"=>0,
+        "remote_area_surcharge"=>0,
+        "manual_handling_surcharge"=>0,
+        "fuel_surcharge"=>0,
+        "collection_pickup"=>0,
+        "bookin_surcharge"=>0,
+        "insurance_surcharge"=>0,
+        "timed_services_surcharge"=>0,
+        "return_surcharge"=>0,
+        "isle_weight_surcharge"=>0,
+        "isle_scilly_surcharge"=>0,
+        "saturday_delivery_surcharge"=>0,
+        "pobox_surcharge"=>0,
+        "congestion_surcharge"=>0,
+        "same_day_drop_surcharge"=>0,
+        "same_day_waiting_surcharge"=>0,
+        "overwieght_surcharge"=>0,
+        "extrabox_surcharge"=>0,
+        "residential_surcharge"=>0
+	];
     protected $_fuelSurcharge = null;
     public $_isSameDay=false;
     /**

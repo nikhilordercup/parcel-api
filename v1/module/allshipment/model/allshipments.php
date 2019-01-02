@@ -722,11 +722,13 @@ class AllShipment_Model
         $record = $this->db->getAllRecords($sql);
         return  $record;
     }
-
-    public function getAllShipmentTicket($filter, $start, $end){
-        $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS load_Identity,S.shipment_id FROM " . DB_PREFIX . "shipment AS S";
-        $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=S.instaDispatch_loadIdentity";
-        $sql .= " WHERE $filter ";
+    
+    public function getAllShipmentTicket($filter, $start, $end,$basefilterString){ 
+        $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS load_Identity FROM " . DB_PREFIX . "shipment AS S";
+        if($filter){
+           $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=S.instaDispatch_loadIdentity";
+        }
+        $sql .= " WHERE $basefilterString  $filter ";
         $sql .= " AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca' OR S.current_status = 'Cancel')";
         $sql .= " AND (`S`.`instaDispatch_loadGroupTypeCode` = 'SAME' OR `S`.`instaDispatch_loadGroupTypeCode` = 'NEXT')";
         $sql .= " ORDER BY S.shipment_id DESC";

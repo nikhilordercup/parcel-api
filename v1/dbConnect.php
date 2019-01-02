@@ -26,7 +26,7 @@ class dbConnect {
         return $this->conn;
     }
     public static function bootGlobal()
-    {
+    {  // if(!class_exists ('\Illuminate\Database\Capsule\Manager'))return true;
         if(!defined('DB_HOST')) {
             require_once '../config.php';
         }
