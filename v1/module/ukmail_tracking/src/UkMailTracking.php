@@ -22,7 +22,7 @@ class UkMailTracking
     }
 
     public static function initRoutes($app){               
-        $app->post('/ukmailtracking', function() use ($app) {                               
+        $app->get('/ukmailtracking', function() use ($app) {                               
             $ukMailModel = UkMailModel::getInstance();
             $shipmentsToTrack = $ukMailModel->getShipmentToTrack(); 
             if(count($shipmentsToTrack) > 0)
