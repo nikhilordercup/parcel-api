@@ -2559,3 +2559,4 @@ $app->post('/getallreconciled', function() use ($app) {
     $response = $obj->getAllReconciled($r);
     echoResponse(200, $response);
 });
+UkMailTracking::initRoutes($app);
