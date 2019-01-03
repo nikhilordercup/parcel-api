@@ -1,5 +1,6 @@
 <?php
 namespace v1\module\RateEngine;
+use v1\module\Database\Model\UsersModel;
 use v1\module\RateEngine\ExcelBuilder;
 use v1\module\RateEngine\ExcelReader;
 use v1\module\RateEngine\RateEngineModel;
@@ -137,6 +138,8 @@ class RateEngineController {
             $r = json_decode($app->request->getBody());
             self::createInstance();
             self::$_rateEngine->fetchAllServices($r);
+//            UsersModel::all()->where('','','')
+//                ->to
         });
         $app->post("/rate-engine/get-service-options", function() use ($app) {
             $r = json_decode($app->request->getBody());

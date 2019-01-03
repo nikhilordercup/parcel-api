@@ -7,7 +7,6 @@ require_once 'constant.php';
 require_once '../Credentials.php';
 require_once 'passwordHash.php';
 require_once 'array_column.php';
-require '.././libs/Slim/Slim.php';
 require '../vendor/autoload.php';
 require_once 'dbHandler.php';
 \Slim\Slim::registerAutoloader();
