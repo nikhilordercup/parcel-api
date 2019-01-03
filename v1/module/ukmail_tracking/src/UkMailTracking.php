@@ -29,7 +29,7 @@ class UkMailTracking
             {                
                 foreach($shipmentsToTrack as $shipment)
                 { 
-                    $credentials = $ukMailModel->getAccountCredential($shipment['company_id'],$shipment['accountkey']);
+                    $credentials = $ukMailModel->getAccountCredential($shipment['company_id'],$shipment['parent_account_key']);
                     if(count($credentials) > 0)
                     {                       
                         self::doTracking($credentials['username'], $credentials['password'],'',$shipment['label_tracking_number'],0);
