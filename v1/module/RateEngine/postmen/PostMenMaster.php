@@ -12,9 +12,9 @@ use Postmen\Postmen;
 abstract class PostMenMaster extends Postmen
 {    
     private $db = NULL;    
-    public static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7    
+    public static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7        
     public static $region = 'sandbox';    //sandbox  //production
-    protected $api = NULL;
+    public $api = NULL;
 
 
     public function __construct()
@@ -46,13 +46,13 @@ abstract class PostMenMaster extends Postmen
         $finalPackage['description'] = $package->packaging_type;
         $finalPackage['box_type'] = $package->packaging_type;
         $finalPackage['weight'] = array(
-            'value'=> $package->weight,
+            'value'=> (float)$package->weight,
             'unit'=> strtolower($package->weight_unit)
         );
         $finalPackage['dimension'] = array(
-            'width'=> $package->width,
-            'height'=> $package->height,
-            'depth'=> $package->length,
+            'width'=> (float)$package->width,
+            'height'=> (float)$package->height,
+            'depth'=> (float)$package->length,
             'unit'=> strtolower($package->dimension_unit)
         );        
         $finalPackage['items'][] = array(
@@ -63,7 +63,7 @@ abstract class PostMenMaster extends Postmen
                 'currency'=>$currency
             ),
             'weight' => array(
-                'value'=>   $package->weight,
+                'value'=>   (float)$package->weight,
                 'unit'=>   strtolower($package->weight_unit)
             )
         );                                                 
@@ -139,7 +139,7 @@ abstract class PostMenMaster extends Postmen
     }
              
     public function calculateRates($payload)
-    {                
+    {        
         $result = $this->api->create('rates', $payload);           
         return $result->rates;
     }
@@ -157,28 +157,26 @@ abstract class PostMenMaster extends Postmen
         ,$package
         ,$shipperAccountId
         ,$others = array()
-        ,$isDocument=FALSE,$returnShipment=FALSE)
+        ,$isDocument=FALSE,$returnShipment=FALSE,$async=FALSE)
     { 
         $payload = array();                                                                        
+        $payload['async'] = $async; 
         $payload['is_document'] = $isDocument; 
         $payload['return_shipment'] = $returnShipment; 
         $payload['paper_size'] = $others['paper_size']; 
         $payload['service_type'] = $others['service_type'];         
         $accountNumber = ( $others['paid_by'] == 'shipper' ) ? $shipperAccountId : $others['account_number'];
+        
+        $payload['billing'] = array('paid_by'=>'shipper');
         $payload['customs'] = array(
             'billing' => array(
-                'paid_by' => $others['paid_by'],
-                'method' => array (
-                    'account_number' => $accountNumber,
-                    'type' => $others['type'],
-                )
+                'paid_by' => $others['paid_by']
             ),
             'purpose' => $others['purpose']
         );
                       
         $payload['shipper_account'] = array(
-            'id'=>$shipperAccountId
-            ,'credentials'=> array('id'=>$shipperAccountId)
+            'id'=>$shipperAccountId            
         );
         $payload['shipment']['parcels'][] = $package;
         $payload['shipment']['ship_from'] = $fromAddress;
@@ -189,14 +187,15 @@ abstract class PostMenMaster extends Postmen
     
     public function createLabel($payload)
     {        
-        $result = $this->api->create('labels', $payload);
-        return $result;
-        echo '<pre>'; print_r($result);die;
+        $conifg['safe'] = TRUE;
+        $result = $this->api->create('labels', $payload,$conifg); 
+        return $result;        
     }
     
     public function cancelLabel($payload)
     {
-        $result = $this->api->create('cancel-labels', $payload);
+        $conifg['safe'] = TRUE;
+        $result = $this->api->create('cancel-labels', $payload,$conifg);        
         return $result;
     }
     
@@ -219,8 +218,14 @@ abstract class PostMenMaster extends Postmen
     }
     
     public function createBulkDownload($payload)
-    {
+    {         
         $result = $this->api->create('bulk-downloads', $payload);
+        return $result;
+    }
+    
+    public function updateShipperAc($payload)
+    {        
+        $result = $this->api->createV2('shipper-accounts/de598545-f8ca-4b68-a096-2afaaced9060/credentials', $payload);
         return $result;
     }
             

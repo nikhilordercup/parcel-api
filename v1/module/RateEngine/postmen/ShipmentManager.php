@@ -47,6 +47,12 @@ class ShipmentManager extends PostMenMaster
             $result = $shipmentManagerObj->createBulkDownloadAction($request); 
             echo $result;die;
         });
+        $app->post('/postmen/updateShipper', function () use ($app) {              
+            $request = json_decode($app->request->getBody());             
+            $shipmentManagerObj = self::getShipmentManagerObj();                        
+            $result = $shipmentManagerObj->updateShipperAcAction($request); 
+            echo $result;die;
+        });
     }
           
     public static function getShipmentManagerObj()
@@ -66,7 +72,7 @@ class ShipmentManager extends PostMenMaster
         $package = $this->packagesToOrder($request->package,$request->currency);                
         $shipper_accounts = $this->carrierAccounts($request->carriers);                 
         $isDocument = (strtolower($request->extra->is_document) == "true") ? TRUE : FALSE;        
-        $payload = $this->buildRequestToCalculateRate($fromAddress, $toAddress, $package, $shipper_accounts, $isDocument,FALSE);                                                
+        $payload = $this->buildRequestToCalculateRate($fromAddress, $toAddress, $package, $shipper_accounts, $isDocument,FALSE);  
         try 
         {            
             $rawRates = $this->calculateRates($payload);             
@@ -178,7 +184,7 @@ class ShipmentManager extends PostMenMaster
         $carrierAccountDetails = $this->getCarrierAccount($carrierId, $credentials->username, $credentials->password, $credentials->account_number);
         $shipper_accounts = array('id'=>$carrierAccountDetails->carrierAccount);
                                              
-        $shipperAccountId = $shipper_accounts['id'];                            
+        $shipperAccountId = $shipper_accounts['id'];                                    
         $others = array();
         $others['paid_by'] = 'shipper';
         $others['account_number'] = $shipperAccountId; 
@@ -187,55 +193,18 @@ class ShipmentManager extends PostMenMaster
         $others['service_type'] = $request->label->service;
         $others['paper_size'] = 'default';
                         
-        $payload = $this->buildCreateLabelRequest($fromAddress, $toAddress, $package, $shipperAccountId,$others, $isDocument, $returnShipment);                                                
+        $payload = $this->buildCreateLabelRequest($fromAddress, $toAddress, $package, $shipperAccountId,$others, $isDocument, $returnShipment,FALSE);                                                
         try 
         {             
-            $rawRates = $this->createLabel($payload); 
-            echo '<pre>'; print_r($rawRates);die;
-            
-            /* Test Data Start */
-            /*$labelResponse = array();
-            $labelResponse['data']['id'] = '3318b97b-150f-4205-840d-a6d966b9e0ea'; 
-            $labelResponse['data']['status'] = 'created'; 
-            $labelResponse['data']['tracking_numbers'][] = '3884930103'; 
-            $labelResponse['data']['files'] = array(
-                'label'=> array(
-                    'paper_size' => 'default',
-                    'url' => 'https://sandbox-download.postmen.com/label/2015-11-27/00000000-0000-0000-0000-000000000000-1441785264309885.pdf',
-                    'file_type' => 'pdf'
-                ),
-                'invoice' =>'',
-                'customs_declaration' =>'',
-                'manifest' =>''
-            );
-            
-            $labelResponse['data']['rate'] = array(
-                'charge_weight' => array('value'=>'3.307','unit'=>'lb'),
-                'total_charge' => array('amount'=>'3','currency'=>'USD'),
-                'shipper_account' => array('id'=>'3','slug'=>'USD','description'=>'DHL Sandbox'),
-                'service_type'=>'dhl_express_0900',
-                'service_name'=>'dhl_express_0900',
-                'pickup_deadline'=>NULL,
-                'booking_cut_off'=>NULL,
-                'delivery_date'=>NULL,
-                'transit_time'=>NULL,
-                'detailed_charges'=>[],
-                'error_message'=>NULL,
-                'info_message'=>NULL
-            );
-            
-            $labelResponse['data']['created_at'] = '2015-09-09T07:54:13.024Z';
-            $labelResponse['data']['updated_at'] = '2015-09-09T07:54:24.569Z';
-            $labelResponse['data']['ship_date'] = '2015-09-09';
-            
-           */
-            //echo json_encode($labelResponse,JSON_PRETTY_PRINT);die;
-             /* Test End */
-            
-            $otherParam['authentication_token']  = $credentials->authentication_token;
-            $otherParam['authentication_token_created_at']  = $credentials->authentication_token_created_at;
-            $otherParam['account_number']  = $credentials->account_number;
-            $formatedLabelResponse = $this->formatCreateLabelResponse($labelResponse,$otherParam);
+            $labelResponse = $this->createLabel($payload); 
+            if($labelResponse)
+            {
+                $formatedLabelResponse = $this->formatCreateLabelResponse($labelResponse);
+            }
+            else
+            {                
+                $formatedLabelResponse = $this->getErrorDetails();
+            }            
             header('Content-Type: application/json'); 
             return json_encode($formatedLabelResponse,TRUE); 
         }
@@ -245,20 +214,25 @@ class ShipmentManager extends PostMenMaster
         }                                        
     }
     
-    public function formatCreateLabelResponse($labelResponse,$others=array())
+    public function formatCreateLabelResponse($labelResponse)
     {
-        $finalResponse = array();
-        
-        $tracking_numbers = implode(',', $labelResponse['data']['tracking_numbers']);
-        $finalResponse['tracking_number'] = $tracking_numbers;                
-        
-        $finalResponse['file_url'] = $labelResponse['data']['files']['label']['url'];
-        $finalResponse['accountnumber'] = $others['account_number']; 
-        $finalResponse['accountstatus'] = "";
-        $finalResponse['accounttype'] = "";
-        $finalResponse['authenticationtoken'] = $others['authentication_token'];
-        $finalResponse['authenticationtoken_created_at'] = $others['authentication_token_created_at'];
-        $finalResponse['collectionjobnumber'] = ""; //Need Discussion i.e not available in response                               
+        $finalResponse = array();                
+        $tracking_numbers = implode(',', $labelResponse->tracking_numbers);
+        $finalResponse['id'] = $labelResponse->id;
+        $finalResponse['tracking_number'] = $tracking_numbers;                        
+        $finalResponse['file_url'] = $labelResponse->files->label->url;
+        $finalResponse['total_cost'] = $labelResponse->rate->total_charge->amount;
+        $finalResponse['weight_charge'] = $labelResponse->rate->charge_weight->value;
+        $finalResponse['fuel_surcharge'] = 0;
+        $finalResponse['remote_area_delivery'] = 0;
+        $finalResponse['insurance_charge'] = 0;
+        $finalResponse['over_sized_charge'] = 0;
+        $finalResponse['over_weight_charge'] = 0;
+        $finalResponse['discounted_rate'] = 0;
+        $finalResponse['product_content_code '] = 0;
+        $finalResponse['license_plate_number '] = [];
+        $finalResponse['chargeable_weight '] = '';
+        $finalResponse['service_area_code '] = '';                                              
         return array('label' => $finalResponse);        
     }
 
@@ -269,37 +243,41 @@ class ShipmentManager extends PostMenMaster
             'label' => array (
                 'id' => $labelId
             )            
-        );
-        //$result = $this->cancelLabel($payload);
-        
-        // Start Demo Response
-        /*$result = [];
-        $result['meta']['code'] = 200;
-        $result['meta']['message'] = 'ok';
-        $result['meta']['details'] = [];
-        $result['data']['id'] = 'fffffffffffff';
-        $result['data']['status'] = 'cancel';
-        $result['data']['label'] = array(
-            'id'=>'aaaa'
-        );
-        $result['created_at']='aaa';
-        $result['updated_at']='bbb'; */
-        //echo json_encode($result);die;
-        // End Demo Response
-        
-        $finalResponse = [];
-        $finalResponse['code'] = $result['meta']['code'];
-        $finalResponse['message'] = $result['meta']['message'];        
-        $finalResponse['data']['id'] = $result['data']['id'];
-        $finalResponse['data']['status'] = $result['data']['status'];
-        $finalResponse['data']['label']['id'] = $result['data']['label']['id'];
-        $finalResponse['created_at'] = $result['created_at'];
-        $finalResponse['updated_at'] = $result['updated_at'];   
-        
+        );        
+        $result = $this->cancelLabel($payload);        
+        $finalResponse = []; 
+        if($result)
+        {                      
+            $finalResponse['id'] = $result->id;
+            $finalResponse['status'] = $result->status;
+            $finalResponse['label']['id'] = $result->label->id;
+            $finalResponse['created_at'] = $result->created_at;
+            $finalResponse['updated_at'] = $result->updated_at;
+        }
+        else
+        { 
+            $finalResponse = $this->getErrorDetails();                     
+        }           
         header('Content-Type: application/json'); 
-        return json_encode($formatedRates);
+        return json_encode($finalResponse);
     }
     
+    public function getErrorDetails()
+    {
+        $tempErrors = [];
+        $finalResponse = [];
+        $errors = $this->api->getError()->getDetails();             
+        if(count($errors) > 0)
+        {
+            foreach ($errors as $error) {
+                $tempErrors[] = $error->info;
+            }                                
+        }            
+        $finalResponse['errorCode'] = 4104;
+        $finalResponse['errorMessage'] = implode(',',$tempErrors); 
+        return $finalResponse;
+    }
+
     public function createManifestAction($request)
     {
         $carrierName = $request->carrier;
@@ -363,45 +341,21 @@ class ShipmentManager extends PostMenMaster
         $credentials['site_id'] = $request->credentials->site_id;        
         $payload['credentials'] = $credentials;
         $payload['address'] = $request->address;        
-        //$result = $this->createShipperAc($payload); 
-        
-        //Demo Response
-        /* $result = [];
-        $result['meta']['code'] = '200';
-        $result['meta']['message'] = 'ok';
-        $result['meta']['details'] = [];
-        
-        $result['data']['id'] = '9161239a-9aff-40ab-aa5b-5b1a5dd2184b';
-        $result['data']['description'] = 'Ordercup dhl test export';
-        $result['data']['slug'] = 'dhl';
-        $result['data']['status'] = 'enabled';
-        $result['data']['timezone'] = 'Europe/London';
-        $result['data']['type'] = 'user';
-        $result['data']['created_at'] = '2019-01-03T05:47:43+00:00';
-        $result['data']['updated_at'] = '2019-01-03T05:47:43+00:00';
-        
-        $result['data']['address']['country'] = 'GBR';
-        $result['data']['address']['contact_name'] = 'Nikhil Kumar';
-        $result['data']['address']['phone'] = '07595590074';
-        $result['data']['address']['fax'] = '+1 206-654-3100';
-        $result['data']['address']['email'] = 'info@perceptive-solutions.com';
-        $result['data']['address']['company_name'] = 'Perceptive Consulting Solutions';
-        $result['data']['address']['street1'] = '6 York Way';
-        $result['data']['address']['street2'] = 'Harlestone';
-        $result['data']['address']['street3'] = null;
-        $result['data']['address']['city'] = 'Northampton';
-        $result['data']['address']['state'] = 'KZ';
-        $result['data']['address']['postal_code'] = 'NN5 6UX';
-        $result['data']['address']['type'] = 'business';
-        $result['data']['address']['tax_id'] = 'null'; */
+        $result = $this->createShipperAc($payload); 
+                        
+        $finalResponse = array();        
+        $finalResponse['id'] = $result->id;
+        $finalResponse['description'] = $result->description;
+        $finalResponse['carrier'] = $result->slug;
+        $finalResponse['status'] = $result->status;
+        $finalResponse['timezone'] = $result->timezone;
+        $finalResponse['type'] = $result->type;
+        $finalResponse['created_at'] = $result->created_at;
+        $finalResponse['updated_at'] = $result->updated_at;
+        $finalResponse['address'] = $result->address;
                 
-        $finalResponse = array();
-        $finalResponse['code'] = $result['meta']['code'];
-        $finalResponse['message'] = $result['meta']['message'];
-        $finalResponse['details'] = $result['meta']['details'];
-        $finalResponse['data']['id'] = $result['data']['id']; 
         header('Content-Type: application/json'); 
-        return json_encode($result);        
+        return json_encode($finalResponse);        
     }
     
     public function deleteShipperAcAction()
@@ -409,26 +363,36 @@ class ShipmentManager extends PostMenMaster
         
     }
     
-    public function createBulkDownloadAction($request)
-    {                                
+    public function updateShipperAcAction($request)
+    {
+        $payload = array();
+        $payload['account_number'] = $request->account_number;
+        $payload['password'] = $request->password;
+        $payload['site_id'] = $request->site_id;
+        
+        $result = $this->updateShipperAc($payload);
+        
+        
+        print_r($result);die;
+    }
+
+        public function createBulkDownloadAction($request)
+    {                             
         $payload = array();
         $payload['async'] = ( isset($request->async) && $request->async == TRUE ) ? TRUE : FALSE;
-        $payload['labels'] = $request->labels;        
-        $result = $this->createBulkDownload($payload);
-                                        
-        $finalResponse = array();
-        $finalResponse['code'] = $result['meta']['code'];
-        $finalResponse['message'] = $result['meta']['message'];
-        $finalResponse['details'] = $result['meta']['details'];
-        $finalResponse['id'] = $result['data']['id'];
-        $finalResponse['created_at'] = $result['data']['created_at'];
-        $finalResponse['updated_at'] = $result['data']['updated_at'];
-        $finalResponse['status'] = $result['data']['status'];
-        $finalResponse['files'] = $result['data']['files'];
-        $finalResponse['labels'] = $result['data']['labels'];
-        $finalResponse['invalid_labels'] = $result['data']['invalid_labels'];
-                              
+        $payload['labels'] = $request->labels;      
+        $result = $this->createBulkDownload($payload); 
+                                      
+        $finalResponse = array();        
+        $finalResponse['id'] = $result->id;
+        $finalResponse['created_at'] = $result->created_at;
+        $finalResponse['updated_at'] = $result->updated_at;
+        $finalResponse['status'] = $result->status;
+        $finalResponse['files'] = $result->files;
+        $finalResponse['labels'] = $result->labels;
+        $finalResponse['invalid_labels'] = $result->invalid_labels;
+                               
         header('Content-Type: application/json'); 
-        return json_encode($finalResponse);        
+        return json_encode($finalResponse,JSON_PRETTY_PRINT);        
     }
 }
