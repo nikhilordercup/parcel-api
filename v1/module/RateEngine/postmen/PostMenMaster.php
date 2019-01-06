@@ -140,7 +140,8 @@ abstract class PostMenMaster extends Postmen
              
     public function calculateRates($payload)
     {        
-        $result = $this->api->create('rates', $payload);           
+        $conifg['safe'] = TRUE;
+        $result = $this->api->create('rates', $payload, $conifg);           
         return $result->rates;
     }
             
@@ -165,12 +166,12 @@ abstract class PostMenMaster extends Postmen
         $payload['return_shipment'] = $returnShipment; 
         $payload['paper_size'] = $others['paper_size']; 
         $payload['service_type'] = $others['service_type'];         
-        $accountNumber = ( $others['paid_by'] == 'shipper' ) ? $shipperAccountId : $others['account_number'];
+        $accountNumber = ( $others['custom_paid_by'] == 'shipper' ) ? $shipperAccountId : $others['account_number'];
         
-        $payload['billing'] = array('paid_by'=>'shipper');
+        $payload['billing'] = array('paid_by'=>$others['paid_by']);
         $payload['customs'] = array(
             'billing' => array(
-                'paid_by' => $others['paid_by']
+                'paid_by' => $others['custom_paid_by']
             ),
             'purpose' => $others['purpose']
         );
@@ -181,7 +182,7 @@ abstract class PostMenMaster extends Postmen
         $payload['shipment']['parcels'][] = $package;
         $payload['shipment']['ship_from'] = $fromAddress;
         $payload['shipment']['ship_to'] = $toAddress;                
-        $payload['references'] = array('test');                
+        $payload['references'] = $others['references'];                
         return $payload;
     }
     
@@ -207,7 +208,8 @@ abstract class PostMenMaster extends Postmen
     
     public function createShipperAc($payload)
     {
-        $result = $this->api->createV2('shipper-accounts', $payload);
+        $conifg['safe'] = TRUE;
+        $result = $this->api->createV2('shipper-accounts', $payload, $conifg);
         return $result;
     }
     
@@ -219,7 +221,8 @@ abstract class PostMenMaster extends Postmen
     
     public function createBulkDownload($payload)
     {         
-        $result = $this->api->create('bulk-downloads', $payload);
+        $conifg['safe'] = TRUE;
+        $result = $this->api->create('bulk-downloads', $payload, $conifg);
         return $result;
     }
     
