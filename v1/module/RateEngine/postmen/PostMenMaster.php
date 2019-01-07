@@ -11,12 +11,18 @@ use Postmen\Postmen;
 
 abstract class PostMenMaster extends Postmen
 {    
-    private $db = NULL;    
-    public static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7        
-    public static $region = 'sandbox';    //sandbox  //production
-    public $api = NULL;
-
-
+    protected $db = NULL;    
+    protected static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7        
+    protected static $region = 'sandbox';    //sandbox  //production
+    protected $api = NULL;
+    
+    protected $baseUrl = 'https://sandbox-api.postmen.com';    
+    protected $headers = array(
+       "content-type: application/json",
+       "postmen-api-key: b5585973-d041-4c4a-9b1f-014bf56e65e7"
+    );    
+    const UNKNOWN_ERROR = 4104;
+    
     public function __construct()
     {         
         $this->db = new \DbHandler(); 
@@ -202,7 +208,8 @@ abstract class PostMenMaster extends Postmen
     
     public function createManifest($payload)
     {
-        $result = $this->api->create('manifests', $payload);
+        $conifg['safe'] = TRUE;        
+        $result = $this->api->create('manifests', $payload, $conifg);
         return $result;
     }
     
@@ -213,10 +220,13 @@ abstract class PostMenMaster extends Postmen
         return $result;
     }
     
-    public function deleteShipperAc($payload)
-    {
-        $result = $this->api->createV2('delete', $payload);
-        return $result;
+    public function deleteShipperAc($shipper_account_id)
+    {                                        
+        $url = $this->baseUrl.'/v3/shipper-accounts/'.$shipper_account_id; 
+	    $method = 'DELETE';	   
+        $body = [];
+	    $result = $this->sendRequest($url, json_encode($body), $method);	                                   
+        return array('response'=>$result['response'],'curl'=>$result['curl']);
     }
     
     public function createBulkDownload($payload)
@@ -226,10 +236,37 @@ abstract class PostMenMaster extends Postmen
         return $result;
     }
     
-    public function updateShipperAc($payload)
+    public function updateShipperAc($payload, $shipper_account_id)
+    {                              
+        $url = $this->baseUrl.'/v3/shipper-accounts/'.$shipper_account_id.'/credentials';
+	    $method = 'PUT';	    
+	    $body = json_encode($payload);	
+	    $result = $this->sendRequest($url, $body, $method);	                                   
+        return array('response'=>$result['response'],'curl'=>$result['curl']);
+    }
+    
+    public function updateShipperInfo($payload, $shipper_account)
     {        
-        $result = $this->api->createV2('shipper-accounts/de598545-f8ca-4b68-a096-2afaaced9060/credentials', $payload);
-        return $result;
+        $shipper_account_id = $shipper_account['id'];                        
+        $url = $this->baseUrl.'/v3/shipper-accounts/'.$shipper_account_id.'/info';
+	    $method = 'PUT';	            
+	    $body = json_encode($payload);	
+        $result = $this->sendRequest($url, $body, $method);	                                   
+        return array('response'=>$result['response'],'curl'=>$result['curl']);
+    }
+    
+    public function sendRequest($url, $body, $method)
+    { 
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+	        CURLOPT_RETURNTRANSFER => true,
+	        CURLOPT_URL => $url,
+	        CURLOPT_CUSTOMREQUEST => $method,
+	        CURLOPT_HTTPHEADER => $this->headers,
+			CURLOPT_POSTFIELDS => $body
+	    ));
+        $response = curl_exec($curl);
+        return array('response'=>$response,'curl'=>$curl);
     }
             
 }

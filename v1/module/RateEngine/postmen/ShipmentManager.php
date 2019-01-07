@@ -53,6 +53,18 @@ class ShipmentManager extends PostMenMaster
             $result = $shipmentManagerObj->updateShipperAcAction($request); 
             echo $result;die;
         });
+        $app->post('/postmen/updateShipperInfo', function () use ($app) {              
+            $request = json_decode($app->request->getBody());             
+            $shipmentManagerObj = self::getShipmentManagerObj();                        
+            $result = $shipmentManagerObj->updateShipperInfoAction($request); 
+            echo $result;die;
+        });
+        $app->post('/postmen/deleteShipperAc', function () use ($app) {              
+            $request = json_decode($app->request->getBody());             
+            $shipmentManagerObj = self::getShipmentManagerObj();                        
+            $result = $shipmentManagerObj->deleteShipperAcAction($request); 
+            echo $result;die;
+        });
     }
           
     public static function getShipmentManagerObj()
@@ -129,25 +141,23 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['service_options']["time"] =$time; 
                 
                 $innerRate['taxes'] = array("total_tax"=>"","tax_percentage"=>"");
+                                                    
+                $tempServiceType[$rate->shipper_account->id][] = $rate->service_type;                                                                                                                                            
+                $differentAcIds[$rate->shipper_account->id] = array_unique($tempServiceType[$rate->shipper_account->id]);                                     
+                $length = array_search($rate->shipper_account->id, array_keys($differentAcIds));
+                $length1 = array_search($rate->service_type, $differentAcIds[$rate->shipper_account->id]);                
                 
-                if(!in_array($rate->shipper_account->id, $differentAcIds))
-                {
-                    $differentAcIds[] = $rate->shipper_account->id;
-                }
-                $length = array_search($rate->shipper_account->id, $differentAcIds);
-                                
                 if(isset($rates['rate'][$rate->shipper_account->slug]))
                 {  
                     if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id]))
-                    { 
-                        if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type]))
-                        {
-                            //$rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type][0][] = $innerRate;
-                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type][] = $innerRate;
+                    {                         
+                        if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type]))
+                        {                            
+                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;
                         }
                         else
                         {                                                     
-                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type][] = $innerRate;                                                        
+                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;                                                        
                         }
                     }
                     else
@@ -169,9 +179,7 @@ class ShipmentManager extends PostMenMaster
                     $account = array();
                     $account[$rate->shipper_account->id][] = $serviceTemp;
                     
-                    $rates['rate'][$rate->shipper_account->slug][] = $account;
-                    
-                    
+                    $rates['rate'][$rate->shipper_account->slug][] = $account;                                        
                 }                                                
             }
         }               
@@ -200,10 +208,14 @@ class ShipmentManager extends PostMenMaster
         $others['custom_paid_by'] = 'recipient';
         $others['account_number'] = (isset($request->label->billing_account->billing_account) && $request->label->billing_account->billing_account != '') ? $request->label->billing_account->billing_account : ''; 
         $others['type'] = 'account';
-        $others['purpose'] = '';
+        $others['purpose'] = 'merchandise';
         $others['service_type'] = $request->label->service;
         $others['paper_size'] = (isset($request->label->label_options->size) && $request->label->label_options->size != '') ? $request->label->label_options->size : 'default';
-        $others['references'] = array($reference_id1,$reference_id2);
+        
+        $tempRef = [];
+        if($reference_id1 != ''){$tempRef[] = $reference_id1;}
+        if($reference_id2 != ''){$tempRef[] = $reference_id2;}        
+        $others['references'] = $tempRef;
                         
         $payload = $this->buildCreateLabelRequest($fromAddress, $toAddress, $package, $shipperAccountId,$others, $isDocument, $returnShipment,FALSE);                                                
         try 
@@ -283,7 +295,7 @@ class ShipmentManager extends PostMenMaster
                 $tempErrors[] = $error->info;
             }                                
         }            
-        $this->responseData['errorCode'] = 4104;
+        $this->responseData['errorCode'] = PostMenMaster::UNKNOWN_ERROR;
         $this->responseData['errorMessage'] = implode(',',$tempErrors); 
         return $this->responseData;
     }
@@ -296,6 +308,7 @@ class ShipmentManager extends PostMenMaster
         $carrierAccountDetails = $this->getCarrierAccount($carrierId, $credentials->username, $credentials->password, $credentials->account_number);
         $shipper_accounts = array('id'=>$carrierAccountDetails->carrierAccount);                
         $payload['shipper_account'] = $shipper_accounts;
+        $payload['async'] = (isset($request->async) && $request->async == "true") ? TRUE: FALSE;
         
         $result = $this->createManifest($payload);
         if($result)
@@ -351,24 +364,182 @@ class ShipmentManager extends PostMenMaster
         return json_encode($this->responseData);        
     }
     
-    public function deleteShipperAcAction()
-    {
+    public function deleteShipperAcAction($request)
+    {        
+        $carrierName = $request->carrier;
+        $carrierId = $this->getCarrierIdByName($carrierName);        
+        $shipperAccountRes = $this->getCarrierAccount($carrierId,$request->credentials->username,$request->credentials->password,$request->credentials->account_number);                
+        $shipper_account = array('id'=> $shipperAccountRes->carrierAccount); 
+        $payload = array();
         
+        $result = $this->deleteShipperAc($shipper_account['id']);
+        $responseArr = json_decode($result['response']);
+        if($responseArr->meta->code == 200)
+        { 
+            $this->responseData = [];
+            $this->responseData['code'] = $responseArr->meta->code;
+            $this->responseData['message'] = $responseArr->meta->message;
+            $this->responseData['details'] = $responseArr->meta->details;
+            $this->responseData['data']['id'] = $responseArr->data->id;
+        }
+        else
+        {
+            $this->responseData = [];
+            $this->responseData['code'] = $responseArr->meta->code;
+            $this->responseData['message'] = $responseArr->meta->message;
+            $this->responseData['details'] = $responseArr->meta->details;
+        }
+        header('Content-Type: application/json'); 
+        return json_encode($this->responseData);
     }
     
     public function updateShipperAcAction($request)
     {
+        $carrierName = $request->carrier;
+        $carrierId = $this->getCarrierIdByName($carrierName);        
+        $shipperAccountRes = $this->getCarrierAccount($carrierId,$request->credentials->username,$request->credentials->password,$request->credentials->account_number);                
+        $shipper_account_id =  (isset($shipperAccountRes->carrierAccount)) ? $shipperAccountRes->carrierAccount:'';         
+                        
         $payload = array();
-        $payload['account_number'] = $request->account_number;
-        $payload['password'] = $request->password;
-        $payload['site_id'] = $request->site_id;
+        $payload['account_number'] = $request->credentials->account_number;
+        $payload['password'] = $request->credentials->password;
+        $payload['site_id'] = $request->credentials->site_id;
         
-        $result = $this->updateShipperAc($payload);
-        
-        
-        print_r($result);die;
+        $result = $this->updateShipperAc($payload, $shipper_account_id);
+        $responseArr = json_decode($result['response']);
+        if($responseArr->meta->code == 200)
+        {
+            $this->responseData = [];
+            $this->responseData['code'] = $responseArr->meta->code;
+            $this->responseData['message'] = $responseArr->meta->message;
+            $this->responseData['details'] = $responseArr->meta->details;
+            $this->responseData['data']['id'] = $responseArr->data->id;
+        }
+        else
+        {
+            $this->responseData = [];
+            $this->responseData['code'] = $responseArr->meta->code;
+            $this->responseData['message'] = $responseArr->meta->message;
+            $this->responseData['details'] = $responseArr->meta->details;
+        }
+        header('Content-Type: application/json'); 
+        return json_encode($this->responseData);
     }
 
+    public function updateShipperInfoAction($request)
+    {        
+        $carrierName = $request->carrier;
+        $carrierId = $this->getCarrierIdByName($carrierName);        
+        $shipperAccountRes = $this->getCarrierAccount($carrierId,$request->credentials->username,$request->credentials->password,$request->credentials->account_number);                
+        $shipper_account = array('id'=> $shipperAccountRes->carrierAccount); 
+
+        $payload = array();
+        $payload['description'] = $request->description;    
+        $payload['timezone'] = $request->timezone;    
+        
+        $tempAddress = [];
+        if(isset($request->address->country) && $request->address->country != '')
+        {
+            $tempAddress['country'] = $request->address->country;
+        }
+        if(isset($request->address->contact_name) && $request->address->contact_name != '')
+        {
+            $tempAddress['contact_name'] = $request->address->contact_name;
+        }
+        if(isset($request->address->street1) && $request->address->street1 != '')
+        {
+            $tempAddress['street1'] = $request->address->street1;
+        }
+        if(isset($request->address->street3) && $request->address->street3 != '')
+        {
+            $tempAddress['street3'] = $request->address->street3;
+        }
+        if(isset($request->address->company_name) && $request->address->company_name != '')
+        {
+            $tempAddress['company_name'] = $request->address->company_name;
+        }
+        if(isset($request->address->state) && $request->address->state != '')
+        {
+            $tempAddress['state'] = $request->address->state;
+        }
+        if(isset($request->address->postal_code) && $request->address->postal_code != '')
+        {
+            $tempAddress['postal_code'] = $request->address->postal_code;
+        }
+        if(isset($request->address->tax_id) && $request->address->tax_id != '')
+        {
+            $tempAddress['tax_id'] = $request->address->tax_id;
+        }
+        if(isset($request->address->fax) && $request->address->fax != '')
+        {
+            $tempAddress['fax'] = $request->address->fax;
+        }
+        if(isset($request->address->email) && $request->address->email != '')
+        {
+            $tempAddress['email'] = $request->address->email;
+        }
+        if(isset($request->address->street2) && $request->address->street2 != '')
+        {
+            $tempAddress['street2'] = $request->address->street2;
+        }
+        if(isset($request->address->city) && $request->address->city != '')
+        {
+            $tempAddress['city'] = $request->address->city;
+        }
+        if(isset($request->address->type) && $request->address->type != '')
+        {
+            $tempAddress['type'] = $request->address->type;
+        }                
+        $payload['address'] = $tempAddress;
+                
+        $result = $this->updateShipperInfo($payload, $shipper_account);
+        $responseArr = json_decode($result['response']);
+        if($responseArr->meta->code == 200)
+        {
+            $this->responseData = [];
+            $this->responseData['code'] = $responseArr->meta->code;
+            $this->responseData['message'] = $responseArr->meta->message;
+            $this->responseData['details'] = $responseArr->meta->details;
+
+            $this->responseData['id'] = $responseArr->data->id;
+            $this->responseData['description'] = $responseArr->data->description;
+            $this->responseData['slug'] = $responseArr->data->slug;
+            $this->responseData['status'] = $responseArr->data->status;
+            $this->responseData['timezone'] = $responseArr->data->timezone;
+            $this->responseData['type'] = $responseArr->data->type;
+            $this->responseData['created_at'] = $responseArr->data->created_at;
+            $this->responseData['updated_at'] = $responseArr->data->updated_at;
+            $this->responseData['address'] = array(
+                'country'=>$responseArr->data->address->country,
+                'contact_name'=>$responseArr->data->address->contact_name,
+                'phone'=>$responseArr->data->address->phone,
+                'fax'=>$responseArr->data->address->fax,
+                'email'=>$responseArr->data->address->email,
+                'company_name'=>$responseArr->data->address->company_name,
+                'street1'=>$responseArr->data->address->street1,
+                'street2'=>$responseArr->data->address->street2,
+                'street3'=>$responseArr->data->address->street3,
+                'city'=>$responseArr->data->address->city,
+                'state'=>$responseArr->data->address->state,
+                'postal_code'=>$responseArr->data->address->postal_code,
+                'type'=>$responseArr->data->address->type,
+                'tax_id'=>$responseArr->data->address->tax_id
+            );
+
+            $this->responseData['extra_info'] = $responseArr->data->extra_info;                                
+        }
+        else
+        { 
+            $this->responseData = [];
+            $this->responseData['code'] = $responseArr->meta->code;
+            $this->responseData['message'] = $responseArr->meta->message;
+            $this->responseData['details'] = $responseArr->meta->details;
+        }
+
+        header('Content-Type: application/json'); 
+        return json_encode($this->responseData);        
+    }
+            
     public function createBulkDownloadAction($request)
     {                             
         $payload = array();
