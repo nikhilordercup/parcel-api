@@ -4,7 +4,7 @@ class dbConnect {
 
     private $conn;
 
-    function __construct() {        
+    function __construct() {
     }
 
     /**
@@ -46,4 +46,4 @@ class dbConnect {
         $connectionManager->bootEloquent();
     }
 }
-dbConnect::bootGlobal();
+//dbConnect::bootGlobal();

@@ -1,10 +1,12 @@
 <?php
-//use Acme\Tools\FactoryValidation;
+namespace v1\module\validation;
 
-class Carrier_Validation{
+//use Validation\FactoryValidation;
+
+class CarrierValidation{
 
   public function validate($param){
-    $factoryObj = new \validation\src\lib\FactoryValidation();
+    //$factoryObj = new \validation\FactoryValidation();
     echo 123;
   }
 }

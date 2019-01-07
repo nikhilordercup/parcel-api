@@ -1,5 +1,5 @@
 <?php
-namespace \validation\src\lib;
+namespace Validation\FactoryValidation;
 
 class FactoryValidation{
   var $list = new stdClass;

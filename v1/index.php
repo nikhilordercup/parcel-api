@@ -165,6 +165,7 @@ require_once 'module/country/model/country.php';
 
 require_once 'module/reconciled/reconciled.php';
 require_once 'module/reconciled/model/reconciled.php';
+require_once 'module/validation/src/Carrier_Validation.php';
 
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
