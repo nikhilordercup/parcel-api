@@ -311,7 +311,7 @@ class allShipments extends Icargo
                             //$data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
 							$data['total_item']       = $totalWeightAndItem['total_item'];
-							$data['total_weight']       = $totalWeightAndItem['total_weight'];
+							$data['total_weight']       = round($totalWeightAndItem['total_weight'],2);
                         }
                     }
                     if (array_key_exists('D', $innerval['NEXT'])) {
@@ -370,10 +370,10 @@ class allShipments extends Icargo
 		$parcelData            = $this->modelObj->getAllParcelsByIdentity($identity);
 		$temp = array();
 		$parcelInfo = array();
-		$parcelCount = 1;
 		foreach($parcelData as $data){
+			$parcelQuantity = $this->modelObj->getQuantityByRowIdAndIdentity($identity,$data['parcel_row_id']);
 			$tempKey = strtolower(preg_replace('/\s+/',"",implode("",$data)));
-			$temp[$tempKey] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package'],'parcel_quantity'=>$parcelCount++);
+			$temp[$tempKey] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package'],'parcel_quantity'=>$parcelQuantity[0]['quantity']);
 		}
 		foreach($temp as $data){
 			$parcelInfo['package'][] = $data;
