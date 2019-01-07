@@ -628,7 +628,7 @@ final class Nextday extends Booking
                         "length" => $item->length,
                         "height" => $item->height,
                         "dimension_unit" => "CM",
-                        "weight" => $item->weight,
+                        "weight" => round($item->weight/$item->quantity,2),
                         "weight_unit" => "KG"
                     ));
                     $isDocument = (isset($item->is_document)) ? (($item->is_document && !is_bool($isDocument)) ? "true" : "false") : "false";
@@ -688,6 +688,7 @@ final class Nextday extends Booking
         if ($this->data["status"] == "success")
         {
             $requestStr = json_encode($this->data);
+			//print_r($requestStr);die;
             $responseStr = $this->_postRequest($this->data);
             $response = json_decode($responseStr);
             $response = $this->_getCarrierInfo($response->rate);

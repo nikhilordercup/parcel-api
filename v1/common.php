@@ -129,7 +129,7 @@
         public function countryList($searchData = array())
         {
             $cond = ( isset($searchData['id']) && !empty($searchData['id']) ) ? 'where `id`='.$searchData['id'] : '';
-            $sql = "SELECT * FROM `" . DB_PREFIX . "countries` ".$cond;
+            $sql = "SELECT * FROM ".DB_PREFIX."countries $cond ORDER BY short_name";
 
             if($cond) {
                 $records = $this->db->getRowRecord($sql);
