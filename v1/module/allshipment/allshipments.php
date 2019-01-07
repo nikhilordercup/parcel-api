@@ -1591,7 +1591,6 @@ class allShipments extends Icargo
 	public function cancelShipmentByLoadIdentity($param){
             $carrierObj = new Carrier();
             $carrier_code = $param->carrier_code;
-			$carrier_code = $this->modelObj->getCarrierCodeByLoadIdentity($param->load_identity);
             if(strtolower($carrier_code) == 'dhl') {
                 return $this->_updateShipmentCancel($param);
             }elseif(strtolower($carrier_code) == 'ukmail') {
@@ -1949,7 +1948,7 @@ class allShipments extends Icargo
              $shipment_type =  $this->modelObj->getShipmentsType($valdata);
              if($shipment_type and $shipment_type['shipment_type']!=''){
                 if($shipment_type['shipment_type']=='NEXT'){
-					$carrier_code = $this->modelObj->getCarrierByLoadIdentity($valdata);
+					$carrier_code = $this->modelObj->getCarrierCodeByLoadIdentity($valdata);//$this->modelObj->getCarrierByLoadIdentity($valdata);
                     $tempdata = array();
                     $tempdata['load_identity']  = $valdata;
                     $tempdata['carrier']        = $carrier_code;//$shipment_type['code'];
