@@ -296,7 +296,7 @@ class ShipmentManager extends PostMenMaster
             }                                
         }            
         $this->responseData['errorCode'] = PostMenMaster::UNKNOWN_ERROR;
-        $this->responseData['errorMessage'] = implode(',',$tempErrors); 
+        $this->responseData['errorMessage'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error'; 
         return $this->responseData;
     }
 
@@ -307,17 +307,19 @@ class ShipmentManager extends PostMenMaster
         $credentials = $request->credentials;
         $carrierAccountDetails = $this->getCarrierAccount($carrierId, $credentials->username, $credentials->password, $credentials->account_number);
         $shipper_accounts = array('id'=>$carrierAccountDetails->carrierAccount);                
-        $payload['shipper_account'] = $shipper_accounts;
+        $payload = array();
         $payload['async'] = (isset($request->async) && $request->async == "true") ? TRUE: FALSE;
-        
-        $result = $this->createManifest($payload);
-        if($result)
+        $payload['shipper_account'] = $shipper_accounts;
+               
+        $result = $this->createManifest($payload); 
+        if($result && $result->status == 'manifested')
         {            
+            $this->responseData = [];
             $this->responseData['id'] = $result->id;
             $this->responseData['labels'] = $result->labels;
             $this->responseData['files']['manifest'] = $result->files->manifest;
             $this->responseData['shipper_account'] = $result->shipper_account;
-            $this->responseData['shipper_account']['id'] = $credentials->account_number;        
+            $this->responseData['shipper_account']->id = $credentials->account_number;        
             $this->responseData['status'] = $result->status;        
             $this->responseData['created_at'] = $result->created_at;
             $this->responseData['updated_at'] = $result->updated_at;

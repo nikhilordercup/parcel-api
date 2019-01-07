@@ -11,7 +11,7 @@ use Postmen\Postmen;
 
 abstract class PostMenMaster extends Postmen
 {    
-    protected $db = NULL;    
+    private $db = NULL;    
     protected static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7        
     protected static $region = 'sandbox';    //sandbox  //production
     protected $api = NULL;
@@ -208,7 +208,7 @@ abstract class PostMenMaster extends Postmen
     
     public function createManifest($payload)
     {
-        $conifg['safe'] = TRUE;        
+        $conifg['safe'] = TRUE;       
         $result = $this->api->create('manifests', $payload, $conifg);
         return $result;
     }
