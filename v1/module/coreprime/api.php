@@ -475,7 +475,7 @@ class Module_Coreprime_Api extends Icargo
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
-        curl_close($ch);//exit($data_string);
+        curl_close($ch);//exit($server_output);
         return $server_output;
     }
 
@@ -521,6 +521,7 @@ class Module_Coreprime_Api extends Icargo
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
         $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'PROVIDER');
         $obj = is_object ($data)?$data:json_decode($data);
+
         foreach ($providerList as $p) {
             if (strtolower($p['code']) == strtolower($obj->carrier)) {
                 if ($p['provider'] == 'Coreprime') {
@@ -533,6 +534,8 @@ class Module_Coreprime_Api extends Icargo
             }
 
         }
+	//print_r($obj);
+	//print_r($providerList);exit('yati');
         return [];
     }
 }
