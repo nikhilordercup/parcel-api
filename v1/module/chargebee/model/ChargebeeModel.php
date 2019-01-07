@@ -147,7 +147,7 @@ class ChargebeeModel {
 
     public function updateBillingInfo($userId, $chargeBeeId) {
         try {
-            $savedCard = ChargeBee_Customer::retrieve($chargeBeeId);
+            $savedCard = \ChargeBee_Customer::retrieve($chargeBeeId);
             $address = $savedCard->customer()->billingAddress;
             $billingAddressInfo = array(
                 'user_id' => $userId,
@@ -166,7 +166,7 @@ class ChargebeeModel {
             } else {
                 return $this->_db()->save("billing_addresses", $billingAddressInfo);
             }
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             return array('error' => TRUE, 'error_message' => $ex->getMessage());
         }
     }

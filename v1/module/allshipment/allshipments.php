@@ -1557,7 +1557,7 @@ class allShipments extends Icargo
 					return array("status"=>"error","file_path"=>"","One of selected shipment is cancelled, you cannot print label for that shipment");
 				}
 			}
-
+            
 			if(count($labelInfo)==1){
 				if($labelInfo[0]['label_file_pdf']!==''){
 					if($labelInfo[0]['invoice_created']==1){
@@ -1591,6 +1591,7 @@ class allShipments extends Icargo
 	public function cancelShipmentByLoadIdentity($param){
             $carrierObj = new Carrier();
             $carrier_code = $param->carrier_code;
+			$carrier_code = $this->modelObj->getCarrierCodeByLoadIdentity($param->load_identity);
             if(strtolower($carrier_code) == 'dhl') {
                 return $this->_updateShipmentCancel($param);
             }elseif(strtolower($carrier_code) == 'ukmail') {

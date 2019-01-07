@@ -810,6 +810,12 @@ class AllShipment_Model
 		$record = $this->db->getOneRecord($sql);
 		return  $record['carrier_amount'];
 	}
+	
+	public function getCarrierCodeByLoadIdentity($loadIdentity){
+		$sql = "SELECT carrier_code FROM " . DB_PREFIX . "shipment AS ST where ST.instaDispatch_loadIdentity = '$loadIdentity'";
+		$record = $this->db->getOneRecord($sql);
+		return  $record['carrier_code'];
+	}
 	  
   }
 ?>
