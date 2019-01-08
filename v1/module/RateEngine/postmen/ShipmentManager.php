@@ -82,7 +82,20 @@ class ShipmentManager extends PostMenMaster
         $fromAddress = $this->convertAddress($request->from);                
         $toAddress = $this->convertAddress($request->to);         
         $package = $this->packagesToOrder($request->package,$request->currency);                
-        $shipper_accounts = $this->carrierAccounts($request->carriers);                 
+        $shipper_accounts_temp = $this->carrierAccounts($request->carriers); 
+        
+        $newShiperAc = [];
+        $shipper_accounts = [];
+        if(count($shipper_accounts_temp) > 0)
+        {
+            foreach($shipper_accounts_temp as $shipper_account)
+            {
+                $newShiperAc[$shipper_account['id']] = $shipper_account['RequestedAcId'];
+                unset($shipper_account['RequestedAcId']);
+                $shipper_accounts[] = $shipper_account;
+            }            
+        }
+        
         $isDocument = (strtolower($request->extra->is_document) == "true") ? TRUE : FALSE;        
         $payload = $this->buildRequestToCalculateRate($fromAddress, $toAddress, $package, $shipper_accounts, $isDocument,FALSE);  
         try 
@@ -91,7 +104,7 @@ class ShipmentManager extends PostMenMaster
             header('Content-Type: application/json'); 
             if($rawRates)
             {
-                $formatedRates = $this->formatRate($rawRates);                
+                $formatedRates = $this->formatRate($rawRates,$newShiperAc);                
                 return json_encode($formatedRates,TRUE);            
             }
             else
@@ -106,7 +119,7 @@ class ShipmentManager extends PostMenMaster
         }                                        
     }
             
-    public function formatRate($rawRates)
+    public function formatRate($rawRates, $newShiperAc)
     {             
         $rates['rate'] = array(); 
         if (count($rates) > 0) 
@@ -122,6 +135,7 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['rate']['rate_type'] = (in_array($rate->charge_weight->unit, array('kg','g','oz','lb'))) ? 'Weight':'#';
                 $innerRate['rate']['rate_unit'] = strtoupper($rate->charge_weight->unit);
                 $innerRate['rate']['price'] = $rate->total_charge->amount;
+                $rate->shipper_account->id = $newShiperAc[$rate->shipper_account->id];
                 $innerRate['rate']['act_number'] = $rate->shipper_account->id; 
                 
                 $innerRate['surcharges']['remote_area_surcharge'] = 0; 

@@ -106,6 +106,7 @@ abstract class PostMenMaster extends Postmen
                         {                            
                             $tmp = [];
                             $tmp['id'] = $carrierAccountDetails->carrierAccount;
+                            $tmp['RequestedAcId'] = $credentials->account_number;
                             $account_numbers[] = $tmp ;                       
                         }
                     }
