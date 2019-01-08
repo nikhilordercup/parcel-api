@@ -1,13 +1,13 @@
 <?php
 namespace v1\module\validation;
 
-//use Validation\FactoryValidation;
+use v1\module\validation\src\lib\Factory_Validation;
 
-class CarrierValidation{
+class Carrier_Validation{
 
   public function validate($param){
-    //$factoryObj = new \validation\FactoryValidation();
-    echo 123;
+    $factoryObj = new Factory_Validation();
+
   }
 }
 ?>

@@ -118,7 +118,7 @@ class Process_Form
     private function _savePod($ticket, $driver_id, $type){
         $result = array();
         $podObj  = new Pod();
-       
+
         if(isset($this->sign) and $this->sign!=""){
             if(!$this->_findPod($ticket, $driver_id, $type, 'signature')){
                 $podPath = $podObj->savePodSignature($ticket, $this->sign);
@@ -339,7 +339,7 @@ class Process_Form
                     'message' => "Shipment($ticket) Already Processed By Controller",
                     'success' => true,
                     'status' => "success",
-                    'pod_status' => $this->_savePod($ticket, $driver_id, 'carded') 
+                    'pod_status' => $this->_savePod($ticket, $driver_id, 'carded')
                 );
             }
             return array(

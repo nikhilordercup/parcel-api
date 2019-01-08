@@ -2529,6 +2529,6 @@ $app->post('/getallreconciled', function() use ($app) {
 });
 UkMailTracking::initRoutes($app);
 $app->post('/setCarrierValidation', function() use ($app) {
-    $obj = new \v1\module\validation\CarrierValidation();
+    $obj = new \v1\module\validation\Carrier_Validation();
     $obj->validate(array());
 });

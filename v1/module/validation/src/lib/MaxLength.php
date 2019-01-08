@@ -1,36 +1,27 @@
 <?php
-final class MaxLength implements InterfaceValidation{
+namespace v1\module\validation\src\lib;
+
+use v1\module\validation\src\lib\Validation_Interface;
+
+final class MaxLength implements Validation_Interface{
 
   var $maxlength = 50;
+  private $_constructorParam = array();
 
   public function validationOnInit(array $config = []){
-    $list(
-       $maxlength
-    ) = $this->_initConstructorParams($config);
-    print_r($config);
-    $this->_initConfig($config);
+    $this->_initConstructorParams($config);
+    return $this->_constructorParam;
   }
 
   private function _initConstructorParams(array $config){
-    $constructor = [
+    $this->_constructorParam = [
       "maxlength" => $this->maxlength
     ];
 
-    foreach($constructor as $key => $val){
+    foreach($this->_constructorParam as $key => $val){
       if(isset($config[$key])){
-        $constructor[$key] = $val;
+        $this->_constructorParam[$key] = $val;
       }
     }
-    return array_values($constructor);
-  }
-
-  private function _initConfig(array $config){
-    foreach($config as $var => $val){
-      $this->{$var} = $val;
-    }
-  }
-
-  public function getValidation(){
-    return $this;
   }
 }
