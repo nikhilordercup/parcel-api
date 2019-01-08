@@ -8,10 +8,14 @@ require_once 'Ws_Credential_Info.php';
 require_once 'App_Logger.php';
 
 class Idriver
-{
+{   
+    private $_ignoreLog = array('route/gps-location','save/user-credential-info','logout');
+
     private function _saveAppLog($json)
-    {
-        App_Logger::_getInstance()->_logEvent($json);
+    {    
+        if(!in_array($json->service, $this->_ignoreLog)){
+            App_Logger::_getInstance()->_logEvent($json);
+        }
     }
 
     public function services($params)

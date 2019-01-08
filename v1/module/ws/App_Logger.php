@@ -20,6 +20,8 @@ class App_Logger
             return $json->driver_id;
         } elseif (isset($json->user_id)) {
             return $json->user_id;
+        } elseif (isset($json->driverCode)) {
+            return $json->driverCode;
         }
         return 0;
     }
