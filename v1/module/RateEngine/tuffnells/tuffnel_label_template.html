@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>instadispatch</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,700,800,900" rel="stylesheet">
+
+
+    <style type="text/css">
+        .container-box {
+            width: 600px;
+            margin: auto;
+            position: relative;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .side-box > table > tbody > tr > th {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .left-section h1, h5, h6 {
+            margin: 0
+        }
+
+        .left-section h1 {
+            font-size: 45px
+        }
+
+    </style>
+</head>
+<body>
+{% for pack in labelData %}
+<div class="container-box" style="page-break-after:always;">
+
+    <table width="600px">
+        <tr>
+            <td style="width: 50%; font-size: 75px;font-weight: 600;padding: 0">{{label_heading}}</td>
+            <td style="width: 50%; text-align: right;font-size: 75px;font-weight: 600;">{{depot_code}}
+                <div style="text-align: right;padding: 0; font-size: 25px; font-weight: 600">{{delivery_round}}</div>
+            </td>
+        </tr>
+    </table>
+
+
+    <table border="1" width="600px" cellspacing="0" cellpadding="4">
+        <tr>
+            <td style="width:350px">
+                <h6 style="margin: 0">Consignment Ref.</h6>
+                <h1 style="margin: 0; font-size: 45px">{{loadIdentity}}</h1>
+
+            </td>
+
+            <td>
+                <h6 style="text-transform: uppercase; margin: 0">{{collection_address|raw}}</h6>
+            </td>
+        </tr>
+    </table>
+
+
+    <table border="1" width="600px" cellspacing="0" cellpadding="4">
+        <tr>
+            <td style="width: 150px" class="left-section">
+                <h6>Item</h6>
+                <h1>{{ "%03d"|format(loop.index) }}</h1>
+                <h6>of</h6>
+                <h1>{{ "%03d"|format(total_package) }}</h1>
+                <h6>Total Weight kg</h6>
+                <h1>{{total_weight}}</h1>
+                <h6>Dispatched</h6>
+                <h5 style="font-size: 25px">{{dispatchDate}}</h5>
+            </td>
+            <td rowspan="2" style="position: relative;">
+                <h6 style="margin: 0;font-weight: 400; margin-bottom: 4px">Deliver To</h6>
+                <h5 style="text-transform: uppercase; margin: 0; font-size: 15px">{{delivery_address|raw}} </h5>
+
+                <div class="tel" style="display: flex; margin-top: 20px">
+                    <div><h6 style="margin: 0;font-weight: 400; margin-bottom: 4px;margin-right: 15px"> Tel:</h6></div>
+                    <div><h5 style="margin:0; font-size: 30px;margin-top: 10px">{{tel}}</h5></div>
+                </div>
+
+                <div class="side-box" style="width: 38px; border: 1px solid #000; float: right;">
+                    <table cellspacing="0">
+                        <tr>
+                            <th>T/L</th>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                        </tr>
+
+
+                        <tr>
+                            <th>ALT</th>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                        </tr>
+
+                        <tr>
+                            <th>RPO</th>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+
+
+        <tr>
+            <td class="left-section" style="text-align: center;">
+                <h5 style="font-size: 15px">Tuffnells</h5>
+                <h6>Parcels Express<br>
+                    01142564880
+                </h6>
+                <h6 style="margin-top: 10px">1111109</h6>
+                <h6 style="font-weight: 900">28/R021</h6>
+                <h6 style="text-align: right;">EZ.W</h6>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2" style="text-transform: uppercase; font-weight: 600; font-size: 15px">
+                {{special_instruction|raw}}
+            </td>
+        </tr>
+    </table>
+    <img src="{{horizontal}}" width="100%" height="120px" style="margin-top: 10px">
+    <div class="right-image" style="">
+        <img src="{{vertical}}" width="10%" style=" margin-top:-650px; position: absolute; right:-20px; height: 519px">
+    </div>
+</div>
+{%endfor%}
+</body>
+</html>

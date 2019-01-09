@@ -14,3 +14,7 @@ parcel-api.userprefs
 pod/signature/\*.png
 assets/outputpdf
 pod/
+assets/
+upload/
+output/
+images/

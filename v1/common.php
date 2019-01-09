@@ -129,8 +129,7 @@
         public function countryList($searchData = array())
         {
             $cond = ( isset($searchData['id']) && !empty($searchData['id']) ) ? 'where `id`='.$searchData['id'] : '';
-            $sql = "SELECT * FROM `" . DB_PREFIX . "countries` ".$cond;
-
+            $sql = "SELECT * FROM ".DB_PREFIX."countries $cond ORDER BY short_name";
             if($cond) {
                 $records = $this->db->getRowRecord($sql);
             } else {
@@ -143,7 +142,7 @@
         {
             $collectionCountry = $data->collection_country;
             $deliveryCountry = $data->delivery_country;
-            $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";
+            $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry' AND status=1";
             $records = $this->db->getRowRecord($sql);
             return $records['dutiable'];
         }

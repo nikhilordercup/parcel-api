@@ -108,8 +108,8 @@ class Booking extends Icargo
 
             $param["country_id"]    = $data->country->id;
 
-            $param["latitude"]      = $data->geo_position->latitude;
-            $param["longitude"]     = $data->geo_position->longitude;
+            $param["latitude"]      = isset($data->geo_position) ? $data->geo_position->latitude : 0.00000000;
+            $param["longitude"]     = isset($data->geo_position) ? $data->geo_position->longitude : 0.00000000;
             $param["is_default_address"] = "N";
             $param["customer_id"]   = $customer_id;
             $param["is_warehouse"]  = "N";
@@ -154,7 +154,8 @@ class Booking extends Icargo
         $parcelInfo = (object)$parcel;
 
         $ticketNumber = $this->modelObj->generateTicketNo($company_id);
-
+        global $_GLOBAL_CONTAINER;
+        $_GLOBAL_CONTAINER['loadIdentity']=(isset($param2->load_identity)) ? $param2->load_identity : $ticketNumber;
 
         if($ticketNumber){
 
@@ -236,9 +237,9 @@ class Booking extends Icargo
             $data['address_id'] = 0;
             $data['shipment_service_type'] = $shipment_service_type;
 
-            $data['shipment_latitude'] = $param2->geo_position->latitude;
-            $data['shipment_longitude'] = $param2->geo_position->longitude;
-            $data['shipment_latlong'] = $param2->geo_position->latitude.",".$param2->geo_position->longitude;
+            $data['shipment_latitude'] = isset($data->geo_position) ? $data->geo_position->latitude : 0.00000000;
+            $data['shipment_longitude'] = isset($data->geo_position) ? $data->geo_position->longitude : 0.00000000;
+            $data['shipment_latlong'] = isset($data->geo_position) ? $param2->geo_position->latitude.",".$param2->geo_position->longitude : "0.00000000,0.00000000";
             $data['shipment_create_date'] = date("Y-m-d", strtotime('now'));
             $data['icargo_execution_order'] = $execution_order;
             $data['shipment_executionOrder'] = $execution_order;
@@ -318,6 +319,10 @@ class Booking extends Icargo
         $parcelData['availabilityTypeCode'] = "UNKN";
         $parcelData['company_id'] = $company_id;
         $parcelData['warehouse_id'] = $warehouse_id;
+		if(isset($parcel->parcel_row_id))
+			$parcelData['parcel_row_id'] = $parcel->parcel_row_id + 1;
+		else
+			$parcelData['parcel_row_id'] = 0;
 
         $parcel_id = $this->modelObj->saveParcel($parcelData);
 
@@ -378,7 +383,8 @@ class Booking extends Icargo
             $service_data["transit_distance_text"] = "NA";
 
             $service_data["transit_time_text"] = "NA";
-            $service_data["carrier"] = $serviceOpted->carrier_info->carrier_id;
+            //$service_data["carrier"] = $serviceOpted->carrier_info->carrier_id;
+            $service_data["carrier"] = $serviceOpted->carrier_info->account_id;
             $service_data["isInvoiced"] = "NO";
 
             $service_data["invoice_reference"] = "";
@@ -454,8 +460,8 @@ class Booking extends Icargo
         $price_breakdown["ccf_price"]     = $data->rate->info->price;
         $price_breakdown["price"]         = isset( $data->rate->info->price_with_ccf ) ? $data->rate->info->price_with_ccf : '0';
         $price_breakdown["service_id"]    = $data->rate->info->service_id;
-        $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
-
+        //$price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
+        $price_breakdown["carrier_id"]    = $data->carrier_info->account_id;
         $status = $this->modelObj->saveShipmentPrice($price_breakdown);
         if($status>0){
             //save surcharges
@@ -501,7 +507,8 @@ class Booking extends Icargo
                         $price_breakdown["version"] = $price_version;
                         $price_breakdown["api_key"] = "taxes";
                         $price_breakdown["inputjson"] = json_encode(array('originnal_tax_amt'=>$item));
-                        $price_breakdown["carrier_id"] = $data->carrier_info->carrier_id;
+                        //$price_breakdown["carrier_id"] = $data->carrier_info->carrier_id;
+                        $price_breakdown["carrier_id"]    = $data->carrier_info->account_id;
                     }elseif($key=='tax_percentage'){
                         $price = number_format((($price_without_tax *$item)/100),2,'.','');
                         $basetaxprice = number_format((($carriertotalpriceWithouttax *$item)/100),2,'.','');

@@ -17,7 +17,6 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
     {
         $obj = new Carrier_Coreprime_Request();
         $label = $obj->_postRequest("label", $json_data);
-        
         $labelArr = json_decode($label);
 
 

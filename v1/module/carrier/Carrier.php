@@ -13,9 +13,14 @@ class Carrier{
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
 		$deliveryCarrier = $shipmentInfo['carrier_code'];
-		$coreprimeCarrierClass = 'Coreprime_'.ucfirst(strtolower($deliveryCarrier));
+        global $_GLOBAL_CONTAINER;
+        if(class_exists('Coreprime_' . ucfirst(strtolower($deliveryCarrier)))) {
+            $coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
+        }else{
+            $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
+        }
 
-		$carrierObj = new $coreprimeCarrierClass();
+		$carrierObj = new $coreprimeCarrierClass($this);
 
 		if( strtolower($deliveryCarrier) == 'dhl' ) {
 			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);

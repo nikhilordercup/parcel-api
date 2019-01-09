@@ -1,7 +1,6 @@
 <?php
 class Firebase_Model_Rest
 {
-
     public function __construct()
     {
         $this->db = new DbHandler();
@@ -23,9 +22,8 @@ class Firebase_Model_Rest
 
     public function getShipmentCustomerDetailByShipTicket($shipment_route_id,$driver_id,$shipment_tickets)
     {
-        //$sql = "SELECT ST.*, ABT.postcode AS shipment_postcode, ABT.address_line1 AS shipment_address1, ABT.address_line2 AS shipment_address2, ABT.city AS shipment_customer_city, ABT.country AS shipment_customer_country, ABT.iso_code AS shipment_country_code FROM " . DB_PREFIX . "shipment AS ST INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=ST.address_id WHERE ST.shipment_routed_id = '$shipment_route_id' AND ST.assigned_driver = '$driver_id' AND ST.shipment_ticket IN('$shipment_tickets') ORDER BY shipment_highest_length DESC, shipment_highest_width DESC, shipment_highest_height DESC,   shipment_highest_weight DESC";
         $sql = "SELECT ST.* FROM " . DB_PREFIX . "shipment AS ST WHERE ST.shipment_routed_id = '$shipment_route_id' AND ST.assigned_driver = '$driver_id' AND ST.shipment_ticket IN('$shipment_tickets') ORDER BY shipment_highest_length DESC, shipment_highest_width DESC, shipment_highest_height DESC,   shipment_highest_weight DESC";
-		$records = $this->db->getAllRecords($sql);
+		    $records = $this->db->getAllRecords($sql);
         return $records;
     }
 

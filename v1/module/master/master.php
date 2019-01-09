@@ -49,8 +49,15 @@ class Master extends Icargo{
              'action'=>'surcharge',
              'actioncode'=>'getAllCourierSurcharge'
        );
-
-      return  $data;
+        $data[] = array(
+            'id'=>'1',
+            'name'=>'Rates',
+            'code'=>'RATES',
+            'description'=>'Rate description going here',
+            'action'=>'surcharge',
+            'actioncode'=>'rates'
+        );
+        return  $data;
     }
 
     public function getAllCouriers($param){
@@ -398,6 +405,9 @@ class Master extends Icargo{
     }
 
     public function saveCarrier($param){
+
+
+
         try{
             $this->_parentObj->db->startTransaction();
             $exist = $this->checkAccountExist($param->company_id,$param->carrier_id,$param->account_number);

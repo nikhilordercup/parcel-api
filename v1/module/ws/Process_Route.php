@@ -122,7 +122,7 @@ class Process_Route
         $track_id = $this->_driverTracking->saveDriverTracking();
         return $track_id;
     }
-    private function _accept_shipment($ticket, $driver_id, $route_id) 
+    private function _accept_shipment($ticket, $driver_id, $route_id)
     {
         if(($ticket != '') && ($driver_id != '') && ($route_id != ''))
         {
@@ -144,8 +144,8 @@ class Process_Route
                         'shipment_accepted' => 'YES',
                         'taken_action_by' => 'Driver'
                     ), $condition);
-                if ($status) 
-                {   
+                if ($status)
+                {
                     $route_data = $this->get_route_by_shipment_route_id();
                     $this->model_rest->update('shipment_route', array('driver_accepted' => 1), "shipment_route_id = '$this->shipment_route_id'");
                     $driver_data = $this->_get_driver_by_email();
@@ -167,15 +167,15 @@ class Process_Route
                 }
             }
             else
-            {   
+            {
                 return array(
                     'success' => false,
                     'status' => "error",
                     'message' => "Shipment not found"
                 );
             }
-        } 
-        else 
+        }
+        else
         {
             return array(
                 'success' => false,
@@ -191,7 +191,7 @@ class Process_Route
     }
     private function _reject_shipment($ticket, $driver_id, $route_id)
     {
-        if (($ticket != '') && ($driver_id != '') && ($route_id != '')) 
+        if (($ticket != '') && ($driver_id != '') && ($route_id != ''))
         {
             $shipmentDetails = $this->model_rest->get_shipment_details_by_ticket($ticket);
             if(count($shipmentDetails)>0)
@@ -215,9 +215,9 @@ class Process_Route
                     $data['vehicle_id']                    = $vehicle_id;
                     $data['company_id']                    = $this->company_id;
                     $data['warehouse_id']                  = $this->warehouse_id;
-                    $data['shipment_accepted']             = 'No';  
+                    $data['shipment_accepted']             = 'No';
                     $data['shipment_status']               = 0;
-                    $data['service_date']                  = '1970-01-01';  
+                    $data['service_date']                  = '1970-01-01';
                     $data['service_time']                  = '00:00:00';
                     $data['taken_action_by']               = 'Driver';
                     $data['create_date_history']           = date("Y-m-d");
@@ -231,8 +231,8 @@ class Process_Route
                         'is_driveraction_complete' => 'N',
                         'taken_action_by' => 'Driver'
                     ), $condition);
-               if ($status) 
-               {   
+               if ($status)
+               {
                     $route_data = $this->get_route_by_shipment_route_id();
                     //'driver_accepted' => 2; rejected
                     $this->model_rest->update('shipment_route', array('driver_accepted' => 2, 'comment'=>$this->cancel_reason), "shipment_route_id = '$this->shipment_route_id'");
@@ -267,7 +267,7 @@ class Process_Route
         }
     }
     private function _accept_route()
-    {  
+    {
         $shipment_ticket = array();
         $company_warehouse = $this->_get_driver_company_warehouse();
         $this->company_id = $company_warehouse['company_id'];
@@ -278,7 +278,7 @@ class Process_Route
         return $this->_accept_shipment(implode("','", $shipment_ticket), $this->driver_id, $this->shipment_route_id);
     }
     private function _reject_route()
-    {   
+    {
         $shipment_ticket = array();
         $company_warehouse = $this->_get_driver_company_warehouse();
         $this->company_id = $company_warehouse['company_id'];
@@ -296,7 +296,7 @@ class Process_Route
     }
 
     private function _start_route()
-    {   
+    {
         //set all active route to pause of driver
         $this->model_rest->update('shipment_route', array('is_current'=>'N','is_pause'=>'1'),"driver_id ='$this->driver_id' AND is_current='Y'");
         /* comment above line for show all route in completed bucket,it written for make one route active at one time in out of all assign route for same driver*/
@@ -310,15 +310,15 @@ class Process_Route
             //save addShipmentlifeHistory
             $common_obj = new Common();
             $shipmentsData = $this->model_rest->get_available_shipment_for_service_by_shipment_route_id($this->shipment_route_id);
-			
+
             $allTickets = array();
             foreach($shipmentsData as $item){
-                array_push($allTickets,$item["shipment_ticket"]); 
+                array_push($allTickets,$item["shipment_ticket"]);
                 $common_obj->addShipmentlifeHistory($item["shipment_ticket"], 'Route started', $this->driver_id, $this->shipment_route_id, $this->company_id,$item["warehouse_id"], "ROUTESTART", 'driver');
             }
-			
+
             Find_Save_Tracking::_getInstance()->saveTrackingStatus(array("ticket_str"=>implode("," ,$allTickets), "user_type"=>"Driver"));
-      
+
             Consignee_Notification::_getInstance()->sendRouteStartNotification(array("shipment_route_id"=>$this->shipment_route_id,"company_id"=>$this->company_id,"driver_id"=>$this->driver_id,"trigger_code"=>"agentStarted"));
 
             $this->code = "ROUTE-STARTED";
@@ -328,7 +328,7 @@ class Process_Route
                 'success' => true,
                 'status' => "success",
                 'message' => "Route " . $route_data['route_name'] . " started by ".$driver_data['name'],
-                'records'=>array() 
+                'records'=>array()
             );
         }
         else
@@ -374,7 +374,7 @@ class Process_Route
                 'status' => false,
                 'message' => "Route " . $route_data['route_name'] . " has not paused by ".$driver_data['name']
             );
-        } 
+        }
     }
     private function _save_gps_location()
     {
@@ -385,7 +385,7 @@ class Process_Route
     public function route_action()
     {
         switch($this->action)
-        {  
+        {
             case 'ACCEPT':
                 return $this->_accept_route();
                 break;

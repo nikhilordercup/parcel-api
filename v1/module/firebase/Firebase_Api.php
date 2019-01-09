@@ -30,7 +30,7 @@ class Firebase_Api{
 
     private function _getFirebaseDb(){
         if(ENV=='live')
-            return 'https://idriver-production.firebaseio.com/';
+            return 'https://idriver-1476714038443.firebaseio.com/';//return 'https://idriver-production.firebaseio.com/';
         else
             return 'https://idriver-1476714038443.firebaseio.com/';
     }

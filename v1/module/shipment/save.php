@@ -471,7 +471,7 @@ class shipment extends Library{
 		$shipmentData['shipment_customer_country'] = !empty($data['countryCode'])?$data['countryCode']:'';
 		$shipmentData['shipment_country_code'] = $data['countryCode'];
 		$shipmentData['shipment_zone_code'] = $data['zoneCode'];
-		$shipmentData['shipment_instruction'] = json_encode($data['instruction']);
+		$shipmentData['shipment_instruction'] = $data['instruction'];
 		$shipmentData['shipment_isDutiable'] = $data['isDutiable'];
 		$shipmentData['shipment_shouldBookIn'] = $data['shouldBookIn'];
 		$shipmentData['shipment_statusName'] = $data['statusName'];
@@ -662,7 +662,7 @@ class shipment extends Library{
 	$shipmentData['is_driver_assigned'] = '0';
 	$shipmentData['shipment_pod'] = '';
 	$shipmentData['current_status'] = 'C';
-	$shipmentData['dataof'] = 'PnP';
+	$shipmentData['dataof'] = $data['company_code'];
 	$shipmentData['shipment_ticket'] = $ticketNumber;
 	$shipmentData['instaDispatch_docketNumber'] = !empty($data['docketNumber'])?$data['docketNumber']:'';
 	/* same day work start */
@@ -716,7 +716,7 @@ class shipment extends Library{
 			    $parcelData['parcel_width'] 				 = $values['pieceWidth'];
 			    $parcelData['parcel_type'] 					 = ($values['loadTypeName']=='Collection')?'P':'D';
 			    $parcelData['create_date'] 					 = date("Y-m-d");
-			    $parcelData['dataof'] 						 = 'PnP';
+			    $parcelData['dataof'] 						 = $data['company_code'];
 			    $parcelData['status'] 						 = '1';
 
 			    // add some new data for same day
@@ -1008,7 +1008,7 @@ class shipment extends Library{
             $data['shipment_total_volume']     = $param["weight"];
             $data['shipment_statusName']       = "Un Attainded";
             $data['shipment_shouldBookIn']     = "false";
-            $data['shipment_companyName']      = "";
+
             $data['distancemiles']             = "0.00";
             $data['estimatedtime']             = "00:00:00";
             /**/
@@ -1092,7 +1092,7 @@ class shipment extends Library{
 
             $data["booking_ip"] = $_SERVER['REMOTE_ADDR'];
 
-            $data["notification_status"] = (isset($param['notification'])) ? $param['notification'] : "0";
+            $data["notification_status"] = (isset($param['notification']) and $param['notification'] == 'true') ? "1" : "0";
 
             $data['shipment_address1'] = (isset($param["address_line1"])) ? $param["address_line1"] : "";
             $data['shipment_address2'] = (isset($param["address_line2"])) ? $param["address_line2"] : ""; //$param["address_line2"];
@@ -1104,6 +1104,7 @@ class shipment extends Library{
             $data['carrier_code'] = (isset($param["carrier_code"])) ? $param["carrier_code"] : "";
             $data['carrier_account_number'] = (isset($param["carrier_account_number"])) ? $param["carrier_account_number"] : "";
             $data["address_id"] = 0;
+			$data["shipment_companyName"] = (isset($param["company_name"])) ? $param["company_name"] : "";
             //save address first then save shipment detail with address id
             $shipmentId = $this->db->save("shipment", $data);
 
@@ -1341,6 +1342,7 @@ class shipment extends Library{
         $data_string = json_encode($param);
         $_data["carrier"]                   = $param->otherinfo['courier_id'];
         $_data["accountkey"]                = $param->otherinfo['accountkey'];
+		$_data["parent_account_key"]        = $param->otherinfo['accountkey'];
         $_data["courier_commission_type"]   = $param->otherinfo['operator'];
         $_data["courier_commission"]        = $param->otherinfo['ccf_value'];
         $_data["courier_commission_value"]  = $param->otherinfo['price'];
@@ -1502,7 +1504,7 @@ class shipment extends Library{
             $data["customer_id"] = $address["customer_id"];
 
             $data["is_warehouse"] = (isset($address["is_warehouse"])) ? $address["is_warehouse"] : "N";
-            $data["address_type"] = $address_type;//(isset($address["type"])) ? $address["type"] : "";//address_type
+            $data["address_type"] = $address_type;
 
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
 
@@ -1521,21 +1523,8 @@ class shipment extends Library{
 						$update = $this->db->update("address_book",$data,"id='$address_id'");
 					}
 				}
-			}
-			
+			}			
 			return array("status"=>"success", "address_id"=>$address_id);
-			/* else{
-
-			}
-			if(($address_op!="") AND ($address_op=="add")){
-				if(!$address_id){
-					$data["version_id"] = "version_1";
-					$address_id = $this->db->save("address_book", $data);
-				}
-			}else{
-				$update = $this->db->update("address_book",$data,"id='$address_id'");
-			} */
-            //return array("status"=>"success", "address_id"=>$address_id);
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
@@ -1712,9 +1701,6 @@ class shipment extends Library{
                 if($shipmentStatus["status"]=="success"){
 
                     $loadIdentity = $shipmentStatus["load_identity"];
-
-                    //find load identity
-                    //$loadIdentity = $this->_getShipmentLoadIdentity($shipmentId);
 
                     //find version number of shipment price
                     $priceVersionNo = $this->_findPriceNextVersionNo($loadIdentity);

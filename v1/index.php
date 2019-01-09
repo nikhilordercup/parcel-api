@@ -1,15 +1,15 @@
 <?php
 //error_reporting(E_ALL);
-//ini_set("display_errors", 1); 
+//ini_set("display_errors", 0);
 ini_set('date.timezone', 'Europe/London');
 
 require_once 'constant.php';
 require_once '../Credentials.php';
-require_once 'dbHandler.php';
 require_once 'passwordHash.php';
 require_once 'array_column.php';
-require '.././libs/Slim/Slim.php';
+//require '.././libs/Slim/Slim.php';
 require '../vendor/autoload.php';
+require_once 'dbHandler.php';
 \Slim\Slim::registerAutoloader();
 
 use Firebase\JWT\JWT;
@@ -47,7 +47,8 @@ require_once 'module/dashboard/dashboard-api.php';
 //End Dashboard
 
 
-
+require_once 'module/ukmail_tracking/src/Constant.php';
+require_once 'module/ukmail_tracking/src/UkMailTracking.php';
 require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
@@ -92,8 +93,6 @@ require_once 'module/firebase/model/Model.php';
 
 require_once 'module/firebase/route-release.php';
 
-require_once 'module/chargebee/Chargebee.php';
-require_once 'module/chargebee/Webhook.php';
 
 //require_once 'module/carrier/customer.php';
 require_once 'module/google/api.php';
@@ -163,6 +162,9 @@ require_once 'module/custom_labels/Custom_Label.php';
 
 //Country file included
 require_once 'module/country/model/country.php';
+
+require_once 'module/reconciled/reconciled.php';
+require_once 'module/reconciled/model/reconciled.php';
 
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);

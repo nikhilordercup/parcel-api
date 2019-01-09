@@ -1,12 +1,13 @@
-<?php
+<?php 
 date_default_timezone_set('Europe/London');
 require_once '../v1/constant.php';
 require_once '../Credentials.php';
-require_once '../v1/dbHandler.php';
+//require_once '../v1/dbHandler.php';
 //require_once '../v1/passwordHash.php';
 //require_once '../v1/array_column.php';
-require '../libs/Slim/Slim.php';
+//require '../libs/Slim/Slim.php';
 require '../vendor/autoload.php';
+require_once '../v1/dbHandler.php';
 \Slim\Slim::registerAutoloader();
 use Firebase\JWT\JWT;
 $app = new \Slim\Slim();  
