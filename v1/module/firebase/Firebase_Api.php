@@ -8,7 +8,7 @@ class Firebase_Api{
     public
 
     function __construct(){
-        if(self::$_fbDatabase==null){
+       /* if(self::$_fbDatabase==null){
             $serviceAccount = ServiceAccount::fromJsonFile($this->_getFbCredential());
             $this->firebase = (new Factory)
                 ->withServiceAccount($serviceAccount)
@@ -17,7 +17,7 @@ class Firebase_Api{
                 ->withDatabaseUri($this->_getFirebaseDb())
                 ->create();
             self::$_fbDatabase = $this->firebase->getDatabase();
-        }
+        }*/
         $this->database = self::$_fbDatabase;
     }
 

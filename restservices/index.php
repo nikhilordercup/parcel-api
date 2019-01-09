@@ -23,6 +23,7 @@ require_once '../v1/module/google/api.php';
 require_once '../v1/module/coreprime/api.php';
 require_once './Sameday.php';
 require_once './Nextday.php';
+require_once './Common.php';
 require_once '../v1/module/notification/index.php';
 require_once '../v1/module/notification/model/index.php';
 require_once '../v1/module/notification/Consignee_Notification.php';
@@ -36,10 +37,7 @@ require_once './restservices.php';
 
 /*
 require_once('model/api.php');
-
-
 require_once '../v1/module/base/icargo.php';
-
 require_once '../v1/module/booking/model/Booking.php';
 require_once '../v1/module/booking/Shipment.php';
 require_once '../v1/module/booking/Booking.php';
@@ -47,8 +45,6 @@ require_once '../v1/module/nextday/Nextday.php';
 require_once '../v1/module/nextday/Nextday.php';
 require_once '../v1/module/shipment/model/shipment.php';
 require_once '../v1/module/shipment/save.php';
-
-
 */
 
 function verifyRequiredParams($required_fields,$request_params) {

@@ -152,10 +152,11 @@ class Sameday extends  Booking
        foreach($response->rate as $key=>$val){
              foreach($val as $key1=>$val2){
                   $temp = array();
+                  $temp['job_type']             = 'SAMEDAY';
                   $temp['service_code']         = $val2->otherinfo->courier_service_code;
                   $temp['service_name']         = $val2->otherinfo->courier_service_name;
                   $temp['service_id']           = $val2->otherinfo->service_id;
-                  //$temp['act_number']           = $val2->otherinfo->accountkey;
+                  $temp['act_number']           = $val2->otherinfo->accountkey;
                   $temp['price']                = $val2->base_price;
                   $temp['max_delivery_time']    = $val2->max_delivery_time;
                   $temp['max_waiting_time']     = $val2->time->max_waiting_time .' '. $val2->time->unit;
@@ -223,30 +224,7 @@ class Sameday extends  Booking
                  $response["message"] = 'Collection Postcode parameter missing';
                  $response["error_code"] = "ERROR008";
                  return $response;
-        }
-        /*elseif(!isset($param->collection->address->country_code)  || ($param->collection->address->country_code=='')){
-                 $response = array();
-                 $response["status"] = "fail";
-                 $response["message"] = 'Collection country code parameter missing';
-                 $response["error_code"] = "ERROR009";
-                 return $response;
-        } */
-        /*elseif(!isset($param->collection->address->currency_code) || ($param->collection->address->currency_code=='')){
-                 $response = array();
-                 $response["status"] = "fail";
-                 $response["message"] = 'Collection currency code parameter missing';
-                 $response["error_code"] = "ERROR010";
-                 return $response;
-        } */
-        /*elseif(!isset($param->collection->country) || ($param->collection->country=='')){
-                 $response = array();
-                 $response["status"] = "fail";
-                 $response["message"] = 'Collection country parameter missing';
-                 $response["error_code"] = "ERROR0011";
-                 return $response;
-        }*/
-        else{
-
+        }else{
             if(!isset($param->collection->address->latitude) && !isset($param->collection->address->longitude)){
               $collectionGeo = $this->getGeoLocationByPostCode($param->collection->address->postcode,0);
               if($collectionGeo['status'] != 'success'){
@@ -295,22 +273,7 @@ class Sameday extends  Booking
                  $response["message"] = 'Delivery Postcode parameter missing';
                  $response["error_code"] = "ERROR0014";
                  return $response;
-            }
-            /*elseif(!isset($val->address->country_code) || ($val->address->country_code=='')){
-                 $response = array();
-                 $response["status"] = "fail";
-                 $response["message"] = 'Delivery country code parameter missing';
-                 $response["error_code"] = "ERROR0015";
-                 return $response;
-            }
-              elseif(!isset($val->address->currency_code)  || ($val->address->currency_code=='')){
-                 $response = array();
-                 $response["status"] = "fail";
-                 $response["message"] = 'Delivery currency code parameter missing';
-                 $response["error_code"] = "ERROR016";
-                 return $response;
-            } */
-            elseif(!isset($val->address->country)  || ($val->address->country=='')){
+            }elseif(!isset($val->address->country)  || ($val->address->country=='')){
                  $response = array();
                  $response["status"] = "fail";
                  $response["message"] = 'Delivery country parameter missing.';
@@ -342,7 +305,7 @@ class Sameday extends  Booking
         $googleRequest['warehouse_latitude'] = $param->warehouse_latitude;
         $googleRequest['warehouse_longitude'] = $param->warehouse_longitude;
         $googleRequest['company_id'] = $param->company_id;
-
+        $googleRequest['customer_id'] = $param->customer_id;
 
         try{
               $distanceMatrixData = json_decode(json_encode($this->googleApi->getGeolocationAndDistanceMatrix( (object) $googleRequest)), FALSE);
