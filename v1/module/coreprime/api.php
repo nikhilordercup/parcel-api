@@ -72,6 +72,15 @@ class Module_Coreprime_Api extends Icargo
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
         }
+        if (isset($pd['Postmen']) && count($pd['Postmen'])) 
+        {                                                            
+            $lcData = $data;
+            $lcData['carriers'] = $pd['Postmen']; 
+            $localRate = $this->postByPostmen('Postmen', $lcData);                        
+            //echo($localRate);exit;
+            
+            $this->mergePrice($finalPrice, $localRate);
+        }
 //        exit(json_encode($finalPrice));
         return json_encode($finalPrice);
     }
@@ -444,7 +453,7 @@ class Module_Coreprime_Api extends Icargo
         }
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
         $providerList = $rateEngModel->getProviderInfo($callType, $env);
-        $this->_endpoints = $providerList;
+        $this->_endpoints = $providerList; 
         $filteredData = [];
         foreach ($data['carriers'] as $c) {
             foreach ($providerList as $p) {
@@ -465,6 +474,29 @@ class Module_Coreprime_Api extends Icargo
         }
 
         $data_string = json_encode($data);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($data_string))
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $server_output = curl_exec($ch); 
+        curl_close($ch);
+        return $server_output;
+    }
+    public function postByPostmen($provider, $data)
+    {
+         $url = "";
+        foreach ($this->_endpoints as $ep) {
+            if ($ep['provider'] == $provider) {
+                $url = $ep['rate_endpoint'];
+            }
+        }
+
+        $data_string = json_encode($data); 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);

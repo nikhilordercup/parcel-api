@@ -10,7 +10,7 @@ class ShipmentManager extends PostMenMaster
     public static function shipmentRoutes($app)
     {
         $app->post('/postmen/calculateRate', function () use ($app) {              
-            $request = json_decode($app->request->getBody());             
+            $request = json_decode($app->request->getBody());    
             $shipmentManagerObj = self::getShipmentManagerObj();                        
             $result = $shipmentManagerObj->calculateRateAction($request); 
             echo $result;die;
@@ -84,6 +84,9 @@ class ShipmentManager extends PostMenMaster
         $package = $this->packagesToOrder($request->package,$request->currency);                
         $shipper_accounts_temp = $this->carrierAccounts($request->carriers); 
         
+        $servicesToShow = $this->getServicesToShow($request->carriers);
+        
+        
         $newShiperAc = [];
         $shipper_accounts = [];
         if(count($shipper_accounts_temp) > 0)
@@ -100,17 +103,17 @@ class ShipmentManager extends PostMenMaster
         $payload = $this->buildRequestToCalculateRate($fromAddress, $toAddress, $package, $shipper_accounts, $isDocument,FALSE);  
         try 
         {            
-            $rawRates = $this->calculateRates($payload); 
+            $rawRates = $this->calculateRates($payload);                         
             header('Content-Type: application/json'); 
             if($rawRates)
             {
                 $formatedRates = $this->formatRate($rawRates,$newShiperAc);                
-                return json_encode($formatedRates,TRUE);            
+                return json_encode($formatedRates);            
             }
             else
             {
                 $this->getErrorDetails();                
-                return json_encode($this->responseData,TRUE); 
+                return json_encode($this->responseData); 
             }
         }
         catch(exception $e) 
@@ -120,7 +123,7 @@ class ShipmentManager extends PostMenMaster
     }
             
     public function formatRate($rawRates, $newShiperAc)
-    {             
+    {            
         $rates['rate'] = array(); 
         if (count($rates) > 0) 
         {       
@@ -144,7 +147,7 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['surcharges']['extrabox_surcharge'] = 0; 
                 $innerRate['surcharges']['overweight_surcharge'] = 0; 
                 $innerRate['surcharges']['isle_weight_surcharge'] = 0; 
-                $innerRate['surcharges']['fuel_surcharge'] = $rate->detailed_charges[1]->charge->amount; 
+                $innerRate['surcharges']['fuel_surcharge'] = (isset($rate->detailed_charges[1])) ? $rate->detailed_charges[1]->charge->amount: 0; 
                                 
                 $dimensions = array('length'=>'','width'=>'','height'=>'','unit'=>$rate->charge_weight->unit);
                 $weight = array("weight"=>$rate->charge_weight->value,"unit"=>$rate->charge_weight->unit);
@@ -165,13 +168,13 @@ class ShipmentManager extends PostMenMaster
                 {  
                     if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id]))
                     {                         
-                        if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type]))
+                        if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type]))
                         {                            
-                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;
+                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type][] = $innerRate;
                         }
                         else
                         {                                                     
-                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;                                                        
+                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type][] = $innerRate;                                                        
                         }
                     }
                     else
@@ -200,6 +203,29 @@ class ShipmentManager extends PostMenMaster
         return $rates;
     }
     
+    public function getServicesToShow($carriers)
+    {
+        $servicesToShow = [];
+        if(count($carriers) > 0)
+        {
+            foreach($carriers as $carrier)
+            {
+                $carrierName = $carrier->name;                                                 
+                $carrierAccounts = $carrier->account;
+                if(count($carrierAccounts) > 0)
+                {
+                    foreach($carrierAccounts as $carrierAccount)
+                    {                         
+                        $services = explode(',',$carrierAccount->services);  
+                        $servicesToShow[$carrierName] = $services;
+                    }
+                }                                                
+            }
+        }          
+        return $servicesToShow; 
+    }
+
+
     public function createLabelAction($request)
     {                       
         $fromAddress = $this->convertAddress($request->label->from);                
@@ -578,5 +604,13 @@ class ShipmentManager extends PostMenMaster
         }
         header('Content-Type: application/json'); 
         return json_encode($this->responseData);        
+    }
+    
+    public static function getAlpha3CodeFromAlpha2($alpha2)
+    {        
+        $res =  \v1\module\Database\Model\Countries::all()
+            ->where('alpha2_code','=',$alpha2)                                             
+            ->first();         
+        return $res->alpha3_code;
     }
 }

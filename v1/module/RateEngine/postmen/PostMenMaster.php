@@ -12,7 +12,7 @@ use Postmen\Postmen;
 abstract class PostMenMaster extends Postmen
 {    
     private $db = NULL;    
-    protected static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7        
+    protected static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7            
     protected static $region = 'sandbox';    //sandbox  //production
     protected $api = NULL;
     
@@ -32,25 +32,51 @@ abstract class PostMenMaster extends Postmen
     public function convertAddress($address)
     {       
         $finalAddress = [];                
-        $finalAddress['contact_name'] = $address->name;
-        $finalAddress['street1']= $address->street1;        
-        $finalAddress['city']= $address->city;
-        $finalAddress['state']= $address->state;
-        $finalAddress['country']= $address->country;
-        $finalAddress['phone']= $address->phone;
-        $finalAddress['email']= '';
-        $finalAddress['type']= '';                                 
-        $finalAddress['postal_code']= $address->zip;
-        $finalAddress['type'] = 'business'; // need discussion
-        $finalAddress['email'] = 'test@test.test'; // need discussion
+        if( (isset($address->name)) && $address->name != '')
+        {
+            $finalAddress['contact_name'] = $address->name;
+        }
+        
+        if( (isset($address->phone)) && $address->phone != '')
+        {
+            $finalAddress['phone']= $address->phone;
+        }
+        
+        if( (isset($address->company)) && $address->company != '')
+        {
+            $finalAddress['company']= $address->company;
+        }
+        if( (isset($address->street1)) && $address->street1 != '')
+        {
+            $finalAddress['street1'] = $address->street1;
+        }
+        if( (isset($address->city)) && $address->city != '')
+        {
+            $finalAddress['city']= ($address->city == 'England') ? 'Oxford' : $address->city;
+        } 
+        if( (isset($address->state)) && $address->state != '')
+        {
+            $finalAddress['state']= $address->state;
+        }
+        if( (isset($address->country)) && $address->country != '')
+        {          
+            $finalAddress['country'] = (strlen($address->country) == 2) ? ShipmentManager::getAlpha3CodeFromAlpha2($address->country) : $address->country ;
+        }
+        
+        $finalAddress['email']= ( isset($address->email) && $address->email != '' ) ? $address->email : 'test@test.test';  // need discussion
+        $finalAddress['type']= ( isset($address->type) && $address->type != '' ) ? $address->type : 'business';  // need discussion     
+        if( (isset($address->postal_code)) && $address->postal_code != '')
+        {
+             $finalAddress['postal_code']= $address->zip;
+        }                                                              
         return $finalAddress;
     }
     
     public function convertPackage($package,$currency)
     {                     
         $finalPackage = [];
-        $finalPackage['description'] = $package->packaging_type;
-        $finalPackage['box_type'] = $package->packaging_type;
+        $finalPackage['description'] = ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type;
+        $finalPackage['box_type'] = ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type;
         $finalPackage['weight'] = array(
             'value'=> (float)$package->weight,
             'unit'=> strtolower($package->weight_unit)
@@ -62,7 +88,7 @@ abstract class PostMenMaster extends Postmen
             'unit'=> strtolower($package->dimension_unit)
         );        
         $finalPackage['items'][] = array(
-            'description' => $package->packaging_type,
+            'description' => ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type,
             'quantity' => 1,
             'price' => array(
                 'amount'=>0.01, //Need to discussed
@@ -87,7 +113,7 @@ abstract class PostMenMaster extends Postmen
     }
     
     public function carrierAccounts($carriers)
-    {                        
+    {                       
         $account_numbers = [];
         if(count($carriers) > 0)
         {
@@ -100,7 +126,7 @@ abstract class PostMenMaster extends Postmen
                 {
                     foreach($carrierAccounts as $carrierAccount)
                     {                         
-                        $credentials = $carrierAccount->credentials;                          
+                        $credentials = $carrierAccount->credentials;  
                         $carrierAccountDetails = $this->getCarrierAccount($carrierId,$credentials->username,$credentials->password,$credentials->account_number);                                                
                         if(isset($carrierAccountDetails->carrierAccount) && $carrierAccountDetails->carrierAccount != '')
                         {                            
@@ -112,7 +138,7 @@ abstract class PostMenMaster extends Postmen
                     }
                 }                                                
             }
-        }                 
+        }             
         return $account_numbers; 
     }
     
@@ -146,10 +172,10 @@ abstract class PostMenMaster extends Postmen
     }
              
     public function calculateRates($payload)
-    {        
+    {        //print_r($payload);die;
         $conifg['safe'] = TRUE;
-        $result = $this->api->create('rates', $payload, $conifg);           
-        return $result->rates;
+        $result = $this->api->create('rates', $payload, $conifg);            
+        return ($result) ? $result->rates : $result;
     }
             
     public function getCarrierIdByName($courierName)

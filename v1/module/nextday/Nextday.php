@@ -386,7 +386,7 @@ final class Nextday extends Booking
                 foreach ($items as $key3 => $item) {
                     foreach ($item as $service_code => $services) {
                         if (!isset($services[0]->rate->error)) {
-                            $ratePrice = $services[0]->rate->weight_charge;
+                            $ratePrice = (isset($services[0]->rate->weight_charge)) ? $services[0]->rate->weight_charge : 0;
                             $accountId = isset($this->carrierList[$accountNumber]["account_id"]) ? $this->carrierList[$accountNumber]["account_id"] : $this->carrierList[$accountNumber]["carrier_id"];
                             $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $ratePrice, $accountId, $this->_param->customer_id, $this->_param->company_id);
                             $services[0]->rate->price = $serviceCcf["price_with_ccf"];
@@ -407,12 +407,14 @@ final class Nextday extends Booking
                                 }
 
                                 if (isset($service->taxes)) {
-                                    if (isset($service->taxes->total_tax)) {
-                                        $service->taxes->total_tax = number_format($service->taxes->total_tax, 2);
+                                    if (isset($service->taxes->total_tax)) {  
+                                        $totTax = isset($service->taxes->total_tax) ? (float)$service->taxes->total_tax : (float)0;
+                                        $service->taxes->total_tax = number_format($totTax, 2);
                                     }
 
                                     if (isset($service->taxes->tax_percentage)) {
-                                        $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
+                                        $totTax = isset($service->taxes->tax_percentage) ? (float)$service->taxes->tax_percentage : (float)0;
+                                        $service->taxes->tax_percentage = number_format($totTax, 2);
                                     }
                                 }
 
@@ -474,10 +476,10 @@ final class Nextday extends Booking
                                     "description" => $this->carrierList[$accountNumber]["description"],
                                     "account_number" => $this->carrierList[$accountNumber]["account_number"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
-                                );
+                                ); 
                                 $service->service_info = array(
-                                    "code" => $this->carrierList[$accountNumber]["services"][$service_code]["service_code"],
-                                    "name" => $this->carrierList[$accountNumber]["services"][$service_code]["service_name"]
+                                    "code" => $this->carrierList[$accountNumber]["services"]['express_ww_import']["service_code"],
+                                    "name" => $this->carrierList[$accountNumber]["services"]['express_ww_import']["service_name"]
                                 );
                             }
                         } else {
