@@ -348,7 +348,8 @@ class Booking_Model_Booking
 
     function getLabelByLoadIdentity($loadIdentity)
     {
-        $sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+        //$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+		$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, ST.carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_shipment ST ON SST.load_identity = ST.instaDispatch_loadIdentity WHERE SST.load_identity IN('$loadIdentity') group by ST.instaDispatch_loadIdentity";
         return $this->_db->getAllRecords($sql);
     }
 

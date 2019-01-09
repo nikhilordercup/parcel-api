@@ -319,6 +319,10 @@ class Booking extends Icargo
         $parcelData['availabilityTypeCode'] = "UNKN";
         $parcelData['company_id'] = $company_id;
         $parcelData['warehouse_id'] = $warehouse_id;
+		if(isset($parcel->parcel_row_id))
+			$parcelData['parcel_row_id'] = $parcel->parcel_row_id + 1;
+		else
+			$parcelData['parcel_row_id'] = 0;
 
         $parcel_id = $this->modelObj->saveParcel($parcelData);
 

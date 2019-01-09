@@ -628,7 +628,7 @@ final class Nextday extends Booking
                         "length" => $item->length,
                         "height" => $item->height,
                         "dimension_unit" => "CM",
-                        "weight" => $item->weight,
+                        "weight" => round($item->weight/$item->quantity,2),
                         "weight_unit" => "KG"
                     ));
                     $isDocument = (isset($item->is_document)) ? (($item->is_document && !is_bool($isDocument)) ? "true" : "false") : "false";
@@ -1371,10 +1371,6 @@ final class Nextday extends Booking
 				}else{
 					$services[$key]->surcharges->over_weight_charge = '';
 				}
-				
-				$service->rate->total_surcharge = $service->rate->fuel_surcharge + $service->rate->remote_area_delivery + $service->rate->insurance_charge + $service->rate->over_weight_charge;
-				$service->rate->weight_charge_with_tax = $service->rate->weight_charge;
-				$service->rate->weight_charge = $service->rate->weight_charge - ($service->rate->total_surcharge + $service->rate->total_tax);
 			}else{
 				if(isset($service->rate->fuel_surcharge)){
 					$service->rate->fuel_surcharge = number_format($service->rate->fuel_surcharge,2);
@@ -1401,6 +1397,10 @@ final class Nextday extends Booking
 					$services[$key]->surcharges->over_weight_charge = '';
 				}
 			}
+			
+			$service->rate->total_surcharge = $service->rate->fuel_surcharge + $service->rate->remote_area_delivery + $service->rate->insurance_charge + $service->rate->over_weight_charge;
+			$service->rate->weight_charge_with_tax = $service->rate->weight_charge;
+			$service->rate->weight_charge = $service->rate->weight_charge - ($service->rate->total_surcharge + $service->rate->total_tax);
 		}	
 		return $services;
 	}

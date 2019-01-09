@@ -11,6 +11,7 @@ class UkMailModel extends Singleton
         ,'3' =>  'AT_DELIVERY_LOCATION'
         ,'4' =>  'OUTFORDELIVERY'
         ,'5' =>  'DELIVERYSUCCESS'
+        ,'8' =>  'DELAYED'
     );
     
     public static $PodDeliveryTypeCode = array(
@@ -144,6 +145,7 @@ class UkMailModel extends Singleton
             {
                 $trackingId = '';
                 $consignmentStatus = $ConsignmentDetailInfo->ConsignmentStatus->GetConsignmentDetailsStatus;
+
                 $queryContinue = FALSE;
                 if(count($consignmentStatus) > 0)
                 { 
@@ -255,7 +257,7 @@ class UkMailModel extends Singleton
      */
     public function getShipmentToTrack()
     {
-        $ukMailCarrierId = self::UKMAIL;
+        //$ukMailCarrierId = self::UKMAIL;
         $query1 = "SELECT ss.id,ss.load_identity,ss.carrier,ss.`status`,ss.accountkey,ss.parent_account_key
                    ,ss.label_tracking_number,ss.tracking_code,sh.company_id 
                    FROM ".DB_PREFIX."shipment_service as ss
@@ -264,12 +266,12 @@ class UkMailModel extends Singleton
                    ON ss.load_identity = sh.instaDispatch_loadIdentity
                    AND sh.shipment_service_type = 'P'
 
-                   WHERE ss.carrier = $ukMailCarrierId 
+                   WHERE sh.carrier_code = 'ukmail' 
                    AND ss.accountkey != ''
                    AND ss.parent_account_key != ''
                    AND ss.`status` = 'success' 
                    AND ss.tracking_code != 'DELIVERYSUCCESS'                       
-                   ";        
+                   ";     
         $shipments = $this->db->getAllRecords($query1);         
         return $shipments;                    
     }
