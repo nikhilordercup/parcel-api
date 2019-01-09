@@ -258,14 +258,6 @@ class Tracking_Model_Index
         return $this->_db->getAllRecords($sql);
     }
 
-    /*public
-
-    function findTrackingByLoadIdentityAndCode($param)
-    {
-        $sql = "SELECT id FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'";
-        return $this->_db->getAllRecords($sql);
-    }*/
-
     public
 
     function deleteTrackingByLoadIdentityAndCode($param)
@@ -284,7 +276,7 @@ class Tracking_Model_Index
 
     function findTrackingHistory($param)
     {
-        return $this->_db->getRowRecord("SELECT create_date AS create_date FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
+        return $this->_db->getRowRecord("SELECT id, create_date AS create_date, pod_id FROM " . DB_PREFIX . "shipment_tracking WHERE shipment_ticket ='" . $param["shipment_ticket"] . "' AND load_identity='" . $param["load_identity"] . "' AND code = '" . $param["code"] . "'");
     }
 
     public
@@ -298,28 +290,13 @@ class Tracking_Model_Index
 
     function findPodTrackingHistory($param)
     {
-        //return $this->_db->getRowRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "tracking_pod WHERE pod_id='" . $param["pod_id"] . "'");
         return $this->_db->getRowRecord("SELECT COUNT(1) AS exist FROM " . DB_PREFIX . "tracking_pod WHERE pod_id='" . $param["pod_id"] . "' AND tracking_id='" . $param["tracking_id"] . "'");
     }
 
-    /*public
+    public
 
-    function findPodIdByTrackingId($tracking_id)
+    function updateTrackingHistory($param, $id)
     {
-        return $this->_db->getAllRecords("SELECT pod_id FROM " . DB_PREFIX . "tracking_pod WHERE tracking_id IN($tracking_id)");
-    }*/
-
-    /*public
-
-    function deletePodByPodId($pod_id)
-    {
-        return $this->_db->delete("DELETE FROM " . DB_PREFIX . "shipments_pod WHERE pod_id ='$pod_id'");
-    }*/
-
-    /*public
-
-    function deleteTrackingPodByTrackingIdAndPodId($tracking_id, $pod_id)
-    {
-        return $this->_db->delete("DELETE FROM " . DB_PREFIX . "tracking_pod WHERE tracking_id IN($tracking_id) AND pod_id IN($pod_id)");
-    }*/
+        return $this->_db->update("shipment_tracking", $param, "id='$id'");
+    }
 }

@@ -147,6 +147,7 @@ class Pickup extends Icargo
             "close_time" => $pickupData['latest_pickup_time'],
             "number_of_pieces" => $pickupData['package_quantity'],
             "instructions" => $pickupData['instruction_todriver'],
+			"type_codes" => "S"
         );
         $pickupRequest['pickup_contact'] = array (
             "name" => $pickupData['name'],
@@ -200,15 +201,14 @@ class Pickup extends Icargo
             $param["search_string"] = str_replace(' ','',implode('',$param));
 
             $param["company_name"]  = $data->company_name;        
-            $param["first_name"]          = $data->name;
-            $param["contact_email"]         = $data->email;
+            $param["first_name"]        = $data->name;
+            $param["contact_email"]      = $data->pickup_email;
             $param["contact_no"]         = $data->phone;
             $param["country_id"]    = $data->country->id;
             $param["customer_id"]   = $customer_id;                        
             $param["billing_address"] = "N";            
             
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
-
             if(!$addressVersion) {
                 $param["version_id"] = "version_1";
             }
@@ -216,6 +216,7 @@ class Pickup extends Icargo
                 $version = explode("_", $addressVersion['version_id']);
                 $param["version_id"] = "version_".($version[1]+1);
             }
+			$param["address_type"] = $data->address_type;
             if($address_id) {                
                 $address_id = $this->db->update("address_book", $param, "id='$address_id'");    
             } else {                

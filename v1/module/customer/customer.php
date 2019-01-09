@@ -405,11 +405,29 @@ class Customer extends Icargo{
                   $data['updated_by'] = $param->user_id;
                   $condition = "id = '" . $param->data->customer . "'";
                   $infoStatus    = $this->modelObj->editContent("users",$data, $condition);
-                 if($infoStatus){
-                      return array("status"=>"success","message"=>"Action Perform successfully");
-                   }
-                   return array("status"=>"error","message"=>"Action not Performe");
-               break;
+				  if($infoStatus){
+					 //get all users by customer_id and change their status
+						 $userData = $this->modelObj->getUserByCustomerId($param->data->customer,$param->company_id);
+						 if(count($userData)>0){
+							 $data = array();
+							 foreach($userData as $key=>$value){
+								$data['status'] = $param->status;
+								$data['update_date'] = date('Y-m-d');
+								$data['updated_by'] = $param->user_id;
+								$condition = "id = '".$value['user_id']."'";
+								$userStatus = $this->modelObj->editContent("users",$data, $condition); 
+							 }
+							if($userStatus){
+							  return array("status"=>"success","message"=>"Action Perform successfully");
+							}
+							return array("status"=>"error","message"=>"Action not Performed successfully");	 
+						}else{
+							return array("status"=>"success","message"=>"Action Perform successfully");
+						}
+					}else{
+						return array("status"=>"error","message"=>"Action not Performed successfully");
+					}
+				break;
              case "editSelectedCustomerAccountStatusFromView":
                  $param->action = "editCustomerAccountStatus";
                  return $this-> editCustomerStatus($param);
@@ -432,7 +450,6 @@ class Customer extends Icargo{
        if($isRowExist >0){
             $data = array();
             $historyId =  $this->saveccfHistoryForCarrier($param,'CUSTOMER_CARRIER');
-
             $data['company_ccf_operator_service'] = isset($param->data->ccf_operator)?$param->data->ccf_operator:'NONE';
             $data['company_ccf_operator_surcharge'] = isset($param->data->surcharge_operator)?$param->data->surcharge_operator:'NONE';
             $data['ccf_history'] = $historyId;
@@ -443,29 +460,29 @@ class Customer extends Icargo{
             $condition = "customer_id = '" . $param->customer_id . "' AND courier_id = '" . $param->data->courier_id .
                         "' AND account_number = '" . $param->data->account_number . "' AND company_id = '" . $param->company_id . "' ";
             $infoStatus    = $this->modelObj->editContent("courier_vs_company_vs_customer",$data, $condition);
-                 if($infoStatus){
-                      return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
-                   }
-                   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
-                }else{
-                  $data = array();
-                  $data['customer_surcharge_value'] = $param->data->customer_surcharge;
-                  $data['customer_ccf_value'] = $param->data->customer_ccf;
-                  $data['company_id'] = $param->company_id;
-                  $data['company_courier_account_id'] = $param->data->id;
-                  $data['account_number'] = $param->data->account_number;
-                  $data['courier_id'] = $param->data->courier_id;
-                  $data['customer_id'] = $param->customer_id;
-                  $data['create_date'] = date('Y-m-d');
-                  $data['created_by'] = $param->user_id;
+			 if($infoStatus){
+				  return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
+			   }
+			   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
+			}else{
+			  $data = array();
+			  $data['customer_surcharge_value'] = $param->data->customer_surcharge;
+			  $data['customer_ccf_value'] = $param->data->customer_ccf;
+			  $data['company_id'] = $param->company_id;
+			  $data['company_courier_account_id'] = $param->data->id;
+			  $data['account_number'] = $param->data->account_number;
+			  $data['courier_id'] = $param->data->courier_id;
+			  $data['customer_id'] = $param->customer_id;
+			  $data['create_date'] = date('Y-m-d');
+			  $data['created_by'] = $param->user_id;
 
-                  $satatusId = $this->modelObj->addContent('courier_vs_company_vs_customer',$data);
-                   if($satatusId){
-                      return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
-                   }
-                   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
-                }
-              }
+			  $satatusId = $this->modelObj->addContent('courier_vs_company_vs_customer',$data);
+			   if($satatusId){
+				  return array("status"=>"success","message"=>"Action Perform successfully",'actiongrid'=>'right1');
+			   }
+			   return array("status"=>"error","message"=>"Action not Performe",'actiongrid'=>'right1');
+			}
+	}
 
 
   public function editServiceAccountStatus($param){
@@ -1661,5 +1678,51 @@ public function editSelectedcustomerSurchargeAccountStatus($param){
                    }
                 }
             }
+			
+		public function saveChildAccountData($postData){
+			$checkChildAccountData = $this->modelObj->checkChildAccountData($postData->company_id,$postData->carrier->customer_id,$postData->carrier->courier_id,$postData->carrier->parent_account_number);
+			
+			//update existing
+			if($checkChildAccountData['account_exist']>0){
+				$childAccountId = $checkChildAccountData['id'];
+				$updateData = array("account_number"=>$postData->carrier->account_no,"username"=>$postData->carrier->user_name,"password"=>$postData->carrier->password,"token"=>$postData->carrier->coreprime_token);
+				$condition = "id = $childAccountId";
+				$updateChildAccount = $this->modelObj->editContent('customer_courier_child_accont',$updateData,$condition);
+				if($updateChildAccount)
+					return array("status"=>"success","message"=>"child account data updated successfully");
+				else
+					return array("status"=>"error","message"=>"error while updating child account data, please try again later!");
+			}
+			
+			//save new child account for customer
+			else{
+				$data = array("courier_id"=>$postData->carrier->courier_id,
+							  "company_id"=>$postData->company_id,
+							  "customer_id"=>$postData->carrier->customer_id,
+							  "parent_account_number"=>$postData->carrier->parent_account_number,
+							  "account_number"=>$postData->carrier->account_no,
+							  "username"=>$postData->carrier->user_name,
+							  "password"=>$postData->carrier->password,
+							  "token"=>$postData->carrier->coreprime_token);
+							  
+				$saveChildAccount = $this->modelObj->addContent('customer_courier_child_accont',$data);
+				if($saveChildAccount)
+					return array("status"=>"success","message"=>"child account saved successfully");
+				else
+					return array("status"=>"error","message"=>"error while adding child account, please try again later!");
+				
+			}
+		  
+		}
+
+		public function getChildAccountData($param){
+			$checkChildAccountData = $this->modelObj->checkChildAccountData($param->company_id,$param->customer_id,$param->courier_id,$param->parent_account_number);
+			if($checkChildAccountData['account_exist']>0){
+				return array("status"=>"success","child_acount_data"=>$checkChildAccountData,"message"=>"child account found");
+			}else{
+				return array("status"=>"error","child_acount_data"=>array(),"message"=>"no child account found");
+			}
+		  
+		}
     }
 ?>

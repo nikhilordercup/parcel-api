@@ -26,7 +26,27 @@ class SurchargeManager {
     protected $_packages = null;
     protected $_rate = null;
     protected $_requestData = null;
-    protected $_countedSurcharge = [];
+    protected $_countedSurcharge = [
+	"long_length_surcharge"=>0,
+        "remote_area_surcharge"=>0,
+        "manual_handling_surcharge"=>0,
+        "fuel_surcharge"=>0,
+        "collection_pickup"=>0,
+        "bookin_surcharge"=>0,
+        "insurance_surcharge"=>0,
+        "timed_services_surcharge"=>0,
+        "return_surcharge"=>0,
+        "isle_weight_surcharge"=>0,
+        "isle_scilly_surcharge"=>0,
+        "saturday_delivery_surcharge"=>0,
+        "pobox_surcharge"=>0,
+        "congestion_surcharge"=>0,
+        "same_day_drop_surcharge"=>0,
+        "same_day_waiting_surcharge"=>0,
+        "overwieght_surcharge"=>0,
+        "extrabox_surcharge"=>0,
+        "residential_surcharge"=>0
+	];
     protected $_fuelSurcharge = null;
     public $_isSameDay=false;
     /**
@@ -50,7 +70,8 @@ class SurchargeManager {
         "same_day_drop_surcharge",
         "same_day_waiting_surcharge",
         "overwieght_surcharge",
-        "extrabox_surcharge"
+        "extrabox_surcharge",
+        "residential_surcharge"
     ];
 
     /**
@@ -118,6 +139,8 @@ class SurchargeManager {
                 case 18:
                     $this->extraBoxSurcharge($rate);
                     break;
+                case 19:
+                    $this->residentialSurcharge($rate);
                 default:
                     break;
             }
@@ -180,7 +203,7 @@ class SurchargeManager {
         $key = $this->surcharges[$key - 1];
         $chargableUnit = 0;
         if ($key == 'same_day_drop_surcharge') {
-            $free = $this->_surcharge->sameDay->drop??0;
+            $free = $this->_surcharge->sameDay->drops??0;
             $drops = $this->_requestData->transit[0]->number_of_drops;
             $chargableUnit = $drops - $free;
         } else {
@@ -266,12 +289,37 @@ class SurchargeManager {
             return 0;
         }
         foreach ($d->fuleSurcharge->applyOn as $id) {
-            if (array_key_exists($this->surcharges[$id - 1], $appliedSurcharges)) {
+            if (array_key_exists($this->surcharges[$id - 1], $appliedSurcharges) && $appliedSurcharges[$this->surcharges[$id - 1]]) {
                 $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate' => $appliedSurcharges[$this->surcharges[$id - 1]]]);
             }
         }
         $finalSurcharge += $this->calculateSurcharge($d->commonData, $rate);
         $this->_countedSurcharge["fuel_surcharge"] = round($finalSurcharge,2);
+    }
+
+    public function residentialSurcharge($rate){
+        $finalSurcharge=0;
+        if(isset($this->_requestData->from->is_res)&& $this->_requestData->from->is_res == 1 ){
+		//print_r($this->_requestData);exit;
+           $finalSurcharge += $this->getItemBaseCalculation($rate);
+        }
+        if(isset($this->_requestData->to->is_res)&& $this->_requestData->to->is_res == 1){
+            $finalSurcharge += $this->getItemBaseCalculation($rate);
+        }
+        $this->_countedSurcharge["residential_surcharge"] = round($finalSurcharge,2);
+    }
+    public function getItemBaseCalculation($rate){
+        $surcharge=$this->calculateSurcharge($this->_surcharge->commonData, $rate);
+
+        if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
+            if(isset($this->_requestData->package) && count($this->_requestData->package)>0){
+                $surcharge = $surcharge*count($this->_requestData->package);
+            }elseif (isset($this->_requestData->transit->number_of_drops)
+                && $this->_requestData->transit->number_of_drops>0){
+                $surcharge = $surcharge*$this->_requestData->transit->number_of_drops;
+            }
+        }
+        return $surcharge;
     }
 
     /**

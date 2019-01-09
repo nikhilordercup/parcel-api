@@ -330,7 +330,7 @@ class Booking_Model_Booking
 
     function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity)
     {
-
+		
         $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
         $credentailData = $this->_db->getRowRecord($sql);
         return $credentailData;
@@ -348,7 +348,8 @@ class Booking_Model_Booking
 
     function getLabelByLoadIdentity($loadIdentity)
     {
-        $sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+        //$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+		$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, ST.carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_shipment ST ON SST.load_identity = ST.instaDispatch_loadIdentity WHERE SST.load_identity IN('$loadIdentity') group by ST.instaDispatch_loadIdentity";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -636,11 +637,41 @@ class Booking_Model_Booking
         return $record;
       }
 	  
-	  public function getDeliveryInstructionByLoadIdentity($load_identity)
+	 public function getDeliveryInstructionByLoadIdentity($load_identity)
 		{
 			$sql = "SELECT shipment_instruction FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$load_identity' AND shipment_service_type = 'D'";
 			return $this->_db->getOneRecord($sql);
 		}
-}
+		
+	public function getChildAccountData($accountNumber,$loadIdentity){
+		$customer_id = $this->_db->getRowRecord("SELECT customer_id FROM " . DB_PREFIX . "shipment_service AS t1 WHERE t1.load_identity = '$loadIdentity'");
+		$customer_id = $customer_id['customer_id'];
+		$sql = "SELECT * FROM " . DB_PREFIX . "customer_courier_child_accont AS t1 WHERE t1.customer_id = $customer_id AND t1.parent_account_number = '$accountNumber'";
+		$record  = $this->_db->getRowRecord($sql);
+		return $record;
+	}
 
+	public function updateChildAccountData($tableName,$data,$condition){
+		return $this->_db->update($tableName,$data,$condition);
+	}
+	
+	public
+
+    function getCredentialDataForChildAccount($carrierAccountNumber)
+    {		
+        $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "customer_courier_child_accont AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
+        $credentailData = $this->_db->getRowRecord($sql);
+        return $credentailData;
+    }
+    
+     public
+
+    function isInternalCarrier($carrier_code)
+    {
+        $sql = "SELECT is_self AS is_internal  FROM " . DB_PREFIX . "courier WHERE code = '$carrier_code'";
+        $record = $this->_db->getRowRecord($sql);
+        return $record['is_internal'];
+    }
+	
+}
 ?>

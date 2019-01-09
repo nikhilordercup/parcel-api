@@ -9,7 +9,7 @@ class Booking extends Icargo
         $this->modelObj = new Booking_Model_Booking();
 
         $this->postcodeObj = new Postcode();
-		
+
 		$this->db = new DbHandler();
     }
 
@@ -86,7 +86,6 @@ class Booking extends Icargo
 			}else{
 				$address_type = "";
 			}
-			$addressType =
             $param["postcode"]      = $data->postcode;
             $param["address_line1"] = (isset($data->address_line1)) ? $data->address_line1 : "";
             $param["address_line2"] = (isset($data->address_line2)) ? $data->address_line2 : "";
@@ -97,6 +96,9 @@ class Booking extends Icargo
             $param["first_name"]    = (isset($data->name)) ? $data->name : "";
             $param["last_name"]     = "";
             $param["contact_no"]    = (isset($data->phone)) ? $data->phone : "";
+            $param["phone"]    	    = (isset($data->phone)) ? $data->phone : "";
+            $param["name"]          = (isset($data->name)) ? $data->name : "";
+            $param["email"]         = (isset($data->email)) ? $data->email : "";
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = (isset($data->company_name)) ? $data->company_name : "";
 
@@ -106,8 +108,8 @@ class Booking extends Icargo
 
             $param["country_id"]    = $data->country->id;
 
-            $param["latitude"]      = $data->geo_position->latitude;
-            $param["longitude"]     = $data->geo_position->longitude;
+            $param["latitude"]      = isset($data->geo_position) ? $data->geo_position->latitude : 0.00000000;
+            $param["longitude"]     = isset($data->geo_position) ? $data->geo_position->longitude : 0.00000000;
             $param["is_default_address"] = "N";
             $param["customer_id"]   = $customer_id;
             $param["is_warehouse"]  = "N";
@@ -116,15 +118,15 @@ class Booking extends Icargo
             $param["billing_address"] = "N";
 
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
-			
-			if($data->address_origin=='api'){
+
+			if(isset($data->address_origin) and $data->address_origin=='api'){
 				$param["version_id"] = "version_1";
 				$address_id = $this->modelObj->saveAddress($param);
 				return array("status"=>"success", "address_id"=>$address_id,"address_data"=>$param);
-				
+
 			}else{
 				if(!$addressVersion["address_id"]){
-					if(($address_op===null) OR ($address_op=="add")){
+					if(($address_op == null) OR ($address_op == "add")){
 						$param["version_id"] = "version_1";
 						$address_id = $this->modelObj->saveAddress($param);
 					}else{
@@ -137,7 +139,7 @@ class Booking extends Icargo
 					$param["version_id"] = "version_".($version[1]+1);
 					return array("status"=>"success", "address_id"=>$addressVersion['address_id'],"address_data"=>$param);
 				}
-			} 
+			}
         }else{
             return array("status"=>"error", "message"=>"Invalid postcode");
         }
@@ -153,8 +155,7 @@ class Booking extends Icargo
 
         $ticketNumber = $this->modelObj->generateTicketNo($company_id);
         global $_GLOBAL_CONTAINER;
-        $_GLOBAL_CONTAINER['loadIdentity']=$ticketNumber;
-        $this->_loadIdentity=$ticketNumber;
+        $_GLOBAL_CONTAINER['loadIdentity']=(isset($param2->load_identity)) ? $param2->load_identity : $ticketNumber;
 
         if($ticketNumber){
 
@@ -236,9 +237,9 @@ class Booking extends Icargo
             $data['address_id'] = 0;
             $data['shipment_service_type'] = $shipment_service_type;
 
-            $data['shipment_latitude'] = $param2->geo_position->latitude;
-            $data['shipment_longitude'] = $param2->geo_position->longitude;
-            $data['shipment_latlong'] = $param2->geo_position->latitude.",".$param2->geo_position->longitude;
+            $data['shipment_latitude'] = isset($data->geo_position) ? $data->geo_position->latitude : 0.00000000;
+            $data['shipment_longitude'] = isset($data->geo_position) ? $data->geo_position->longitude : 0.00000000;
+            $data['shipment_latlong'] = isset($data->geo_position) ? $param2->geo_position->latitude.",".$param2->geo_position->longitude : "0.00000000,0.00000000";
             $data['shipment_create_date'] = date("Y-m-d", strtotime('now'));
             $data['icargo_execution_order'] = $execution_order;
             $data['shipment_executionOrder'] = $execution_order;
@@ -296,7 +297,8 @@ class Booking extends Icargo
         $parcelData['instaDispatch_loadIdentity'] = $loadidentity;
         $parcelData['shipment_ticket'] = $shipment_ticket;
 
-        $parcelData['package']       = $parcel->package_code;
+        $parcelData['package_name']  = $parcel->name;
+		$parcelData['package']       = $parcel->package_code;
         $parcelData['parcel_ticket'] = $parcelTicketNumber;
         $parcelData['parcel_weight'] = round($parcel->weight/$parcel->quantity,2);
 		$parcelData['total_weight'] =  $parcel->weight;
@@ -305,6 +307,7 @@ class Booking extends Icargo
         $parcelData['parcel_width']  = $parcel->width;
         //$parcelData["quantity"]      = $parcel->quantity;
         $parcelData['parcel_type']   = $parcel_type;//($valuedata['purposeTypeName'] == 'Collection') ? 'P' : 'D';
+		$parcelData['is_document']   = isset($parcel->is_document) ? 'Y' : 'N';
 
         $parcelData['dataof'] = $company_code;
         $parcelData['status'] = '1';
@@ -316,6 +319,10 @@ class Booking extends Icargo
         $parcelData['availabilityTypeCode'] = "UNKN";
         $parcelData['company_id'] = $company_id;
         $parcelData['warehouse_id'] = $warehouse_id;
+		if(isset($parcel->parcel_row_id))
+			$parcelData['parcel_row_id'] = $parcel->parcel_row_id + 1;
+		else
+			$parcelData['parcel_row_id'] = 0;
 
         $parcel_id = $this->modelObj->saveParcel($parcelData);
 
@@ -358,6 +365,7 @@ class Booking extends Icargo
             $service_data["courier_commission"] = $serviceOpted->rate->info->ccf_value;
             $service_data["courier_commission_value"] = $serviceOpted->rate->info->price;
             $service_data["accountkey"] = isset( $serviceOpted->rate->act_number) ? $serviceOpted->rate->act_number : '';
+			$service_data["parent_account_key"] = isset( $serviceOpted->rate->act_number) ? $serviceOpted->rate->act_number : '';
             $service_data["base_price"] = $serviceOpted->rate->info->original_price;
             $service_data["surcharges"] = $surchargeAndTaxValue["total_surcharge_value"];
             $service_data["taxes"] = $surchargeAndTaxValue["total_tax_value"];
@@ -375,7 +383,8 @@ class Booking extends Icargo
             $service_data["transit_distance_text"] = "NA";
 
             $service_data["transit_time_text"] = "NA";
-            $service_data["carrier"] = $serviceOpted->carrier_info->carrier_id;
+            //$service_data["carrier"] = $serviceOpted->carrier_info->carrier_id;
+            $service_data["carrier"] = $serviceOpted->carrier_info->account_id;
             $service_data["isInvoiced"] = "NO";
 
             $service_data["invoice_reference"] = "";
@@ -451,8 +460,8 @@ class Booking extends Icargo
         $price_breakdown["ccf_price"]     = $data->rate->info->price;
         $price_breakdown["price"]         = isset( $data->rate->info->price_with_ccf ) ? $data->rate->info->price_with_ccf : '0';
         $price_breakdown["service_id"]    = $data->rate->info->service_id;
-        $price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
-
+        //$price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
+        $price_breakdown["carrier_id"]    = $data->carrier_info->account_id;
         $status = $this->modelObj->saveShipmentPrice($price_breakdown);
         if($status>0){
             //save surcharges
@@ -498,7 +507,8 @@ class Booking extends Icargo
                         $price_breakdown["version"] = $price_version;
                         $price_breakdown["api_key"] = "taxes";
                         $price_breakdown["inputjson"] = json_encode(array('originnal_tax_amt'=>$item));
-                        $price_breakdown["carrier_id"] = $data->carrier_info->carrier_id;
+                        //$price_breakdown["carrier_id"] = $data->carrier_info->carrier_id;
+                        $price_breakdown["carrier_id"]    = $data->carrier_info->account_id;
                     }elseif($key=='tax_percentage'){
                         $price = number_format((($price_without_tax *$item)/100),2,'.','');
                         $basetaxprice = number_format((($carriertotalpriceWithouttax *$item)/100),2,'.','');
@@ -732,5 +742,9 @@ class Booking extends Icargo
     public function getBookedShipmentsCustomerInfo($customerId){
        return $this->modelObj->getBookedShipmentsCustomerInfo($customerId);
     }
+    public function _isInternalCarrier($carrier_code){
+       return $this->modelObj->isInternalCarrier($carrier_code);
+    }
+    
 }
 ?>

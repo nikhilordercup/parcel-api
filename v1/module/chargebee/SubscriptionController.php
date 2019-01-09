@@ -1,11 +1,9 @@
 <?php
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  * Description of SubscriptionController
  *
@@ -134,7 +132,7 @@ class SubscriptionController {
             $data = $self->getSubscriptionInfo($r->company_id);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-        
+
         $app->post('/updateSubscriptionInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -142,7 +140,7 @@ class SubscriptionController {
             $data = $self->createNewSubscription($r);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-        
+
         $app->post('/getPurchaseHistory', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
@@ -150,7 +148,7 @@ class SubscriptionController {
             $data = $self->getPurchaseHistory($r->company_id);
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-        
+
         $app->post('/paymentFailHook', function() use ($app) {
             $self = new SubscriptionController($app);
             $data = $self->paymentFailHook();
@@ -161,42 +159,52 @@ class SubscriptionController {
             $data = $self->trialEndHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-        
+
         $app->post('/paymentHook', function() use ($app) {
             $self = new SubscriptionController($app);
             $data = $self->paymentHook();
             echoResponse(200, array('result' => 'success', 'message' => $data));
         });
-        $app->get('/test-db',function ()use ($app){
-            echo '<pre>';
-            print_r(\v1\module\Database\Model\UsersModel::query()->limit(2)->toSql());
-            exit;
+        $app->post('/cancel-subscription',function ()use ($app){
+            $r = json_decode($app->request->getBody());
+            $model=new \v1\module\chargebee\model\ChargebeeModel();
+            $d=$model->getSubscription(544,$r->plan_type);
+            if($d){
+                /**
+                 * @var $m \v1\module\Database\Model\ChargebeeSubscriptionsModel
+                 */
+                $m=$d->subscription;
+                ChargeBee_Subscription::delete($m->chargebee_subscription_id);
+                $m->status='subscription_cancelled';
+                $m->save();
+            }
+            echoResponse(200,['result'=>'success','message'=>'Subscription canceled successfully.']);
         });
-    }    
+    }
     public function getSubscriptionInfo($company_id) {
         $sql = "SELECT CS.*, U.id, P.plan_type FROM " . DB_PREFIX . "chargebee_subscription AS CS "
-                . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
+            . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
                 CS.chargebee_customer_id = CC.chargebee_customer_id " .
-                "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
-                "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
-                " WHERE U.id=$company_id AND CS.status IN ('in_trial','active')";
+            "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
+            "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
+            " WHERE U.id=$company_id AND CS.status IN ('in_trial','active')";
         return $this->_db->getAllRecords($sql);
     }
-    
+
     public function getShipmentCounts($company_id) {
         $date=date('Y-m-');
         $sql = "SELECT instaDispatch_loadGroupTypeCode as shipment_type,COUNT(*) as shipment_count FROM `" . DB_PREFIX . "shipment`"
-                . " WHERE company_id=$company_id "
-                . " AND shipment_create_date LIKE '$date%' "
-                . "GROUP BY instaDispatch_loadGroupTypeCode";
+            . " WHERE company_id=$company_id "
+            . " AND shipment_create_date LIKE '$date%' "
+            . "GROUP BY instaDispatch_loadGroupTypeCode";
         return $this->_db->getAllRecords($sql);
     }
     public function getPlanInfo($company_id) {
         $sql = "SELECT CS.*, U.id, P.plan_type FROM " . DB_PREFIX . "chargebee_subscription AS CS LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
                 CS.chargebee_customer_id = CC.chargebee_customer_id 
                 LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id "
-                ." LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
-                 "WHERE U.id=$company_id AND CS.status IN ('in_trial','active')";
+            ." LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
+            "WHERE U.id=$company_id AND CS.status IN ('in_trial','active')";
         return $this->_db->getAllRecords($sql);
     }
     public function getUserInfo($token) {
@@ -293,41 +301,41 @@ class SubscriptionController {
     }
     public function createNewSubscription($r) {
         try{
-        $planInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_id='" . $r->plan_id . "'");
-        $customer = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_customer WHERE user_id='" . $r->company_id . "'");
-        $exist = $this->_db->getOneRecord("SELECT CS.* FROM " . DB_PREFIX . "chargebee_subscription AS CS "
+            $planInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_id='" . $r->plan_id . "'");
+            $customer = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_customer WHERE user_id='" . $r->company_id . "'");
+            $exist = $this->_db->getOneRecord("SELECT CS.* FROM " . DB_PREFIX . "chargebee_subscription AS CS "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON CS.chargebee_customer_id=CC.chargebee_customer_id "
                 . " WHERE CC.user_id='" . $r->company_id . "' AND P.plan_type='" . $r->plan_type . "' "
                 . " AND CS.status IN ('in_trial','active')");
-        if ($exist) {
-            $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>strtotime('tomorrow')));
-            $result = $result->subscription();
-            $this->_db->update("chargebee_subscription", array('status'=>'updated'), " id=".$exist['id'] );
-        } else {
-            $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id,'trialEnd'=>strtotime('tomorrow')));
-            $result = $result->subscription();
-        }
-         $subscriptionData=array(
-                'plan_id'=>$r->plan_id, 
-                'chargebee_subscription_id'=>$result->id, 
+            if ($exist) {
+                $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>strtotime('tomorrow')));
+                $result = $result->subscription();
+                $this->_db->update("chargebee_subscription", array('status'=>'updated'), " id=".$exist['id'] );
+            } else {
+                $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id,'trialEnd'=>strtotime('tomorrow')));
+                $result = $result->subscription();
+            }
+            $subscriptionData=array(
+                'plan_id'=>$r->plan_id,
+                'chargebee_subscription_id'=>$result->id,
                 'chargebee_customer_id'=>$customer['chargebee_customer_id'],
                 'plan_quantity'=>1,
                 'plan_unit_price'=>$planInfo['price'],
                 'start_date'=>date('Y-m-d H:i:s',$result->startedAt),
                 'trial_end'=>date('Y-m-d H:i:s',$result->trialEnd),
-                'next_billing_date'=>date('Y-m-d H:i:s', $result->nextBillingAt), 
-                'billing_cycles'=>0, 
-                'auto_collection'=>FALSE, 
-                'terms_to_charge'=>0, 
-                'invoice_notes'=>'', 
-                'invoice_immediately'=>'', 
-                'prorata'=>'0', 
-                'status'=>$result->status, 
-                'payment_status'=>'0', 
+                'next_billing_date'=>date('Y-m-d H:i:s', $result->nextBillingAt),
+                'billing_cycles'=>0,
+                'auto_collection'=>FALSE,
+                'terms_to_charge'=>0,
+                'invoice_notes'=>'',
+                'invoice_immediately'=>'',
+                'prorata'=>'0',
+                'status'=>$result->status,
+                'payment_status'=>'0',
                 'payment_counter'=>0,
-                'create_date'=>date('Y-m-d H:i:s'), 
-                'update_date'=>'1970-01-01 00:00:00', 
+                'create_date'=>date('Y-m-d H:i:s'),
+                'update_date'=>'1970-01-01 00:00:00',
                 'allowed_shipment'=>$planInfo['shipment_limit']
             );
             return $this->_db->save('chargebee_subscription', $subscriptionData);
@@ -335,84 +343,84 @@ class SubscriptionController {
             return array('error'=>TRUE,'message'=>$ex->getMessage());
         }
     }
-    
+
     public function getPurchaseHistory($company_id){
         $sql = "SELECT CS.*, U.id, P.plan_name, P.price FROM " . DB_PREFIX . "chargebee_subscription AS CS "
-                . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
+            . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 
                 CS.chargebee_customer_id = CC.chargebee_customer_id " .
-                "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
-                "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
-                " WHERE U.id=$company_id ";
+            "LEFT JOIN " . DB_PREFIX . "users AS U ON CC.user_id=U.id " .
+            "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id " .
+            " WHERE U.id=$company_id ";
         return $this->_db->getAllRecords($sql);
     }
-    
+
     public function paymentFailHook(){
         $content = file_get_contents('php://input');
         try{
-        $event = ChargeBee_Event::deserialize($content);
-        $subscription=$event->content()->subscription();
-        $customer=$event->content()->customer();
-        $data=array(
-          'subscription_id'=>$subscription->id,
-            'customer_id'=>$customer->id
-        );
-        $this->_db->save('payment_failure', $data);
-        $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
+            $event = ChargeBee_Event::deserialize($content);
+            $subscription=$event->content()->subscription();
+            $customer=$event->content()->customer();
+            $data=array(
+                'subscription_id'=>$subscription->id,
+                'customer_id'=>$customer->id
+            );
+            $this->_db->save('payment_failure', $data);
+            $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
                 . "WHERE chargebee_subscription_id ='".$subscription->id."' ORDER BY id DESC ");
-        if($subscriptionRow){
-            $this->_db->update("chargebee_subscription", array('status'=>'payment_failed',
-                'next_billing_date'=>date('Y-m-d H:i:s', $subscription->nextBillingAt)),"id=".$subscriptionRow['id']);
-        }
-        echo "success";exit;
+            if($subscriptionRow){
+                $this->_db->update("chargebee_subscription", array('status'=>'payment_failed',
+                    'next_billing_date'=>date('Y-m-d H:i:s', $subscription->nextBillingAt)),"id=".$subscriptionRow['id']);
+            }
+            echo "success";exit;
         } catch (Exception $ex){
             exit($ex->getMessage());
         }
     }
-    
-    
+
+
     public function trialEndHook(){
         $content = file_get_contents('php://input');
         try{
-        $event = ChargeBee_Event::deserialize($content);
-        $subscription=$event->content()->subscription();
-        $customer=$event->content()->customer();
-        $data=array(
-          'subscription_id'=>$subscription->id,
-            'customer_id'=>$customer->id
-        );
-        $this->_db->save('payment_failure', $data);
-        $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
+            $event = ChargeBee_Event::deserialize($content);
+            $subscription=$event->content()->subscription();
+            $customer=$event->content()->customer();
+            $data=array(
+                'subscription_id'=>$subscription->id,
+                'customer_id'=>$customer->id
+            );
+            $this->_db->save('payment_failure', $data);
+            $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
                 . "WHERE chargebee_subscription_id ='".$subscription->id."' ORDER BY id DESC ");
-        if($subscriptionRow){
-            $this->_db->update("chargebee_subscription", array('status'=>'active',
-                'next_billing_date'=>date('Y-m-d H:i:s', $subscription->nextBillingAt)),"id=".$subscriptionRow['id']);
-        }
-        echo "success";exit;
+            if($subscriptionRow){
+                $this->_db->update("chargebee_subscription", array('status'=>'active',
+                    'next_billing_date'=>date('Y-m-d H:i:s', $subscription->nextBillingAt)),"id=".$subscriptionRow['id']);
+            }
+            echo "success";exit;
         } catch (Exception $ex){
             exit($ex->getMessage());
         }
     }
-    
-       public function paymentHook(){
+
+    public function paymentHook(){
         $content = file_get_contents('php://input');
         try{
-        $event = ChargeBee_Event::deserialize($content);
-        $subscription=$event->content()->subscription();
-        $customer=$event->content()->customer();
-        $data=array(
-          'subscription_id'=>$subscription->id,
-            'customer_id'=>$customer->id
-        );
-       // $this->_db->save('payment_failure', $data);
-        $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
+            $event = ChargeBee_Event::deserialize($content);
+            $subscription=$event->content()->subscription();
+            $customer=$event->content()->customer();
+            $data=array(
+                'subscription_id'=>$subscription->id,
+                'customer_id'=>$customer->id
+            );
+            // $this->_db->save('payment_failure', $data);
+            $subscriptionRow=$this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_subscription "
                 . "WHERE chargebee_subscription_id ='".$subscription->id."' ORDER BY id DESC ");
-        if($subscriptionRow){
-            $this->_db->update("chargebee_subscription", array('status'=>'active',
-                'next_billing_date'=>date('Y-m-d H:i:s', $subscription->nextBillingAt)),"id=".$subscriptionRow['id']);
-        }
-        echo "success";exit;
+            if($subscriptionRow){
+                $this->_db->update("chargebee_subscription", array('status'=>'active',
+                    'next_billing_date'=>date('Y-m-d H:i:s', $subscription->nextBillingAt)),"id=".$subscriptionRow['id']);
+            }
+            echo "success";exit;
         } catch (Exception $ex){
             exit($ex->getMessage());
         }
-    }   
+    }
 }

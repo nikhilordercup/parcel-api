@@ -1,20 +1,17 @@
 <?php
 
-class dbConnect
-{
+class dbConnect {
 
     private $conn;
 
-    function __construct()
-    {
+    function __construct() {        
     }
 
     /**
      * Establishing database connection
      * @return database connection handler
      */
-    function connect()
-    {
+    function connect() {
         include_once '../config.php';
 
         // Connecting to mysql database
@@ -24,13 +21,12 @@ class dbConnect
         if (mysqli_connect_errno()) {
             echo "Failed to connect to MySQL: " . mysqli_connect_error();
         }
-        mysqli_set_charset($this->conn, "utf8");
+        mysqli_set_charset($this->conn,"utf8");
         // returing connection resource
         return $this->conn;
     }
-
     public static function bootGlobal()
-    {
+    {  // if(!class_exists ('\Illuminate\Database\Capsule\Manager'))return true;
         if(!defined('DB_HOST')) {
             require_once '../config.php';
         }
@@ -49,6 +45,5 @@ class dbConnect
         $connectionManager->setAsGlobal();
         $connectionManager->bootEloquent();
     }
-
 }
 dbConnect::bootGlobal();

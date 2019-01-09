@@ -22,7 +22,6 @@
 
         public function getShipmentParcelStatusDetail($ticket)
         {
-            //$sql = "SELECT T2.parcel_ticket, T2.instaDispatch_pieceIdentity, T2.instaDispatch_loadIdentity AS instaDispatch_loadIdentity_parcel FROM `" . DB_PREFIX . "shipment` AS T1 LEFT JOIN `" . DB_PREFIX . "shipments_parcel` AS T2 ON T2.shipment_ticket = T1.shipment_ticket WHERE `T1`.`shipment_ticket` = '$ticket'";
             $sql = "SELECT T2.parcel_ticket, T2.instaDispatch_pieceIdentity, T2.instaDispatch_loadIdentity AS instaDispatch_loadIdentity_parcel FROM `" . DB_PREFIX . "shipments_parcel` AS T2 WHERE `T2`.`shipment_ticket` = '$ticket'";
             $records = $this->db->getAllRecords($sql);
             return $records;
@@ -118,7 +117,10 @@
 
              if(isset($arr->company_id))
                  array_push($temp, $arr->company_id);
-
+			 
+			 if(isset($arr->phone))
+                 array_push($temp, $arr->phone);
+			 
              $addressString = implode("", $temp);
 
 			       return strtolower(preg_replace('/\s+/','',$addressString));
@@ -127,14 +129,12 @@
         public function countryList($searchData = array())
         {
             $cond = ( isset($searchData['id']) && !empty($searchData['id']) ) ? 'where `id`='.$searchData['id'] : '';
-            $sql = "SELECT * FROM `" . DB_PREFIX . "countries` ".$cond;
-
+            $sql = "SELECT * FROM ".DB_PREFIX."countries $cond ORDER BY short_name";
             if($cond) {
                 $records = $this->db->getRowRecord($sql);
             } else {
                 $records = $this->db->getAllRecords($sql);
             }
-            //print_r($records); die;
             return $records;
         }
 
@@ -142,9 +142,8 @@
         {
             $collectionCountry = $data->collection_country;
             $deliveryCountry = $data->delivery_country;
-            $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry'";
+            $sql = "SELECT COUNT(id) as dutiable FROM `" . DB_PREFIX . "country_non_duitable` where country_id = '$collectionCountry' AND nonduty_id = '$deliveryCountry' AND status=1";
             $records = $this->db->getRowRecord($sql);
-            //print_r($records);
             return $records['dutiable'];
         }
 

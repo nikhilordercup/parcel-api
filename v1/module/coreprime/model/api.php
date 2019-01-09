@@ -117,5 +117,18 @@ class Coreprime_Model_Api
                 AND CUSTSER.status = '1'
                 AND CSER.status = '1'";
         return $this->_db->getAllRecords($sql);
-    }   
+    }
+
+     public
+
+    function getCustomerInternalCarrierData($customerId, $company)
+    {
+        //$sql = "SELECT C3.courier_id,C1.account_number,C3.token,C3.currency,C2.code,C2.icon FROM " . DB_PREFIX . "courier_vs_company_vs_customer as C1 INNER JOIN " . DB_PREFIX . "courier as C2 on C1.courier_id = C2.id INNER JOIN " . DB_PREFIX . "courier_vs_company as C3 on C1.courier_id = C3.courier_id AND C3.company_id = '$company' WHERE C1.customer_id = '$customerId' AND C3.courier_id = '$courierId' AND C1.status = 1";
+        $sql = "SELECT C3.username,C3.password,C1.company_courier_account_id as courier_account_id,C1.courier_id as courier_id,C1.account_number,C3.token,C3.currency,C2.code,C2.icon,C2.is_self
+        FROM " . DB_PREFIX . "courier_vs_company_vs_customer as C1 
+        INNER JOIN " . DB_PREFIX . "courier as C2 on C1.courier_id = C2.id 
+        INNER JOIN " . DB_PREFIX . "courier_vs_company as C3 on C1.company_courier_account_id = C3.id AND C3.company_id = '$company' 
+        WHERE C1.customer_id = '$customerId' AND C2.is_apiused = 'YES' AND C1.status = 1 AND C2.is_self='YES'";
+        return $this->_db->getAllRecords($sql);
+    } 
 }

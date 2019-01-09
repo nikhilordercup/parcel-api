@@ -1,8 +1,10 @@
 <?php
+
+//require_once('../vendor/setasign/fpdf/fpdf.php');
+//require_once('../vendor/setasign/fpdi/fpdi.php');
+
 use setasign\Fpdi\Fpdi;
 
-//require_once('../../../vendor/setasign/fpdf/fpdf.php');
-//require_once('../../../vendor/setasign/fpdi2/src/autoload.php');
 
 class ConcatPdf extends Fpdi
 {

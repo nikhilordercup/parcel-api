@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipments_parcel` ADD `is_document` VARCHAR(1) NOT NULL DEFAULT 'N' AFTER `parcel_type`;

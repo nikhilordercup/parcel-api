@@ -703,12 +703,6 @@ class loadShipment extends Library
         $data['routes']       = array();
         $this->route_postcode = $this->db->getAllRecords("SELECT t1.*, t2.name AS route_name FROM " . DB_PREFIX . "route_postcode AS t1 INNER JOIN " . DB_PREFIX . "routes AS t2 ON t1.route_id = t2.id WHERE t1.company_id = " . $this->company_id . " AND t1.warehouse_id = " . $this->warehouse_id);
         $records              = $this->db->getAllRecords("SELECT shipment_id, shipment_ticket, shipment_postcode, shipment_address1, instaDispatch_loadGroupTypeCode, shipment_service_type,instaDispatch_loadIdentity, instaDispatch_docketNumber, ".$this->_execution_order." AS shipment_executionOrder, shipment_customer_country FROM " . DB_PREFIX . "shipment WHERE shipment_ticket IN('$this->shipment_ticket') AND current_status = 'C' ORDER BY shipment_service_type");
-        //$records = $this->db->getAllRecords("SELECT ST.shipment_id, ST.shipment_ticket, ABT.postcode AS shipment_postcode, ABT.address_line1 AS shipment_address1 , ABT.country AS shipment_customer_country, ST.instaDispatch_loadGroupTypeCode, ST.shipment_service_type, ST.instaDispatch_docketNumber, ".$this->_execution_order." AS shipment_executionOrder FROM " . DB_PREFIX . "shipment AS ST INNER JOIN " . DB_PREFIX . "address_book AS ABT ON ABT.id=ST.address_id WHERE shipment_ticket IN('$this->shipment_ticket') AND current_status = 'C' ORDER BY shipment_service_type");
-        /*foreach ($records as $key => $values) {
-            $routeId                                                                                                                     = $this->_get_shipment_route_by_key($values['shipment_postcode'], 'postcode');
-            $values['routeId']                                                                                                           = $routeId;
-            $data[$values['instaDispatch_loadGroupTypeCode']][$values['shipment_service_type']][$values['instaDispatch_docketNumber']][] = $values;
-        }*/
 
         foreach ($records as $key => $value) {
             if ((strtolower($value['instaDispatch_loadGroupTypeCode']) == 'vendor') || (strtolower($value['instaDispatch_loadGroupTypeCode']) == 'phone')) {
@@ -740,11 +734,13 @@ class loadShipment extends Library
                 }
             }
         }
-
+		
         $this->_clean_temporary_data_by_session_id();
-        foreach ($data['routes'] as $key => $valueinner)
+		
+        foreach ($data['routes'] as $key => $valueinner){
             $this->_add_temp_routes($key, $valueinner,'NONSAMEDAY');
-
+		}
+		
 		$this->_update_execution_order();
     }
 
@@ -761,13 +757,35 @@ class loadShipment extends Library
             $data['routes'][$routeId][] = $value;
         }
         $this->_clean_temporary_data_by_session_id();
+		
         foreach ($data['routes'] as $key => $valueinner)
             $this->_add_temp_routes($key, $valueinner,'SAMEDAY');
 
 		$this->_update_execution_order();
     }
-
+	
 	private function _update_execution_order()
+	{
+		$sql = "SELECT `shipment_id` as `shipment_id`, `drop_name`, `temp_route_id` FROM `" . DB_PREFIX . "temp_routes_shipment` WHERE company_id = $this->company_id ORDER BY drop_name";
+		$records = $this->db->getAllRecords($sql);
+		foreach($records as $record){
+			if(!isset($this->drops[$record['temp_route_id']][$record['drop_name']]['shipments'])){
+				$this->drops[$record['temp_route_id']][$record['drop_name']]['shipments'] = array();
+			}
+			$this->drops[$record['temp_route_id']][$record['drop_name']]['shipments'][] =  $record['shipment_id'];
+		}
+		foreach($this->drops as $route_id => $drop){
+			$execution_order = 1;
+			foreach($drop as $shipment){
+				$shipmenId = $shipment['shipments'][0];
+				$sql = "UPDATE `" . DB_PREFIX . "temp_routes_shipment` SET drop_execution_order = $execution_order WHERE temp_route_id = $route_id AND company_id = $this->company_id AND shipment_id = '$shipmenId'";
+				$this->db->updateData($sql);
+				$execution_order++;
+			}
+		}
+	}
+
+	/*private function _update_execution_order()
 	{
 		$sql = "SELECT group_concat(`shipment_id`) as `shipment_id`, `drop_name`, `temp_route_id` FROM `" . DB_PREFIX . "temp_routes_shipment` group by drop_name, temp_route_id ORDER BY drop_name";
 		$records = $this->db->getAllRecords($sql);
@@ -785,7 +803,7 @@ class loadShipment extends Library
 				$execution_order++;
 			}
 		}
-	}
+	}*/
 
 
 
@@ -1142,6 +1160,7 @@ class loadShipment extends Library
                 'driver_id'         => $this->driver_id,
                 'create_date'       => date("Y-m-d"),
                 'assign_start_time' => date("h:i:s", $timestamp),
+				'assign_date_time'  =>date('Y-m-d H:i:s', $timestamp),
                 'is_active'         => 'Y',
                 'is_optimized'      => 'NO',
                 'optimized_type'    => 'N',

@@ -213,3 +213,4 @@ class DbHandler {
 		return $this->conn->affected_rows;
 	}
 }
+?>
