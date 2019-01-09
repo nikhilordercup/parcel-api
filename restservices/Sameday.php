@@ -152,10 +152,11 @@ class Sameday extends  Booking
        foreach($response->rate as $key=>$val){
              foreach($val as $key1=>$val2){
                   $temp = array();
+                  $temp['job_type']             = 'SAMEDAY';
                   $temp['service_code']         = $val2->otherinfo->courier_service_code;
                   $temp['service_name']         = $val2->otherinfo->courier_service_name;
                   $temp['service_id']           = $val2->otherinfo->service_id;
-                  //$temp['act_number']           = $val2->otherinfo->accountkey;
+                  $temp['act_number']           = $val2->otherinfo->accountkey;
                   $temp['price']                = $val2->base_price;
                   $temp['max_delivery_time']    = $val2->max_delivery_time;
                   $temp['max_waiting_time']     = $val2->time->max_waiting_time .' '. $val2->time->unit;

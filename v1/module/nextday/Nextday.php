@@ -485,6 +485,19 @@ final class Nextday extends Booking
                                         "message" => $service->rate->error
                                     );
                                 }
+
+                                if (isset($service->taxes))
+                                {
+                                    if (isset($service->taxes->total_tax))
+                                    {
+                                        $service->taxes->total_tax = number_format($service->taxes->total_tax, 2);
+                                    }
+
+                                    if (isset($service->taxes->tax_percentage))
+                                    {
+                                        $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
+                                    }
+                                }
 								
 								if((isset($services[0]->rate->total_tax)) && ($services[0]->rate->total_tax!=0)){
 									$service->taxes = (object)array();

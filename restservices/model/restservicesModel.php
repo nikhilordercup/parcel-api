@@ -117,5 +117,11 @@ class restservices_Model
        $data =  $this->db->getRowRecord($sql);
        return $data;
     }
+    
+   public function getCountryData($country){
+        $sql = "SELECT C.* FROM " . DB_PREFIX . "countries as C
+                WHERE  C.short_name LIKE '$country'";
+        return $this->db->getRowRecord($sql);
+    }  
  }
 ?>

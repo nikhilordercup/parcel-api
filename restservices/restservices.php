@@ -84,5 +84,22 @@ $app->post('/getShipmentTracking', function() use ($app) {
     echoResponse(200, $records);
 });
 
-    
+/*  Globle Web services*/
+$app->post('/getQuotation', function() use ($app) { 
+    $response = array();
+    $r = verifyToken($app,$app->request->getBody()); 
+    $r->endpoint = 'getQuotation';
+    $sameObj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
+	$sameRecords = $sameObj->getSameDayQuotation($r);
+    $quotation_ref = '';
+    if($sameRecords['status']=='success'){
+        $quotation_ref = $sameRecords['rate']['quotation_ref'];
+    }
+    $nextObj = new Nextday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
+    $nextRecords = $nextObj->getNextDayQuotation($r,$quotation_ref);
+    $commonObj   = new Common();
+    $records = $commonObj->getMergeRecords($sameRecords,$nextRecords);
+    $saveWebRequest = $sameObj->saveWebReqResponce($r,$records,$app);
+	echoResponse(200, $records);
+});    
 ?>
