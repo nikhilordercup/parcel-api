@@ -357,7 +357,7 @@ class allShipments extends Icargo
                 'trackinginfo' => $allInfo['trackinginfo'],
                 'shipmentTrackinginfo' => $allInfo['shipmentTrackinginfo'],
                 'podinfo' => $allInfo['podinfo'],
-				        'parcelInfo'=>$allInfo['parcelInfo']
+				'parcelInfo'=>$allInfo['parcelInfo']
             )
         );
     }
@@ -365,20 +365,20 @@ class allShipments extends Icargo
 
     private function _getBasicInfoOfShipment($identity)
     {
-        $dropTrackinginfo           = array();
-        $shipmentsInfoData      = $this->modelObj->getShipmentsDetail($identity);
+        $dropTrackinginfo      = array();
+        $shipmentsInfoData     = $this->modelObj->getShipmentsDetail($identity);
 		$parcelData            = $this->modelObj->getAllParcelsByIdentity($identity);
 		$temp = array();
 		$parcelInfo = array();
-		$parcelCount = 1;
 		foreach($parcelData as $data){
+			$parcelQuantity = $this->modelObj->getQuantityByRowIdAndIdentity($identity,$data['parcel_row_id']);
 			$tempKey = strtolower(preg_replace('/\s+/',"",implode("",$data)));
-			$temp[$tempKey] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package'],'parcel_quantity'=>$parcelCount++);
+			$temp[$tempKey] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package'],'parcel_quantity'=>$parcelQuantity[0]['quantity']);
 		}
 		foreach($temp as $data){
 			$parcelInfo['package'][] = $data;
 		}
-
+		
         $priceversion           = $this->modelObj->getShipmentsPriceVersion($identity);
         $carrierPrice           = $this->modelObj->getShipmentsPriceDetailCarrier($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
         $customerPrice          = $this->modelObj->getShipmentsPriceDetailCustomer($identity, $shipmentsInfoData[0]['carrierid'], $shipmentsInfoData[0]['companyid'], $priceversion);
