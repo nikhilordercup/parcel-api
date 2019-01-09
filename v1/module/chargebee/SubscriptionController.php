@@ -168,17 +168,22 @@ class SubscriptionController {
         $app->post('/cancel-subscription',function ()use ($app){
             $r = json_decode($app->request->getBody());
             $model=new \v1\module\chargebee\model\ChargebeeModel();
-            $d=$model->getSubscription(544,$r->plan_type);
+            $d=$model->getSubscription($r->company_id,$r->plan_type);
             if($d){
                 /**
                  * @var $m \v1\module\Database\Model\ChargebeeSubscriptionsModel
                  */
                 $m=$d->subscription;
-                ChargeBee_Subscription::delete($m->chargebee_subscription_id);
+                $helper=new \v1\module\chargebee\ChargebeeHelper([]);
+                $helper->cancelSubscription($m->chargebee_subscription_id);
                 $m->status='subscription_cancelled';
                 $m->save();
             }
             echoResponse(200,['result'=>'success','message'=>'Subscription canceled successfully.']);
+        });
+        $app->get('/send/mail',function ()use ($app){
+           $m=new \v1\module\Mailer\SystemEmail();
+           $m->sendWelcomeEmail();
         });
     }
     public function getSubscriptionInfo($company_id) {
@@ -288,7 +293,7 @@ class SubscriptionController {
                 return $this->_db->save("billing_addresses", $billingAddressInfo);
             }
         } catch (Exception $ex) {
-            return array('error' => TRUE, 'error_message' => $ex->getMessage());
+            return array('error' => TRUE, 'error_message' => $ex->getMessage().'At:'.$ex->getLine());
         }
     }
     public function getPlanList() {
@@ -301,20 +306,29 @@ class SubscriptionController {
     }
     public function createNewSubscription($r) {
         try{
-            $planInfo = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_plan WHERE plan_id='" . $r->plan_id . "'");
-            $customer = $this->_db->getOneRecord("SELECT * FROM " . DB_PREFIX . "chargebee_customer WHERE user_id='" . $r->company_id . "'");
+            $planInfo = \v1\module\Database\Model\ChargebeePlansModel::all()
+            ->where('plan_id','=',$r->plan_id)->first();
+            $customer =\v1\module\Database\Model\ChargebeeCustomersModel::all()
+            ->where('user_id','=',$r->company_id)->first();
+            if(!$customer){
+                $this->registerExistingUserToChargeBee($r->company_id);
+                $customer =\v1\module\Database\Model\ChargebeeCustomersModel::all()
+                    ->where('user_id','=',$r->company_id)->first();
+            }
             $exist = $this->_db->getOneRecord("SELECT CS.* FROM " . DB_PREFIX . "chargebee_subscription AS CS "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_plan AS P ON CS.plan_id=P.plan_id "
                 . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON CS.chargebee_customer_id=CC.chargebee_customer_id "
                 . " WHERE CC.user_id='" . $r->company_id . "' AND P.plan_type='" . $r->plan_type . "' "
                 . " AND CS.status IN ('in_trial','active')");
             if ($exist) {
-                $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>strtotime('tomorrow')));
+                $result = ChargeBee_Subscription::update($exist['chargebee_subscription_id'], array('planId' => $r->plan_id,'trialEnd'=>0));
                 $result = $result->subscription();
-                $this->_db->update("chargebee_subscription", array('status'=>'updated'), " id=".$exist['id'] );
+                return $this->_db->update("chargebee_subscription", array('status'=>'active','update_date'=>date('Y-m-d H:i:s')), " id=".$exist['id'] );
             } else {
-                $result = ChargeBee_Subscription::createForCustomer($customer['chargebee_customer_id'], array('planId'=>$r->plan_id,'trialEnd'=>strtotime('tomorrow')));
+                $result = ChargeBee_Subscription::createForCustomer($customer->chargebee_customer_id,
+                    array('planId'=>$r->plan_id,'trialEnd'=>0));
                 $result = $result->subscription();
+
             }
             $subscriptionData=array(
                 'plan_id'=>$r->plan_id,
@@ -335,15 +349,36 @@ class SubscriptionController {
                 'payment_status'=>'0',
                 'payment_counter'=>0,
                 'create_date'=>date('Y-m-d H:i:s'),
-                'update_date'=>'1970-01-01 00:00:00',
+                'update_date'=>date('Y-m-d H:i:s'),
                 'allowed_shipment'=>$planInfo['shipment_limit']
             );
+
             return $this->_db->save('chargebee_subscription', $subscriptionData);
         } catch (Exception $ex){
-            return array('error'=>TRUE,'message'=>$ex->getMessage());
+            return array('error'=>TRUE,'message'=>$ex->getMessage().'At :'.$ex->getLine());
         }
-    }
 
+    }
+    public function registerExistingUserToChargeBee($userId){
+        $company=\v1\module\Database\Model\UsersModel::all()
+            ->where('id','=',$userId)
+            ->where('user_level','=',2)->first();
+        $chargebee_customer_data = (object) ["billing_city"=>$company->city,
+            "billing_country"=>$company->alpha2_code,
+            "billing_first_name"=>$company->contact_name,
+            "billing_last_name"=>$company->name,
+            "billing_line1"=>$company->address_1,
+            "billing_state"=>$company->state,
+            "billing_zip"=>$company->postcode,
+            "first_name"=>$company->name,
+            "last_name"=>$company->name,
+            "customer_email"=>$company->email,
+            "user_id"=>$userId,
+            'phone'=>$company->phone,
+            'plan_limit'=>0];
+        $helper=new \v1\module\chargebee\ChargebeeHelper($company);
+        return $helper->createCustomer($chargebee_customer_data);
+    }
     public function getPurchaseHistory($company_id){
         $sql = "SELECT CS.*, U.id, P.plan_name, P.price FROM " . DB_PREFIX . "chargebee_subscription AS CS "
             . "LEFT JOIN " . DB_PREFIX . "chargebee_customer AS CC ON 

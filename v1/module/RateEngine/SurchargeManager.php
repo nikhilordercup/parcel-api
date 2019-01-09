@@ -299,10 +299,10 @@ class SurchargeManager {
 
     public function residentialSurcharge($rate){
         $finalSurcharge=0;
-        if(isset($this->_requestData->from->is_res)&& $this->_requestData->from->is_res){
+        if(isset($this->_requestData->from->is_res)&& $this->_requestData->from->is_res == 1){
            $finalSurcharge += $this->getItemBaseCalculation($rate);
         }
-        if(isset($this->_requestData->to->is_res)&& $this->_requestData->to->is_res){
+        if(isset($this->_requestData->to->is_res)&& $this->_requestData->to->is_res == 1){
             $finalSurcharge += $this->getItemBaseCalculation($rate);
         }
         $this->_countedSurcharge["residential_surcharge"] = round($finalSurcharge,2);

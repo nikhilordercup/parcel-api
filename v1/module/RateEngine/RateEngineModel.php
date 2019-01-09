@@ -6,6 +6,8 @@
  * and open the template in the editor.
  */
 namespace v1\module\RateEngine;
+use v1\module\Database\Model\SurchargesModel;
+
 /**
  * Description of RateEngineModel
  *
@@ -225,7 +227,7 @@ class RateEngineModel
         foreach ($rates as $k => $r) {
             if(!isset($lc[$r['account_number']])) {
                 $account = $this->_db->getOneRecord("SELECT id FROM " . DB_PREFIX . "courier_vs_company WHERE "
-                    . " courier_id=$carrierId AND account_number=" . $r['account_number']);
+                    . " courier_id=$carrierId AND account_number='" . $r['account_number']."'");
 
                 if (!$account) {
                     return [
@@ -234,7 +236,7 @@ class RateEngineModel
                     ];
                 }
                 $deleteQuery = "DELETE FROM " . DB_PREFIX . "rate_info "
-                    . "WHERE  carrier_id=$carrierId AND account_id=" . $account['id'];
+                    . "WHERE  carrier_id=$carrierId AND account_id='" . $account['id']."'";
                 $this->_db->delete($deleteQuery);
                 $lc[$r['account_number']]=$account;
             }else{
@@ -341,7 +343,12 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
 
     public function deleteSurcharge($id)
     {
-        return $this->_db->delete("DELETE FROM " . DB_PREFIX . "surcharges WHERE id=$id");
+        try {
+            return SurchargesModel::query()->find($id)->delete();
+        } catch (\Exception $e) {
+            return null;
+        }
+        #return $this->_db->delete("DELETE FROM " . DB_PREFIX . "surcharges WHERE id=$id");
     }
 
     public function deleteIfExist($carrierId, $accountId, $serviceId, $surchargeId)
@@ -369,7 +376,7 @@ FROM `icargo_carrier_service_provider` AS CSP
 LEFT JOIN icargo_courier AS C ON C.id=CSP.carrier_id
 LEFT JOIN icargo_service_providers AS SP ON SP.id =CSP.provider_id
 LEFT JOIN icargo_service_providers AS EP ON EP.id=CSP.provider_endpoint_id
-WHERE EP.provider_type='$providerType' AND CSP.request_type='$callType' AND SP.app_env='$env'
+WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND CSP.request_type='$callType' AND SP.app_env='$env'
 ";
         return $this->_db->getAllRecords($query);
     }
