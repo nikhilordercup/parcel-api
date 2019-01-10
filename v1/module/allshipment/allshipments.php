@@ -311,7 +311,7 @@ class allShipments extends Icargo
                             //$data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
 							$data['total_item']       = $totalWeightAndItem['total_item'];
-							$data['total_weight']       = $totalWeightAndItem['total_weight'];
+							$data['total_weight']       = round($totalWeightAndItem['total_weight'],2);
                         }
                     }
                     if (array_key_exists('D', $innerval['NEXT'])) {
@@ -1557,7 +1557,7 @@ class allShipments extends Icargo
 					return array("status"=>"error","file_path"=>"","One of selected shipment is cancelled, you cannot print label for that shipment");
 				}
 			}
-
+            
 			if(count($labelInfo)==1){
 				if($labelInfo[0]['label_file_pdf']!==''){
 					if($labelInfo[0]['invoice_created']==1){
@@ -1948,7 +1948,7 @@ class allShipments extends Icargo
              $shipment_type =  $this->modelObj->getShipmentsType($valdata);
              if($shipment_type and $shipment_type['shipment_type']!=''){
                 if($shipment_type['shipment_type']=='NEXT'){
-					$carrier_code = $this->modelObj->getCarrierByLoadIdentity($valdata);
+					$carrier_code = $this->modelObj->getCarrierCodeByLoadIdentity($valdata);//$this->modelObj->getCarrierByLoadIdentity($valdata);
                     $tempdata = array();
                     $tempdata['load_identity']  = $valdata;
                     $tempdata['carrier']        = $carrier_code;//$shipment_type['code'];

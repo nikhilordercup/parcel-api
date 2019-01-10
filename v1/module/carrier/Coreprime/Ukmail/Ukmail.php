@@ -228,6 +228,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         $response['package']     = $this->getPackageInfo($loadIdentity);
         $serviceInfo             = $this->getServiceInfo($loadIdentity);
 		$delivery_instruction    = $this->modelObj->getDeliveryInstructionByLoadIdentity($loadIdentity);
+		$pickup_instruction    	 = $this->modelObj->getPickupInstructionByLoadIdentity($loadIdentity);
         $response['currency']    = $serviceInfo['currency'];
         $response['service']     = $serviceInfo['service_code'];
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
@@ -255,7 +256,8 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
             "is_document" => "",
             "auto_return" => "",
             "return_service_id" => "",
-            "special_instruction" => $delivery_instruction['shipment_instruction'] ,
+            "special_instruction" => $delivery_instruction['shipment_instruction'],
+			"pickup_instruction" => $pickup_instruction['shipment_instruction'],
             "custom_desciption" =>$serviceInfo['customer_reference1'],
             "custom_desciption2" =>$serviceInfo['customer_reference2'],
             "custom_desciption3" => "",

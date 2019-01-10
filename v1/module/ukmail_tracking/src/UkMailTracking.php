@@ -40,8 +40,8 @@ class UkMailTracking
     }
             
     public static function doLogin($username, $password)
-    {                                                  
-        $wsdl_url = 'https://api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';              
+    {     
+        $wsdl_url = 'https://qa-api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';              
         $LoginWebRequest = new stdClass();
         $LoginWebRequest->Username = $username;
         $LoginWebRequest->Password = $password;
@@ -49,7 +49,7 @@ class UkMailTracking
         $Login->loginWebRequest = $LoginWebRequest;
 
         $soapClient = new SoapClient($wsdl_url);
-        $LoginResponse = $soapClient->Login($Login);                                         
+        $LoginResponse = $soapClient->Login($Login);  	
         $AuthenticationToken = $LoginResponse->LoginResult->AuthenticationToken; 
         error_log("Ukmail, Authentication key generated - ".$AuthenticationToken);
                   
@@ -60,7 +60,6 @@ class UkMailTracking
             $ukMailModel = UkMailModel::getInstance();
             $ukMailModel->updateAuthToDb($username, $AuthenticationToken);
         }
-        
         return $AuthenticationToken;
     }
     

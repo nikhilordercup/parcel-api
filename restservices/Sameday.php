@@ -1212,13 +1212,15 @@ class Sameday extends  Booking
         unset($param->pricewithouttax);
         unset($param->booked_quotation_ref);
         unset($param->tracking_callbackurl);
-        if(isset($param->icon)){
-            $_attribute["column_name"] = "icon";
-            $_attribute["value"] = $param->icon;
-            $_attribute["api_key"] = "icon";
-            $_attribute["load_identity"] = $param->load_identity;
-            $attribute_id = $this->db->save("shipment_attributes", $_attribute);
-            unset($param->icon);
+        if(key_exists("icon", $param)){
+           if(isset($param->icon)){
+                $_attribute["column_name"] = "icon";
+                $_attribute["value"] = $param->icon;
+                $_attribute["api_key"] = "icon";
+                $_attribute["load_identity"] = $param->load_identity;
+                $attribute_id = $this->db->save("shipment_attributes", $_attribute);
+            }
+          unset($param->icon);
         }
         if(isset($param->dimensions)){
             foreach($param->dimensions as $column=>$item){

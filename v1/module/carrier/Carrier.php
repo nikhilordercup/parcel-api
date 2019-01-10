@@ -215,7 +215,7 @@ class Carrier{
 			
 			//get credentials for child account
 			if($labelInfo[0]['accountkey']!=$labelInfo[0]['parent_account_key'])
-				$credentialData = $this->modelObj->getCredentialDataForChildAccount($labelArr->label->accountnumber);
+				$credentialData = $this->modelObj->getCredentialDataForChildAccount($labelArr->label->accountnumber,$labelInfo[0]['parent_account_key']);
 			else //get credentials for parent account
 				$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
 

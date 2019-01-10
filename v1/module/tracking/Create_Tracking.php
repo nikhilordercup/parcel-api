@@ -19,9 +19,9 @@ class Create_Tracking extends Icargo{
         $this->modelObj = new Tracking_Model_Index();
         $this->commonObj = new Common();
 
-        $this->apiInfo = array("dev"=>
-            array("api_key"=>"8VfzGXyF0idIP1exSAlabQ"
-            )
+        $this->apiInfo = array(
+            "dev"  => array("api_key"=>"8VfzGXyF0idIP1exSAlabQ"),
+            "live" => array("api_key"=>"8VfzGXyF0idIP1exSAlabQ")
         );
     }
 

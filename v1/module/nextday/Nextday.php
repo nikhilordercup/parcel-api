@@ -1416,7 +1416,7 @@ final class Nextday extends Booking
 				}
 			}
 			
-			$service->rate->total_surcharge = $service->rate->fuel_surcharge + $service->rate->remote_area_delivery + $service->rate->insurance_charge + $service->rate->over_weight_charge;
+			$service->rate->total_surcharge = @$service->rate->fuel_surcharge + @$service->rate->remote_area_delivery + @$service->rate->insurance_charge + @$service->rate->over_weight_charge + @$service->rate->over_sized_charge;
 			$service->rate->weight_charge_with_tax = $service->rate->weight_charge;
 			$service->rate->weight_charge = $service->rate->weight_charge - ($service->rate->total_surcharge + $service->rate->total_tax);
 		}	
@@ -1505,4 +1505,5 @@ final class Nextday extends Booking
 	}*/
 
 }
+
 ?>
