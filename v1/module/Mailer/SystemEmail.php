@@ -15,10 +15,8 @@ class SystemEmail
         $mailer=new Email();
         $loader = new \Twig_Loader_Filesystem(__DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR);
         $twig = new \Twig_Environment($loader);
-        $path = __DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'logo.png';
-        $type = pathinfo($path, PATHINFO_EXTENSION);
-        $data = file_get_contents($path);
-        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+
+        $base64 = 'https://icargo-public.s3.eu-west-1.amazonaws.com/logo.png';
         $html=$twig->render('welcome.html',['logo'=>$base64,'name'=>$name]);
         $mailer->loadConfig('WELCOME')
             ->setMailContent('Welcome To Icargo',$html)

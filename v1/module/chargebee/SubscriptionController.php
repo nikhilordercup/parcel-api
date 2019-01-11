@@ -183,7 +183,7 @@ class SubscriptionController {
         });
         $app->get('/send/mail',function ()use ($app){
            $m=new \v1\module\Mailer\SystemEmail();
-           $m->sendWelcomeEmail();
+           $m->sendWelcomeEmail('Mandeep Singh Nain','mandeepsinghn@gmail.com');
         });
     }
     public function getSubscriptionInfo($company_id) {
