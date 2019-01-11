@@ -4,14 +4,14 @@ namespace v1\module\RateEngine\postmen;
 class ShipmentManager extends PostMenMaster
 {    
     private static $shipmentManagerObj = NULL;
-    private $db = NULL;
+    protected $db = NULL;
     protected $responseData = [];
     
     public static function shipmentRoutes($app)
     {
         $app->post('/postmen/calculateRate', function () use ($app) {              
             $request = json_decode($app->request->getBody());    
-            $shipmentManagerObj = self::getShipmentManagerObj();                        
+            $shipmentManagerObj = self::getShipmentManagerObj(); 
             $result = $shipmentManagerObj->calculateRateAction($request); 
             echo $result;die;
         });
@@ -72,11 +72,30 @@ class ShipmentManager extends PostMenMaster
         if(!self::$shipmentManagerObj instanceof ShipmentManager)
         {           
             self::$shipmentManagerObj = new ShipmentManager(); 
-            self::$shipmentManagerObj->db = new \dbConnect();
+            self::$shipmentManagerObj->db = new \DbHandler();
         }
         return self::$shipmentManagerObj;
     }
     
+    public function getServiceCodeMapped($providerCode)
+    {
+        $query1 = "SELECT scm.id, scm.`service_id`, scm.`provider_id`, scm.`service_name` as provServiceName, scm.service_code as provServiceCode, scm.service_type
+                    , cvs.service_code, cvs.service_name
+                    FROM `".DB_PREFIX."service_code_mapping` as scm 
+                    inner join ".DB_PREFIX."courier_vs_services as cvs
+                    on scm.service_id = cvs.id 
+                    WHERE scm.service_type = 'service'
+                    and scm.service_code = '$providerCode'
+                    ";                                                          
+        
+                $results = $this->db->getAllRecords($query1);
+                if(count($results) > 0)
+                {
+                    return $results[0];
+                }
+                return array();
+    }
+
     public function calculateRateAction($request)
     {                                                   
         $fromAddress = $this->convertAddress($request->from);                
@@ -123,21 +142,27 @@ class ShipmentManager extends PostMenMaster
     }
             
     public function formatRate($rawRates, $newShiperAc)
-    {            
+    {                           
+        $notSupportdRates = array('dhl_express_easy');        
         $rates['rate'] = array(); 
         if (count($rates) > 0) 
         {       
             $differentAcIds = array();
             foreach($rawRates as $rate)
-            {                        
+            {              
+                if(in_array($rate->service_type, $notSupportdRates)){ continue;}                 
                 $innerRate = array();
                 $innerRate['rate']['id'] = '';
                 $innerRate['rate']['carrier_name'] = $rate->shipper_account->slug;
-                $innerRate['rate']['service_name'] = $rate->service_name;
-                $innerRate['rate']['service_code'] = $rate->service_type;                 
+                
+                $serviceDetail = $this->getServiceCodeMapped($rate->service_type);                   
+                $innerRate['rate']['service_name'] = $serviceDetail['service_name'];
+                $innerRate['rate']['service_code'] = $serviceDetail['service_code'];
+                $rate->service_type = $serviceDetail['service_code'];
+                                                                                
                 $innerRate['rate']['rate_type'] = (in_array($rate->charge_weight->unit, array('kg','g','oz','lb'))) ? 'Weight':'#';
-                $innerRate['rate']['rate_unit'] = strtoupper($rate->charge_weight->unit);
-                $innerRate['rate']['price'] = $rate->total_charge->amount;
+                $innerRate['rate']['rate_unit'] = strtoupper($rate->charge_weight->unit);                
+                
                 $rate->shipper_account->id = $newShiperAc[$rate->shipper_account->id];
                 $innerRate['rate']['act_number'] = $rate->shipper_account->id; 
                 
@@ -147,7 +172,50 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['surcharges']['extrabox_surcharge'] = 0; 
                 $innerRate['surcharges']['overweight_surcharge'] = 0; 
                 $innerRate['surcharges']['isle_weight_surcharge'] = 0; 
-                $innerRate['surcharges']['fuel_surcharge'] = (isset($rate->detailed_charges[1])) ? $rate->detailed_charges[1]->charge->amount: 0; 
+                $innerRate['surcharges']['insurance_charge'] = 0; 
+                                
+                $fuel_surchargeAmt = 0;
+                $taxAmt = 0;
+                $baseAmt = 0; 
+                $long_length_surcharge = 0;
+                if(count($rate->detailed_charges) > 0)
+                {                    
+                    foreach($rate->detailed_charges as $detailed_charge)
+                    {                        
+                        if($detailed_charge->type == 'tax')
+                        {
+                            $taxAmt = $detailed_charge->charge->amount;                            
+                            break;
+                        }                        
+                    }
+                        
+                    $tax_percentage = 0;
+                    $tax_percentage = round(number_format(((100 * $taxAmt)/($rate->total_charge->amount - $taxAmt)), 2)) ;
+                        
+                    foreach($rate->detailed_charges as $detailed_charge)
+                    {                                                                                                                                                
+                        if($detailed_charge->type == 'base')
+                        {
+                            $baseAmt = $detailed_charge->charge->amount;                            
+                            $baseAmt = $baseAmt * (100/(100+$tax_percentage));
+                        }
+                        
+                        if($detailed_charge->type == 'fuel_surcharge')
+                        {
+                            $fuel_surchargeAmt = $detailed_charge->charge->amount;
+                            $fuel_surchargeAmt = $fuel_surchargeAmt * (100/(100+$tax_percentage)); 
+                        }
+                        
+                        if($detailed_charge->type == 'oversize_piece_(dimension)')
+                        {
+                            $long_length_surcharge = $detailed_charge->charge->amount;
+                            $long_length_surcharge = $long_length_surcharge * (100/(100+$tax_percentage));                                                         
+                        }
+                    }
+                } 
+                $innerRate['rate']['price'] = (number_format($baseAmt, 2));                
+                $innerRate['surcharges']['fuel_surcharge'] =  (number_format($fuel_surchargeAmt, 2));
+                $innerRate['surcharges']['long_length_surcharge'] = (number_format($long_length_surcharge, 2)); 
                                 
                 $dimensions = array('length'=>'','width'=>'','height'=>'','unit'=>$rate->charge_weight->unit);
                 $weight = array("weight"=>$rate->charge_weight->value,"unit"=>$rate->charge_weight->unit);
@@ -156,8 +224,8 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['service_options']["dimensions"] =$dimensions; 
                 $innerRate['service_options']["weight"] =$weight; 
                 $innerRate['service_options']["time"] =$time; 
-                
-                $innerRate['taxes'] = array("total_tax"=>"","tax_percentage"=>"");
+                                                   
+                $innerRate['taxes'] = array("total_tax"=>$taxAmt,"tax_percentage"=>$tax_percentage);
                                                     
                 $tempServiceType[$rate->shipper_account->id][] = $rate->service_type;                                                                                                                                            
                 $differentAcIds[$rate->shipper_account->id] = array_unique($tempServiceType[$rate->shipper_account->id]);                                     
@@ -167,14 +235,14 @@ class ShipmentManager extends PostMenMaster
                 if(isset($rates['rate'][$rate->shipper_account->slug]))
                 {  
                     if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id]))
-                    {                         
-                        if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type]))
+                    {                      
+                        if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type]))
                         {                            
-                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type][] = $innerRate;
+                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;
                         }
                         else
                         {                                                     
-                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][0][$rate->service_type][] = $innerRate;                                                        
+                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;                                                        
                         }
                     }
                     else
@@ -196,10 +264,10 @@ class ShipmentManager extends PostMenMaster
                     $account = array();
                     $account[$rate->shipper_account->id][] = $serviceTemp;
                     
-                    $rates['rate'][$rate->shipper_account->slug][] = $account;                                        
+                    $rates['rate'][$rate->shipper_account->slug][] = $account; 
                 }                                                
             }
-        }               
+        }      
         return $rates;
     }
     

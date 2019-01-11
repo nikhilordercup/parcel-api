@@ -46,7 +46,7 @@ class Module_Coreprime_Api extends Icargo
     public
 
     function _postRequest($data)
-    { //print_r($data);exit;
+    {         
         global $_GLOBAL_CONTAINER;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
@@ -56,7 +56,7 @@ class Module_Coreprime_Api extends Icargo
             $this->_isLabelCall = true;
             $label=$this->doLabelCall($data);
             return $label;
-        }
+        } 
         $pd = $this->filterServiceProvider($data);
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
@@ -71,9 +71,9 @@ class Module_Coreprime_Api extends Icargo
             $localRate = $this->postToRateEngine('Local', $lcData);
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
-        }
+        } 
         if (isset($pd['Postmen']) && count($pd['Postmen'])) 
-        {                                                            
+        {       
             $lcData = $data;
             $lcData['carriers'] = $pd['Postmen']; 
             $localRate = $this->postByPostmen('Postmen', $lcData);                        
@@ -530,7 +530,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
+        $server_output = curl_exec($ch); 
         curl_close($ch);
         return $server_output;
     }
