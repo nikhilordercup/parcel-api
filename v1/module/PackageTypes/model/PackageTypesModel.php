@@ -61,7 +61,7 @@ class PackageTypesModel
         $contents = $postData->data->contents;
         $commodity_code = $postData->data->commodity_code;
         $display_order = $postData->data->display_order;
-        $allowed_user = $postData->data->allowed_user;
+        $allowed_user = isset($postData->data->allowed_user) ? $postData->data->allowed_user : '';
         $args = array('type' => $type, 'contents' => $contents, 'description' => $description, 'weight' => $weight,
             'length' => $length, 'width' => $width, 'height' => $height, 'commodity_code' => $commodity_code, 'display_order' => $display_order,
             'allowed_user' => $allowed_user);
