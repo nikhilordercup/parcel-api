@@ -58,6 +58,7 @@ class Module_Coreprime_Api extends Icargo
             return $label;
         }
         $pd = $this->filterServiceProvider($data);
+
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
             $cpData = $data;

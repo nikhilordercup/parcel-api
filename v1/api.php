@@ -2433,6 +2433,8 @@ SubscriptionController::initRoutes($app);
 \v1\module\RateEngine\RateApiController::initRoutes($app);
 DashboardApi::dashboardRoutes($app);
 \v1\module\RateEngine\tuffnells\TuffnellsApi::rateEngineRoutes($app);
+\v1\module\PackageTypes\PackagesApi::packageTypesRoutes($app);
+\v1\module\UserNotes\NotesApi::UserNotesApi($app);
 
 $app->post('/apiLogin', function () use ($app) {
     $r = json_decode($app->request->getBody());
