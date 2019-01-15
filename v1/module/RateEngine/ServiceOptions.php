@@ -259,7 +259,7 @@ class ServiceOptions
                 $status = false;
             }
         }
-        return false;
+        return $status;
     }
 
     private function calculateWeight()

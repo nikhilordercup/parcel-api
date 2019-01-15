@@ -257,7 +257,7 @@ class SubscriptionController {
                 return $this->_db->save("user_cards", $cardInfo);
             }
         } catch (Exception $ex) {
-            return array('error' => TRUE, 'error_message' => $ex->getMessage());
+            return array('error' => TRUE, 'message' => $ex->getMessage());
         }
     }
     public function getBillingInfo($token) {
@@ -293,7 +293,7 @@ class SubscriptionController {
                 return $this->_db->save("billing_addresses", $billingAddressInfo);
             }
         } catch (Exception $ex) {
-            return array('error' => TRUE, 'error_message' => $ex->getMessage().'At:'.$ex->getLine());
+            return array('error' => TRUE, 'message' => $ex->getMessage());
         }
     }
     public function getPlanList() {
@@ -355,7 +355,7 @@ class SubscriptionController {
 
             return $this->_db->save('chargebee_subscription', $subscriptionData);
         } catch (Exception $ex){
-            return array('error'=>TRUE,'message'=>$ex->getMessage().'At :'.$ex->getLine());
+            return array('error'=>TRUE,'message'=>$ex->getMessage());
         }
 
     }

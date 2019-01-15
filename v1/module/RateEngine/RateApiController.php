@@ -195,6 +195,7 @@ class RateApiController
                             $serviceOption = $this->_reateEngineModel->getServiceOption($this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id']);
                             $serviceOptionManager = new \v1\module\RateEngine\ServiceOptions($request, $serviceOption);
                             if (!$serviceOptionManager->verifyRules()) {
+                                unset($this->_responseData['rate'][$name][$k][$z][$key]);
                                 continue;
                             }
                             $manager = new \v1\module\RateEngine\SurchargeManager();
@@ -205,6 +206,7 @@ class RateApiController
                             $this->_responseData['rate'][$name][$k][$z][$key]['taxes'] = $this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'],$this->_responseData['rate'][$name][$k][$z][$key]['surcharges']);
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
                             unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
+                            if($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price']==0)unset($this->_responseData['rate'][$name][$k][$z][$key]);
                         }
                     }
                 }
