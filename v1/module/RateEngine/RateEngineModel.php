@@ -187,11 +187,11 @@ class RateEngineModel
         return $this->_db->getAllRecords($query);
     }
 
-    public function getServiceByName($name)
+    public function getServiceByName($name,$carrierId=0)
     {
         $query = "SELECT CS.*,C.name FROM " . DB_PREFIX . "courier_vs_services As CS "
             . "LEFT JOIN " . DB_PREFIX . "courier AS C ON CS.courier_id=C.id "
-            . "WHERE CS.service_name='$name' ";
+            . "WHERE CS.service_name='$name' AND C.id=$carrierId ";
         return $this->_db->getOneRecord($query);
     }
 

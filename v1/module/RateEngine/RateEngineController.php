@@ -311,7 +311,7 @@ class RateEngineController {
                     $d = $this->_excelReader->loadExcelFromPost()
                             ->readRateDetails($_POST['carrierId']);
 
-                    if (isset($d['error'])) {
+                    if (isset($d['error_type'])) {
                         echo json_encode($d);
                     } else {
                         $this->_rateEngineModel->addNewRate($_POST['carrierId'], $d);
