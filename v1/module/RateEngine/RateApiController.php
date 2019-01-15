@@ -25,7 +25,7 @@ class RateApiController
     public $_isSameDay = false;
     public $_isLabelCall = false;
     private $_taxRate = null;
-    private $_requestData=null;
+    private $_requestData = null;
     private $_requestedServices = [];
 
     //put your code here
@@ -39,10 +39,10 @@ class RateApiController
         $app->post('/rate-engine/getRate', function () use ($app) {
             $r = json_decode($app->request->getBody());
             $controller = new RateApiController();
-            $controller->_requestData=$r;
+            $controller->_requestData = $r;
 //            $date = date('Y-m-d');
 //            $match_date = date('Y-m-d', strtotime($r->ship_date));
-            if (!isset($r->package) || count($r->package)==0) {
+            if (!isset($r->package) || count($r->package) == 0) {
                 $controller->_isSameDay = true;
             }
             if (isset($r->label)) {
@@ -93,7 +93,7 @@ class RateApiController
                 } else {
                     $this->_responseData['accountInfo'][$c->name][] = [
                         'error' => [
-                            'account_found' => FALSE,
+                            'account_found' => false,
                             'message' => 'No account found with provided details.'
                         ]
                     ];
@@ -110,14 +110,17 @@ class RateApiController
     public function getRates($param)
     {
         if (!isset($param['zone'])) {
-            return FALSE;
+            return false;
         }
         foreach ($param['zone'] as $name => $carrier) {
             if (count($carrier["fromZone"]) && count($carrier["toZone"])) {
                 $rates = $this->_reateEngineModel->searchPriceForZone(
-                    $param['zone'][$name]["fromZone"]['carrier_id'], $param['zone'][$name]["fromZone"]['zone_id'], $param['zone'][$name]["toZone"]['zone_id']);
+                    $param['zone'][$name]["fromZone"]['carrier_id'],
+                    $param['zone'][$name]["fromZone"]['zone_id'],
+                    $param['zone'][$name]["toZone"]['zone_id']
+                );
                 foreach ($rates as $k => $r) {
-			if(!isset($this->_requestedServices[$r['account_number']]))continue;
+                    if (!isset($this->_requestedServices[$r['account_number']])) continue;
                     $result = array_search($r['service_code'], $this->_requestedServices[$r['account_number']]);
                     if (gettype($result) == 'integer' && $result >= 0) {
                         $this->_responseData['rate'][$name][$r['account_number']][$r['service_code']][]['rate'] = $rates[$k];
@@ -159,7 +162,7 @@ class RateApiController
         $transitData = compact('distance', 'time', 'waitTime', 'drops');
         if (!isset($this->_responseData['rate'])) {
             unset($this->_responseData['surchargeList']);
-            return FALSE;
+            return false;
         }
         foreach ($this->_responseData['rate'] as $name => $d) {
             foreach ($d as $k => $p) {
@@ -187,7 +190,7 @@ class RateApiController
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $drops);
                                 break;
                         }
-                        if (!isset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost']) || $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == NULL) {
+                        if (!isset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost']) || $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == null) {
                             unset($this->_responseData['rate'][$name][$k][$z][$key]);
                             continue;
                         }
@@ -203,7 +206,7 @@ class RateApiController
                             $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
                             $this->_responseData['rate'][$name][$k][$z][$key]['service_options'] = $serviceOptionManager->formatOptionForResponse();
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'];
-                            $this->_responseData['rate'][$name][$k][$z][$key]['taxes'] = $this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'],$this->_responseData['rate'][$name][$k][$z][$key]['surcharges']);
+                            $this->_responseData['rate'][$name][$k][$z][$key]['taxes'] = $this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'], $this->_responseData['rate'][$name][$k][$z][$key]['surcharges']);
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
                             unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
                             if($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price']==0)unset($this->_responseData['rate'][$name][$k][$z][$key]);
@@ -241,7 +244,7 @@ class RateApiController
             }
             return $priceInfo["rate"];
         } else {
-            return NULL;
+            return null;
         }
     }
 
@@ -250,7 +253,7 @@ class RateApiController
         if (!isset($this->_responseData['zone'])) {
             $this->_responseData['zone'] = [
                 'error' => [
-                    'zone_found' => FALSE,
+                    'zone_found' => false,
                     'message' => 'No zone found.'
                 ]
             ];
@@ -284,7 +287,7 @@ class RateApiController
             if (!array_key_exists($k, $this->_responseData['zone'])) {
                 $this->_responseData['zone'][$k] = [
                     'error' => [
-                        'zone_found' => FALSE,
+                        'zone_found' => false,
                         'message' => 'No zone found.'
                     ]
                 ];
@@ -296,7 +299,7 @@ class RateApiController
     public function getLabelProvider()
     {
         if ('tuffnells' == 'tuffnells') {
-            $tuffnells=new TuffnellsLabels($this->_requestData);
+            $tuffnells = new TuffnellsLabels($this->_requestData);
             $resp = $tuffnells->tuffnellLabelData($this->_requestData);
             exit($resp);
         }
@@ -307,10 +310,10 @@ class RateApiController
         $this->_taxRate = $this->_reateEngineModel->getTaxInfoByIso2($fromAddress->country);
     }
 
-    public function calculateTax($price,$surcharges=[])
+    public function calculateTax($price, $surcharges = [])
     {
-        foreach ($surcharges as $s){
-            $price+=$s;
+        foreach ($surcharges as $s) {
+            $price += $s;
         }
         if (is_null($this->_taxRate)) {
             return [
