@@ -7,5 +7,7 @@ define('DB_PASSWORD', 'pcs@pcs');
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'app_stable');
 define('DB_PREFIX', 'icargo_');
-define('PDFURL','http://'.$_SERVER['HTTP_HOST'].'/label');
+define('PDFURL','https://'.$_SERVER['HTTP_HOST'].'/app-allignment/parcel-api/label');
+define('BASE_PATH',__DIR__);
+define('LABEL_PATH',BASE_PATH.DIRECTORY_SEPARATOR.'label');
 global $_GLOBAL_CONTAINER;
