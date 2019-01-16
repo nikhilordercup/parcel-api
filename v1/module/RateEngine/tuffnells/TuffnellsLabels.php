@@ -200,10 +200,10 @@ class TuffnellsLabels extends \Icargo
         $dompdf->loadHtml($htmlParser);
         $dompdf->render();
         $output = $dompdf->output();
-        $directory = dirname(dirname(dirname(dirname(__FILE__))));
-        $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
+//        $directory = dirname(dirname(dirname(dirname(__FILE__))));
+//        $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
         $uid = $data->loadIdentity;
-        $mkdir = $dir.'/label/'.$uid.'/';
+        $mkdir = LABEL_PATH.DIRECTORY_SEPARATOR.'label'.DIRECTORY_SEPARATOR.$uid.DIRECTORY_SEPARATOR;
         mkdir($mkdir, 0777, true);
         file_put_contents($mkdir.$uid.'.pdf', $output);
         unlink($horizontal);
@@ -253,7 +253,7 @@ class TuffnellsLabels extends \Icargo
         $directory = dirname(dirname(dirname(dirname(__FILE__))));
         $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
         $uid = 'PAPER_MANIFEST'.$data->loadIdentity;
-        $mkdir = $dir.'/label/'.$uid.'/';
+        $mkdir = LABEL_PATH.DIRECTORY_SEPARATOR.'label'.DIRECTORY_SEPARATOR.$uid.DIRECTORY_SEPARATOR;
         mkdir($mkdir, 0777, true);
         file_put_contents($mkdir.$uid.'.pdf', $output);
 
