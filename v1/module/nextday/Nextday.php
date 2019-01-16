@@ -725,7 +725,7 @@ final class Nextday extends Booking
 	public
 
     function saveBooking()
-        {
+        { 
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if ($accountStatus["status"] == "error")
             {
@@ -816,7 +816,7 @@ final class Nextday extends Booking
             $this->_param->customer_reference2 = (isset($this->_param->customer_reference2)) ? $this->_param->customer_reference2 : "";
             $this->_param->service_opted->collection_carrier->surcharges = isset($this->_param->service_opted->collection_carrier->surcharges) ? $this->_param->service_opted->collection_carrier->surcharges : 0;
             $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id, "pending", $otherDetail, $serviceId, $this->_param->customer_reference1, $this->_param->customer_reference2, $this->_param->ismanualbooking, $this->_param->manualbookingreference);
-            $this->_saveInfoReceived($loadIdentity);
+            $this->_saveInfoReceived($loadIdentity); 
             if ($serviceStatus["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -970,8 +970,8 @@ final class Nextday extends Booking
 
 
         if(($isInternalCarrier ==='NO') && $this->_param->manualbookingreference=='')
-        {
-            $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
+        { 
+            $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData); 
             if ($labelInfo['status'] == 'success')
                 {
                 $labelData = array(

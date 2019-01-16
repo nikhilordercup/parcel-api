@@ -12,22 +12,35 @@ class Carrier{
 		$carrierObj = null;
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
-		$deliveryCarrier = $shipmentInfo['carrier_code'];
+		$deliveryCarrier = $shipmentInfo['carrier_code']; 
+        $providerInfo = $this->modelObj->getProviderInfo('LABEL',ENV,'PROVIDER',$shipmentInfo['carrier_code']);         
         global $_GLOBAL_CONTAINER;
-        if(class_exists('Coreprime_' . ucfirst(strtolower($deliveryCarrier)))) {
+//        if(class_exists('Coreprime_' . ucfirst(strtolower($deliveryCarrier)))) {
+//            $coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
+//        }else{
+//            $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
+//        }
+        
+        
+        if($providerInfo['endpoint']=='Coreprime'){
             $coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
-        }else{
+        }else{ 
             $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
+            $allData->providerInfo = array(
+                    'provider' => $providerInfo['provider'],
+                    'endPointUrl' => $providerInfo['label_endpoint'], //url to hit rate api controller
+                );
         }
 
-		$carrierObj = new $coreprimeCarrierClass($this);
+		$carrierObj = new $coreprimeCarrierClass($this); 
 
-		if( strtolower($deliveryCarrier) == 'dhl' ) {
-			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
-		} else {
-			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
-		}
-
+//		if( strtolower($deliveryCarrier) == 'dhl' ) { 
+//			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity, $rateDetail, $allData);
+//		} else {
+//			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
+//		}
+        $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$rateDetail,$allData);
+        
 		if( $shipmentInfo['status'] == 'success' ) {
 			$invoice_created = (isset($shipmentInfo['invoice_created'])) ? $shipmentInfo['invoice_created'] : 0;
 			if(isset($shipmentInfo['child_account_data'])){

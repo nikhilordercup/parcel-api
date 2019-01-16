@@ -77,17 +77,17 @@ class ShipmentManager extends PostMenMaster
         return self::$shipmentManagerObj;
     }
     
-    public function getServiceCodeMapped($providerCode)
-    {
+    public function getServiceCodeMapped($providerCode,$mappedByRemote=TRUE)
+    { 
         $query1 = "SELECT scm.id, scm.`service_id`, scm.`provider_id`, scm.`service_name` as provServiceName, scm.service_code as provServiceCode, scm.service_type
                     , cvs.service_code, cvs.service_name
                     FROM `".DB_PREFIX."service_code_mapping` as scm 
                     inner join ".DB_PREFIX."courier_vs_services as cvs
                     on scm.service_id = cvs.id 
-                    WHERE scm.service_type = 'service'
-                    and scm.service_code = '$providerCode'
-                    ";                                                          
-        
+                    WHERE scm.service_type = 'service'                    
+                    ";                                                                                   
+                    $query1 .= ( $mappedByRemote ) ? " and scm.service_code = '$providerCode'" : " and cvs.service_code = '$providerCode'"; 
+                    //echo $query1;die;
                 $results = $this->db->getAllRecords($query1);
                 if(count($results) > 0)
                 {
@@ -96,8 +96,12 @@ class ShipmentManager extends PostMenMaster
                 return array();
     }
 
-    public function calculateRateAction($request)
-    {                                                   
+    public function calculateRateAction($request, $pd)
+    {       
+        if( !(isset($pd['Postmen'])) || !(count($pd['Postmen'])) )
+        {
+            return json_encode(array());
+        }
         $fromAddress = $this->convertAddress($request->from);                
         $toAddress = $this->convertAddress($request->to);         
         $package = $this->packagesToOrder($request->package,$request->currency);                
@@ -295,30 +299,59 @@ class ShipmentManager extends PostMenMaster
 
 
     public function createLabelAction($request)
-    {                       
-        $fromAddress = $this->convertAddress($request->label->from);                
-        $toAddress = $this->convertAddress($request->label->to);         
-        $package = $this->convertPackage($request->label->package[0],$request->label->currency);                                         
-        $isDocument = (isset($request->label->extra->is_document) && strtolower($request->label->extra->is_document) == "true") ? TRUE : FALSE;        
-        $returnShipment = (isset($request->label->extra->return_shipment) && strtolower($request->label->extra->return_shipment) == "true") ? TRUE : FALSE;
-        $reference_id1 = ($request->label->extra->reference_id != '') ? $request->label->extra->reference_id : '';
-        $reference_id2 = ($request->label->extra->reference_id2 != '') ? $request->label->extra->reference_id2 : '';
+    {                               
+        $fromAddress = $this->convertAddress($request->from);                
+        $toAddress = $this->convertAddress($request->to);    
         
-        $carrierName = $request->label->carrier;
+        //For Address test
+        $fromAddress['contact_name'] = 'Nikhil Kumar';
+        $fromAddress['phone']= '7595590074';
+        $fromAddress['company_name']= 'Perceptive Consulting Solutions';
+        $fromAddress['street1'] = '6 York Way';
+        $fromAddress['city']= 'Northampton';
+        $fromAddress['state']= 'KZ';
+        $fromAddress['country'] = 'GBR';
+        $fromAddress['email']= 'test@test.test'; 
+        $fromAddress['type']= 'business'; 
+        $fromAddress['postal_code']= 'NN5 6UX';
+        
+        
+        $toAddress['contact_name'] = 'Rick McLeod (RM Consulting)';
+        $toAddress['phone']= '1-403-504-5496';
+        $toAddress['company_name']= 'IHS Markit';
+        $toAddress['street1'] = '71 Terrace Crescent NE';
+        $toAddress['city']= 'Medicine Hat';
+        $toAddress['state']= 'Alberta';
+        $toAddress['country'] = 'CAN';
+        $toAddress['email']= 'test@test.test'; 
+        $toAddress['type']= 'business'; 
+        $toAddress['postal_code']= 'T1C1Z9';
+        
+        
+        $package = $this->convertPackage($request->package[0],$request->currency);                                         
+        $isDocument = (isset($request->extra->is_document) && strtolower($request->extra->is_document) == "true") ? TRUE : FALSE;        
+        $returnShipment = (isset($request->extra->return_shipment) && strtolower($request->extra->return_shipment) == "true") ? TRUE : FALSE;
+        $reference_id1 = (isset($request->extra->reference_id) && $request->extra->custom_desciption != '') ? $request->extra->custom_desciption : '';
+        $reference_id2 = (isset($request->extra->reference_id2) && $request->extra->custom_desciption2 != '') ? $request->extra->custom_desciption2 : '';
+        
+        
+        $carrierName = $request->carrier;
         $carrierId = $this->getCarrierIdByName($carrierName);
-        $credentials = $request->label->credentials;
-        $carrierAccountDetails = $this->getCarrierAccount($carrierId, $credentials->username, $credentials->password, $credentials->account_number);
+        $credentials = $request->credentials;
+        $carrierAccountDetails = $this->getCarrierAccount($carrierId, $credentials->username, $credentials->password, $credentials->account_number);        
         $shipper_accounts = array('id'=>$carrierAccountDetails->carrierAccount);
                                              
         $shipperAccountId = $shipper_accounts['id'];                                    
         $others = array();
         $others['paid_by'] = 'shipper';
         $others['custom_paid_by'] = 'recipient';
-        $others['account_number'] = (isset($request->label->billing_account->billing_account) && $request->label->billing_account->billing_account != '') ? $request->label->billing_account->billing_account : ''; 
+        $others['account_number'] = (isset($request->billing_account->billing_account) && $request->billing_account->billing_account != '') ? $request->billing_account->billing_account : ''; 
         $others['type'] = 'account';
-        $others['purpose'] = 'merchandise';
-        $others['service_type'] = $request->label->service;
-        $others['paper_size'] = (isset($request->label->label_options->size) && $request->label->label_options->size != '') ? $request->label->label_options->size : 'default';
+        $others['purpose'] = 'merchandise';                
+        $serviceDetail = $this->getServiceCodeMapped($request->service,FALSE); // ui se false api se true  
+                
+        $others['service_type'] = $serviceDetail['provServiceCode'];        
+        $others['paper_size'] = (isset($request_options->size) && $request_options->size != '') ? $request_options->size : 'default';
         
         $tempRef = [];
         if($reference_id1 != ''){$tempRef[] = $reference_id1;}
@@ -338,7 +371,7 @@ class ShipmentManager extends PostMenMaster
                 $this->getErrorDetails();
             }            
             header('Content-Type: application/json'); 
-            return json_encode($this->responseData,TRUE); 
+            return json_encode($this->responseData); 
         }
         catch(exception $e) 
         {            
@@ -347,25 +380,26 @@ class ShipmentManager extends PostMenMaster
     }
     
     public function formatCreateLabelResponse($labelResponse)
-    {
-        $this->responseData = [];                
+    { 
+        $this->responseData['label'] = [];                
         $tracking_numbers = implode(',', $labelResponse->tracking_numbers);
-        $this->responseData['id'] = $labelResponse->id;
-        $this->responseData['tracking_number'] = $tracking_numbers;                        
-        $this->responseData['file_url'] = $labelResponse->files->label->url;
-        $this->responseData['total_cost'] = $labelResponse->rate->total_charge->amount;
-        $this->responseData['weight_charge'] = $labelResponse->rate->charge_weight->value;
-        $this->responseData['fuel_surcharge'] = 0;
-        $this->responseData['remote_area_delivery'] = 0;
-        $this->responseData['insurance_charge'] = 0;
-        $this->responseData['over_sized_charge'] = 0;
-        $this->responseData['over_weight_charge'] = 0;
-        $this->responseData['discounted_rate'] = 0;
-        $this->responseData['product_content_code '] = 0;
-        $this->responseData['license_plate_number '] = [];
-        $this->responseData['chargeable_weight '] = '';
-        $this->responseData['service_area_code '] = '';                                              
-        return array('label' => $this->responseData);        
+        $this->responseData['label']['id'] = $labelResponse->id;
+        $this->responseData['label']['tracking_number'] = $tracking_numbers;                        
+        $this->responseData['label']['file_url'] = $labelResponse->files->label->url;
+        $this->responseData['label']['total_cost'] = $labelResponse->rate->total_charge->amount;
+        $this->responseData['label']['weight_charge'] = $labelResponse->rate->charge_weight->value;
+        $this->responseData['label']['fuel_surcharge'] = 0;
+        $this->responseData['label']['remote_area_delivery'] = 0;
+        $this->responseData['label']['insurance_charge'] = 0;
+        $this->responseData['label']['over_sized_charge'] = 0;
+        $this->responseData['label']['over_weight_charge'] = 0;
+        $this->responseData['label']['discounted_rate'] = 0;
+        $this->responseData['label']['product_content_code '] = 0;
+        $this->responseData['label']['license_plate_number '] = [];
+        $this->responseData['label']['chargeable_weight '] = '';
+        $this->responseData['label']['service_area_code '] = '';                                                    
+        $this->responseData['label']['base_encode'] = chunk_split(base64_encode(file_get_contents($labelResponse->files->label->url)));
+        return;
     }
 
     public function cancelLabelAction($request)
@@ -376,7 +410,7 @@ class ShipmentManager extends PostMenMaster
                 'id' => $labelId
             )            
         );        
-        $result = $this->cancelLabel($payload);                 
+        $result = $this->cancelLabel($payload);               
         if($result)
         {                      
             $this->responseData['id'] = $result->id;

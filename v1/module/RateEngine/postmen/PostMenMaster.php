@@ -42,9 +42,9 @@ abstract class PostMenMaster extends Postmen
             $finalAddress['phone']= $address->phone;
         }
         
-        if( (isset($address->company)) && $address->company != '')
+        if( (isset($address->company_name)) && $address->company_name != '')
         {
-            $finalAddress['company']= $address->company;
+            $finalAddress['company_name']= $address->company;
         }
         if( (isset($address->street1)) && $address->street1 != '')
         {
@@ -65,10 +65,10 @@ abstract class PostMenMaster extends Postmen
         
         $finalAddress['email']= ( isset($address->email) && $address->email != '' ) ? $address->email : 'test@test.test';  // need discussion
         $finalAddress['type']= ( isset($address->type) && $address->type != '' ) ? $address->type : 'business';  // need discussion     
-        if( (isset($address->postal_code)) && $address->postal_code != '')
+        if( (isset($address->zip)) && $address->zip != '')
         {
              $finalAddress['postal_code']= $address->zip;
-        }                                                              
+        }                    
         return $finalAddress;
     }
     

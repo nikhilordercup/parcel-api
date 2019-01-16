@@ -20,7 +20,7 @@ class LabelProcessor
 
     private function _getLabel($loadIdentity, $json_data,$child_account_data)
     {
-        $json_data = json_decode($json_data);
+        $json_data = json_decode($json_data); 
         $app = new \Slim\Slim();
         $request = json_decode($app->request->getBody());
         $json_data->email = $request->email;
@@ -39,8 +39,8 @@ class LabelProcessor
         return $labelArr;
     }
 
-    public function getShipmentDataFromCarrier($loadIdentity, $allData = array())
-    {
+    public function getShipmentDataFromCarrier($loadIdentity, $rateDetail = array(), $allData = array())
+    {  
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
 
@@ -249,6 +249,7 @@ class LabelProcessor
             "billing_email" => ""
         );
         $response['label'] = array();
+        $response['providerInfo'] = $allData->providerInfo;
         $response['method_type'] = "post";
 
         return $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);

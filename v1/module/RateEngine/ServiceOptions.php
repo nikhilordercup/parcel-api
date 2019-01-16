@@ -19,9 +19,9 @@ class ServiceOptions
     }
 
     public function verifyRules()
-    {
-        if ($this->_serviceOptions || !count($this->_serviceOptions)) {
-            return true;
+    { 
+        if (  is_null($this->_serviceOptions) || !count($this->_serviceOptions)) {
+            return true; 
         }
         $this->_serviceOptions = (array)$this->_serviceOptions;
         if (!$this->isResidential()) {
