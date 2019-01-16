@@ -1,4 +1,4 @@
-CREATE TABLE `icargo_tuff`.`icargo_email_config`
+CREATE TABLE `icargo_email_config`
 ( `id` INT NOT NULL AUTO_INCREMENT , `mail_type` VARCHAR(250) NOT NULL ,
  `company_id` INT NOT NULL DEFAULT '0' , `is_smtp` ENUM('Yes','No') NOT NULL ,
   `host` TEXT NULL , `username` VARCHAR(250) NULL , `password` VARCHAR(250) NULL ,
