@@ -23,6 +23,7 @@
     "ext-json": "*",
     "ext-pdo": "*",
     "illuminate/database": "^5.5.0",
-    "illuminate/events": "^5.5.0"
+    "illuminate/events": "^5.5.0",
+    "aws/aws-sdk-php": "^3.82"
   }
 }

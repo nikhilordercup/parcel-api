@@ -1,5 +1,5 @@
 <?php
-/*
+/* 
  * Database configuration
  */
 define('DB_USERNAME', 'root');

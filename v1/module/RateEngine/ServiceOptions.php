@@ -19,9 +19,9 @@ class ServiceOptions
     }
 
     public function verifyRules()
-    { 
-        if (  is_null($this->_serviceOptions) || !count($this->_serviceOptions)) {
-            return true; 
+    {
+        if (is_null($this->_serviceOptions) || !count($this->_serviceOptions)) {
+            return true;
         }
         $this->_serviceOptions = (array)$this->_serviceOptions;
         if (!$this->isResidential()) {
@@ -259,7 +259,7 @@ class ServiceOptions
                 $status = false;
             }
         }
-        return false;
+        return $status;
     }
 
     private function calculateWeight()
@@ -289,7 +289,7 @@ class ServiceOptions
             ],
             "time" => [
                 "max_waiting_time" => $this->_serviceOptions['max_waiting_time'] ?? '',
-                "unit" => $this->_serviceOptions['time_unit']??''
+                "unit" => $this->_serviceOptions['time_unit'] ?? ''
             ]
         ];
         return $serviceOption;

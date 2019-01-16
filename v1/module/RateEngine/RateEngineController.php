@@ -311,7 +311,7 @@ class RateEngineController {
                     $d = $this->_excelReader->loadExcelFromPost()
                             ->readRateDetails($_POST['carrierId']);
 
-                    if (isset($d['error'])) {
+                    if (isset($d['error_type'])) {
                         echo json_encode($d);
                     } else {
                         $this->_rateEngineModel->addNewRate($_POST['carrierId'], $d);
@@ -391,9 +391,9 @@ class RateEngineController {
             'max_box_weight'=>$request->max_box_weight??'',
             'weight_unit'=>$request->weight_unit??'',
             'max_box_count'=>$request->max_box_count??'',
-            'max_transit_days'=>$request->max_transit_days??'',
-            'min_transit_days'=>$request->min_transit_days??'',
-            'servie_time'=>$request->servie_time??'',
+            'max_transit_days'=>(int)$request->max_transit_days??0,
+            'min_transit_days'=>(int)$request->min_transit_days??0,
+            'service_time'=>$request->service_time??'',
             'weight_per'=>$request->weight_per??'',
             'updated_at'=>$request->updated_at??date('Y-m-d H:i:s'),
             'status'=>1

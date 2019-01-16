@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 class ChargebeeCustomersModel extends Model
 {
     protected $table='chargebee_customer';
+    protected $guarded=[];
+    public $timestamps=false;
     public function subscription(){
         return $this->hasOne(ChargebeeSubscriptionsModel::class,'chargebee_customer_id','chargebee_customer_id')
             ->whereIn('status',['in_trial','active']);
