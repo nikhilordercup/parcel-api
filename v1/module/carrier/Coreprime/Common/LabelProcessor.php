@@ -28,6 +28,7 @@ class LabelProcessor
         $obj = new \Module_Coreprime_Api($json_data);
 
         $label = $obj->_postRequest($json_data);
+		
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
         $labelArr = $labelArr['label'];
         if ($labelArr['tracking_number'] != "") {
@@ -43,107 +44,6 @@ class LabelProcessor
     {
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
-
-//        foreach($allData as $key=>$data){
-//            if($key=='collection'){
-//                foreach($data as $collectionData){
-//                    $response['from']      = array(
-//                        "name" => $collectionData->name,
-//                        "company" => $collectionData->company_name,
-//                        "phone" => $collectionData->phone,
-//                        "street1" => $collectionData->address_line1,
-//                        "street2" => $collectionData->address_line2,
-//                        "city" => $collectionData->city,
-//                        "state" => $collectionData->state,
-//                        "zip" => $collectionData->postcode,
-//                        "country" => $collectionData->country->alpha2_code,
-//                        "country_name" => $collectionData->country->short_name,
-//                        "is_apo_fpo" => ""
-//                    );
-//                }
-//            }elseif($key=='delivery'){
-//                foreach($data as $deliveryData){
-//                    $response['to'] = array(
-//                        "name" => $deliveryData->name,
-//                        "company" => $deliveryData->company_name,
-//                        "phone" => $deliveryData->phone,
-//                        "street1" => $deliveryData->address_line1,
-//                        "street2" => $deliveryData->address_line2,
-//                        "city" => $deliveryData->city,
-//                        "state" => $deliveryData->state,
-//                        "zip" => $deliveryData->postcode,
-//                        "zip_plus4" => "",
-//                        "country" => $deliveryData->country->alpha2_code,
-//                        "country_name" => $deliveryData->country->short_name,
-//                        "email" => $deliveryData->email,
-//                        "is_apo_fpo" => "",
-//                        "is_residential" => ""
-//                    );
-//                }
-//            }
-//        }
-//        foreach ($shipmentInfo as $key => $data) {
-//            $response['carrier'] = $data['carrier_code'];
-//            $response['ship_date'] = $data['shipment_required_service_date'];
-//            $carrierAccountNumber = $data["carrier_account_number"];
-//        }
-//
-//        $response['package']     = $this->getPackageInfo($loadIdentity);
-//        $serviceInfo             = $this->getServiceInfo($loadIdentity);
-//        $delivery_instruction    = $this->modelObj->getDeliveryInstructionByLoadIdentity($loadIdentity);
-//        $response['currency']    = $serviceInfo['currency'];
-//        $response['service']     = $serviceInfo['service_code'];
-//        $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
-//
-//        /**********start of static data from requet json ***************/
-//        $response['extra']           = array(
-//            "service_key" => $serviceInfo['service_code'],
-//            "long_length" => "",
-//            "bookin" => "",
-//            "exchange_on_delivery" => "",
-//            "reference_id" => "",
-//            "region_code" => "",
-//            "confirmation" => "",
-//            "is_document" => "",
-//            "auto_return" => "",
-//            "return_service_id" => "",
-//            "special_instruction" => $delivery_instruction['shipment_instruction'] ,
-//            "custom_desciption" =>$serviceInfo['customer_reference1'],
-//            "custom_desciption2" =>$serviceInfo['customer_reference2'],
-//            "custom_desciption3" => "",
-//            "customs_form_declared_value" => "",
-//            "document_only" => "",
-//            "no_dangerous_goods" => "",
-//            "in_free_circulation_eu" => "",
-//            "extended_cover_required" => isset($allData->is_insured) ? $allData->insurance_amount : "",
-//            "invoice_type" => ""
-//        );
-//
-//        $response['currency'] = isset($serviceInfo['currency']) && !empty($serviceInfo['currency']) ? $serviceInfo['currency'] : 'GBP';
-//        $response['insurance'] = array('value' => (isset($allData->is_insured) ? $allData->insurance_amount : 0) , 'currency' => $response['currency'], 'insurer' => '');
-//        $response['constants']       = array(
-//            "shipping_charge" => "",
-//            "weight_charge" => "",
-//            "fuel_surcharge" => "",
-//            "remote_area_delivery" => "",
-//            "insurance_charge" => "",
-//            "over_sized_charge" => "",
-//            "over_weight_charge" => "",
-//            "discounted_rate" => ""
-//        );
-//        $response['label_options']   = "";
-//        $response['customs']         = "";
-//        $response['billing_account'] = array(
-//            "payor_type" => "",
-//            "billing_account" => "",
-//            "billing_country_code" => "",
-//            "billing_person_name" => "",
-//            "billing_email" => ""
-//        );
-//        $response['label']           = array();
-//        $response['method_type']     = "post";
-//        /**********end of static data from requet json ***************/
-//        return $this->_getLabel($loadIdentity, json_encode($response));
         foreach ($shipmentInfo as $key => $data) {
             if ($data['shipment_service_type'] == 'P') {
                 $response['from'] = array(

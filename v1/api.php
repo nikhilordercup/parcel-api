@@ -2560,13 +2560,3 @@ $app->post('/getallreconciled', function() use ($app) {
     echoResponse(200, $response);
 });
 UkMailTracking::initRoutes($app);
-
-$app->post('/ukmailLogin', function() use ($app) {
-    $r = json_decode($app->request->getBody());
-	UkMailTracking::doLogin('nikhil.kumar@ordercup.com','b85op06w');
-    //verifyRequiredParams(array('company_id','email','access_token'),$r);
-    //$obj = new Module_Reconciled_Reconciled($r);
-    //$response = $obj->getAllReconciled($r);
-    //echoResponse(200, $response);
-});
-//UkMailTracking::doLogin($app);

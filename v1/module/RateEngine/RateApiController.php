@@ -296,6 +296,7 @@ class RateApiController
         if ('tuffnells' == 'tuffnells') {
             $tuffnells=new TuffnellsLabels($this->_requestData);
             $resp = $tuffnells->tuffnellLabelData($this->_requestData);
+			print_r($resp);die;
             exit($resp);
         }
     }

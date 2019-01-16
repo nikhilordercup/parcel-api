@@ -19,7 +19,6 @@ class Carrier{
         }else{
             $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
         }
-
 		$carrierObj = new $coreprimeCarrierClass($this);
 
 		if( strtolower($deliveryCarrier) == 'dhl' ) {

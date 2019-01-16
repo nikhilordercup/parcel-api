@@ -1,9 +1,9 @@
 <?php
 require_once  __DIR__ . '/../../../../vendor/autoload.php';    
-include_once __DIR__ .'/../../../module/ukmail_tracking/src/Singleton/Singleton.php';
-include_once __DIR__ .'/../../../module/ukmail_tracking/src/Auth.php';
-include_once __DIR__ .'/../../../module/ukmail_tracking/src/Send.php';
-include_once __DIR__ .'/UkMailModel.php';
+include_once __DIR__ .'/../../../module/ukmail_api/src/Singleton/Singleton.php';
+include_once __DIR__ .'/../../../module/ukmail_api/src/Auth.php';
+include_once __DIR__ .'/../../../module/ukmail_api/src/Send.php';
+include_once __DIR__ .'/model/UkMailModel.php';
             
 class UkMailTracking 
 {

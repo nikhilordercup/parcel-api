@@ -688,7 +688,6 @@ final class Nextday extends Booking
         if ($this->data["status"] == "success")
         {
             $requestStr = json_encode($this->data);
-			//print_r($requestStr);die;
             $responseStr = $this->_postRequest($this->data);
             $response = json_decode($responseStr);
             $response = $this->_getCarrierInfo($response->rate);

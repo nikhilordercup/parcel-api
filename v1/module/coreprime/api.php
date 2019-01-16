@@ -475,7 +475,8 @@ class Module_Coreprime_Api extends Icargo
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
-        curl_close($ch);//exit($server_output);
+        curl_close($ch);
+		print_r($server_output);die;
         return $server_output;
     }
 
@@ -506,7 +507,7 @@ class Module_Coreprime_Api extends Icargo
     public function mergePrice(&$finalArray, $price)
     {
         if (trim($price) === "") return false;
-        $price = json_decode($price);//print_r($price->rate);exit;
+        $price = json_decode($price);
         foreach ($price->rate as $k => $p) {
             $finalArray['rate'][$k] = $p;
         }
@@ -515,11 +516,11 @@ class Module_Coreprime_Api extends Icargo
     public function doLabelCall($data)
     {
         $env = 'DEV';
-        if (ENV == 'live') {
+        if (ENV == 'live')
             $env = 'PROD';
-        }
+		
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
-        $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'PROVIDER');
+        $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'ENDPOINT');
         $obj = is_object ($data)?$data:json_decode($data);
 
         foreach ($providerList as $p) {
@@ -538,4 +539,5 @@ class Module_Coreprime_Api extends Icargo
 	//print_r($providerList);exit('yati');
         return [];
     }
-}
+	
+	}
