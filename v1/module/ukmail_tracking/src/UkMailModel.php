@@ -94,13 +94,26 @@ class UkMailModel extends Singleton
             $subRef2 = $ConsignmentDetailInfo->ConsignmentSubs->GetConsignmentDetailsSub->SubRef2;
             $subSequence = $ConsignmentDetailInfo->ConsignmentSubs->GetConsignmentDetailsSub->SubSequence;
             ///////////////////////////////////
-            $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
+
+$podDescription = 'NA';
+$podQuantity = 0;
+$podSequence = 0;
+$podTimeStamp = '0000-00-00T00:00:00+00:00';
+$podRecipientName = 'NA';
+$podDeliveryComments = 'NA';
+$podDeliveryTypeCode = 'NA';
+if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+{
+	    $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
             $podQuantity = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity;
             $podSequence = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence;
             $podTimeStamp = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp;
             $podRecipientName = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName;
             $podDeliveryComments = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments;
-            $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;        
+            $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;
+}
+		
+                    
             $createdOn = date('Y-m-d H:i:s');
 
             // Check if already status saved
@@ -175,7 +188,7 @@ class UkMailModel extends Singleton
                     }
                     
                     // Making new row for shipments_pod table
-                    $podId = '';
+                    $podId = 0;
                     $query3 = "SELECT pod_id, shipment_ticket FROM ".DB_PREFIX."shipments_pod WHERE shipment_ticket = '$shipment_ticket' order by pod_id desc";
                     $res3 = $this->db->getOneRecord($query3);                         
                     $res3 = ($res3 != NULL) ? $res3 : array();
@@ -184,21 +197,25 @@ class UkMailModel extends Singleton
                         $podId = $res3['pod_id'];
                     }
                     else
-                    {                       
-                        $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
-                        $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
-                        $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
-                                
-                                                                                                                      
-                        $sql1 = "insert into ".DB_PREFIX."shipments_pod
-                        (
-                            shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
-                        )
-                        values( 
-                            '$shipment_ticket','0','','','$PodDeliveryType','$PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
-                            ,'0','$trackingId'       
-                        )"; 
-                        $podId = $this->db->executeQuery($sql1);
+                    {           
+                         if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+                         {
+		                $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
+		                $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
+		                $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+		                        
+		                                                                                                              
+		                $sql1 = "insert into ".DB_PREFIX."shipments_pod
+		                (
+		                    shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
+		                )
+		                values( 
+		                    '$shipment_ticket','0','','','$PodDeliveryType','$PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
+		                    ,'0','$trackingId'       
+		                )"; 
+		                $podId = $this->db->executeQuery($sql1);
+                       }            
+                        
                     }
                     
                     // Making new row for tracking_pod table                                        

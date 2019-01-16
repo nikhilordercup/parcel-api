@@ -20,7 +20,7 @@ class ServiceOptions
 
     public function verifyRules()
     {
-        if ($this->_serviceOptions || !count($this->_serviceOptions)) {
+        if (is_null($this->_serviceOptions) || !count($this->_serviceOptions)) {
             return true;
         }
         $this->_serviceOptions = (array)$this->_serviceOptions;
@@ -259,7 +259,7 @@ class ServiceOptions
                 $status = false;
             }
         }
-        return false;
+        return $status;
     }
 
     private function calculateWeight()

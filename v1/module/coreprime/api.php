@@ -200,7 +200,6 @@ class Module_Coreprime_Api extends Icargo
             foreach ($carrier as $carrierData) {
                 if ($carrierData['is_self'] == 'YES') {
                     $service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
-
                     if (count($service) > 0) {
                         $tempservice = array();
                         foreach ($service as $key => $valData) {
@@ -475,7 +474,7 @@ class Module_Coreprime_Api extends Icargo
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
-        curl_close($ch);//exit($server_output);
+        curl_close($ch);//exit($data_string);
         return $server_output;
     }
 
