@@ -46,11 +46,7 @@ class UkmailGenerateLabel
 		
 	}
 	
-	public createDomesticConsignment($data){
-		verifyRequiredParams(array('username','authentication_token','collection_job_number','account_number','contact_name','business_name','address_1','city','postcode','alpha3_code','email','parcel_quantity','weight','service_code','insurance_amount'),$app);
+	public generateLabel($data){
+		
 	}
-	
-    
-
-
 }
