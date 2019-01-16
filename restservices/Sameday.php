@@ -76,16 +76,16 @@ class Sameday extends  Booking
                                         $temparray["rate"][$carriercode][$key]["service_name"] = $res['service_name'];
                                         $temparray["rate"][$carriercode][$key]["charge_from_base"] =  ($charge_from_warehouse)?'1':'0';
                                         $temparray["rate"][$carriercode][$key]["rate_type"] = $res['rate_type'];
-                                        $temparray["rate"][$carriercode][$key]["message"] = $res['message'];
-                                        $temparray["rate"][$carriercode][$key]["currency"] = $res['currency'];
+                                        $temparray["rate"][$carriercode][$key]["message"] = isset($res['message'])?$res['message']:'';
+                                        $temparray["rate"][$carriercode][$key]["currency"] = isset($res['currency'])?$res['currency']:'';
                                         $temparray["rate"][$carriercode][$key]["total_price"] = $total_price;
                                         $temparray["rate"][$carriercode][$key]["otherinfo"] = $res['info'];
                                         $temparray["rate"][$carriercode][$key]["base_price"] = $base_price;
-                                        $temparray["rate"][$carriercode][$key]["icon"] = $res['service_options']['icon'];
-                                        $temparray["rate"][$carriercode][$key]["max_delivery_time"] = $res['service_options']['max_delivery_time'];
-                                        $temparray["rate"][$carriercode][$key]["dimensions"] = $res['service_options']['dimensions'];
-                                        $temparray["rate"][$carriercode][$key]["weight"] = $res['service_options']['weight'];
-                                        $temparray["rate"][$carriercode][$key]["time"] = $res['service_options']['time'];
+                                        $temparray["rate"][$carriercode][$key]["icon"] = isset($res['service_options']['icon'])?$res['service_options']['icon']:'';
+                                        $temparray["rate"][$carriercode][$key]["max_delivery_time"] = isset($res['service_options']['max_delivery_time'])?$res['service_options']['max_delivery_time']:'';
+                                        $temparray["rate"][$carriercode][$key]["dimensions"] = isset($res['service_options']['dimensions'])?$res['service_options']['dimensions']:'';
+                                        $temparray["rate"][$carriercode][$key]["weight"] = isset($res['service_options']['weight'])?$res['service_options']['weight']:'';
+                                        $temparray["rate"][$carriercode][$key]["time"] = isset($res['service_options']['time'])?$res['service_options']['time']:'';
                                         $temparray["rate"][$carriercode][$key]["surcharges"] = array();
                                         $temparray["rate"][$carriercode][$key]["surchargesinfo"] = array();
                                         if(isset($res['surcharges'])){
@@ -151,16 +151,17 @@ class Sameday extends  Booking
        $responsedata        = array('quotation_ref'=>$reqSessionId);
        foreach($response->rate as $key=>$val){
              foreach($val as $key1=>$val2){
+                  $val2->job_type = 'SAMEDAY';
                   $temp = array();
-                  $temp['job_type']             = 'SAMEDAY';
+                  $temp['job_type']             = $val2->job_type;          
                   $temp['service_code']         = $val2->otherinfo->courier_service_code;
                   $temp['service_name']         = $val2->otherinfo->courier_service_name;
                   $temp['service_id']           = $val2->otherinfo->service_id;
                   $temp['act_number']           = $val2->otherinfo->accountkey;
-                  $temp['price']                = $val2->base_price;
+                  $temp['price']                = number_format($val2->base_price,2);
                   $temp['max_delivery_time']    = $val2->max_delivery_time;
                   $temp['max_waiting_time']     = $val2->time->max_waiting_time .' '. $val2->time->unit;
-                  $temp['surcharges']           = array_sum((array)$val2->surcharges);
+                  $temp['surcharges']           = number_format(array_sum((array)$val2->surcharges),2);
                   $temp['taxes']                = $val2->chargable_tax;
                   $temp['total']                = $val2->total_price;
                   $temp['carrier']              = $key;
@@ -168,6 +169,18 @@ class Sameday extends  Booking
                   $temp['transit_time']         = $transit['transit_time'];
                   $temp['transit_distance_text'] = $transit['transit_distance_text'];
                   $temp['transit_time_text']    = $transit['transit_time_text'];
+                  $temp['rate_type']            = $val2->rate_type;             
+                  $temp['flow_type']            = 'Domestic';
+                  $temp['surcharges_info']      = $val2->surcharges;
+                  $temp['service_options']      = array(
+                    'dimensions'=>$val2->dimensions,
+                    'weight'=>$val2->weight,
+                    'time'=>$val2->time,
+                    'category'=>'',
+                    'charge_from_base'=>($val2->charge_from_base==1)?true:false,
+                    'icon'=>$val2->icon,
+                    'max_delivery_time'=>$val2->max_delivery_time
+                  );
                   $responsedata['services'][]   = $temp;
                   $savedTempService['response'][$val2->otherinfo->service_id] = $val2;
              }
@@ -254,6 +267,17 @@ class Sameday extends  Booking
                 return $collectionGeo;
               }
               else{
+                  
+                  
+                  
+               $collectionCountry =  $this->resrServiceModel->getCountryData($param->collection->address->country);
+               $deliveryCountry =  $this->resrServiceModel->getCountryData($param->delivery[0]->address->country);
+               $param->collection->address->id = $collectionCountry['id'];
+               $param->collection->address->alpha2_code = $collectionCountry['alpha2_code'];
+               $param->collection->address->alpha3_code = $collectionCountry['alpha3_code'];
+               $param->collection->address->short_name = $collectionCountry['short_name'];
+               $param->collection->address->currency_code = $collectionCountry['currency_code'];
+
                $param->collection->address->latitude = $collectionGeo['latitude'];
                $param->collection->address->longitude = $collectionGeo['longitude'];
                $param->collection->address->geo_position = array('latitude'=>$collectionGeo['latitude'],'longitude'=>$collectionGeo['longitude']);
@@ -325,6 +349,11 @@ class Sameday extends  Booking
                 }else{
                     $val->address->latitude = $deliveryGeo['latitude'];
                     $val->address->longitude = $deliveryGeo['longitude'];
+                    $val->address->id = $deliveryCountry['id'];
+                    $val->address->alpha2_code = $deliveryCountry['alpha2_code'];
+                    $val->address->alpha3_code = $deliveryCountry['alpha3_code'];
+                    $val->address->short_name = $deliveryCountry['short_name'];
+                    $val->address->currency_code = $deliveryCountry['currency_code'];
                     $val->address->geo_position = array('latitude'=>$deliveryGeo['latitude'],'longitude'=>$deliveryGeo['longitude']);
                    $googleRequest['delivery_postcodes'][] = (object) array('postcode'=>$val->address->postcode,'latitude'=>$deliveryGeo['latitude'],'longitude'=>$deliveryGeo['longitude'],'geo_position'=> (object) array('latitude'=>$deliveryGeo['latitude'],'longitude'=>$deliveryGeo['longitude']));
                 }
@@ -343,8 +372,8 @@ class Sameday extends  Booking
         $googleRequest['warehouse_latitude'] = $param->warehouse_latitude;
         $googleRequest['warehouse_longitude'] = $param->warehouse_longitude;
         $googleRequest['company_id'] = $param->company_id;
-
-
+        $googleRequest['customer_id'] = $param->customer_id;
+        
         try{
               $distanceMatrixData = json_decode(json_encode($this->googleApi->getGeolocationAndDistanceMatrix( (object) $googleRequest)), FALSE);
             }catch(Exception $e){
@@ -606,11 +635,11 @@ class Sameday extends  Booking
              $response["message"] = 'Requested Service date and time is mismatch with Quotation';
              $response["error_code"] = "ERROR0044";
         }
-        elseif(count($current_request->collection)!=count($pre_request->collection)){
+        /*elseif(count($current_request->collection)!=count($pre_request->collection)){
              $response["status"] = "fail";
              $response["message"] = 'Requested Collection mismatch with Quotation';
              $response["error_code"] = "ERROR0045";
-        }
+        }*/
         elseif(count($current_request->delivery)!=count($pre_request->delivery)){
              $response["status"] = "fail";
              $response["message"] = 'Requested Delivery mismatch with Quotation';
@@ -1213,6 +1242,7 @@ class Sameday extends  Booking
         unset($param->pricewithouttax);
         unset($param->booked_quotation_ref);
         unset($param->tracking_callbackurl);
+        unset($param->job_type);
         if(key_exists("icon", $param)){
            if(isset($param->icon)){
                 $_attribute["column_name"] = "icon";
@@ -1379,76 +1409,6 @@ class Sameday extends  Booking
              return array("status" => "fail","rate"=>array(),"availiable_balence" => $available_credit['available_credit']);
         }
      }
-    public      function bookSameDayJobWithoutQuotion($param){
-        if(!isset($param->service_code) || ($param->service_code=='')){
-                 $response = array();
-                 $response["status"] = "fail";
-                 $response["message"] = 'service code  missing';
-                 $response["error_code"] = "ERROR0055";
-                 return $response;
-        }else{
-            $serviceId = $this->resrServiceModel->getCustomerCarrierDataByServiceCode($param->customer_id,$param->service_code, $param->company_id);
-            $param->service_id = $serviceId['service_id'];
-            $quoteData  = $this->getSameDayQuotation($param);
-                if($quoteData['status']!='success'){
-                return $quoteData;
-                }else{
-                    $quotation_ref  = $quoteData['rate']['quotation_ref'];
-                    if(count($quoteData['rate']['services'])==1){
-                      if($quoteData['rate']['services'][0]['service_id']===$param->service_id){
-                         $param->quation_reference =  $quotation_ref;
-                         return $this->bookSameDayQuotation($param);
-                      }else{
-                             $response = array();
-                             $response["status"] = "fail";
-                             $response["message"] = 'Please check your service code';
-                             $response["error_code"] = "ERROR0056";
-                             return $response;
-                      }
-                     }else{
-                             $response = array();
-                             $response["status"] = "fail";
-                             $response["message"] = 'Please check your service code';
-                             $response["error_code"] = "ERROR0057";
-                             return $response;
-                       }
-                    }
-               }
-           }
-    public      function executeSameDayRecurringJob(){
-        $reccuringBucket =  array();
-        $return  =  array();
-        $reccuringBucket = $this->getEligibleRecurringJob();
-        if(count($reccuringBucket)>0){
-            foreach($reccuringBucket as $key=>$data){
-                $returnData = $this->bookSamedayByLoadIdentity($data['load_identity']);
-                if($returnData['status']=='error' || $returnData['status']=='fail'){
-                    Consignee_Notification::_getInstance()->sendRecurringNotification(
-                    array('rowdata'=>$data['rowdata'],'returnData'=>$returnData));
-                    $updatestatus = $this->resrServiceModel->editContent('recurring_jobs',
-                                                         array('status'=>'fail')," job_id = '".$data['rowdata']['job_id']."'");
-                    return $returnData;
-                }else{
-                   if($returnData['status']=='success'){
-                       $id = $data['rowdata']['job_id'];
-                       $tempdata   = array();
-                       $tempdata['last_booking_date'] = date('Y-m-d');
-                       $tempdata['last_booking_time'] = date('H:m:s');
-                       $tempdata['last_booking_reference'] = $returnData['identity'];
-                       $tempdata['status'] = ($data['rowdata']['recurring_type']  == 'ONCE')?false:true;
-                       $updatestatus = $this->resrServiceModel->editContent('recurring_jobs',
-                                                         $tempdata," job_id = '".$id."'");
-                       if($updatestatus){
-                         $updatestatus = $this->resrServiceModel->editContent('shipment_service',
-                                                         array('booked_by_recurring'=>'YES')," load_identity = '".$returnData['identity']."'");
-                       }
-                   }
-                 $return[]   = $returnData;
-                }
-            }
-        }
-        return $return;
-    }
     public      function getEligibleRecurringJob(){
         $reccuringBucket =  array();
         $recurringData = $this->resrServiceModel->getSamedayReccuringJobs();
@@ -1486,67 +1446,6 @@ class Sameday extends  Booking
         //print_r($reccuringBucket);die;
         return $reccuringBucket;
     }
-    public      function bookSamedayByLoadIdentity($loadidentity){
-        $jsonData                           = array('collection'=>array(),'delivery'=>array());
-        $loadServicedetails                 = $this->resrServiceModel->getLoadServiceDetails($loadidentity);
-        $jsonData['service_date']           =   date("Y-m-d h:i");
-        $jsonData['service_code']           =   $loadServicedetails['service_code'];
-        $jsonData['service_id']             =   $loadServicedetails['service_id'];
-        $jsonData['customer_id']            =   $loadServicedetails['customer_id'];
-        $jsonData['carrier_id']             =   $loadServicedetails['carrier'];
-        $jsonData['callback_url']           =   'https://api-sandbox.noqu.delivery/callback/mydelivery';
-        $loadDetails                        =   $this->resrServiceModel->getLoadDetails($loadidentity);
-        foreach($loadDetails as $key=>$data){
-          if($data['shipment_service_type'] =='P'){
-              $temp = array();
-              $temp['address'] = array(
-                  'country'=>$data['shipment_customer_country'],
-                  'country_code'=>$data['shipment_country_code'],
-                  'currency_code'=>$loadServicedetails['currency'],
-                  'postcode'=>$data['shipment_postcode'],
-                  'company_name'=>$data['shipment_companyName'],
-                  'address_line1'=>$data['shipment_address1'],
-                  'address_line2'=>$data['shipment_address2'],
-                  'city'=>$data['shipment_customer_city'],
-                  'notes'=>$data['shipment_notes'],
-                  'latitude'=>$data['shipment_latitude'],
-                  'longitude'=>$data['shipment_longitude'],
-                  'geo_position' => array('latitude'=>$data['shipment_latitude'],'longitude'=>$data['shipment_longitude'])
-              );
-              $temp['consignee'] = array('name'=>$data['shipment_customer_name'],'phone'=>$data['shipment_customer_phone'],'email'=>$data['shipment_customer_email']);
-              $jsonData['collection'] = $temp;
-              //array_push($jsonData['collection'],$temp);
-            }elseif($data['shipment_service_type']=='D'){
-              $temp = array();
-              $temp['address'] = array(
-                  'country'=>$data['shipment_customer_country'],
-                  'country_code'=>$data['shipment_country_code'],
-                  'currency_code'=>$loadServicedetails['currency'],
-                  'postcode'=>$data['shipment_postcode'],
-                  'company_name'=>$data['shipment_companyName'],
-                  'address_line1'=>$data['shipment_address1'],
-                  'address_line2'=>$data['shipment_address2'],
-                  'city'=>$data['shipment_customer_city'],
-                  'notes'=>$data['shipment_notes'],
-                  'latitude'=>$data['shipment_latitude'],
-                  'longitude'=>$data['shipment_longitude'],
-                  'geo_position' => array('latitude'=>$data['shipment_latitude'],'longitude'=>$data['shipment_longitude'])
-              );
-              $temp['consignee'] = array('name'=>$data['shipment_customer_name'],'phone'=>$data['shipment_customer_phone'],'email'=>$data['shipment_customer_email']);
-              array_push($jsonData['delivery'],$temp);
-          }
-        }
-
-        $jsonData['user_id']         =   $loadDetails[0]['user_id'];
-        $jsonData['warehouse_id']   =   $loadDetails[0]['warehouse_id'];
-        $jsonData['warehouse_latitude']   =   $loadDetails[0]['warehouse_latitude'];
-        $jsonData['warehouse_longitude']   =   $loadDetails[0]['warehouse_longitude'];
-        $jsonData['company_id']   =   $loadDetails[0]['company_id'];
-        $this->endpoint = 'bookedRecurringJob';
-        $data =  $this->bookSameDayJobWithoutQuotion(json_decode(json_encode($jsonData)));
-        return $data;
-
-     }
     public      function canCancelJob($param){
         $endpoint      = $this->endpoint;
         $param->customer_id = $param->customer_id;
@@ -1629,9 +1528,7 @@ class Sameday extends  Booking
                     $d = DateTime::createFromFormat($format, $date);
                     return $d && $d->format($format) == $date;
         }
-
-
-    public  function getShipmentTracking($param){
+    public      function getShipmentTracking($param){
         $param->job_identity = array($param->identity);
         $param->user = $param->company_id;
         $endpoint      = $this->endpoint;
@@ -1662,6 +1559,137 @@ class Sameday extends  Booking
 
         }
       }
+    public      function bookSamedayByLoadIdentity($loadidentity){
+        $jsonData                           = array('collection'=>array(),'delivery'=>array());
+        $loadServicedetails                 = $this->resrServiceModel->getLoadServiceDetails($loadidentity);
+        $jsonData['service_date']           =   date("Y-m-d h:i");
+        $jsonData['service_code']           =   $loadServicedetails['service_code'];
+        $jsonData['service_id']             =   $loadServicedetails['service_id'];
+        $jsonData['customer_id']            =   $loadServicedetails['customer_id'];
+        $jsonData['carrier_id']             =   $loadServicedetails['carrier'];
+        $jsonData['callback_url']           =   'https://api-sandbox.noqu.delivery/callback/mydelivery';
+        $loadDetails                        =   $this->resrServiceModel->getLoadDetails($loadidentity);
+        foreach($loadDetails as $key=>$data){
+          if($data['shipment_service_type'] =='P'){
+              $temp = array();
+              $temp['address'] = array(
+                  'country'=>$data['shipment_customer_country'],
+                  'country_code'=>$data['shipment_country_code'],
+                  'currency_code'=>$loadServicedetails['currency'],
+                  'postcode'=>$data['shipment_postcode'],
+                  'company_name'=>$data['shipment_companyName'],
+                  'address_line1'=>$data['shipment_address1'],
+                  'address_line2'=>$data['shipment_address2'],
+                  'city'=>$data['shipment_customer_city'],
+                  'notes'=>$data['shipment_notes'],
+                  'latitude'=>$data['shipment_latitude'],
+                  'longitude'=>$data['shipment_longitude'],
+                  'geo_position' => array('latitude'=>$data['shipment_latitude'],'longitude'=>$data['shipment_longitude'])
+              );
+              $temp['consignee'] = array('name'=>$data['shipment_customer_name'],'phone'=>$data['shipment_customer_phone'],'email'=>$data['shipment_customer_email']);
+              $jsonData['collection'] = $temp;
+              //array_push($jsonData['collection'],$temp);
+            }elseif($data['shipment_service_type']=='D'){
+              $temp = array();
+              $temp['address'] = array(
+                  'country'=>$data['shipment_customer_country'],
+                  'country_code'=>$data['shipment_country_code'],
+                  'currency_code'=>$loadServicedetails['currency'],
+                  'postcode'=>$data['shipment_postcode'],
+                  'company_name'=>$data['shipment_companyName'],
+                  'address_line1'=>$data['shipment_address1'],
+                  'address_line2'=>$data['shipment_address2'],
+                  'city'=>$data['shipment_customer_city'],
+                  'notes'=>$data['shipment_notes'],
+                  'latitude'=>$data['shipment_latitude'],
+                  'longitude'=>$data['shipment_longitude'],
+                  'geo_position' => array('latitude'=>$data['shipment_latitude'],'longitude'=>$data['shipment_longitude'])
+              );
+              $temp['consignee'] = array('name'=>$data['shipment_customer_name'],'phone'=>$data['shipment_customer_phone'],'email'=>$data['shipment_customer_email']);
+              array_push($jsonData['delivery'],$temp);
+          }
+        }
+
+        $jsonData['user_id']         =   $loadDetails[0]['user_id'];
+        $jsonData['warehouse_id']   =   $loadDetails[0]['warehouse_id'];
+        $jsonData['warehouse_latitude']   =   $loadDetails[0]['warehouse_latitude'];
+        $jsonData['warehouse_longitude']   =   $loadDetails[0]['warehouse_longitude'];
+        $jsonData['company_id']   =   $loadDetails[0]['company_id'];
+        $this->endpoint = 'bookedRecurringJob';
+        $data =  $this->bookSameDayJobWithoutQuotion(json_decode(json_encode($jsonData)));
+        return $data;
+
+     }
+    public      function bookSameDayJobWithoutQuotion($param){
+        if(!isset($param->service_code) || ($param->service_code=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'service code  missing';
+                 $response["error_code"] = "ERROR0055";
+                 return $response;
+        }else{
+            $serviceId = $this->resrServiceModel->getCustomerCarrierDataByServiceCode($param->customer_id,$param->service_code, $param->company_id);
+            $param->service_id = $serviceId['service_id'];
+            $quoteData  = $this->getSameDayQuotation($param);
+                if($quoteData['status']!='success'){
+                return $quoteData;
+                }else{
+                    $quotation_ref  = $quoteData['rate']['quotation_ref'];
+                    if(count($quoteData['rate']['services'])==1){
+                      if($quoteData['rate']['services'][0]['service_id']===$param->service_id){
+                         $param->quation_reference =  $quotation_ref;
+                         return $this->bookSameDayQuotation($param);
+                      }else{
+                             $response = array();
+                             $response["status"] = "fail";
+                             $response["message"] = 'Please check your service code';
+                             $response["error_code"] = "ERROR0056";
+                             return $response;
+                      }
+                     }else{
+                             $response = array();
+                             $response["status"] = "fail";
+                             $response["message"] = 'Please check your service code';
+                             $response["error_code"] = "ERROR0057";
+                             return $response;
+                       }
+                    }
+               }
+           }
+    public      function executeSameDayRecurringJob(){
+        $reccuringBucket =  array();
+        $return  =  array();
+        $reccuringBucket = $this->getEligibleRecurringJob();
+        if(count($reccuringBucket)>0){
+            foreach($reccuringBucket as $key=>$data){
+                $returnData = $this->bookSamedayByLoadIdentity($data['load_identity']);
+                if($returnData['status']=='error' || $returnData['status']=='fail'){
+                    Consignee_Notification::_getInstance()->sendRecurringNotification(
+                    array('rowdata'=>$data['rowdata'],'returnData'=>$returnData));
+                    $updatestatus = $this->resrServiceModel->editContent('recurring_jobs',
+                                                         array('status'=>'fail')," job_id = '".$data['rowdata']['job_id']."'");
+                    return $returnData;
+                }else{
+                   if($returnData['status']=='success'){
+                       $id = $data['rowdata']['job_id'];
+                       $tempdata   = array();
+                       $tempdata['last_booking_date'] = date('Y-m-d');
+                       $tempdata['last_booking_time'] = date('H:m:s');
+                       $tempdata['last_booking_reference'] = $returnData['identity'];
+                       $tempdata['status'] = ($data['rowdata']['recurring_type']  == 'ONCE')?false:true;
+                       $updatestatus = $this->resrServiceModel->editContent('recurring_jobs',
+                                                         $tempdata," job_id = '".$id."'");
+                       if($updatestatus){
+                         $updatestatus = $this->resrServiceModel->editContent('shipment_service',
+                                                         array('booked_by_recurring'=>'YES')," load_identity = '".$returnData['identity']."'");
+                       }
+                   }
+                 $return[]   = $returnData;
+                }
+            }
+        }
+        return $return;
+    }
 
 
 }

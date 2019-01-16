@@ -97,9 +97,40 @@ $app->post('/getQuotation', function() use ($app) {
     }
     $nextObj = new Nextday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
     $nextRecords = $nextObj->getNextDayQuotation($r,$quotation_ref);
-    $commonObj   = new Common();
+    $commonObj   = new Commonservices();
     $records = $commonObj->getMergeRecords($sameRecords,$nextRecords);
     $saveWebRequest = $sameObj->saveWebReqResponce($r,$records,$app);
 	echoResponse(200, $records);
-});    
+}); 
+$app->post('/bookQuotation', function() use ($app) { 
+    $response = array();
+    $r = verifyToken($app,$app->request->getBody());  
+    $r->endpoint = 'bookQuotation';
+    $commonObj   = new Commonservices();
+    $records = $commonObj->getRequestedQuotationInfo($r);
+    if($records['status']=='success'){
+        $obj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
+       if($records['job_type']=='SAMEDAY'){
+	       $records = $obj->bookSameDayQuotation($r);
+	       $saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
+           echoResponse(200, $records);
+       }elseif($records['job_type']=='NEXTDAY'){
+            $nextObj = new Nextday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
+            $response = $nextObj->bookNextDayQuotation($r,$records);
+            $saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
+            echoResponse(200, $response);
+       }else{
+           //
+       }   
+    }else{
+        echoResponse(200, $records); 
+    }
+    
+    
+});
+
+
+
+
+
 ?>
