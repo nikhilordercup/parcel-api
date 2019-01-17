@@ -2530,5 +2530,18 @@ $app->post('/getallreconciled', function() use ($app) {
 UkMailTracking::initRoutes($app);
 $app->post('/setCarrierValidation', function() use ($app) {
     $obj = new \v1\module\validation\Carrier_Validation();
-    $obj->validate(array());
+    $obj->validate(array(
+      "first_name" => array(
+        "type" => "text",
+        "validations" => array(
+          "maxlength" => "50",
+          "minlength" => "30",
+          "required" => "true"
+        ),
+        "templateOptions" => array(
+          "label" => "First Name",
+          "placeholder" => "Enter your first name"
+        )
+      );
+    ));
 });
