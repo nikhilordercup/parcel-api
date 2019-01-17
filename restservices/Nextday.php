@@ -77,6 +77,7 @@ final class Nextday extends Booking
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice = 0;
                                     $service->collected_by = $this->carrierList[$accountNumber]["collected_by"];
+                                    
                                     foreach ($service->collected_by as $collected_key => $collected_item) {
                                         $surchargeWithCcfPrice = 0;
                                         $surchargePrice = 0;
@@ -95,10 +96,13 @@ final class Nextday extends Booking
                                                 $surchargeCcf["courier_surcharge_code"] = "collection_surcharge";
                                                 $surchargeCcf["courier_surcharge_name"] = "Collection Surcharge";
                                                 $surchargeCcf["carrier_id"] = $this->carrierList[$accountNumber]["account_id"];
+                                                $surchargeCcf["carrier_id"] = $collected_item["account_id"];   
                                             } else {
-                                                $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $param->customer_id, $param->company_id, $this->carrierList[$accountNumber]["account_id"], $surcharge_price);
+                                               // $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $param->customer_id, $param->company_id, $this->carrierList[$accountNumber]["account_id"], $surcharge_price);
+                                                $surchargeCcf = $this->customerccf->calculateSurchargeCcf($surcharge_code, $param->customer_id, $param->company_id,$collected_item["account_id"], $surcharge_price);
                                             }
-                                            $collected_item["carrier_id"] = $this->carrierList[$accountNumber]["account_id"];// update id
+                                            //$collected_item["carrier_id"] = $this->carrierList[$accountNumber]["account_id"];// update id
+                                            $collected_item["carrier_id"] = $collected_item["account_id"];
                                             $collected_item["surcharges"][$surcharge_code] = $surchargeCcf;
 
                                             $surchargeWithCcfPrice += $surchargeCcf["price_with_ccf"];
@@ -126,7 +130,7 @@ final class Nextday extends Booking
 
                                         $service->collected_by[$collected_key] = $collected_item;
                                     }
-
+                                    
                                     $service->carrier_info = array(
                                         "carrier_id" => $this->carrierList[$accountNumber]["carrier_id"],
                                         "name" => $this->carrierList[$accountNumber]["name"],
@@ -646,74 +650,75 @@ final class Nextday extends Booking
        foreach($response as $key=>$val){ 
             foreach($val as $key1=>$val2){ 
               foreach($val2 as $key3=>$val3){
-                    foreach($val3 as $key4=>$val4){ 
-                      foreach($val4 as $key5=>$val5){// print_r($val5[0]->collected_by);die;
-                          $surcharges = array();
-                          $collectionKey = ($param->collected_by!='self')?0:1;
-                          if(key_exists('surcharges',$val5[0]->collected_by[$collectionKey]) and count($val5[0]->collected_by[$collectionKey]['surcharges'])>0){
-                              foreach($val5[0]->collected_by[$collectionKey]['surcharges'] as $keydata=>$data){
-                               $surcharges[$keydata] = $data['price_with_ccf'];
-                            }
-                          }
-                          if($param->collected_by=='self'){ 
-                            $surcharges['pickup_surcharge'] = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
-                                $val5[0]->surcharges->pickup_surcharge = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
-                                $pickupSurcharge = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["original_price"] = $pickupSurcharge;
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["surcharge_value"] = $pickupSurcharge;           
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["operator"] = "FLAT";
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["price"] = $pickupSurcharge; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["level"] = "level 1"; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["surcharge_id"] = "0"; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["price_with_ccf"] = $pickupSurcharge; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["company_surcharge_code"] = "collection_surcharge"; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["company_surcharge_name"] = "collection_surcharge"; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["courier_surcharge_code"] = "collection_surcharge"; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["courier_surcharge_name"] = "collection_surcharge"; 
-                                $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["carrier_id"] = "FLAT"; 
-                              
-                             }
-                          $temp                          =   array();
-                          $temp['job_type']              =   'NEXTDAY';  
-                          $temp['service_code']          =   ($val5[0]->rate->info['company_service_code']!='')?$val5[0]->rate->info['company_service_code']:$val5[0]->rate->info['courier_service_code'];
-                          $temp['service_name']          =   ($val5[0]->rate->info['company_service_name']!='')?$val5[0]->rate->info['company_service_name']:$val5[0]->rate->info['courier_service_name'];
-                          $temp['service_id']            =   $val5[0]->rate->info['service_id'];
-                          $temp['act_number']            =   $val5[0]->rate->act_number;
-                          $temp['max_delivery_time']     =  '00:00:00';
-                          $temp['max_waiting_time']      =  '00:00:00';
-                          $val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'] = array_sum($surcharges);
-                          $temp['surcharges_info']       =  $surcharges;
-                          $temp['surcharges']            =  number_format($val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'],2);
-                          $temp['taxes']                 =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['taxes'];
-                          $temp['total']                 =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['grand_total'];
-                          $temp['carrier']               =  $val5[0]->collected_by[$collectionKey]['name'];
-                          $temp['price']                 =  number_format($val5[0]->collected_by[$collectionKey]['customer_price_info']['price'],2);
-                          $temp['transit_distance']      =  '';
-                          $temp['transit_time']          =  '';
-                          $temp['transit_distance_text'] =  '';
-                          $temp['transit_time_text']     =  '';
-                          $temp['service_options']       =  $val5[0]->service_options;
-                          $temp['flow_type']             =  isset($val5[0]->rate->flow_type)?$val5[0]->rate->flow_type:'Domestic';
-                          $temp['rate_type']             =  $val5[0]->rate->rate_type;
-                          $val5['job_type']              = 'NEXTDAY';
-                          $val5[0]->collection_carrier   =  $val5[0]->collected_by[$collectionKey];
-                          $responsedata['services'][]    =  $temp;
-                          unset($val5[0]->collected_by);
-                          $savedTempService['response'][$val5[0]->rate->info['service_id']] = $val5;
-                       }    
-                     }
+                 foreach($val3 as $key4=>$val4){ 
+                    foreach($val4 as $key5=>$val5){ //print_r($val5[0]);die;
+                      $surcharges = array();
+                      $collectionKey = ($param->collected_by!='self')?0:1;
+                      if(key_exists('surcharges',$val5[0]->collected_by[$collectionKey]) and count($val5[0]->collected_by[$collectionKey]['surcharges'])>0){
+                          foreach($val5[0]->collected_by[$collectionKey]['surcharges'] as $keydata=>$data){
+                           $surcharges[$keydata] = $data['price_with_ccf'];
+                        }
+                      }
+                      if($param->collected_by=='self'){ 
+                        $surcharges['pickup_surcharge'] = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
+                            $val5[0]->surcharges->pickup_surcharge = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
+                            $pickupSurcharge = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["original_price"] = $pickupSurcharge;
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["surcharge_value"] = $pickupSurcharge;           
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["operator"] = "FLAT";
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["price"] = $pickupSurcharge; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["level"] = "level 1"; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["surcharge_id"] = "0"; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["price_with_ccf"] = $pickupSurcharge; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["company_surcharge_code"] = "collection_surcharge"; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["company_surcharge_name"] = "collection_surcharge"; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["courier_surcharge_code"] = "collection_surcharge"; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["courier_surcharge_name"] = "collection_surcharge"; 
+                            $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["carrier_id"] = $val5[0]->collected_by[$collectionKey]['account_id']; 
+
+                         }
+                      $temp                          =   array();
+                      $temp['job_type']              =   'NEXTDAY';  
+                      $temp['service_code']          =   $val5[0]->rate->info['courier_service_code'];
+                      $temp['service_name']          =   $val5[0]->rate->info['courier_service_name'];
+                      $temp['service_id']            =   $val5[0]->rate->info['service_id'];
+                      $temp['act_number']            =   $val5[0]->rate->act_number;
+                      $temp['max_delivery_time']     =  '00:00:00';
+                      $temp['max_waiting_time']      =  '00:00:00';
+                      $val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'] = array_sum($surcharges);
+                      $temp['surcharges_info']       =  $surcharges;
+                      $temp['surcharges']            =  number_format($val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'],2);
+                      $temp['taxes']                 =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['taxes'];
+                      $temp['total']                 =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['grand_total'];
+                      $temp['carrier']               =  $val5[0]->collected_by[$collectionKey]['name'];
+                      $temp['price']                 =  number_format($val5[0]->collected_by[$collectionKey]['customer_price_info']['price'],2);
+                      $temp['transit_distance']      =  '';
+                      $temp['transit_time']          =  '';
+                      $temp['transit_distance_text'] =  '';
+                      $temp['transit_time_text']     =  '';
+                      $temp['service_options']       =  $val5[0]->service_options;
+                      $temp['flow_type']             =  isset($val5[0]->rate->flow_type)?$val5[0]->rate->flow_type:'Domestic';
+                      $temp['rate_type']             =  $val5[0]->rate->rate_type;
+                      $val5['job_type']              = 'NEXTDAY';
+                      $val5[0]->collection_carrier   =  $val5[0]->collected_by[$collectionKey];
+                      $responsedata['services'][]    =  $temp;
+                      unset($val5[0]->collected_by);
+                      $savedTempService['response'][$val5[0]->rate->info['service_id']] = $val5;
+                      }    
+                    }
                   }
                } 
-           }
-        $savedTempService['response'] = json_encode($savedTempService['response']);
-        $quoteRefData = $this->resrServiceModel->getQuotationData($reqSessionId);
+            }
+       $savedTempService['response'] = json_encode($savedTempService['response']);
+       $quoteRefData = $this->resrServiceModel->getQuotationData($reqSessionId);
         if($quoteRefData!=''){
             $preResponse = json_decode($quoteRefData['response'],1);
             $preResponse = $preResponse + json_decode($savedTempService['response'],1);
             $savedTempService = json_encode($preResponse);
             $updatestatus = $this->resrServiceModel->editContent('webapi_request_response',
                 array('response'=>$savedTempService)," session_id = '".$reqSessionId."'");
-          }else{
+          }
+        else{
            $this->resrServiceModel->addContent('webapi_request_response',$savedTempService);
         }
        return $responsedata; 
@@ -1131,21 +1136,31 @@ final class Nextday extends Booking
         return $bookingInfo;
     }
     public function formattedReqest($param,$quoteRequest){ 
-      foreach($quoteRequest->delivery as $key=>$datainer){
+      foreach($quoteRequest->delivery as $key=>$datainer){  
+          
+          if(isset($param->delivery) and count($param->delivery)>0){
              unset($param->delivery[$key]->address->country);
              unset($param->delivery[$key]->address->postcode);
              unset($param->delivery[$key]->address->currency_code);
              unset($param->delivery[$key]->address->country_code);
+           }else{
+              $param->delivery[] = (object)array('address'=>array());
+           }
              $quoteRequest->delivery[$key]->address = (array)$param->delivery[$key]->address + (array)$datainer->address;
              unset($param->delivery[$key]->address);
              $quoteRequest->delivery[$key] = (array)$quoteRequest->delivery[$key] + (array)$param->delivery[$key];
          }
       foreach($quoteRequest->collection as $datainer){
+            
+          if(isset($param->collection)){
              unset($param->collection->address->country);
              unset($param->collection->address->postcode);
              unset($param->collection->address->currency_code);
              unset($param->collection->address->country_code);
-             $quoteRequest->collection->address = (array)$param->collection->address + (array)$datainer;
+          }else{
+             $param->collection = (object)array('address'=>array()); 
+          }
+            $quoteRequest->collection->address = (array)$param->collection->address + (array)$datainer;
              unset($param->collection->address);
              $quoteRequest->collection = (array)$quoteRequest->collection + (array)$param->collection;
          }
@@ -1153,9 +1168,7 @@ final class Nextday extends Booking
     }
     
     /*================================Direct Booking================================*/
-    
-    
-    public      function bookNextDayJobWithoutQuotion($param){
+    public function bookNextDayJobWithoutQuotion($param){
         if(!isset($param->service_code) || ($param->service_code=='')){
                  $response = array();
                  $response["status"] = "fail";
