@@ -53,18 +53,16 @@ class RateApiController
             
             $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
             $callType = ($controller->_isLabelCall) ? 'LABEL':'RATE';                                                                              
-            $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
-              
-            
+                          
             if (!$controller->_isLabelCall) 
             {                 
                 $pd = $controller->_reateEngineModel->getServiceProvider($env,$callType,'PROVIDER', $r);
-                $controller->_tempRateContainer['postmen'] = $shipmentManagerObj->calculateRateAction($r, $pd);                
+                $controller->_tempRateContainer['postmen'] = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj()->calculateRateAction($r, $pd);                
                 $controller->breakRequest($r);
             } 
             else 
             {                
-                $controller->getLabelProvider($r->providerInfo->provider);
+                $controller->getLabelProvider($r);
             }                                                
         });
     }
@@ -314,18 +312,26 @@ class RateApiController
         }
         unset($this->_responseData['accountInfo'], $this->_responseData['zone']);
     }
-
-    public function getLabelProvider($provider='tuffnells')
-    {
-        if ($provider == 'tuffnells') { 
+    
+    /**
+     * If provider is not set then set it in db and add code for your provider
+     * @param String $provider
+     * @return type
+     */
+    public function getLabelProvider($request)
+    { 
+        $provider = $request->providerInfo->provider;        
+        if($provider == 'Local') 
+        { 
             $tuffnells = new TuffnellsLabels($this->_requestData);
             $resp = $tuffnells->tuffnellLabelData($this->_requestData); 
             exit($resp);
-        }elseif($provider == 'Postmen'){
-            $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
-            $labelResponse = $shipmentManagerObj->createLabelAction($this->_requestData);  
-            return $labelResponse;                        
-        } 
+        }elseif($provider == 'Postmen')
+        {   
+            $this->_requestData->directlyCallForPostmen = "false";            
+            \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj()
+                ->createLabelAction($this->_requestData);                                                                                                 
+        }        
     }
 
     public function loadTaxRate($fromAddress)
@@ -365,5 +371,5 @@ class RateApiController
         }        
         return $rateResponse;
     }
-
+    
 }

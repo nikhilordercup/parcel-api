@@ -66,7 +66,10 @@ class ShipmentManager extends PostMenMaster
             echo $result;die;
         });
     }
-          
+      /**
+       * 
+       * @return ShipmentManager
+       */    
     public static function getShipmentManagerObj()
     {
         if(!self::$shipmentManagerObj instanceof ShipmentManager)
@@ -347,8 +350,9 @@ class ShipmentManager extends PostMenMaster
         $others['custom_paid_by'] = 'recipient';
         $others['account_number'] = (isset($request->billing_account->billing_account) && $request->billing_account->billing_account != '') ? $request->billing_account->billing_account : ''; 
         $others['type'] = 'account';
-        $others['purpose'] = 'merchandise';                
-        $serviceDetail = $this->getServiceCodeMapped($request->service,FALSE); // ui se false api se true  
+        $others['purpose'] = 'merchandise';        
+        $directlyCallForPostmen = ($request->directlyCallForPostmen == "false") ? FALSE : TRUE;        
+        $serviceDetail = $this->getServiceCodeMapped($request->service,$directlyCallForPostmen); // ui se false api se true  
                 
         $others['service_type'] = $serviceDetail['provServiceCode'];        
         $others['paper_size'] = (isset($request_options->size) && $request_options->size != '') ? $request_options->size : 'default';
@@ -363,15 +367,16 @@ class ShipmentManager extends PostMenMaster
         {             
             $labelResponse = $this->createLabel($payload); 
             if($labelResponse)
-            {
+            { 
                 $this->formatCreateLabelResponse($labelResponse);
+                $res = $this->createAndSavePdf($request);                   
+                exit(json_encode($res));
             }
             else
             {                
                 $this->getErrorDetails();
             }            
-            header('Content-Type: application/json'); 
-            return json_encode($this->responseData); 
+            exit(json_encode($this->responseData)); 
         }
         catch(exception $e) 
         {            
@@ -714,5 +719,40 @@ class ShipmentManager extends PostMenMaster
             ->where('alpha2_code','=',$alpha2)                                             
             ->first();         
         return $res->alpha3_code;
+    }
+    
+    public function createAndSavePdf($request)
+    {        
+        $labelArr = $this->responseData;          
+        if( isset($labelArr['label']) ) 
+        {
+            $pdf_base64 = $labelArr['label']['base_encode'];
+            $labels = explode(",", $labelArr['label']['file_url']);                        
+            $label_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/label/';                                                                        
+            $loadIdentity = $request->loadIdentity;
+            $carrier = $request->carrier;          
+            $file_url = mkdir($label_path . $loadIdentity .'/'.$carrier.'/', 0777, true);
+            
+            foreach ($labels as $dataFile) {                
+                $dataFile = $loadIdentity . '.pdf';                
+                $file_name = $label_path . $loadIdentity .'/'.$carrier.'/'. $dataFile;
+                $data = base64_decode($pdf_base64);
+                file_put_contents($file_name, $data);
+                header('Content-Type: application/pdf');
+            }
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            unset($labelArr['label']['base_encode']);
+            $res =  array(
+                    "status" => "success",
+                    "message" => "label generated successfully",
+                    "label" => $labelArr['label'],
+                    "file_loc"=>$file_name,
+                    "file_path" => $fileUrl . "/label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',
+                    "label_tracking_number"=>$labelArr['label']['tracking_number'],
+                    "label_files_png" => '',
+                    "label_json" =>json_encode($labelArr)
+            );         
+           return $res;
+        }        
     }
 }
