@@ -29,13 +29,19 @@ class LabelProcessor
 
         $label = $obj->_postRequest($json_data);
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
-        $labelArr = $labelArr['label'];
+        $labelArrBkp = $labelArr;
+        $labelArr = $labelArr['label'];  
         if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
             $labelArr['label_tracking_number'] = $labelArr['tracking_number'];
-            $labelArr['label_files_png'] = $labelArr['label_json'] = '';
-        }
+            $labelArr['label_json'] = json_encode(array('label'=>$labelArr));
+            $labelArr['label_files_png'] = '';
+            if(!isset($labelArrBkp['callFromPostmen']))
+            { 
+                $labelArr['label_json'] = '';
+            }
+        } 
         return $labelArr;
     }
 

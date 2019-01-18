@@ -29,7 +29,8 @@ class RateApiController
     private $_requestData = null;
     private $_requestedServices = [];
     private $_tempRateContainer = [];
-
+    private $_doLabelCancel= false;
+    
     //put your code here
     private function __construct()
     {
@@ -50,12 +51,20 @@ class RateApiController
             if (isset($r->label)) { 
                 $controller->_isLabelCall = true;
             }
-            
+                        
             $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
             $callType = ($controller->_isLabelCall) ? 'LABEL':'RATE';                                                                              
-                          
+                                      
+            if(isset($r->providerInfo) && $r->providerInfo->provider == 'Postmen' && isset($r->doLabelCancel))
+            { 
+                $controller->_doLabelCancel = true;
+                $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();                                
+                $formatedRequest = $shipmentManagerObj->getFormatedCancelLabelRequest($r);                                
+                $shipmentManagerObj->cancelLabelAction($formatedRequest);                  
+            }
+            
             if (!$controller->_isLabelCall) 
-            {                 
+            {                                
                 $pd = $controller->_reateEngineModel->getServiceProvider($env,$callType,'PROVIDER', $r);
                 $controller->_tempRateContainer['postmen'] = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj()->calculateRateAction($r, $pd);                
                 $controller->breakRequest($r);

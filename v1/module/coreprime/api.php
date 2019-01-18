@@ -16,6 +16,8 @@ class Module_Coreprime_Api extends Icargo
             "access_url" => "http://api.icargo.in/v1/RateEngine/getRate"
         )
     );
+    
+    private $_doLabelCancel = false;
 
     public
 
@@ -52,12 +54,19 @@ class Module_Coreprime_Api extends Icargo
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
         }
 
+        if(isset($data->doLabelCancel))
+        {
+            $this->_doLabelCancel = true; 
+            $label=$this->doLabelCall($data);
+            return $label;
+        }
+        
         if (isset($data->label)) {
             $this->_isLabelCall = true;
             $label=$this->doLabelCall($data);
             return $label;
         } 
-        $pd = $this->filterServiceProvider($data);
+        $pd = $this->filterServiceProvider($data); 
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
             $cpData = $data;

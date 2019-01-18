@@ -12,7 +12,8 @@ class ShipmentManager extends PostMenMaster
         $app->post('/postmen/calculateRate', function () use ($app) {              
             $request = json_decode($app->request->getBody());    
             $shipmentManagerObj = self::getShipmentManagerObj(); 
-            $result = $shipmentManagerObj->calculateRateAction($request); 
+            $pd = array('Postmen'=>'');
+            $result = $shipmentManagerObj->calculateRateAction($request,$pd); 
             echo $result;die;
         });
         
@@ -99,9 +100,9 @@ class ShipmentManager extends PostMenMaster
                 return array();
     }
 
-    public function calculateRateAction($request, $pd)
-    {       
-        if( !(isset($pd['Postmen'])) || !(count($pd['Postmen'])) )
+    public function calculateRateAction($request, $pd=array())
+    {      
+        if(!isset($pd['Postmen']))
         {
             return json_encode(array());
         }
@@ -307,28 +308,28 @@ class ShipmentManager extends PostMenMaster
         $toAddress = $this->convertAddress($request->to);    
         
         //For Address test
-        $fromAddress['contact_name'] = 'Nikhil Kumar';
-        $fromAddress['phone']= '7595590074';
-        $fromAddress['company_name']= 'Perceptive Consulting Solutions';
-        $fromAddress['street1'] = '6 York Way';
-        $fromAddress['city']= 'Northampton';
-        $fromAddress['state']= 'KZ';
-        $fromAddress['country'] = 'GBR';
-        $fromAddress['email']= 'test@test.test'; 
-        $fromAddress['type']= 'business'; 
-        $fromAddress['postal_code']= 'NN5 6UX';
-        
-        
-        $toAddress['contact_name'] = 'Rick McLeod (RM Consulting)';
-        $toAddress['phone']= '1-403-504-5496';
-        $toAddress['company_name']= 'IHS Markit';
-        $toAddress['street1'] = '71 Terrace Crescent NE';
-        $toAddress['city']= 'Medicine Hat';
-        $toAddress['state']= 'Alberta';
-        $toAddress['country'] = 'CAN';
-        $toAddress['email']= 'test@test.test'; 
-        $toAddress['type']= 'business'; 
-        $toAddress['postal_code']= 'T1C1Z9';
+//        $fromAddress['contact_name'] = 'Nikhil Kumar';
+//        $fromAddress['phone']= '7595590074';
+//        $fromAddress['company_name']= 'Perceptive Consulting Solutions';
+//        $fromAddress['street1'] = '6 York Way';
+//        $fromAddress['city']= 'Northampton';
+//        $fromAddress['state']= 'KZ';
+//        $fromAddress['country'] = 'GBR';
+//        $fromAddress['email']= 'test@test.test'; 
+//        $fromAddress['type']= 'business'; 
+//        $fromAddress['postal_code']= 'NN5 6UX';
+//        
+//        
+//        $toAddress['contact_name'] = 'Rick McLeod (RM Consulting)';
+//        $toAddress['phone']= '1-403-504-5496';
+//        $toAddress['company_name']= 'IHS Markit';
+//        $toAddress['street1'] = '71 Terrace Crescent NE';
+//        $toAddress['city']= 'Medicine Hat';
+//        $toAddress['state']= 'Alberta';
+//        $toAddress['country'] = 'CAN';
+//        $toAddress['email']= 'test@test.test'; 
+//        $toAddress['type']= 'business'; 
+//        $toAddress['postal_code']= 'T1C1Z9';
         
         
         $package = $this->convertPackage($request->package[0],$request->currency);                                         
@@ -369,8 +370,11 @@ class ShipmentManager extends PostMenMaster
             if($labelResponse)
             { 
                 $this->formatCreateLabelResponse($labelResponse);
-                $res = $this->createAndSavePdf($request);                   
-                exit(json_encode($res));
+                if(!$directlyCallForPostmen)
+                {
+                    $res = $this->createAndSavePdf($request);                   
+                    exit(json_encode($res));
+                }
             }
             else
             {                
@@ -408,14 +412,14 @@ class ShipmentManager extends PostMenMaster
     }
 
     public function cancelLabelAction($request)
-    {              
+    {         
         $labelId = $request->label->id;
         $payload = array (
             'label' => array (
                 'id' => $labelId
             )            
         );        
-        $result = $this->cancelLabel($payload);               
+        $result = $this->cancelLabel($payload);         
         if($result)
         {                      
             $this->responseData['id'] = $result->id;
@@ -428,8 +432,7 @@ class ShipmentManager extends PostMenMaster
         { 
             $this->getErrorDetails();                     
         }           
-        header('Content-Type: application/json'); 
-        return json_encode($this->responseData);
+        exit(json_encode($this->responseData));        
     }
     
     public function getErrorDetails()
@@ -750,9 +753,26 @@ class ShipmentManager extends PostMenMaster
                     "file_path" => $fileUrl . "/label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',
                     "label_tracking_number"=>$labelArr['label']['tracking_number'],
                     "label_files_png" => '',
-                    "label_json" =>json_encode($labelArr)
+                    "label_json" =>json_encode($labelArr),
+                    "callFromPostmen" =>"true"
             );         
            return $res;
         }        
+    }
+    
+    public function getFormatedCancelLabelRequest($rawRequest)
+    {        
+        $carrierObj = new \Carrier();
+        $labelInfo = $carrierObj->getLabelByLoadIdentity($rawRequest->load_identity);
+        if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' )
+        {
+            $labelArr = json_decode($labelInfo[0]['label_json']);
+            $labelId = (isset($labelArr->label->id)) ? $labelArr->label->id : ''; 
+            if($labelId == ''){return array("status"=>"error","message"=>"cancel request not completed by postmen");}
+            $requestObj = new \stdClass(); 
+            $requestObj->label = new \stdClass();
+            $requestObj->label->id = $labelId;    
+        }
+        return $requestObj;
     }
 }

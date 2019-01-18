@@ -1597,38 +1597,39 @@ class allShipments extends Icargo
                 'name' => $param->carrier_code
             );            
             $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
-            $callType = 'LABEL';
-            $pd = $comObj->getServiceProvider($env,$callType,$data);              
+            $callType = 'LABEL';                          
             if(strtolower($carrier_code) == 'dhl') 
-            {                                                  
-                if(isset($pd['Postmen']) && count($pd['Postmen'])) 
-                { 
-                    $labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
-                    if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' )
+            {                         
+                $bookingObj = new Booking_Model_Booking();
+                $providerInfo = $bookingObj->getProviderInfo('LABEL',$env,'PROVIDER',$param->carrier);
+                if($providerInfo['provider'] == 'Postmen')
+                {
+                    $json_data = new stdClass();
+                    $json_data->email = $param->email;
+                    $json_data->access_token = $param->access_token;  
+                    $json_data->carrier = $param->carrier;                    
+                    $json_data->doLabelCancel = "true";                                                              
+                    $json_data->load_identity = $param->load_identity;                                                                                                      
+                    $json_data->providerInfo = (object)array(
+                        'provider' => $providerInfo['provider'],
+                        'endPointUrl' => $providerInfo['label_endpoint']
+                    );                    
+                    $obj = new \Module_Coreprime_Api($json_data);
+                    $label = $obj->_postRequest($json_data);
+                    $resultObj = json_decode($label);                    
+                    if(isset($resultObj->id) && $resultObj->id != '' && $resultObj->status == 'cancelled')
                     { 
-                        $labelArr = json_decode($labelInfo[0]['label_json']);
-                        $labelId = (isset($labelArr->label->id)) ? $labelArr->label->id : ''; 
-                        if($labelId == ''){return array("status"=>"error","message"=>"cancel request not completed by postmen");}
-                        $requestObj = new stdClass();
-                        $requestObj->label = new stdClass();
-                        $requestObj->label->id = $labelId;                                    
-                        $shipmentManagerObj = v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
-                        $result = $shipmentManagerObj->cancelLabelAction($requestObj); 
-                        $resultObj = json_decode($result);                    
-                        if(isset($resultObj->id) && $resultObj->id != '' && $resultObj->status == 'cancelled')
-                        { 
-                            return $this->_updateShipmentCancel($param);                        
-                        }
-                        else
-                        { 
-                            return array("status"=>"error","message"=>"cancel request not completed by postmen");
-                        }
+                        return $this->_updateShipmentCancel($param);                        
+                    }
+                    else
+                    { 
+                        return array("status"=>"error","message"=>"cancel request not completed by postmen");
                     }
                 }
                 else
                 {
                     return $this->_updateShipmentCancel($param);
-                }                                                                                
+                }                                                                                 
             }elseif(strtolower($carrier_code) == 'ukmail') {
                 $cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
                 $cancelShipment = json_decode($cancelShipment);
@@ -1975,7 +1976,7 @@ class allShipments extends Icargo
         }
        return $returnarray;
  }
-    public function cancelJob($param){ 
+    public function cancelJob($param){  
         $returnData = array();
         $company_id         = $param->company_id;
         $userId             = $param->user;
@@ -1990,6 +1991,8 @@ class allShipments extends Icargo
                     $tempdata['carrier']        = $carrier_code;//$shipment_type['code'];
                     $tempdata['ship_date']      = date('Y-m-d',strtotime($shipment_type['booking_date']));
                     $tempdata['carrier_code']   = $carrier_code;//$shipment_type['code'];
+                    $tempdata['email']   = $param->email;
+                    $tempdata['access_token']   = $param->access_token;
                     $courierStatus = $this->cancelShipmentByLoadIdentity((object)$tempdata);
                     if($courierStatus['status']!='error'){
                         $returnData[]       = $param->job_identity[0];
