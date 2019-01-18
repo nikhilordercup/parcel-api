@@ -48,7 +48,9 @@ class Module_Package_Index extends Icargo
                 "height" => $param->height,
                 "display_order" => $display_order,
                 "company_id" => $param->company_id,
-                "created_by" => $param->created_by,
+                "created_by" => $param->customer_id,
+                "customer_user_id" => $param->collection_user_id,
+                "allowed_user" => $param->allow_other,
                 "is_internal" => $is_internal,
                 "package_code" => $package_code
             ));
