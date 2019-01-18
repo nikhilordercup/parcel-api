@@ -360,7 +360,7 @@ class Booking extends Icargo
 
             $service_data["service_name"] = $serviceOpted->service_info->name;
             $service_data["rate_type"] = $serviceOpted->rate->rate_type;
-            $service_data["currency"] = $serviceOpted->rate->currency;
+            $service_data["currency"] = isset($serviceOpted->rate->currency) ? $serviceOpted->rate->currency : "GBP";
 
             $service_data["courier_commission_type"] = $serviceOpted->rate->info->operator;
             $service_data["courier_commission"] = $serviceOpted->rate->info->ccf_value;

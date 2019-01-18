@@ -76,7 +76,10 @@ class CustomerCostFactor
     }
 
     private function _calculateSurcharge($price, $surcharge_value, $operator, $company_surcharge_code, $company_surcharge_name, $courier_surcharge_code, $courier_surcharge_name, $level, $surcharge_id)
-    {
+    { 
+        $price = (float)$price;
+        $surcharge_value = (float)$surcharge_value;
+        
         if ($operator == "FLAT") {
             $surchargePrice = $surcharge_value;
         } elseif ($operator == "PERCENTAGE") {
@@ -147,7 +150,7 @@ class CustomerCostFactor
             }
         }
         $surchargeCcfPrice = isset($surcharge_ccf_price["price"]) ? $surcharge_ccf_price["price"] : '0';
-        $surcharge_ccf_price["price_with_ccf"] = number_format( $surchargeCcfPrice + $price, 2);
+        $surcharge_ccf_price["price_with_ccf"] = number_format( (float)$surchargeCcfPrice + (float)$price, 2);
         $surcharge_ccf_price["carrier_id"] = $courier_id;
 
         return $surcharge_ccf_price;

@@ -8,7 +8,8 @@ class Carrier{
 	public function __construct(){
         $this->modelObj = new Booking_Model_Booking();
     }
-	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){
+	
+	/* public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){
 		$carrierObj = null;
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
@@ -27,6 +28,39 @@ class Carrier{
 			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
 		}
 
+		if( $shipmentInfo['status'] == 'success' ) {
+			$invoice_created = (isset($shipmentInfo['invoice_created'])) ? $shipmentInfo['invoice_created'] : 0;
+			if(isset($shipmentInfo['child_account_data'])){
+				return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json'],"child_account_data"=>$shipmentInfo['child_account_data'],'invoice_created'=>$invoice_created);
+			}else{
+				return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json'],'invoice_created'=>$invoice_created);
+			}
+			
+		} else {
+			return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
+		}
+	} */
+	
+	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){
+		$carrierObj = null;
+		$response = array();
+		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
+		$deliveryCarrier = $shipmentInfo['carrier_code']; 
+        $providerInfo = $this->modelObj->getProviderInfo('LABEL',ENV,'PROVIDER',$shipmentInfo['carrier_code']);         
+        global $_GLOBAL_CONTAINER;
+        
+        if($providerInfo['endpoint']=='Coreprime'){
+            $coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
+        }else{ 
+            $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
+            $allData->providerInfo = array(
+                    'provider' => $providerInfo['provider'],
+                    'endPointUrl' => $providerInfo['label_endpoint'], //url to hit rate api controller
+                );
+        }
+		$carrierObj = new $coreprimeCarrierClass($this); 
+        $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$rateDetail,$allData);
+        
 		if( $shipmentInfo['status'] == 'success' ) {
 			$invoice_created = (isset($shipmentInfo['invoice_created'])) ? $shipmentInfo['invoice_created'] : 0;
 			if(isset($shipmentInfo['child_account_data'])){

@@ -46,7 +46,7 @@ class Module_Coreprime_Api extends Icargo
     public
 
     function _postRequest($data)
-    { //print_r($data);exit;
+    {         
         global $_GLOBAL_CONTAINER;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
@@ -56,7 +56,7 @@ class Module_Coreprime_Api extends Icargo
             $this->_isLabelCall = true;
             $label=$this->doLabelCall($data);
             return $label;
-        }
+        } 
         $pd = $this->filterServiceProvider($data);
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
@@ -71,7 +71,7 @@ class Module_Coreprime_Api extends Icargo
             $localRate = $this->postToRateEngine('Local', $lcData);
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
-        }
+        } 
 //        exit(json_encode($finalPrice));
         return json_encode($finalPrice);
     }
@@ -443,8 +443,8 @@ class Module_Coreprime_Api extends Icargo
             $callType = 'LABEL';
         }
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
-        $providerList = $rateEngModel->getProviderInfo($callType, $env);//print_r($providerList);exit;
-        $this->_endpoints = $providerList;
+        $providerList = $rateEngModel->getProviderInfo($callType, $env);
+        $this->_endpoints = $providerList; 
         $filteredData = [];
         foreach ($data['carriers'] as $c) {
             foreach ($providerList as $p) {
@@ -456,7 +456,7 @@ class Module_Coreprime_Api extends Icargo
     }
 
     public function postToRateEngine($provider, $data)
-    {
+    { 
         $url = "";
         foreach ($this->_endpoints as $ep) {
             if ($ep['provider'] == $provider) {
@@ -474,9 +474,26 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
+        $server_output = curl_exec($ch); //print_r($server_output);die;
         curl_close($ch);
-		print_r($server_output);die;
+        return $server_output;
+    }
+    
+    public function postToRateEngineUrl($url, $data)
+    {                
+        $data_string = json_encode($data);
+        $ch = curl_init($url);
+        //echo $url;die('b');
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($data_string))
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $server_output = curl_exec($ch); print_r($server_output);die;
+        curl_close($ch);
         return $server_output;
     }
 
@@ -499,7 +516,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
+        $server_output = curl_exec($ch); 
         curl_close($ch);
         return $server_output;
     }
@@ -513,8 +530,8 @@ class Module_Coreprime_Api extends Icargo
         }
     }
 
-    public function doLabelCall($data)
-    {
+    /* public function doLabelCall($data)
+    { 
         $env = 'DEV';
         if (ENV == 'live')
             $env = 'PROD';
@@ -535,9 +552,11 @@ class Module_Coreprime_Api extends Icargo
             }
 
         }
-	//print_r($obj);
-	//print_r($providerList);exit('yati');
         return [];
+    } */
+    
+    public function doLabelCall($data)
+    { 
+        return $this->postToRateEngineUrl($data->providerInfo->endPointUrl,$data);
     }
-	
-	}
+}

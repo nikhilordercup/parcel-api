@@ -134,7 +134,7 @@ final class Coreprime_Ukmail extends Carrier /* implements CarrierInterface */
         }
   } */
 
-  public function getShipmentDataFromCarrier($loadIdentity,$allData = array())
+  public function getShipmentDataFromCarrier($loadIdentity,$rateDetail=array(),$allData = array())
     {
         $response     = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);

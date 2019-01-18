@@ -7,6 +7,8 @@ namespace v1\module\RateEngine;
  */
 
 use v1\module\RateEngine\tuffnells\TuffnellsLabels;
+use v1\module\RateEngine\postmen\ShipmentManager;
+use v1\module\RateEngine\ukmail\src\UkmailMaster;
 
 /**
  * Description of RateApiController
@@ -27,6 +29,7 @@ class RateApiController
     private $_taxRate = null;
     private $_requestData = null;
     private $_requestedServices = [];
+    private $_tempRateContainer = [];
 
     //put your code here
     private function __construct()
@@ -36,8 +39,8 @@ class RateApiController
 
     public static function initRoutes($app)
     {
-        $app->post('/rate-engine/getRate', function () use ($app) {
-            $r = json_decode($app->request->getBody());
+        $app->post('/rate-engine/getRate', function () use ($app) { 
+            $r = json_decode($app->request->getBody());  
             $controller = new RateApiController();
             $controller->_requestData = $r;
 //            $date = date('Y-m-d');
@@ -45,14 +48,25 @@ class RateApiController
             if (!isset($r->package) || count($r->package) == 0) {
                 $controller->_isSameDay = true;
             }
-            if (isset($r->label)) {
+            if (isset($r->label)) { 
                 $controller->_isLabelCall = true;
             }
-            if (!$controller->_isLabelCall) {
+            
+            $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
+            $callType = ($controller->_isLabelCall) ? 'LABEL':'RATE';                                                                              
+            $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
+              
+            
+            if (!$controller->_isLabelCall) 
+            {                 
+                $pd = $controller->_reateEngineModel->getServiceProvider($env,$callType,'PROVIDER', $r);
+                $controller->_tempRateContainer['postmen'] = $shipmentManagerObj->calculateRateAction($r, $pd);                
                 $controller->breakRequest($r);
-            } else {
-                $controller->getLabelProvider();
-            }
+            } 
+            else 
+            {  
+                $controller->getLabelProvider($r->providerInfo->provider);
+            }                                                
         });
     }
 
@@ -63,9 +77,9 @@ class RateApiController
         $toAddress = $param->to;
         $this->loadTaxRate($fromAddress);
 
-        foreach ($carriers as $c) {
+        foreach ($carriers as $c) {  
             foreach ($c->account as $a) {
-
+            
                 $ca = $this->_reateEngineModel
                     ->fetchCarrierByAccountNumber($a->credentials->account_number);
                 $this->_requestedServices[$a->credentials->account_number] = array_merge($this->_requestedServices[$a->credentials->account_number] ?? [], explode(',', $a->services));
@@ -99,11 +113,17 @@ class RateApiController
                     ];
                 }
             }
-        }
+        } 
         $this->getRates($this->_responseData);
         $this->applyPriceRules($param);
-        $this->addErrorMessages();
-        header('Content-Type: application/json');
+        $this->addErrorMessages();  
+         
+        $postmenRates = json_decode($this->_tempRateContainer['postmen'],TRUE);        
+        if(count($postmenRates) > 0)
+        {
+            $this->_responseData = $this->mergeOtherCarrierRates($this->_responseData, $postmenRates); 
+        }                
+        header('Content-Type: application/json'); 
         exit(json_encode($this->_responseData));
     }
 
@@ -296,14 +316,27 @@ class RateApiController
         unset($this->_responseData['accountInfo'], $this->_responseData['zone']);
     }
 
-    public function getLabelProvider()
-    {
-        if ('tuffnells' == 'tuffnells') {
-            $tuffnells = new TuffnellsLabels($this->_requestData);
-            $resp = $tuffnells->tuffnellLabelData($this->_requestData);
-			print_r($resp);die;
-            exit($resp);
-        }
+    /**
+    * If provider is not set then set it in db and add code for your provider
+    * @param String $provider
+    * @return type
+    */
+   public function getLabelProvider($provider='Local')
+   {
+        if($provider == 'Postmen'){ 
+           $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
+           $labelResponse = $shipmentManagerObj->createLabelAction($this->_requestData); 
+           return $this->createAndSavePdf($labelResponse);                                   
+        }elseif($provider == 'Ukmail'){ 
+           $ukmailObj = new UkmailMaster();
+           $resp = $ukmailObj::initRoutes($this->_requestData); 
+		   //print_r($resp);die;
+           exit($resp);
+        }else{ 
+           $tuffnells = new TuffnellsLabels($this->_requestData);
+           $resp = $tuffnells->tuffnellLabelData($this->_requestData); 
+           exit($resp);
+        }       
     }
 
     public function loadTaxRate($fromAddress)
@@ -327,6 +360,21 @@ class RateApiController
                 'tax_percentage' => $this->_taxRate['tax_factor_value'] ?? 0
             ];
         }
+    }
+    
+    public function mergeOtherCarrierRates($rateResponse, $rateResponse1)
+    {                
+        if(count($rateResponse1['rate']) > 0)
+        {
+            foreach($rateResponse1 as $rate => $rateData)
+            { 
+                foreach ($rateData as $c => $cdata) 
+                {                                        
+                    $rateResponse['rate'][$c] = $cdata;
+                }                                                
+            }
+        }        
+        return $rateResponse;
     }
 
 }

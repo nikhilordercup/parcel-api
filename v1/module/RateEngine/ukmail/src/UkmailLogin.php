@@ -1,7 +1,8 @@
 <?php
-require_once  __DIR__ . '/../../../../vendor/autoload.php';    
-include_once __DIR__ .'/../../../module/ukmail_api/src/Singleton/Singleton.php';
-include_once __DIR__ .'/model/UkMailModel.php';
+namespace v1\module\RateEngine\ukmail\src; 
+
+use v1\module\RateEngine\ukmail\src\Singleton\Singleton;
+use v1\module\RateEngine\ukmail\src\Model\UkMailModel;
             
 class UkmailLogin
 {
@@ -9,6 +10,7 @@ class UkmailLogin
     private $_db;
     private $_app;
     private $_requestParams;
+	private $_wsdlUrl;
     
     /**
      * FormConfiguration constructor.
@@ -17,41 +19,45 @@ class UkmailLogin
         $this->_db = new DbHandler();
         $this->_app = $app;
         $this->_requestParams=json_decode($this->_app->request->getBody());
+		if(ENV == 'dev')
+			$this->_wsdlUrl = 'https://qa-api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';
+		else
+			$this->_wsdlUrl = 'https://api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';	
     }
 	
 	public static function initRoutes($app){               
-        $app->post('/ukmailLogin', function() use ($app) {
+        /* $app->post('/ukmailLogin', function() use ($app) {
 			$loginResponse = self::doLogin($app);
 			echoResponse(200,$loginResponse);
-		});
+		}); */
     }
 
     public static function doLogin($app){
-		$app = json_decode($app->request->getBody());
-		verifyRequiredParams(array('username','password'),$app);
-		
-		$wsdl_url = 'https://qa-api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';              
-        $LoginWebRequest = new stdClass();
+		//$app = json_decode($app->request->getBody());
+		$app = new \stdClass();
+		$app->username = 'nikhil.kumar@ordercup.com';
+		$app->password = 'b85op06w';
+        $LoginWebRequest = new \stdClass();
         $LoginWebRequest->Username = $app->username;
         $LoginWebRequest->Password = $app->password;
-        $Login = new stdClass();
+        $Login = new \stdClass();
         $Login->loginWebRequest = $LoginWebRequest;
-
-        $soapClient = new SoapClient($wsdl_url);
+        
+		$wsdlUrl = 'https://qa-api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';
+        $soapClient = new \SoapClient($wsdlUrl);
         $LoginResponse = $soapClient->Login($Login); 
 		if(isset($LoginResponse->LoginResult->Errors->UKMWebError)){
 			return array("status"=>"error","auth_error_code"=>$LoginResponse->LoginResult->Errors->UKMWebError->Code,"auth_error_message"=>$LoginResponse->LoginResult->Errors->UKMWebError->Description,"message"=>$LoginResponse->LoginResult->Errors->UKMWebError->Description);
 		}else{
 			$AuthenticationToken = $LoginResponse->LoginResult->AuthenticationToken; 
-			error_log("Ukmail, Authentication key generated - ".$AuthenticationToken); 
 			// Update authenticationToken to database table carrier_user_token
 			if($AuthenticationToken != NULL)
 			{
 				error_log("Ukmail, Sent request to update db --- ");
-				$ukMailModel = UkMailModel::getInstance();
+				$ukMailModel = new UkMailModel();
 				$ukMailModel->updateAuthToDb($app->username, $AuthenticationToken);
 			}
-			return array("status"=>"success","message"=>$AuthenticationToken);
+			return array("status"=>"success","message"=>"auth token created successfully","authentication_token"=>$AuthenticationToken);
 		}
     }
 }

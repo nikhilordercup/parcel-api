@@ -739,7 +739,7 @@ class AllShipment_Model
         $sql .= " WHERE $basefilterString  $filter ";
         $sql .= " AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca' OR S.current_status = 'Cancel')";
         $sql .= " AND (`S`.`instaDispatch_loadGroupTypeCode` = 'SAME' OR `S`.`instaDispatch_loadGroupTypeCode` = 'NEXT')";
-        $sql .= " ORDER BY S.shipment_id DESC";
+        //$sql .= " ORDER BY S.shipment_id DESC";
         $sql .= " LIMIT $start, $end";
         //echo $sql;
         $record = $this->db->getAllRecords($sql);
@@ -764,6 +764,7 @@ class AllShipment_Model
         LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
         LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
         WHERE S.instaDispatch_loadIdentity IN ('$ticket_string')
+
         ORDER BY S.shipment_id DESC, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
         //#LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
 		//echo $sql;die;

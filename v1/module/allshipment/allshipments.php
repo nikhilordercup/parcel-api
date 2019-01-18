@@ -1588,11 +1588,47 @@ class allShipments extends Icargo
 
 	}
 
-	public function cancelShipmentByLoadIdentity($param){
+	public function cancelShipmentByLoadIdentity($param){ 
             $carrierObj = new Carrier();
-            $carrier_code = $param->carrier_code;
-            if(strtolower($carrier_code) == 'dhl') {
-                return $this->_updateShipmentCancel($param);
+            $carrier_code = $param->carrier_code; 
+            $comObj = new \Common();            
+            $data = [];
+            $data['carriers'][] = array(
+                'name' => $param->carrier_code
+            );            
+            $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
+            $callType = 'LABEL';
+            $pd = $comObj->getServiceProvider($env,$callType,$data);              
+            if(strtolower($carrier_code) == 'dhl') 
+            {                                                  
+                if(isset($pd['Postmen']) && count($pd['Postmen'])) 
+                { 
+                    $labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
+                    if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' )
+                    { 
+                        $labelArr = json_decode($labelInfo[0]['label_json']);
+                        $labelId = (isset($labelArr->label->id)) ? $labelArr->label->id : ''; 
+                        if($labelId == ''){return array("status"=>"error","message"=>"cancel request not completed by postmen");}
+                        $requestObj = new stdClass();
+                        $requestObj->label = new stdClass();
+                        $requestObj->label->id = $labelId;                                    
+                        $shipmentManagerObj = v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
+                        $result = $shipmentManagerObj->cancelLabelAction($requestObj); 
+                        $resultObj = json_decode($result);                    
+                        if(isset($resultObj->id) && $resultObj->id != '' && $resultObj->status == 'cancelled')
+                        { 
+                            return $this->_updateShipmentCancel($param);                        
+                        }
+                        else
+                        { 
+                            return array("status"=>"error","message"=>"cancel request not completed by postmen");
+                        }
+                    }
+                }
+                else
+                {
+                    return $this->_updateShipmentCancel($param);
+                }                                                                                
             }elseif(strtolower($carrier_code) == 'ukmail') {
                 $cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($param);
                 $cancelShipment = json_decode($cancelShipment);
@@ -1608,7 +1644,7 @@ class allShipments extends Icargo
             }
 	}
 
-    private function _updateShipmentCancel($param) {
+    private function _updateShipmentCancel($param) { 
             //update shipment status as cancel in shipment service table
             $updateStatus = $this->modelObj->editContent("shipment_service",array("status"=>"cancel"),"load_identity='".$param->load_identity."'");
             if($updateStatus)
@@ -1939,17 +1975,17 @@ class allShipments extends Icargo
         }
        return $returnarray;
  }
-    public function cancelJob($param){
+    public function cancelJob($param){ 
         $returnData = array();
         $company_id         = $param->company_id;
         $userId             = $param->user;
-        if(is_array($param->job_identity) && count($param->job_identity)>0){
-          foreach($param->job_identity as $valdata){
+        if(is_array($param->job_identity) && count($param->job_identity)>0){ 
+          foreach($param->job_identity as $valdata){              
              $shipment_type =  $this->modelObj->getShipmentsType($valdata);
              if($shipment_type and $shipment_type['shipment_type']!=''){
                 if($shipment_type['shipment_type']=='NEXT'){
 					$carrier_code = $this->modelObj->getCarrierCodeByLoadIdentity($valdata);//$this->modelObj->getCarrierByLoadIdentity($valdata);
-                    $tempdata = array();
+                    $tempdata = array(); 
                     $tempdata['load_identity']  = $valdata;
                     $tempdata['carrier']        = $carrier_code;//$shipment_type['code'];
                     $tempdata['ship_date']      = date('Y-m-d',strtotime($shipment_type['booking_date']));
@@ -2142,5 +2178,5 @@ public function getNextDayCarriersofCompany($param){
         }
         return $shipmentInstructions;
     }
-}
+        }
 ?>

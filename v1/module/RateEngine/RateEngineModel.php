@@ -369,15 +369,23 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
     }
 
     public function getProviderInfo($callType,$env,$providerType='ENDPOINT')
-    { 
+    {
+        $providerClause =' EP.provider';
+        $providerTypeClause =' EP.provider_type';
+        if($providerType == 'PROVIDER')
+        {
+            $providerClause =' SP.provider';
+            $providerTypeClause =' SP.provider_type';
+        }
+            
             $query = "SELECT CSP.request_type,C.code, SP.rate_endpoint,SP.label_endpoint,SP.app_env,
-						EP.provider_type, EP.provider 
-						FROM `icargo_carrier_service_provider` AS CSP
-						LEFT JOIN icargo_courier AS C ON C.id=CSP.carrier_id
-						LEFT JOIN icargo_service_providers AS SP ON SP.id =CSP.provider_id
-						LEFT JOIN icargo_service_providers AS EP ON EP.id=CSP.provider_endpoint_id
-						WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND CSP.request_type='$callType' AND SP.app_env='$env'
-						";
+					$providerTypeClause, $providerClause 
+					FROM `icargo_carrier_service_provider` AS CSP
+					LEFT JOIN icargo_courier AS C ON C.id=CSP.carrier_id
+					LEFT JOIN icargo_service_providers AS SP ON SP.id =CSP.provider_id
+					LEFT JOIN icargo_service_providers AS EP ON EP.id=CSP.provider_endpoint_id
+					WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND CSP.request_type='$callType' AND SP.app_env='$env'
+					";
         return $this->_db->getAllRecords($query);
     }
     public function iso3Toiso2($iso3){
@@ -470,5 +478,19 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         $sql="SELECT T.* FROM ".DB_PREFIX."countries AS C LEFT JOIN 
                 ".DB_PREFIX."tax_details AS T ON C.id=T.country_id WHERE C.alpha2_code='$iso'";
         return $this->_db->getOneRecord($sql);
+    }
+    
+    public function getServiceProvider($env='DEV', $callType, $type, $data)
+    {             
+        $providerList = $this->getProviderInfo($callType, $env,$type); 
+        $this->_endpoints = $providerList; 
+        $filteredData = [];
+        foreach ($data->carriers as $c) {
+            foreach ($providerList as $p) {
+                if ($p['code'] == $c->name)
+                    $filteredData[$p['provider']][] = $c;
+            }
+        }                        
+        return $filteredData;
     }
 }

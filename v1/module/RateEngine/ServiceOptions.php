@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by PhpStorm.
  * User: perce
@@ -7,7 +6,6 @@
  * Time: 05:37 PM
  */
 namespace v1\module\RateEngine;
-
 class ServiceOptions
 {
     private $_serviceOptions = null;
