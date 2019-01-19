@@ -75,7 +75,7 @@ class Module_Package_Index extends Icargo
 
             $this->modelObj->commitTransaction();
 
-            return array("status"=>"success", "message"=>"Package saved successfully","package_lists"=>$this->_getPackages($param->customer_id));
+            return array("status"=>"success", "message"=>"Package saved successfully","package_lists"=>$this->_getPackages($param->collection_user_id, $param->customer_id));
         }catch(Exception $e){print_r($e);die;
             $this->modelObj->rollBackTransaction();
             return array("status"=>"error", "message"=>"Package not saved. Record rollback.");
@@ -84,12 +84,12 @@ class Module_Package_Index extends Icargo
 
     private
 
-    function _getPackages($user_id){
-        return $this->modelObj->getParcelPackageByUserId($user_id);
+    function _getPackages($user_id, $customer_id){
+        return $this->modelObj->getParcelPackageByUserId($user_id, $customer_id);
     }
 
     public
     function getPackages($param){
-        return $this->_getPackages($param->user_id);
+        return $this->_getPackages($param->user_id, $param->created_by);
     }
 }
