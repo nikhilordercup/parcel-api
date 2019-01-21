@@ -220,7 +220,7 @@ class Tracking_Model_Index
 
     function findTrackingById($load_identity, $code, $tracking_id, $tracking_code, $carrier, $origin)
     {
-        $sql = "SELECT COUNT(1) AS num_count FROM " . DB_PREFIX . "shipment_tracking WHERE load_identity='$load_identity' AND code='$code' AND tracking_id='$tracking_id' AND tracking_code='$tracking_code' AND carrier='$carrier' AND origin='$origin'";
+        $sql = "SELECT * FROM " . DB_PREFIX . "shipment_tracking WHERE load_identity='$load_identity' AND code='$code' AND tracking_id='$tracking_id' AND tracking_code='$tracking_code' AND carrier='$carrier' AND origin='$origin'";
         return $this->_db->getOneRecord($sql);
     }
 
@@ -299,4 +299,44 @@ class Tracking_Model_Index
     {
         return $this->_db->update("shipment_tracking", $param, "id='$id'");
     }
+
+    public
+
+    function getDhlTrackingId()
+    {
+      $sql = "SELECT CT.code AS carrier_code, ST.load_identity, ST.label_tracking_number AS tracking_number FROM " . DB_PREFIX . "shipment_service AS ST INNER JOIN " . DB_PREFIX . "courier_vs_company AS CCT ON ST.carrier=CCT.id AND ST.tracking_code<>'DELIVERED' AND ST.status<>'cancel' INNER JOIN " . DB_PREFIX . "courier AS CT ON CT.id=CCT.courier_id AND CT.code='DHL'";
+      return $this->_db->getAllRecords($sql);
+    }
+
+    public
+
+    function findDeliveryShipmentlByLoadIdentity($load_identity)
+    {
+        $sql = "SELECT * FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity='$load_identity' AND shipment_service_type= 'D'";
+        return $this->_db->getRowRecord($sql);
+    }
+
+    public
+
+    function savePod($param)
+    {
+        return $this->_db->save("shipments_pod", $param);
+    }
+
+    public
+
+    function updatePod($param, $pod_id)
+    {
+        return $this->_db->update("shipments_pod", $param, "pod_id='$pod_id'");
+    }
+
+    public
+
+    function findPodByTrackingId($tracking_id)
+    {
+        $sql = "SELECT COUNT(1) AS num_count FROM " . DB_PREFIX . "shipments_pod WHERE tracking_id='$tracking_id'";
+        echo $sql; echo "<br>";
+        return $this->_db->getOneRecord($sql);
+    }
+
 }

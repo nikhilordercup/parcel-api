@@ -257,10 +257,12 @@ class RateEngineModel
 
     public function searchUkPost($rec, $zip, $surcharge = false)
     {
+        //$zip=strtolower($zip);
         if ($zip == trim($zip) && strpos($zip, ' ') == false) {
             $zip = substr_replace($zip, ' ', -3, -3);
         }
         foreach ($rec as $r) {
+		//$r=strtolower($r);
             if(isset($r['level']) && $r['level']!='Post Code'){
                 continue;
             }

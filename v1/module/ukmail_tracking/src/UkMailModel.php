@@ -15,7 +15,18 @@ class UkMailModel extends Singleton
     );
     
     public static $PodDeliveryTypeCode = array(
-        'DT01' => 'signature'
+        'DT01' => 'signature',
+        'DT02' => 'There was no answer at the address and the parcels have been left in the porch.',
+        'DT03' => 'There was no answer at the address and the parcels have been left behind the gate.',
+        'DT04' => 'There was no answer at the address and the parcels have been left in the shed.',
+        'DT05' => 'There was no answer at the address and the parcels have been left in the garage.',
+        'DT06' => 'There was no answer at the address and the parcels have been left with the porter/caretaker.',
+        'DT07' => 'There was no answer at the address and the parcels have been left in the conservatory.',
+        'DT09' => 'There was no answer at the address and the parcels have been left in another secure location. The secure location where the parcels have been left will be displayed in the comments field.',
+        'DT10' => 'There was no answer at the address and the parcels have been left with a neighbour. The recipient name will be the name of the neighbour. The signature image will be the signature of the neighbour. The comments will contain the house number of the neighbour.',
+        'DT11' => 'The recipient has missed a delivery attempt, has been left a card and has then chosen to have the parcels left in the safe place they have specified for the 2 nd delivery attempt. The signature image will be a scanned in copy of the card where the customer has given signed authority to leave in a safe place and specified the location of the safe place.',
+        'DT12' => 'Unknown status',
+        'DT13' => 'Leave your parcel in a safe place.'        
     );
     
     const UKMAIL = 2;

@@ -3,6 +3,8 @@
 //ini_set("display_errors", 0);
 ini_set('date.timezone', 'Europe/London');
 
+//date_default_timezone_set('UTC');
+
 require_once 'constant.php';
 require_once '../Credentials.php';
 require_once 'passwordHash.php';
