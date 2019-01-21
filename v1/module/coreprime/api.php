@@ -16,6 +16,8 @@ class Module_Coreprime_Api extends Icargo
             "access_url" => "http://api.icargo.in/v1/RateEngine/getRate"
         )
     );
+    
+    private $_doLabelCancel = false;
 
     public
 
@@ -52,12 +54,19 @@ class Module_Coreprime_Api extends Icargo
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
         }
 
+        if(isset($data->doLabelCancel))
+        {
+            $this->_doLabelCancel = true; 
+            $label=$this->doLabelCall($data);
+            return $label;
+        }
+        
         if (isset($data->label)) {
             $this->_isLabelCall = true;
             $label=$this->doLabelCall($data);
             return $label;
         } 
-        $pd = $this->filterServiceProvider($data);
+        $pd = $this->filterServiceProvider($data); 
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
             $cpData = $data;
@@ -482,8 +491,7 @@ class Module_Coreprime_Api extends Icargo
     public function postToRateEngineUrl($url, $data)
     {                
         $data_string = json_encode($data);
-        $ch = curl_init($url);
-        //echo $url;die('b');
+        $ch = curl_init($url);        
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -492,7 +500,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch); print_r($server_output);die;
+        $server_output = curl_exec($ch);
         curl_close($ch);
         return $server_output;
     }
@@ -556,7 +564,8 @@ class Module_Coreprime_Api extends Icargo
     } */
     
     public function doLabelCall($data)
-    { 
-        return $this->postToRateEngineUrl($data->providerInfo->endPointUrl,$data);
+    {   
+		$res = $this->postToRateEngineUrl($data->providerInfo->endPointUrl,$data);         
+		return ($res) ? $res : [];
     }
 }

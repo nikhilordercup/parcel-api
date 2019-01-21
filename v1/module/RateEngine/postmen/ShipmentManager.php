@@ -12,7 +12,8 @@ class ShipmentManager extends PostMenMaster
         $app->post('/postmen/calculateRate', function () use ($app) {              
             $request = json_decode($app->request->getBody());    
             $shipmentManagerObj = self::getShipmentManagerObj(); 
-            $result = $shipmentManagerObj->calculateRateAction($request); 
+            $pd = array('Postmen'=>'');
+            $result = $shipmentManagerObj->calculateRateAction($request,$pd); 
             echo $result;die;
         });
         
@@ -66,7 +67,10 @@ class ShipmentManager extends PostMenMaster
             echo $result;die;
         });
     }
-          
+      /**
+       * 
+       * @return ShipmentManager
+       */    
     public static function getShipmentManagerObj()
     {
         if(!self::$shipmentManagerObj instanceof ShipmentManager)
@@ -96,9 +100,9 @@ class ShipmentManager extends PostMenMaster
                 return array();
     }
 
-    public function calculateRateAction($request, $pd)
-    {       
-        if( !(isset($pd['Postmen'])) || !(count($pd['Postmen'])) )
+    public function calculateRateAction($request, $pd=array())
+    {      
+        if(!isset($pd['Postmen']))
         {
             return json_encode(array());
         }
@@ -304,28 +308,28 @@ class ShipmentManager extends PostMenMaster
         $toAddress = $this->convertAddress($request->to);    
         
         //For Address test
-        $fromAddress['contact_name'] = 'Nikhil Kumar';
-        $fromAddress['phone']= '7595590074';
-        $fromAddress['company_name']= 'Perceptive Consulting Solutions';
-        $fromAddress['street1'] = '6 York Way';
-        $fromAddress['city']= 'Northampton';
-        $fromAddress['state']= 'KZ';
-        $fromAddress['country'] = 'GBR';
-        $fromAddress['email']= 'test@test.test'; 
-        $fromAddress['type']= 'business'; 
-        $fromAddress['postal_code']= 'NN5 6UX';
-        
-        
-        $toAddress['contact_name'] = 'Rick McLeod (RM Consulting)';
-        $toAddress['phone']= '1-403-504-5496';
-        $toAddress['company_name']= 'IHS Markit';
-        $toAddress['street1'] = '71 Terrace Crescent NE';
-        $toAddress['city']= 'Medicine Hat';
-        $toAddress['state']= 'Alberta';
-        $toAddress['country'] = 'CAN';
-        $toAddress['email']= 'test@test.test'; 
-        $toAddress['type']= 'business'; 
-        $toAddress['postal_code']= 'T1C1Z9';
+//        $fromAddress['contact_name'] = 'Nikhil Kumar';
+//        $fromAddress['phone']= '7595590074';
+//        $fromAddress['company_name']= 'Perceptive Consulting Solutions';
+//        $fromAddress['street1'] = '6 York Way';
+//        $fromAddress['city']= 'Northampton';
+//        $fromAddress['state']= 'KZ';
+//        $fromAddress['country'] = 'GBR';
+//        $fromAddress['email']= 'test@test.test'; 
+//        $fromAddress['type']= 'business'; 
+//        $fromAddress['postal_code']= 'NN5 6UX';
+//        
+//        
+//        $toAddress['contact_name'] = 'Rick McLeod (RM Consulting)';
+//        $toAddress['phone']= '1-403-504-5496';
+//        $toAddress['company_name']= 'IHS Markit';
+//        $toAddress['street1'] = '71 Terrace Crescent NE';
+//        $toAddress['city']= 'Medicine Hat';
+//        $toAddress['state']= 'Alberta';
+//        $toAddress['country'] = 'CAN';
+//        $toAddress['email']= 'test@test.test'; 
+//        $toAddress['type']= 'business'; 
+//        $toAddress['postal_code']= 'T1C1Z9';
         
         
         $package = $this->convertPackage($request->package[0],$request->currency);                                         
@@ -347,8 +351,9 @@ class ShipmentManager extends PostMenMaster
         $others['custom_paid_by'] = 'recipient';
         $others['account_number'] = (isset($request->billing_account->billing_account) && $request->billing_account->billing_account != '') ? $request->billing_account->billing_account : ''; 
         $others['type'] = 'account';
-        $others['purpose'] = 'merchandise';                
-        $serviceDetail = $this->getServiceCodeMapped($request->service,FALSE); // ui se false api se true  
+        $others['purpose'] = 'merchandise';        
+        $directlyCallForPostmen = ($request->directlyCallForPostmen == "false") ? FALSE : TRUE;        
+        $serviceDetail = $this->getServiceCodeMapped($request->service,$directlyCallForPostmen); // ui se false api se true  
                 
         $others['service_type'] = $serviceDetail['provServiceCode'];        
         $others['paper_size'] = (isset($request_options->size) && $request_options->size != '') ? $request_options->size : 'default';
@@ -363,15 +368,19 @@ class ShipmentManager extends PostMenMaster
         {             
             $labelResponse = $this->createLabel($payload); 
             if($labelResponse)
-            {
+            { 
                 $this->formatCreateLabelResponse($labelResponse);
+                if(!$directlyCallForPostmen)
+                {
+                    $res = $this->createAndSavePdf($request);                   
+                    exit(json_encode($res));
+                }
             }
             else
             {                
                 $this->getErrorDetails();
             }            
-            header('Content-Type: application/json'); 
-            return json_encode($this->responseData); 
+            exit(json_encode($this->responseData)); 
         }
         catch(exception $e) 
         {            
@@ -403,14 +412,14 @@ class ShipmentManager extends PostMenMaster
     }
 
     public function cancelLabelAction($request)
-    {              
+    {         
         $labelId = $request->label->id;
         $payload = array (
             'label' => array (
                 'id' => $labelId
             )            
         );        
-        $result = $this->cancelLabel($payload);               
+        $result = $this->cancelLabel($payload);         
         if($result)
         {                      
             $this->responseData['id'] = $result->id;
@@ -423,8 +432,7 @@ class ShipmentManager extends PostMenMaster
         { 
             $this->getErrorDetails();                     
         }           
-        header('Content-Type: application/json'); 
-        return json_encode($this->responseData);
+        exit(json_encode($this->responseData));        
     }
     
     public function getErrorDetails()
@@ -714,5 +722,57 @@ class ShipmentManager extends PostMenMaster
             ->where('alpha2_code','=',$alpha2)                                             
             ->first();         
         return $res->alpha3_code;
+    }
+    
+    public function createAndSavePdf($request)
+    {        
+        $labelArr = $this->responseData;          
+        if( isset($labelArr['label']) ) 
+        {
+            $pdf_base64 = $labelArr['label']['base_encode'];
+            $labels = explode(",", $labelArr['label']['file_url']);                        
+            $label_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/label/';                                                                        
+            $loadIdentity = $request->loadIdentity;
+            $carrier = $request->carrier;          
+            $file_url = mkdir($label_path . $loadIdentity .'/'.$carrier.'/', 0777, true);
+            
+            foreach ($labels as $dataFile) {                
+                $dataFile = $loadIdentity . '.pdf';                
+                $file_name = $label_path . $loadIdentity .'/'.$carrier.'/'. $dataFile;
+                $data = base64_decode($pdf_base64);
+                file_put_contents($file_name, $data);
+                header('Content-Type: application/pdf');
+            }
+            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            unset($labelArr['label']['base_encode']);
+            $res =  array(
+                    "status" => "success",
+                    "message" => "label generated successfully",
+                    "label" => $labelArr['label'],
+                    "file_loc"=>$file_name,
+                    "file_path" => $fileUrl . "/label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',
+                    "label_tracking_number"=>$labelArr['label']['tracking_number'],
+                    "label_files_png" => '',
+                    "label_json" =>json_encode($labelArr),
+                    "callFromPostmen" =>"true"
+            );         
+           return $res;
+        }        
+    }
+    
+    public function getFormatedCancelLabelRequest($rawRequest)
+    {        
+        $carrierObj = new \Carrier();
+        $labelInfo = $carrierObj->getLabelByLoadIdentity($rawRequest->load_identity);
+        if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' )
+        {
+            $labelArr = json_decode($labelInfo[0]['label_json']);
+            $labelId = (isset($labelArr->label->id)) ? $labelArr->label->id : ''; 
+            if($labelId == ''){return array("status"=>"error","message"=>"cancel request not completed by postmen");}
+            $requestObj = new \stdClass(); 
+            $requestObj->label = new \stdClass();
+            $requestObj->label->id = $labelId;    
+        }
+        return $requestObj;
     }
 }

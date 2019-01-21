@@ -1,8 +1,6 @@
 <?php
 namespace v1\module\RateEngine\ukmail\src\model; 
 
-use v1\module\RateEngine\ukmail\src\Singleton\Singleton;
-
 class UkMailModel
 {                
     /**
@@ -44,10 +42,8 @@ class UkMailModel
         $res = $this->db->getAllRecords($q1);                         
         if(count($res) > 0)
         {
-            $q = "UPDATE `".DB_PREFIX."carrier_user_token` 
-                   SET `authentication_token` = '$authenticationKey' 
-                   ,`authentication_token_expire_at` =  DATE_ADD( NOW(), INTERVAL 24 HOUR )
-                   WHERE  `username` =  '$username' ";              
+            $q = "UPDATE `".DB_PREFIX."carrier_user_token` SET `authentication_token` = '$authenticationKey',`authentication_token_expire_at`= NOW(),`authentication_token_expire_at`= DATE_ADD(NOW(),INTERVAL 24 HOUR) 
+                  WHERE  `username` =  '$username' ";              
             $this->db->updateData($q);
         }
         else
@@ -299,6 +295,17 @@ class UkMailModel
                    ";        
         $credentials = $this->db->getAllRecords($query1);                         
         return (count($credentials) > 0) ? $credentials[0]:array();
+    }
+	/**
+     * This function returns authentication token if authentication token is not expired.
+     * @return String
+     */
+	public function getValidAuthTokenByUsernameAndCarrier($username, $carrier)
+    {
+        $query1 = "select authentication_token from ".DB_PREFIX."carrier_user_token
+                   where carrier = '$carrier' AND username = '$username' AND authentication_token_expire_at > NOW()";        
+        $record = $this->db->getOneRecord($query1);                         
+        return $record['authentication_token'];
     }
 }
 ?>

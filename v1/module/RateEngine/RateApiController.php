@@ -9,7 +9,7 @@ namespace v1\module\RateEngine;
 use v1\module\RateEngine\tuffnells\TuffnellsLabels;
 use v1\module\RateEngine\postmen\ShipmentManager;
 use v1\module\RateEngine\ukmail\src\UkmailMaster;
-
+use v1\Library;
 /**
  * Description of RateApiController
  *
@@ -30,7 +30,8 @@ class RateApiController
     private $_requestData = null;
     private $_requestedServices = [];
     private $_tempRateContainer = [];
-
+    private $_doLabelCancel= false;
+    
     //put your code here
     private function __construct()
     {
@@ -51,21 +52,27 @@ class RateApiController
             if (isset($r->label)) { 
                 $controller->_isLabelCall = true;
             }
-            
+                        
             $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
             $callType = ($controller->_isLabelCall) ? 'LABEL':'RATE';                                                                              
-            $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
-              
+                                      
+            if(isset($r->providerInfo) && $r->providerInfo->provider == 'Postmen' && isset($r->doLabelCancel))
+            { 
+                $controller->_doLabelCancel = true;
+                $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();                                
+                $formatedRequest = $shipmentManagerObj->getFormatedCancelLabelRequest($r);                                
+                $shipmentManagerObj->cancelLabelAction($formatedRequest);                  
+            }
             
             if (!$controller->_isLabelCall) 
-            {                 
+            {                                
                 $pd = $controller->_reateEngineModel->getServiceProvider($env,$callType,'PROVIDER', $r);
-                $controller->_tempRateContainer['postmen'] = $shipmentManagerObj->calculateRateAction($r, $pd);                
+                $controller->_tempRateContainer['postmen'] = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj()->calculateRateAction($r, $pd);                
                 $controller->breakRequest($r);
             } 
             else 
-            {  
-                $controller->getLabelProvider($r->providerInfo->provider);
+            {                
+                $controller->getLabelProvider();
             }                                                
         });
     }
@@ -321,17 +328,16 @@ class RateApiController
     * @param String $provider
     * @return type
     */
-   public function getLabelProvider($provider='Local')
-   {
+   public function getLabelProvider()
+   { 
+	    $provider = isset($this->_requestData->providerInfo->provider) ? $this->_requestData->providerInfo->provider : "Local"; 
         if($provider == 'Postmen'){ 
-           $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();
-           $labelResponse = $shipmentManagerObj->createLabelAction($this->_requestData); 
-           return $this->createAndSavePdf($labelResponse);                                   
-        }elseif($provider == 'Ukmail'){ 
+           $this->_requestData->directlyCallForPostmen = "false";            
+            \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj()->createLabelAction($this->_requestData);                                  
+        }elseif($provider == 'Ukmail'){
            $ukmailObj = new UkmailMaster();
-           $resp = $ukmailObj::initRoutes($this->_requestData); 
-		   //print_r($resp);die;
-           exit($resp);
+           $ukmailObj::initRoutes($this->_requestData); 
+		   exit;
         }else{ 
            $tuffnells = new TuffnellsLabels($this->_requestData);
            $resp = $tuffnells->tuffnellLabelData($this->_requestData); 
@@ -376,5 +382,5 @@ class RateApiController
         }        
         return $rateResponse;
     }
-
+    
 }

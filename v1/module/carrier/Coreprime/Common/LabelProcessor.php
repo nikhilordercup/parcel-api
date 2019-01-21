@@ -20,7 +20,7 @@ class LabelProcessor
 
     private function _getLabel($loadIdentity, $json_data,$child_account_data)
     {
-        $json_data = json_decode($json_data); 
+        $json_data = json_decode($json_data);
         $app = new \Slim\Slim();
         $request = json_decode($app->request->getBody());
         $json_data->email = $request->email;
@@ -30,13 +30,19 @@ class LabelProcessor
         $label = $obj->_postRequest($json_data);
 		
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
-        $labelArr = $labelArr['label'];
+        $labelArr = $labelArr['label'];  
         if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
             $labelArr['label_tracking_number'] = $labelArr['tracking_number'];
-            $labelArr['label_files_png'] = $labelArr['label_json'] = '';
-        }
+            $labelArr['label_json'] = $labelArr['label_json'];
+            $labelArr['label_files_png'] = isset($labelArr['label_files_png']) ?  $labelArr['label_files_png'] : "";
+            if($json_data->carrier=='Tuffnells'){
+				$labelArr['label_json'] = '';
+			}elseif($json_data->carrier=='UKMAIL'){
+				$labelArr['child_account_data'] = $child_account_data;
+			}
+        } 
         return $labelArr;
     }
 
@@ -88,6 +94,7 @@ class LabelProcessor
         $response['package'] = $this->getPackageInfo($loadIdentity);
         $serviceInfo = $this->getServiceInfo($loadIdentity);
         $delivery_instruction = $this->modelObj->getDeliveryInstructionByLoadIdentity($loadIdentity);
+		$pickup_instruction   = $this->modelObj->getPickupInstructionByLoadIdentity($loadIdentity);
         $response['currency'] = $serviceInfo['currency'];
         $response['service'] = $serviceInfo['service_code'];
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
@@ -116,6 +123,7 @@ class LabelProcessor
             "auto_return" => "",
             "return_service_id" => "",
             "special_instruction" => $delivery_instruction['shipment_instruction'],
+			"pickup_instruction" => $pickup_instruction['shipment_instruction'],
             "custom_desciption" => $serviceInfo['customer_reference1'],
             "custom_desciption2" => $serviceInfo['customer_reference2'],
             "custom_desciption3" => "",

@@ -46,21 +46,24 @@ class Carrier{
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
 		$deliveryCarrier = $shipmentInfo['carrier_code']; 
-        $providerInfo = $this->modelObj->getProviderInfo('LABEL',ENV,'PROVIDER',$shipmentInfo['carrier_code']);         
+        $providerInfo = $this->modelObj->getProviderInfo('LABEL',ENV,'PROVIDER',$shipmentInfo['carrier_code']); //to check provider and endpoint of carrier        
         global $_GLOBAL_CONTAINER;
-        
-        if($providerInfo['endpoint']=='Coreprime'){
-            $coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
-        }else{ 
-            $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
-            $allData->providerInfo = array(
-                    'provider' => $providerInfo['provider'],
-                    'endPointUrl' => $providerInfo['label_endpoint'], //url to hit rate api controller
-                );
-        }
+        if($providerInfo!=''){
+			if($providerInfo['endpoint']=='Coreprime'){
+				$coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
+			}else{ 
+				$coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
+				$allData->providerInfo = array(
+						'provider' => $providerInfo['provider'],
+						'endPointUrl' => $providerInfo['label_endpoint'], //url to hit rate api controller
+					);
+			}
+		}else{
+			$coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier)); //if provider/endpoint configuration is not set in DB by default for ukmail/dhl it will hit to coreprime
+		}
+		
 		$carrierObj = new $coreprimeCarrierClass($this); 
         $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$rateDetail,$allData);
-        
 		if( $shipmentInfo['status'] == 'success' ) {
 			$invoice_created = (isset($shipmentInfo['invoice_created'])) ? $shipmentInfo['invoice_created'] : 0;
 			if(isset($shipmentInfo['child_account_data'])){
