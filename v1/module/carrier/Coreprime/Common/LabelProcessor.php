@@ -22,11 +22,7 @@ class LabelProcessor
     {
         $json_data = json_decode($json_data);
         $app = new \Slim\Slim();
-        $request = json_decode($app->request->getBody());
-        $json_data->email = $request->email;
-        $json_data->access_token = $request->access_token;
         $obj = new \Module_Coreprime_Api($json_data);
-
         $label = $obj->_postRequest($json_data);
 		
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
@@ -159,6 +155,8 @@ class LabelProcessor
         $response['label'] = array();
         $response['providerInfo'] = $allData->providerInfo;
         $response['method_type'] = "post";
+		$response['access_token'] = $allData->access_token;
+		$response['email'] = $allData->email;
 
         return $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);
         //return $response;

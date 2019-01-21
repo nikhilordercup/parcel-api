@@ -108,8 +108,12 @@ class UkmailGenerateLabel
 		$libObj = new \Library();
 		$pdf_base64 = $labelArr['label']['base_encode'];
 		$files = array();
-		foreach($pdf_base64 as $key=>$value){
-			array_push($files,$labelArr['label']['tracking_number'].$key.'.png');
+		if(is_array($pdf_base64)){
+			foreach($pdf_base64 as $key=>$value){
+				array_push($files,$labelArr['label']['tracking_number'].$key.'.png');
+			}
+		}else{
+			$files = array($labelArr['label']['tracking_number'].'1.png');
 		}
 
 		$label_path = ROOT_DIR.DIRECTORY_SEPARATOR.'label';
