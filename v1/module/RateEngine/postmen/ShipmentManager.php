@@ -163,7 +163,8 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['rate']['id'] = '';
                 $innerRate['rate']['carrier_name'] = $rate->shipper_account->slug;
                 
-                $serviceDetail = $this->getServiceCodeMapped($rate->service_type);                   
+                $serviceDetail = $this->getServiceCodeMapped($rate->service_type);   
+                if(count($serviceDetail) == 0){continue;}
                 $innerRate['rate']['service_name'] = $serviceDetail['service_name'];
                 $innerRate['rate']['service_code'] = $serviceDetail['service_code'];
                 $rate->service_type = $serviceDetail['service_code'];
@@ -306,32 +307,7 @@ class ShipmentManager extends PostMenMaster
     {                               
         $fromAddress = $this->convertAddress($request->from);                
         $toAddress = $this->convertAddress($request->to);    
-        
-        //For Address test
-//        $fromAddress['contact_name'] = 'Nikhil Kumar';
-//        $fromAddress['phone']= '7595590074';
-//        $fromAddress['company_name']= 'Perceptive Consulting Solutions';
-//        $fromAddress['street1'] = '6 York Way';
-//        $fromAddress['city']= 'Northampton';
-//        $fromAddress['state']= 'KZ';
-//        $fromAddress['country'] = 'GBR';
-//        $fromAddress['email']= 'test@test.test'; 
-//        $fromAddress['type']= 'business'; 
-//        $fromAddress['postal_code']= 'NN5 6UX';
-//        
-//        
-//        $toAddress['contact_name'] = 'Rick McLeod (RM Consulting)';
-//        $toAddress['phone']= '1-403-504-5496';
-//        $toAddress['company_name']= 'IHS Markit';
-//        $toAddress['street1'] = '71 Terrace Crescent NE';
-//        $toAddress['city']= 'Medicine Hat';
-//        $toAddress['state']= 'Alberta';
-//        $toAddress['country'] = 'CAN';
-//        $toAddress['email']= 'test@test.test'; 
-//        $toAddress['type']= 'business'; 
-//        $toAddress['postal_code']= 'T1C1Z9';
-        
-        
+                       
         $package = $this->convertPackage($request->package[0],$request->currency);                                         
         $isDocument = (isset($request->extra->is_document) && strtolower($request->extra->is_document) == "true") ? TRUE : FALSE;        
         $returnShipment = (isset($request->extra->return_shipment) && strtolower($request->extra->return_shipment) == "true") ? TRUE : FALSE;

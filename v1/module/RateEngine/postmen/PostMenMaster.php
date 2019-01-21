@@ -42,7 +42,7 @@ abstract class PostMenMaster extends Postmen
             $finalAddress['phone']= $address->phone;
         }
         
-        if( (isset($address->company_name)) && $address->company_name != '')
+        if( (isset($address->company)) && $address->company != '')
         {
             $finalAddress['company_name']= $address->company;
         }
