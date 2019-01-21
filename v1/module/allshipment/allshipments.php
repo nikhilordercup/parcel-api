@@ -1596,27 +1596,14 @@ class allShipments extends Icargo
             $data['carriers'][] = array(
                 'name' => $param->carrier_code
             );            
-            $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
-            $callType = 'LABEL';                          
+            $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';               
+            $bookingObj = new Booking_Model_Booking();
+            $providerInfo = $bookingObj->getProviderInfo('LABEL',$env,'PROVIDER',$param->carrier);                
             if(strtolower($carrier_code) == 'dhl') 
-            {                         
-                $bookingObj = new Booking_Model_Booking();
-                $providerInfo = $bookingObj->getProviderInfo('LABEL',$env,'PROVIDER',$param->carrier);
+            {                                         
                 if($providerInfo['provider'] == 'Postmen')
-                {
-                    $json_data = new stdClass();
-                    $json_data->email = $param->email;
-                    $json_data->access_token = $param->access_token;  
-                    $json_data->carrier = $param->carrier;                    
-                    $json_data->doLabelCancel = "true";                                                              
-                    $json_data->load_identity = $param->load_identity;                                                                                                      
-                    $json_data->providerInfo = (object)array(
-                        'provider' => $providerInfo['provider'],
-                        'endPointUrl' => $providerInfo['label_endpoint']
-                    );                    
-                    $obj = new \Module_Coreprime_Api($json_data);
-                    $label = $obj->_postRequest($json_data);
-                    $resultObj = json_decode($label);                    
+                {                                        
+                    $resultObj = $this->cancelLabelByProvider($param, $providerInfo);                    
                     if(isset($resultObj->id) && $resultObj->id != '' && $resultObj->status == 'cancelled')
                     { 
                         return $this->_updateShipmentCancel($param);                        
@@ -2181,5 +2168,25 @@ public function getNextDayCarriersofCompany($param){
         }
         return $shipmentInstructions;
     }
+    
+    public function cancelLabelByProvider($param, $providerInfo)
+    {
+        $json_data = new stdClass();
+        $json_data->email = $param->email;
+        $json_data->access_token = $param->access_token;  
+        $json_data->carrier = $param->carrier;                    
+        $json_data->doLabelCancel = "true";                                                              
+        $json_data->load_identity = $param->load_identity;                                                                                                      
+        $json_data->providerInfo = (object)array(
+            'provider' => $providerInfo['provider'],
+            'endPointUrl' => $providerInfo['label_endpoint']
+        );                    
+        $obj = new \Module_Coreprime_Api($json_data);
+        $label = $obj->_postRequest($json_data);
+        $resultObj = json_decode($label);   
+        return $resultObj;
+    }
+    
+    
         }
 ?>

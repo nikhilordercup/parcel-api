@@ -563,10 +563,13 @@ final class Nextday extends Booking
                                     "account_id" => $this->carrierList[$accountNumber]["account_id"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
                                 );  
-                                $service->service_info = array(
-                                    "code" => $this->carrierList[$accountNumber]["services"][$service_code]["service_code"],
-                                    "name" => $this->carrierList[$accountNumber]["services"][$service_code]["service_name"]
-                                );
+                                if(isset($this->carrierList[$accountNumber]["services"][$service_code]))
+                                {
+                                    $service->service_info = array( 
+                                        "code" => $this->carrierList[$accountNumber]["services"][$service_code]["service_code"],
+                                        "name" => $this->carrierList[$accountNumber]["services"][$service_code]["service_name"]
+                                    );
+                                }
                             }
                         }
                         else
