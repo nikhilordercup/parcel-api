@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_carrier_service_provider` ADD `carrier_code` VARCHAR(55) NOT NULL AFTER `carrier_id`;
