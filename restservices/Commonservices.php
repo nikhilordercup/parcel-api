@@ -22,11 +22,11 @@ final class Commonservices extends Booking
       return $returnService;
   
     }
-   public function getRequestedQuotationInfo($records){
+    public function getRequestedQuotationInfo($records){
        if(!isset($records->quation_reference) || ($records->quation_reference=='')){
                  $response = array();
                  $response["status"] = "fail";
-                 $response["message"] = 'quation reference is missing';
+                 $response["message"] = 'quation reference is missing'; 
                  $response["error_code"] = "ERROR00C43";
                  return $response;
         }elseif(!isset($records->service_code) || ($records->service_code=='')){
@@ -65,10 +65,33 @@ final class Commonservices extends Booking
            }
         }
       }
- 
     
+    public function getSeviceInfo($records){
+       if(!isset($records->service_code) || ($records->service_code=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'service code is missing';
+                 $response["error_code"] = "ERROR00C144";
+                 return $response;
+        }else{
+                 $serviceId = $this->restModel->getCustomerCarrierDataByServiceCode($records->customer_id,$records->service_code,$records->company_id);
+                 if(is_array($serviceId)){
+                     $response = array();
+                     $response["status"]         = "success";
+                     $response["job_type"]       = $serviceId['service_type'];
+                     $response["service_id"]       = $serviceId['service_id'];
+                     return $response;
+                 }else{
+                     $response = array();
+                     $response["status"] = "fail";
+                     $response["message"] = 'service code is not match';
+                     $response["error_code"] = "ERROR00C124";
+                     return $response;
+                 }
+               
+                 
+        }
+      }
     
-    
-   
 }
 ?>

@@ -1,5 +1,6 @@
-<?php 
-date_default_timezone_set('Europe/London');
+<?php error_reporting(E_ALL);
+ini_set("display_errors", 1);
+date_default_timezone_set('Europe/London'); 
 require_once '../v1/constant.php';
 require_once '../Credentials.php';
 //require_once '../v1/dbHandler.php';
@@ -37,7 +38,6 @@ require_once '../v1/module/allshipment/model/allshipments.php';
 require_once '../v1/module/business_day_cal/Carrier_Business_Day.php';  
 require_once './model/restservicesModel.php';
 require_once './restservices.php';
-
 /*
 require_once('model/api.php');
 require_once '../v1/module/base/icargo.php';

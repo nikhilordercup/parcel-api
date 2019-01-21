@@ -107,7 +107,6 @@ class Sameday extends  Booking
     }
     private function getGeoLocationByPostCode($postcode,$counter=0){
        $geoData =  $this->googleApi->getGeoPositionFromPostcode((object) array('postcode'=>$postcode));
-       // print_r($geoData);die;
        if($geoData['status']!='success'){
           $counter++;
           if($counter>3){
@@ -163,7 +162,7 @@ class Sameday extends  Booking
                   $temp['max_waiting_time']     = $val2->time->max_waiting_time .' '. $val2->time->unit;
                   $temp['surcharges']           = number_format(array_sum((array)$val2->surcharges),2);
                   $temp['taxes']                = $val2->chargable_tax;
-                  $temp['total']                = $val2->total_price;
+                  $temp['total']                = ($temp['price'] + $temp['surcharges'] + $temp['taxes']);//$val2->total_price;
                   $temp['carrier']              = $key;
                   $temp['transit_distance']     = $transit['transit_distance'];
                   $temp['transit_time']         = $transit['transit_time'];
@@ -267,9 +266,6 @@ class Sameday extends  Booking
                 return $collectionGeo;
               }
               else{
-                  
-                  
-                  
                $collectionCountry =  $this->resrServiceModel->getCountryData($param->collection->address->country);
                $deliveryCountry =  $this->resrServiceModel->getCountryData($param->delivery[0]->address->country);
                $param->collection->address->id = $collectionCountry['id'];
@@ -356,7 +352,7 @@ class Sameday extends  Booking
                     $val->address->currency_code = $deliveryCountry['currency_code'];
                     $val->address->geo_position = array('latitude'=>$deliveryGeo['latitude'],'longitude'=>$deliveryGeo['longitude']);
                    $googleRequest['delivery_postcodes'][] = (object) array('postcode'=>$val->address->postcode,'latitude'=>$deliveryGeo['latitude'],'longitude'=>$deliveryGeo['longitude'],'geo_position'=> (object) array('latitude'=>$deliveryGeo['latitude'],'longitude'=>$deliveryGeo['longitude']));
-                }
+                 }
                 }else{
                    $googleRequest['delivery_postcodes'][] = (object) array(
                        'postcode'=>$val->address->postcode,
@@ -373,17 +369,16 @@ class Sameday extends  Booking
         $googleRequest['warehouse_longitude'] = $param->warehouse_longitude;
         $googleRequest['company_id'] = $param->company_id;
         $googleRequest['customer_id'] = $param->customer_id;
-        
         try{
-              $distanceMatrixData = json_decode(json_encode($this->googleApi->getGeolocationAndDistanceMatrix( (object) $googleRequest)), FALSE);
-            }catch(Exception $e){
-                    $response = array();
-                    $response["status"] = "fail";
-                    $response["message"] = 'Distance Matrix API down, try again';
-                    $response["error_code"] = "ERROR0058";
-                    $response["api_message"] = $e->getMessage();
-                    return $response;
-            }
+         $distanceMatrixData = json_decode(json_encode($this->googleApi->getGeolocationAndDistanceMatrix( (object) $googleRequest)),FALSE);
+        }catch(Exception $e){
+          $response = array();
+          $response["status"] = "fail";
+          $response["message"] = 'Distance Matrix API down, try again';
+          $response["error_code"] = "ERROR0058";
+          $response["api_message"] = $e->getMessage();
+          return $response;
+        }
         $transit_distance = $distanceMatrixData->transit_distance;
         $transit_time = $distanceMatrixData->transit_time;
         $transit_distance_text = $distanceMatrixData->transit_distance_text;
@@ -391,7 +386,7 @@ class Sameday extends  Booking
         $chargefromBase = $this->modelObjCorePrime->getCustomerChargeFromBase($param->customer_id);
         $isTaxExempt    = $this->modelObjCorePrime->getTaxExemptStatus($param->customer_id);
         $waypointCount = 0;
-        if (isset($distanceMatrixData->waypoint_lists)) {
+        if(isset($distanceMatrixData->waypoint_lists)){
             $waypointCount = count($distanceMatrixData->waypoint_lists);
         }
         $charge_from_warehouse = ($chargefromBase['charge_from_base']=='YES')?true:false;//  true;
@@ -466,7 +461,7 @@ class Sameday extends  Booking
             "packaging_type" => "your_packaging"
         )];
         $post_data["extra"] = [];
-        $post_data["insurance"] = []; //print_r($post_data);die;
+        $post_data["insurance"] = []; 
         $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data),true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
         $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);
 		if(!empty($data)){
@@ -655,15 +650,17 @@ class Sameday extends  Booking
              $response["message"] = 'postcode is missing in collection address.';
              $response["error_code"] = "ERROR0047";
         }
-        elseif(!isset($current_request->collection->address->address_line1) || ($current_request->collection->address->address_line1=='')){
+        /*elseif(!isset($current_request->collection->address->address_line1) || ($current_request->collection->address->address_line1=='')){
              $response["status"] = "fail";
              $response["message"] = 'address Line 1 is missing in collection address.';
              $response["error_code"] = "ERROR0048";
-        }elseif($current_request->collection->address->country != $pre_request->collection->address->country){
+        }*/
+        elseif($current_request->collection->address->country != $pre_request->collection->address->country){
              $response["status"] = "fail";
              $response["message"] = 'collection country mismatch with Quotation';
              $response["error_code"] = "ERROR0070";
-        }elseif($current_request->collection->address->postcode != $pre_request->collection->address->postcode){
+        }
+        elseif($current_request->collection->address->postcode != $pre_request->collection->address->postcode){
              $response["status"] = "fail";
              $response["message"] = 'collection postcode mismatch with Quotation';
              $response["error_code"] = "ERROR0071";
@@ -706,9 +703,12 @@ class Sameday extends  Booking
             $current_request->collection->address->longitude = $pre_request->collection->address->longitude;
             $current_request->collection->address->geo_position = $pre_request->collection->address->geo_position;
             $current_request->collection->address->address_origin = 'api';
-            $current_request->collection->address->name  = $current_request->collection->consignee->name;
-            $current_request->collection->address->email = $current_request->collection->consignee->email;
-            $current_request->collection->address->phone = $current_request->collection->consignee->phone;
+            if(isset($current_request->collection->consignee)){
+                $current_request->collection->address->name  = $current_request->collection->consignee->name;
+                $current_request->collection->address->email = $current_request->collection->consignee->email;
+                $current_request->collection->address->phone = $current_request->collection->consignee->phone;
+            }
+            
             $temparray['collection_address'][] = $current_request->collection->address;
             foreach($current_request->delivery as $key=>$vals){
                 if($vals->address->postcode != $pre_request->delivery[$key]->address->postcode){
@@ -721,9 +721,11 @@ class Sameday extends  Booking
                     $vals->address->longitude = $pre_request->delivery[$key]->address->longitude;
                     $vals->address->geo_position = $pre_request->delivery[$key]->address->geo_position;
                     $vals->address->address_origin = 'api';
-                    $vals->address->name = $current_request->delivery[$key]->consignee->name;
-                    $vals->address->email = $current_request->delivery[$key]->consignee->email;
-                    $vals->address->phone = $current_request->delivery[$key]->consignee->phone;
+                     if(isset($current_request->delivery[$key]->consignee)){
+                         $vals->address->name = $current_request->delivery[$key]->consignee->name;
+                         $vals->address->email = $current_request->delivery[$key]->consignee->email;
+                         $vals->address->phone = $current_request->delivery[$key]->consignee->phone; 
+                     }
                     $temparray['delivery_address'][] = $vals->address;
                     $response["status"] = "success";
                 }
@@ -811,7 +813,7 @@ class Sameday extends  Booking
                               "customer_id"             =>$data->customer_id,
                               "userid"                  =>$data->userid,
                               "notification"            =>false,
-                              "shipment_instruction"    =>$shipment_data->notes,
+                              "shipment_instruction"    =>isset($shipment_data->notes)?$shipment_data->notes:'',
                               "carrier_code"            =>$carrierCode,
                               "account_number"          =>$accountOfCarrier
                     ));
@@ -876,7 +878,7 @@ class Sameday extends  Booking
                         "customer_id"=>$data->customer_id,
                         "userid"=>$data->userid,
                         "notification"=>true,
-                        "shipment_instruction"=>$shipment_data->notes,
+                        "shipment_instruction"=>isset($shipment_data->notes)?$shipment_data->notes:"",
                         "carrier_code"=>$carrierCode,
                         "account_number"=>$accountOfCarrier
                     )
@@ -941,7 +943,7 @@ class Sameday extends  Booking
             $data['shipment_total_volume']     = $param["weight"];
             $data['shipment_statusName']       = "Un Attainded";
             $data['shipment_shouldBookIn']     = "false";
-            $data['shipment_companyName']      = $param["company_name"];
+            $data['shipment_companyName']      = (isset($param["company_name"])) ? $param["company_name"]:"";
             $data['distancemiles']             = "0.00";
             $data['estimatedtime']             = "00:00:00";
             /**/
@@ -1317,35 +1319,48 @@ class Sameday extends  Booking
         }
         return $service_id;
     }
-    public      function bookSameDayQuotation($param){
+    public      function bookSameDayQuotation($param,$records){
+        $qRef = $param->quation_reference;
+        //$validReqData    = $this->validateQuotation($param,json_decode(json_encode($records['request_data'])));
+        //if($validReqData['status']!='success'){
+            //return $validReqData;
+        //}
+        $formatedReqData = $this->formattedReqest($param,json_decode(json_encode($records['request_data'])));
+        $paramReq = json_decode(json_encode($formatedReqData));
         $bookingData = array();
-        $this->request = json_encode($param);
+        $this->request = json_encode($paramReq);
         $endpoint = $this->endpoint;
-        $this->bookparam = $param;
+        $this->bookparam = $paramReq;
+        $this->bookparam->service_code = $param->service_code;
+        $this->bookparam->quation_reference = $qRef;
         if(!isset($this->bookparam->service_code) || ($this->bookparam->service_code=='')){
                  $response = array();
                  $response["status"] = "fail";
                  $response["message"] = 'service code  missing';
                  $response["error_code"] = "ERROR0050";
                  return $response;
-        }elseif(!isset($this->bookparam->service_date) || ($this->bookparam->service_date=='') || !($this->isValidServiceDate($this->bookparam->service_date))){
+        }
+        elseif(!isset($this->bookparam->service_date) || ($this->bookparam->service_date=='') || !($this->isValidServiceDate($this->bookparam->service_date))){
                  $response = array();
                  $response["status"] = "fail";
                  $response["message"] = 'service date and time missing or invalid';
                  $response["error_code"] = "ERROR0079";
                  return $response;
-        }elseif(!isset($this->bookparam->quation_reference) || ($this->bookparam->quation_reference=='')){
+        }
+        elseif(!isset($this->bookparam->quation_reference) || ($this->bookparam->quation_reference=='')){
                  $response = array();
                  $response["status"] = "fail";
                  $response["message"] = 'quation reference is missing';
                  $response["error_code"] = "ERROR0043";
                  return $response;
-        }elseif(!isset($this->bookparam->service_code) || ($this->bookparam->service_code=='')){
+        }
+        elseif(!isset($this->bookparam->service_code) || ($this->bookparam->service_code=='')){
                  $response = array();
                  $response["status"] = "fail";
                  $response["message"] = 'service code is missing';
                  $response["error_code"] = "ERROR0044";
-        }else{
+        }
+        else{
              $collectionStatus = $this->validateCollectionAddress();
              $deliveryStatus   = $this->validateDeliveryAddress();
              if($collectionStatus['status']=='success'){
@@ -1373,7 +1388,7 @@ class Sameday extends  Booking
                               $bookingData['tracking_callbackurl']      =  isset($this->bookparam->callback_url)?$this->bookparam->callback_url:'';
                               $status = $this->bookSameDayShipment((object)$bookingData);
                               if($status['status']=='success'){
-                                  $updatestatus = $this->resrServiceModel->editContent('webapi_request_response',
+                                    $updatestatus = $this->resrServiceModel->editContent('webapi_request_response',
                                     array('request_status'=>'C')," session_id = '".$this->bookparam->quation_reference."'");
                               }
                              return $status;
@@ -1405,16 +1420,15 @@ class Sameday extends  Booking
         if(!empty($data)){
            $data = $this->_getWbFormat($data,$post_data["transit"],$param,$endpoint,$googleRequest);
            return array("status" => "success","rate"=>$data,"availiable_balence" => $available_credit['available_credit']);
-        }else{
+        }
+        else{
              return array("status" => "fail","rate"=>array(),"availiable_balence" => $available_credit['available_credit']);
         }
      }
     public      function getEligibleRecurringJob(){
         $reccuringBucket =  array();
         $recurringData = $this->resrServiceModel->getSamedayReccuringJobs();
-        //print_r($recurringData);
         $currenttime  = date("H:i:s");
-        //print_r($currenttime);die;
         if(count($recurringData)>0){
             foreach($recurringData as $reccuringVal){
                 switch($reccuringVal['recurring_type']){
@@ -1423,23 +1437,23 @@ class Sameday extends  Booking
                       if(strtotime($currenttime) >= strtotime($reccuringVal['recurring_time']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
                           $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);
                       }
-                    //break;
+                    break;
                     case 'WEEKLY':
                       if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (strtoupper(date("D"))===$reccuringVal['recurring_day']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
                           $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);
                       }
-                    //break;
+                    break;
                     case 'MONTHLY':
                       if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (date("d")===$reccuringVal['recurring_month_date']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
                           $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);
                       }
 
-                   // break;
+                    break;
                     case 'ONCE':
                       if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (strtotime(date("Y-m-d"))===strtotime($reccuringVal['recurring_date']))){
                           $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal && ($reccuringVal['last_booking_date'] == '1970-01-01' ) );
                       }
-                    //break;
+                    break;
                  }
                }
             }
@@ -1631,14 +1645,21 @@ class Sameday extends  Booking
             $serviceId = $this->resrServiceModel->getCustomerCarrierDataByServiceCode($param->customer_id,$param->service_code, $param->company_id);
             $param->service_id = $serviceId['service_id'];
             $quoteData  = $this->getSameDayQuotation($param);
+           
                 if($quoteData['status']!='success'){
                 return $quoteData;
                 }else{
                     $quotation_ref  = $quoteData['rate']['quotation_ref'];
+                    $commonObj   = new Commonservices();  
+                    $records = $commonObj->getRequestedQuotationInfo((object)array(
+                        'service_code'=>$param->service_code,
+                        'quation_reference'=>$quotation_ref,
+                        'customer_id'=>$param->customer_id,
+                        'company_id'=>$param->company_id));
                     if(count($quoteData['rate']['services'])==1){
                       if($quoteData['rate']['services'][0]['service_id']===$param->service_id){
                          $param->quation_reference =  $quotation_ref;
-                         return $this->bookSameDayQuotation($param);
+                         return $this->bookSameDayQuotation($param,$records);
                       }else{
                              $response = array();
                              $response["status"] = "fail";
@@ -1690,7 +1711,37 @@ class Sameday extends  Booking
         }
         return $return;
     }
-
+    public      function formattedReqest($param,$quoteRequest){ 
+      foreach($quoteRequest->delivery as $key=>$datainer){  
+          if(isset($param->delivery) and count($param->delivery)>0){
+             unset($param->delivery[$key]->address->country);
+             unset($param->delivery[$key]->address->postcode);
+             unset($param->delivery[$key]->address->currency_code);
+             unset($param->delivery[$key]->address->country_code);
+           }else{
+              $param->delivery[] = (object)array('address'=>array());
+           }
+             $quoteRequest->delivery[$key]->address = (array)$param->delivery[$key]->address + (array)$datainer->address;
+             unset($param->delivery[$key]->address);
+             $quoteRequest->delivery[$key] = (array)$quoteRequest->delivery[$key] + (array)$param->delivery[$key];
+         }
+        $quoteRequest->collection= array($quoteRequest->collection);
+        
+        foreach($quoteRequest->collection as $key=>$datainer){
+          if(isset($param->collection)){
+             unset($param->collection->address->country);
+             unset($param->collection->address->postcode);
+             unset($param->collection->address->currency_code);
+             unset($param->collection->address->country_code);
+          }else{
+             $param->collection = (object)array('address'=>array()); 
+          }
+             $quoteRequest->collection[$key]->address = (array)$param->collection->address + (array)$datainer->address;
+             unset($param->collection->address);
+             $quoteRequest->collection = (array)$quoteRequest->collection[$key] + (array)$param->collection;
+         };
+     return $quoteRequest;  
+    }
 
 }
 ?>

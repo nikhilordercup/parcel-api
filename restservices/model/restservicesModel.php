@@ -84,7 +84,14 @@ class restservices_Model
      $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS S WHERE  S.status = true AND load_type = 'SAME' ";
       $record = $this->db->getAllRecords($sql);
       return $record;
-    }     
+    }
+  public function getNextdayReccuringJobs(){
+     $record = array();
+     $sqldata = 'S.*';
+     $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "recurring_jobs AS S WHERE  S.status = true AND load_type = 'NEXT' ";
+      $record = $this->db->getAllRecords($sql);
+      return $record;
+    } 
    public function getLoadServiceDetails($loadIdentity){
         $record = array();
         $sqldata = 'A.service_name AS current_status,SER.id as service_id,A.service_name,A.rate_type,A.currency,A.charge_from_base,A.customer_id,A.transit_distance,A.transit_time,
@@ -103,17 +110,25 @@ class restservices_Model
                    S.shipment_customer_email,S.shipment_postcode,S.shipment_customer_city,
                    S.shipment_customer_country,S.shipment_latitude,S.shipment_longitude,S.company_id,S.warehouse_id,
                    S.address_id,S.user_id,S.customer_id,S.shipment_companyName,S.shipment_country_code,S.shipment_notes,S.customer_id,S.warehouse_id,
-                   W.latitude as warehouse_latitude,W.longitude as warehouse_longitude,S.company_id';
+                   W.latitude as warehouse_latitude,W.longitude as warehouse_longitude,S.company_id,S.is_internal';
         $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "shipment as S
                 INNER JOIN " . DB_PREFIX . "warehouse as W on W.id = S.warehouse_id 
                 WHERE  S.instaDispatch_loadIdentity = '$loadIdentity'";
         return $this->db->getAllRecords($sql);
     } 
-   
+   public function getParcelDetails($loadIdentity){
+        $record = array();
+        $sqldata ='1 as quantity, total_weight as  weight,parcel_length as length,parcel_width as width,parcel_height as height,
+                   package_name as name,package as package_code,is_document as is_document';
+        $sql = "SELECT  " . $sqldata . " FROM " . DB_PREFIX . "shipments_parcel as P
+                WHERE  P.instaDispatch_loadIdentity = '$loadIdentity' AND parcel_type = 'P'";
+       return $this->db->getAllRecords($sql);
+    } 
+       
    public function getCustomerCarrierDataByServiceCode($customerId,$servicecode,$company){ 
-       $sql = "SELECT A.service_id FROM " . DB_PREFIX . "company_vs_customer_vs_services  as A
+       $sql = "SELECT S.service_type,A.service_id FROM " . DB_PREFIX . "company_vs_customer_vs_services  as A
                INNER JOIN " . DB_PREFIX . "courier_vs_services as S on S.id = A.service_id
-               WHERE A.company_customer_id =  '$customerId' AND S.service_code = '$servicecode'";
+               WHERE A.company_customer_id =  '$customerId' AND S.service_code = '$servicecode'"; 
        $data =  $this->db->getRowRecord($sql);
        return $data;
     }

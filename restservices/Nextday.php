@@ -30,7 +30,6 @@ final class Nextday extends Booking
         }
     private function getGeoLocationByPostCode($postcode,$counter=0){
        $geoData =  $this->googleApi->getGeoPositionFromPostcode((object) array('postcode'=>$postcode));
-       // print_r($geoData);die;
        if($geoData['status']!='success'){
           $counter++;
           if($counter>3){
@@ -364,9 +363,9 @@ final class Nextday extends Booking
         );
     }
     public function   getNextDayQuotation($param,$quotation_ref){ 
-        
-       if(key_exists('parcel',(array)$param) and (count($param->delivery)==1)){
-        try{ 
+       if(key_exists('parcel',(array)$param)){
+           if(count($param->delivery)==1){
+            try{ 
         $endpoint      = $this->endpoint;
         $param->customer_id = $param->customer_id;
         if(!isset($param->service_date) || ($param->service_date=='') || !($this->isValidServiceDate($param->service_date))){
@@ -629,11 +628,22 @@ final class Nextday extends Booking
             }
           }
         }
-        catch(Exception $e){
+            catch(Exception $e){
             print_r($e->getMessage());die;
         }
-    }else{
-        return array();
+        }else{
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'only one delivery address allowed.';
+                 $response["error_code"] = "ERRORN00N165";
+                 return $response;
+       }
+      }else{
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'parcel data missing.';
+                 $response["error_code"] = "ERRORN00N165";
+                 return $response;
     }
     }
     private function _getJobCollectionList($carriers, $address,$param){
@@ -651,7 +661,7 @@ final class Nextday extends Booking
             foreach($val as $key1=>$val2){ 
               foreach($val2 as $key3=>$val3){
                  foreach($val3 as $key4=>$val4){ 
-                    foreach($val4 as $key5=>$val5){ //print_r($val5[0]);die;
+                    foreach($val4 as $key5=>$val5){
                       $surcharges = array();
                       $collectionKey = ($param->collected_by!='self')?0:1;
                       if(key_exists('surcharges',$val5[0]->collected_by[$collectionKey]) and count($val5[0]->collected_by[$collectionKey]['surcharges'])>0){
@@ -687,11 +697,13 @@ final class Nextday extends Booking
                       $temp['max_waiting_time']      =  '00:00:00';
                       $val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'] = array_sum($surcharges);
                       $temp['surcharges_info']       =  $surcharges;
-                      $temp['surcharges']            =  number_format($val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'],2);
-                      $temp['taxes']                 =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['taxes'];
-                      $temp['total']                 =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['grand_total'];
-                      $temp['carrier']               =  $val5[0]->collected_by[$collectionKey]['name'];
                       $temp['price']                 =  number_format($val5[0]->collected_by[$collectionKey]['customer_price_info']['price'],2);
+                      $temp['surcharges']            =  number_format($val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'],2);
+                      $calculatedTax                 =  number_format(((($temp['surcharges'] + $temp['price'])* $val5[0]->taxes->tax_percentage)/100),2);
+                      $temp['taxes']                 =  $calculatedTax;
+                      //$temp['total']               =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['grand_total'];
+                      $temp['carrier']               =  $val5[0]->collected_by[$collectionKey]['name'];
+                      $temp['total']                 =  ($temp['surcharges'] + $temp['price'] + $temp['taxes']);
                       $temp['transit_distance']      =  '';
                       $temp['transit_time']          =  '';
                       $temp['transit_distance_text'] =  '';
@@ -730,7 +742,11 @@ final class Nextday extends Booking
         );
     }
     public function bookNextDayQuotation($param,$records){ 
-        $qRef = $param->quation_reference;// print_r($param);die;
+        $qRef = $param->quation_reference;
+        $validReqData    = $this->validateReqest($param,json_decode(json_encode($records['request_data'])));
+        if($validReqData['status']!='success'){
+            return $validReqData;
+        }
         $formatedReqData = $this->formattedReqest($param,json_decode(json_encode($records['request_data'])));
         $param = json_decode(json_encode($formatedReqData));
         $param->service_opted = json_decode(json_encode($records['job_data'][0]));
@@ -795,11 +811,11 @@ final class Nextday extends Booking
             $shipmentStatus = $this->_saveShipment($param, $param->collection[0]->address, $param->parcel, $addressInfo["address_data"], $customerWarehouseId, $param->company_id, $company_code, $collection_date_time, $collection_end_at, "next", "COLL", "NEXT", "P", $execution_order, $carrier_account_number, $is_internal);
             
             $sStr["postcode"] = $item->address->postcode;
-            $sStr["address_line1"] = $item->address->address_line1;
+            $sStr["address_line1"] = isset($item->address->address_line1)?$item->address->address_line1:'';
             $sStr["iso_code"] = $item->address->country->alpha3_code;
             $searchString = str_replace(' ', '', implode('', $sStr));
-            $companyName = $item->address->company_name;
-            $contactName = $item->consignee->name;
+            $companyName = isset($item->address->company_name)?$item->address->company_name:'';
+            $contactName = isset($item->consignee->name)?$item->consignee->name:'';
             if ($shipmentStatus["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -1127,9 +1143,10 @@ final class Nextday extends Booking
                 "file_path" => "",
                 "auto_print" => "",
                 'pickups' => "",
+                'identity' => $loadIdentity,
                 'carrier_code' => strtolower($carrier_code)
             );
-    }
+        }
     public function getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData = array()){
         $carrierObj = new Carrier();
         $bookingInfo = $carrierObj->getShipmentInfo($loadIdentity, $rateDetail, $allData,$this->_param);
@@ -1137,7 +1154,6 @@ final class Nextday extends Booking
     }
     public function formattedReqest($param,$quoteRequest){ 
       foreach($quoteRequest->delivery as $key=>$datainer){  
-          
           if(isset($param->delivery) and count($param->delivery)>0){
              unset($param->delivery[$key]->address->country);
              unset($param->delivery[$key]->address->postcode);
@@ -1150,7 +1166,8 @@ final class Nextday extends Booking
              unset($param->delivery[$key]->address);
              $quoteRequest->delivery[$key] = (array)$quoteRequest->delivery[$key] + (array)$param->delivery[$key];
          }
-      foreach($quoteRequest->collection as $datainer){
+        $quoteRequest->collection = array($quoteRequest->collection);
+        foreach($quoteRequest->collection as $keys=>$datainer){
             
           if(isset($param->collection)){
              unset($param->collection->address->country);
@@ -1160,49 +1177,315 @@ final class Nextday extends Booking
           }else{
              $param->collection = (object)array('address'=>array()); 
           }
-            $quoteRequest->collection->address = (array)$param->collection->address + (array)$datainer;
+             $quoteRequest->collection[$keys]->address = (array)$param->collection->address + (array)$datainer->address;
              unset($param->collection->address);
-             $quoteRequest->collection = (array)$quoteRequest->collection + (array)$param->collection;
-         }
+             $quoteRequest->collection = (array)$quoteRequest->collection[$keys] + (array)$param->collection;
+        }
      return $quoteRequest;  
     }
+    public  function validateReqest($current_request,$pre_request){
+        $response = array();
+        $temparray = array();
+        
+        if(isset($current_request->service_date) and ($current_request->service_date  != $pre_request->service_date)){
+             $response["status"] = "fail";
+             $response["message"] = 'Requested Service date and time is mismatch with Quotation';
+             $response["error_code"] = "ERROR00N44";
+        }
+        /*elseif(count($current_request->collection)!=count($pre_request->collection)){
+             $response["status"] = "fail";
+             $response["message"] = 'Requested Collection mismatch with Quotation';
+             $response["error_code"] = "ERROR0N45";
+        }*/
+        elseif(isset($current_request->delivery) and (count($current_request->delivery)!=count($pre_request->delivery))){
+             $response["status"] = "fail";
+             $response["message"] = 'Requested Delivery mismatch with Quotation';
+             $response["error_code"] = "ERROR00N45";
+        }
+        elseif(isset($current_request->collection->address->country) and ($current_request->collection->address->country=='')){
+             $response["status"] = "fail";
+             $response["message"] = 'country is missing in collection address.';
+             $response["error_code"] = "ERROR00N46";
+        }
+        elseif(isset($current_request->collection->address->postcode) and ($current_request->collection->address->postcode=='')){
+             $response["status"] = "fail";
+             $response["message"] = 'postcode is missing in collection address.';
+             $response["error_code"] = "ERROR00N47";
+        }
+        /*elseif(!isset($current_request->collection->address->address_line1) || ($current_request->collection->address->address_line1=='')){
+             $response["status"] = "fail";
+             $response["message"] = 'address Line 1 is missing in collection address.';
+             $response["error_code"] = "ERROR00N48";
+        }*/
+        elseif(isset($current_request->collection->address->country) and ($current_request->collection->address->country != $pre_request->collection->address->country)){
+             $response["status"] = "fail";
+             $response["message"] = 'collection country mismatch with Quotation';
+             $response["error_code"] = "ERROR00N70";
+        }
+        elseif(isset($current_request->collection->address->postcode) and ($current_request->collection->address->postcode != $pre_request->collection->address->postcode)){
+             $response["status"] = "fail";
+             $response["message"] = 'collection postcode mismatch with Quotation';
+             $response["error_code"] = "ERROR00N71";
+        }else{
+        $response["status"] = 'success';
+        if(isset($current_request->delivery) and count($current_request->delivery)>0){
+            foreach($current_request->delivery as $key=>$val){
+             if(!isset($val->address)  || ($val->address=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'Delivery address parameter missing in Quotation';
+                 $response["error_code"] = "ERROR00N73";
+                 return $response;
+             }
+             elseif(!isset($val->address->postcode)  || ($val->address->postcode=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'Delivery Postcode parameter missing.';
+                 $response["error_code"] = "ERROR00N74";
+                 return $response;
+            }
+             elseif($val->address->postcode != $pre_request->delivery[$key]->address->postcode){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'requested delivery postcode are mismatch or order mismatch';
+                 $response["error_code"] = "ERROR00N75";
+                 return $response;
+            }
+             elseif(!isset($val->address->country)  || ($val->address->country=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'Delivery country parameter missing';
+                 $response["error_code"] = "ERROR00N76";
+                 return $response;
+            }
+             elseif($val->address->country != $pre_request->delivery[$key]->address->country){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'requested delivery country are mismatch or order mismatch';
+                 $response["error_code"] = "ERROR00N77";
+                 return $response;
+            }
+           }
+        }
+        
+        if(isset($current_request->collection->consignee)){
+                $current_request->collection->address->name  = $current_request->collection->consignee->name;
+                $current_request->collection->address->email = $current_request->collection->consignee->email;
+                $current_request->collection->address->phone = $current_request->collection->consignee->phone;
+            }
+            
+        $temparray['collection_address'][] = isset($current_request->collection->address)?$current_request->collection->address:'';
+            if(isset($current_request->delivery) and count($current_request->delivery)>0){
+               foreach($current_request->delivery as $key=>$vals){
+                 if($vals->address->postcode != $pre_request->delivery[$key]->address->postcode){
+                    $response["status"] = "fail";
+                    $response["message"] = 'Delivery postcode are missmatch in delivery address.';
+                    $response["error_code"] = "ERROR00N49";
+                    break;
+                }else{
+                     if(isset($current_request->delivery[$key]->consignee)){
+                         $vals->address->name = $current_request->delivery[$key]->consignee->name;
+                         $vals->address->email = $current_request->delivery[$key]->consignee->email;
+                         $vals->address->phone = $current_request->delivery[$key]->consignee->phone; 
+                     }
+                    $temparray['delivery_address'][] = $vals->address;
+                    $response["status"] = "success";
+                }
+             }
+            }
+            
+          }
+        if($response["status"] == 'success'){
+           return array('status'=>'success','data'=>$temparray);
+        }
+        else{
+           return $response;
+        }
+
+    }
+    
     
     /*================================Direct Booking================================*/
-    public function bookNextDayJobWithoutQuotion($param){
-        if(!isset($param->service_code) || ($param->service_code=='')){
+    public function bookNextDayJobWithoutQuotion($param){ 
+        if(!isset($param->service_date) || ($param->service_date=='') || !($this->isValidServiceDate($param->service_date))){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'service date and time missing';
+                 $response["error_code"] = "ERRORN00N18";
+                 return $response;
+        }elseif(!isset($param->collected_by) || ($param->collected_by=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'collected by code  missing';
+                 $response["error_code"] = "ERROR00N155";
+                 return $response;
+        }elseif(!isset($param->service_code) || ($param->service_code=='')){
                  $response = array();
                  $response["status"] = "fail";
                  $response["message"] = 'service code  missing';
-                 $response["error_code"] = "ERROR0055";
+                 $response["error_code"] = "ERROR00N256";
                  return $response;
         }else{
             $serviceId = $this->resrServiceModel->getCustomerCarrierDataByServiceCode($param->customer_id,$param->service_code, $param->company_id);
             $param->service_id = $serviceId['service_id'];
-            $quoteData  = $this->getSameDayQuotation($param);
+            $quoteData  = $this->getNextDayQuotation($param,'');
                 if($quoteData['status']!='success'){
                 return $quoteData;
                 }else{
-                    $quotation_ref  = $quoteData['rate']['quotation_ref'];
-                    if(count($quoteData['rate']['services'])==1){
-                      if($quoteData['rate']['services'][0]['service_id']===$param->service_id){
-                         $param->quation_reference =  $quotation_ref;
-                         return $this->bookSameDayQuotation($param);
-                      }else{
-                             $response = array();
-                             $response["status"] = "fail";
-                             $response["message"] = 'Please check your service code';
-                             $response["error_code"] = "ERROR0056";
-                             return $response;
-                      }
-                     }else{
-                             $response = array();
-                             $response["status"] = "fail";
-                             $response["message"] = 'Please check your service code';
-                             $response["error_code"] = "ERROR0057";
-                             return $response;
+                        $quotation_ref  = $quoteData['rate']['quotation_ref'];
+                        $ablServices = array();
+                        if(count($quoteData['rate']['services'])>0)
+                           foreach($quoteData['rate']['services'] as $ikey=>$ival){
+                             $ablServices[] = $ival['service_code']; 
+                        }
+                        if(in_array($param->service_code,$ablServices)){
+                           $param->quation_reference =  $quotation_ref;
+                            
+                            $commonObj      = new Commonservices();
+                            $records        = $commonObj->getRequestedQuotationInfo((object)array(
+                            'service_code'=>$param->service_code,
+                            'quation_reference'=>$quotation_ref,
+                            'customer_id'=>$param->customer_id,
+                            'company_id'=>$param->company_id));
+                            return $this->bookNextDayQuotation($param,$records);
+                        }else{
+                         $response = array();
+                         $response["status"] = "fail";
+                         $response["message"] = 'Please check your service code';
+                         $response["error_code"] = "ERROR0056";
+                         return $response;
                        }
                     }
                }
            }
+    public function executeNextDayRecurringJob(){
+        $reccuringBucket =  array();
+        $return  =  array();
+        $reccuringBucket = $this->getEligibleRecurringJob();
+        if(count($reccuringBucket)>0){
+            foreach($reccuringBucket as $key=>$data){
+                $returnData = $this->bookNextdayByLoadIdentity($data['load_identity']);
+                if($returnData['status']=='error' || $returnData['status']=='fail'){
+                    Consignee_Notification::_getInstance()->sendRecurringNotification(
+                    array('rowdata'=>$data['rowdata'],'returnData'=>$returnData));
+                    $updatestatus = $this->resrServiceModel->editContent('recurring_jobs',
+                                                         array('status'=>'fail')," job_id = '".$data['rowdata']['job_id']."'");
+                    return $returnData;
+                }else{
+                   if($returnData['status']=='success'){
+                       $id = $data['rowdata']['job_id'];
+                       $tempdata   = array();
+                       $tempdata['last_booking_date'] = date('Y-m-d');
+                       $tempdata['last_booking_time'] = date('H:m:s');
+                       $tempdata['last_booking_reference'] = $returnData['identity'];
+                       $tempdata['status'] = ($data['rowdata']['recurring_type']  == 'ONCE')?false:true;
+                       $updatestatus = $this->resrServiceModel->editContent('recurring_jobs',
+                                                         $tempdata," job_id = '".$id."'");
+                       if($updatestatus){
+                         $updatestatus = $this->resrServiceModel->editContent('shipment_service',
+                                                         array('booked_by_recurring'=>'YES')," load_identity = '".$returnData['identity']."'");
+                       }
+                   }
+                 $return[]   = $returnData; 
+                }
+            }
+        }
+        return $return;
+    }
+    public function getEligibleRecurringJob(){
+        $reccuringBucket =  array();
+        $recurringData = $this->resrServiceModel->getNextdayReccuringJobs();
+        $currenttime  = date("H:i:s");
+        if(count($recurringData)>0){
+            foreach($recurringData as $reccuringVal){
+                switch($reccuringVal['recurring_type']){
+                    case 'DAILY':
+                      if(strtotime($currenttime) >= strtotime($reccuringVal['recurring_time']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
+                          $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);
+                      }
+                    break;
+                    case 'WEEKLY':
+                      if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (strtoupper(date("D"))===$reccuringVal['recurring_day']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
+                          $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);
+                      }
+                    break;
+                    case 'MONTHLY':
+                      if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (date("d")===$reccuringVal['recurring_month_date']) && (strtotime(date('Y-m-d')) > strtotime($reccuringVal['last_booking_date']))){
+                          $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal);
+                      }
+                    break;
+                    case 'ONCE':
+                      if((strtotime($currenttime) >= strtotime($reccuringVal['recurring_time'])) && (strtotime(date("Y-m-d"))===strtotime($reccuringVal['recurring_date']))){
+                          $reccuringBucket[] = array('load_identity'=>$reccuringVal['load_identity'],'rowdata'=>$reccuringVal && ($reccuringVal['last_booking_date'] == '1970-01-01' ) );
+                      }
+                    break;
+                 }
+               }
+            }
+        return $reccuringBucket;
+    }
+    public function bookNextdayByLoadIdentity($loadidentity){
+        $jsonData                           = array('collection'=>array(),'delivery'=>array());
+        $loadServicedetails                 = $this->resrServiceModel->getLoadServiceDetails($loadidentity);
+        $jsonData['service_date']           =   date("Y-m-d h:i");
+        $jsonData['service_code']           =   $loadServicedetails['service_code'];
+        $jsonData['service_id']             =   $loadServicedetails['service_id'];
+        $jsonData['customer_id']            =   $loadServicedetails['customer_id'];
+        $jsonData['carrier_id']             =   $loadServicedetails['carrier'];
+        $jsonData['callback_url']           =   'https://api-sandbox.noqu.delivery/callback/mydelivery';
+        $loadDetails                        =   $this->resrServiceModel->getLoadDetails($loadidentity);
+        $parcelDetails                      =   $this->resrServiceModel->getParcelDetails($loadidentity);
+        foreach($loadDetails as $key=>$data){
+          if($data['shipment_service_type'] =='P'){
+              $temp = array();
+              $temp['address'] = array(
+                  'country'=>$data['shipment_customer_country'],
+                  'country_code'=>$data['shipment_country_code'],
+                  'currency_code'=>$loadServicedetails['currency'],
+                  'postcode'=>$data['shipment_postcode'],
+                  'company_name'=>$data['shipment_companyName'],
+                  'address_line1'=>$data['shipment_address1'],
+                  'address_line2'=>$data['shipment_address2'],
+                  'city'=>$data['shipment_customer_city'],
+                  'notes'=>$data['shipment_notes'],
+                  'latitude'=>$data['shipment_latitude'],
+                  'longitude'=>$data['shipment_longitude'],
+                  'geo_position' => array('latitude'=>$data['shipment_latitude'],'longitude'=>$data['shipment_longitude'])
+              );
+              $temp['consignee'] = array('name'=>$data['shipment_customer_name'],'phone'=>$data['shipment_customer_phone'],'email'=>$data['shipment_customer_email']);
+              $jsonData['collection'] = $temp;
+              $jsonData['collected_by'] = ($data['is_internal']==1)?'self':'notself';
+          }
+          elseif($data['shipment_service_type']=='D'){
+              $temp = array();
+              $temp['address'] = array(
+                  'country'=>$data['shipment_customer_country'],
+                  'country_code'=>$data['shipment_country_code'],
+                  'currency_code'=>$loadServicedetails['currency'],
+                  'postcode'=>$data['shipment_postcode'],
+                  'company_name'=>$data['shipment_companyName'],
+                  'address_line1'=>$data['shipment_address1'],
+                  'address_line2'=>$data['shipment_address2'],
+                  'city'=>$data['shipment_customer_city'],
+                  'notes'=>$data['shipment_notes'],
+                  'latitude'=>$data['shipment_latitude'],
+                  'longitude'=>$data['shipment_longitude'],
+                  'geo_position' => array('latitude'=>$data['shipment_latitude'],'longitude'=>$data['shipment_longitude'])
+              );
+              $temp['consignee'] = array('name'=>$data['shipment_customer_name'],'phone'=>$data['shipment_customer_phone'],'email'=>$data['shipment_customer_email']);
+              array_push($jsonData['delivery'],$temp);
+          }
+        }
+        $jsonData['parcel']                 =   $parcelDetails;
+        $jsonData['user_id']                =   $loadDetails[0]['user_id'];
+        $jsonData['warehouse_id']           =   $loadDetails[0]['warehouse_id'];
+        $jsonData['warehouse_latitude']     =   $loadDetails[0]['warehouse_latitude'];
+        $jsonData['warehouse_longitude']    =   $loadDetails[0]['warehouse_longitude'];
+        $jsonData['company_id']             =   $loadDetails[0]['company_id'];
+        $this->endpoint = 'bookedRecurringJob';
+        $data =  $this->bookNextDayJobWithoutQuotion(json_decode(json_encode($jsonData)));
+        return $data;
+
+     }
 }
 ?>
