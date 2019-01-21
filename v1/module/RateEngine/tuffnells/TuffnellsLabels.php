@@ -1,5 +1,6 @@
 <?php
 namespace v1\module\RateEngine\tuffnells;
+use v1\module\Database\Model\RateEngineLabelsModel;
 use v1\module\RateEngine\tuffnells\model\TuffnellsModel;
 use Dompdf\Adapter\CPDF;
 use Dompdf\Dompdf;
@@ -11,10 +12,12 @@ class TuffnellsLabels extends \Icargo
 
     public function __construct($data = array())
     {
-        parent::__construct(array(
-            "email" => $data->email,
-            "access_token" => $data->access_token
-        ));
+        if(count($data)) {
+            parent::__construct(array(
+                "email" => $data->email,
+                "access_token" => $data->access_token
+            ));
+        }
     }
 
     public function getInstance()
@@ -43,32 +46,12 @@ class TuffnellsLabels extends \Icargo
             'custom' => isset($postData->customs) ? $postData->customs : "",
             'account_number' => $postData->credentials->account_number,
             'reference_id' => $postData->extra->reference_id,
+            'load_identity'=>$postData->loadIdentity,
             'created_date' => date("Y-m-d H:i:s")
         );
-
-        $column_names = array(
-            'credential_info',
-            'collection_info',
-            'delivery_info',
-            'package_info',
-            'extra_info',
-            'insurance_info',
-            'constants_info',
-            'billing_coounts',
-            'dispatch_date',
-            'currency',
-            'carrier',
-            'service_type',
-            'labels',
-            'custom',
-            'account_number',
-            'reference_id',
-            'created_date'
-        );
-
-        $insertStmt = $this->db->insertIntoTable($postvalues, $column_names, $tbname);
-        if ($insertStmt) {
-            $responce = $this->genrateLabel($postData, $insertStmt);
+        $insertStmt=RateEngineLabelsModel::query()->create($postvalues);
+        if ($insertStmt->label_id) {
+            $responce = $this->genrateLabel($postData, $insertStmt->label_id);
             $responce['label_id'] = $insertStmt;
             return json_encode($responce);
         } else {
@@ -100,9 +83,15 @@ class TuffnellsLabels extends \Icargo
 
         //Service Code
         $service_args = $this->tuffnelServiceType();
-        //print_r($service_args); die;
-        $key = array_keys(array_combine(array_keys($service_args), array_column($service_args, 'desc')),$data->service);
-        $keyval = $key[0];
+        $key = array_combine(array_keys($service_args), array_column($service_args, 'desc'));
+
+        $keyval = "";
+        foreach ($key as $k=>$v){
+            if(strtolower($v)==strtolower(trim($data->service))){
+                $keyval=$k;
+                break;
+            }
+        }
         $serviceTypeCode = $service_args[$keyval]['service_type_code'];
         $label_heading = $service_args[$keyval]['label_heading'];
 
@@ -116,15 +105,19 @@ class TuffnellsLabels extends \Icargo
         $ship_date = strtotime($data->ship_date);
         $ship_month = date('m',$ship_date);
         $shipDate = date('d',$ship_date);
-        //$sequence_number = mt_rand(001, 9999);
         $number_of_item = count($data->package);
-        $padding_package_number = sprintf("%03d", $number_of_item);
-        $barcode_number = $serviceTypeCode.$deliveryDepoNumber.$account_number.$ship_month.$shipDate.$formatted_sequence_number.$padding_package_number;
-        $barnumber = preg_replace('/(?<=\d)\s+(?=\d)/', '', $barcode_number);
+
+        $barCodeList=[];
+        for($i=1;$i<=$number_of_item;$i++) {
+            $padding_package_number = sprintf("%03d", $i);
+            $barcode_number = $serviceTypeCode . $deliveryDepoNumber . $account_number . $ship_month . $shipDate . $formatted_sequence_number . $padding_package_number;
+            $barnumber = preg_replace('/(?<=\d)\s+(?=\d)/', '', $barcode_number);
+            $barCodeList[$i-1]=$barcode_number;
+        }
 
         return array('barcode' => $barnumber, 'service_code' => $serviceTypeCode, 'delivery_depot_number' => $deliveryDepoNumber,
             'depo_post_code' => $depPostCode, 'delivery_round' => $deliveryRound, 'post_code' => $post_code, 'delivery_depot_code' => $delivery_depot_code,
-            'label_heading' => $label_heading);
+            'label_heading' => $label_heading,'barCodeList'=>$barCodeList);
 
     }
 
@@ -145,19 +138,28 @@ class TuffnellsLabels extends \Icargo
         $postCode = $barCode['post_code'];
         $deliveryDepotNumber = $barCode['delivery_depot_number'];
         $labelHeading = $barCode['label_heading'];
-
+        $barCodeList=$barCode['barCodeList'];
         $text = $bar_code;
         $size = "70";
         $orientation = "horizontal";
         $code_type = "code128";
         $print = true;
         $sizefactor = 1;
-        $horizontal = '../../label/'.uniqid().time().'h.png';
-        $vertical = '../../label/'.uniqid().time().'v.png';
+        $horizontal = LABEL_PATH.DIRECTORY_SEPARATOR.uniqid().time().'h.png';
+        $vertical = LABEL_PATH.DIRECTORY_SEPARATOR.uniqid().time().'v.png';
         //Horizental
         $this->barcode($horizontal,$text,$size,$orientation,$code_type,$print,$sizefactor);
         //Vertical
         $this->barcode($vertical,$text, $size,'vertical',$code_type,false, $sizefactor);
+        $hImages=[];$vImages=[];
+        foreach ($barCodeList as $key=>$item){
+            $hImages[$key]=LABEL_PATH.DIRECTORY_SEPARATOR.$key.uniqid().time().'h.png';
+            $vImages[$key]=LABEL_PATH.DIRECTORY_SEPARATOR.$key.uniqid().time().'v.png';
+            //Horizental
+            $this->barcode($hImages[$key],$item,$size,$orientation,$code_type,$print,$sizefactor);
+            //Vertical
+            $this->barcode($vImages[$key],$item, $size,'vertical',$code_type,false, $sizefactor);
+        }
 
         $specialInstruction = $data->extra->special_instruction;
         $collectionAddress = $data;
@@ -178,7 +180,7 @@ class TuffnellsLabels extends \Icargo
         $fromStreet2 = $deliveryAddress->to->street2;
         $fromCity = $deliveryAddress->to->city;
         $fromZip = $deliveryAddress->to->zip;
-        $delAddress = $fromName.'<br />'.$fromCompany.'<br />'.$fromPhone.'<br />'.$fromStreet1.'<br />'.$fromStreet2.'<br />'.$fromCity.'<br />'.$fromZip;
+        $delAddress = $fromName.'<br />'.$fromCompany.'<br />'.$fromPhone.'<br />'.$fromStreet1.'<br />'.$fromStreet2.'<br />'.$fromCity;
         $totalPackage = count($data->package);
         $totalWeight = array_column($data->package, 'weight');
 
@@ -188,7 +190,8 @@ class TuffnellsLabels extends \Icargo
                 'vertical' => $vertical, 'horizontal' => $horizontal, 'post_code' => $depoPostCode,
                 'delivery_depot_code' => $deliveryDepotCode, 'delivery_round' => $delivery_round,
                 'delivery_depot_number' => $deliveryDepotNumber, 'dispatchDate' => $data->ship_date,
-                'tel' => $fromPhone,'loadIdentity'=>$data->loadIdentity, 'label_heading' => $labelHeading)
+                'tel' => $fromPhone,'loadIdentity'=>$data->loadIdentity, 'label_heading' => $labelHeading,
+                'hImages'=>$hImages,'vImages'=>$vImages,'postCode'=>$fromZip)
         );
 
 
@@ -203,8 +206,12 @@ class TuffnellsLabels extends \Icargo
         $mkdir = $dir.'/label/'.$uid.'/';
         mkdir($mkdir, 0777, true);
         file_put_contents($mkdir.$uid.'.pdf', $output);
-        unlink($directory.DIRECTORY_SEPARATOR.$horizontal);
-        unlink($directory.DIRECTORY_SEPARATOR.$vertical);
+        unlink($horizontal);
+        unlink($vertical);
+        foreach ($barCodeList as $k=>$b){
+            unlink($hImages[$k]);
+            unlink($vImages[$k]);
+        }
         $pdfUrl = PDFURL.'/'.$uid.'/'.$uid.'.pdf';
         $arrayval = array(
             "label" => array(
@@ -379,6 +386,7 @@ class TuffnellsLabels extends \Icargo
             imagepng($image);
             imagedestroy($image);
         } else {
+            $filepath=str_replace(LABEL_URL.LABEL_FOLDER.'/',LABEL_PATH.DIRECTORY_SEPARATOR,$filepath);
             imagepng($image, $filepath);
             imagedestroy($image);
         }

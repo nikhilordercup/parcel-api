@@ -6,6 +6,8 @@
  * and open the template in the editor.
  */
 namespace v1\module\RateEngine;
+use v1\module\Database\Model\SurchargesModel;
+
 /**
  * Description of RateEngineModel
  *
@@ -185,11 +187,11 @@ class RateEngineModel
         return $this->_db->getAllRecords($query);
     }
 
-    public function getServiceByName($name)
+    public function getServiceByName($name,$carrierId=0)
     {
         $query = "SELECT CS.*,C.name FROM " . DB_PREFIX . "courier_vs_services As CS "
             . "LEFT JOIN " . DB_PREFIX . "courier AS C ON CS.courier_id=C.id "
-            . "WHERE CS.service_name='$name' ";
+            . "WHERE CS.service_name='$name' AND C.id=$carrierId ";
         return $this->_db->getOneRecord($query);
     }
 
@@ -341,7 +343,12 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
 
     public function deleteSurcharge($id)
     {
-        return $this->_db->delete("DELETE FROM " . DB_PREFIX . "surcharges WHERE id=$id");
+        try {
+            return SurchargesModel::query()->find($id)->delete();
+        } catch (\Exception $e) {
+            return null;
+        }
+        #return $this->_db->delete("DELETE FROM " . DB_PREFIX . "surcharges WHERE id=$id");
     }
 
     public function deleteIfExist($carrierId, $accountId, $serviceId, $surchargeId)

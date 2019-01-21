@@ -14,4 +14,6 @@ use Illuminate\Database\Eloquent\Model;
 class ChargebeePlansModel extends Model
 {
     protected $table='chargebee_plan';
+    protected $guarded=[];
+    public $timestamps=false;
 }

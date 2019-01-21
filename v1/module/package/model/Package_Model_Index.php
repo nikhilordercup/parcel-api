@@ -72,10 +72,17 @@ class Package_Model_Index
         return $id;
     }
 
-    public
+    /*public
 
     function getParcelPackageByUserId($user_id){
         return $this->_db->getAllRecords("SELECT package_code AS package_code, type AS name, weight AS weight, length AS length, height AS height, width AS width FROM " . DB_PREFIX ."package_type AS PT INNER JOIN " . DB_PREFIX ."package_type_allowed_users AS PAUT ON PT.id=PAUT.package_id WHERE PAUT.user_id='$user_id'");
+    }*/
+    
+    public function getParcelPackageByUserId($user_id, $customer_id)
+    {
+        return $this->_db->getAllRecords("SELECT package_code AS package_code, type AS name, weight AS weight, length AS length, height AS height, width AS width 
+        FROM " . DB_PREFIX . "package_type WHERE customer_user_id = '$user_id' OR (created_by = '$customer_id' AND allowed_user = 1)");
+
     }
 
     public
