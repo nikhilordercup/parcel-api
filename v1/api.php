@@ -2564,3 +2564,8 @@ $app->post('/getallreconciled', function() use ($app) {
     echoResponse(200, $response);
 });
 UkMailTracking::initRoutes($app);
+$app->get('/cDhlTracking', function () use ($app) {
+    $obj = new Create_Tracking();
+    $obj->saveDhlTracking();
+    exit();
+});

@@ -1376,6 +1376,13 @@ final class Nextday extends Booking
 				}else{
 					$services[$key]->surcharges->over_weight_charge = '';
 				}
+				if(isset($service->rate->over_sized_charge)){
+					$service->rate->over_sized_charge = ($service->rate->over_sized_charge/6)*5;
+					$service->rate->over_sized_charge = number_format($service->rate->over_sized_charge,2);
+					$services[$key]->surcharges->over_sized_charge = $service->rate->over_sized_charge;
+				}else{
+					$services[$key]->surcharges->over_sized_charge = '';
+				}
 			}else{
                 
                 if(isset($service->rate->fuel_surcharge))
