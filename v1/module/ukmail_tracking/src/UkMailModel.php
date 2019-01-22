@@ -15,7 +15,18 @@ class UkMailModel extends Singleton
     );
     
     public static $PodDeliveryTypeCode = array(
-        'DT01' => 'signature'
+        'DT01' => 'signature',
+        'DT02' => 'There was no answer at the address and the parcels have been left in the porch.',
+        'DT03' => 'There was no answer at the address and the parcels have been left behind the gate.',
+        'DT04' => 'There was no answer at the address and the parcels have been left in the shed.',
+        'DT05' => 'There was no answer at the address and the parcels have been left in the garage.',
+        'DT06' => 'There was no answer at the address and the parcels have been left with the porter/caretaker.',
+        'DT07' => 'There was no answer at the address and the parcels have been left in the conservatory.',
+        'DT09' => 'There was no answer at the address and the parcels have been left in another secure location. The secure location where the parcels have been left will be displayed in the comments field.',
+        'DT10' => 'There was no answer at the address and the parcels have been left with a neighbour. The recipient name will be the name of the neighbour. The signature image will be the signature of the neighbour. The comments will contain the house number of the neighbour.',
+        'DT11' => 'The recipient has missed a delivery attempt, has been left a card and has then chosen to have the parcels left in the safe place they have specified for the 2 nd delivery attempt. The signature image will be a scanned in copy of the card where the customer has given signed authority to leave in a safe place and specified the location of the safe place.',
+        'DT12' => 'Unknown status',
+        'DT13' => 'Leave your parcel in a safe place.'        
     );
     
     const UKMAIL = 2;
@@ -94,13 +105,26 @@ class UkMailModel extends Singleton
             $subRef2 = $ConsignmentDetailInfo->ConsignmentSubs->GetConsignmentDetailsSub->SubRef2;
             $subSequence = $ConsignmentDetailInfo->ConsignmentSubs->GetConsignmentDetailsSub->SubSequence;
             ///////////////////////////////////
-            $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
+
+$podDescription = 'NA';
+$podQuantity = 0;
+$podSequence = 0;
+$podTimeStamp = '0000-00-00T00:00:00+00:00';
+$podRecipientName = 'NA';
+$podDeliveryComments = 'NA';
+$podDeliveryTypeCode = 'NA';
+if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+{
+	    $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
             $podQuantity = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity;
             $podSequence = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence;
             $podTimeStamp = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp;
             $podRecipientName = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName;
             $podDeliveryComments = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments;
-            $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;        
+            $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;
+}
+		
+                    
             $createdOn = date('Y-m-d H:i:s');
 
             // Check if already status saved
@@ -175,7 +199,7 @@ class UkMailModel extends Singleton
                     }
                     
                     // Making new row for shipments_pod table
-                    $podId = '';
+                    $podId = 0;
                     $query3 = "SELECT pod_id, shipment_ticket FROM ".DB_PREFIX."shipments_pod WHERE shipment_ticket = '$shipment_ticket' order by pod_id desc";
                     $res3 = $this->db->getOneRecord($query3);                         
                     $res3 = ($res3 != NULL) ? $res3 : array();
@@ -184,21 +208,25 @@ class UkMailModel extends Singleton
                         $podId = $res3['pod_id'];
                     }
                     else
-                    {                       
-                        $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
-                        $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
-                        $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
-                                
-                                                                                                                      
-                        $sql1 = "insert into ".DB_PREFIX."shipments_pod
-                        (
-                            shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
-                        )
-                        values( 
-                            '$shipment_ticket','0','','','$PodDeliveryType','$PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
-                            ,'0','$trackingId'       
-                        )"; 
-                        $podId = $this->db->executeQuery($sql1);
+                    {           
+                         if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+                         {
+		                $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
+		                $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
+		                $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+		                        
+		                                                                                                              
+		                $sql1 = "insert into ".DB_PREFIX."shipments_pod
+		                (
+		                    shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
+		                )
+		                values( 
+		                    '$shipment_ticket','0','','','$PodDeliveryType','$PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
+		                    ,'0','$trackingId'       
+		                )"; 
+		                $podId = $this->db->executeQuery($sql1);
+                       }            
+                        
                     }
                     
                     // Making new row for tracking_pod table                                        

@@ -13,6 +13,10 @@ class Courier_Signup{
         array(
             "name"=>"Deepak",
             "email"=>"deepak.sethi@perceptive-solutions.com"
+        ),
+		array(
+            "name"=>"Meenakshi",
+            "email"=>"meenakshi@instadispatch.com"
         )
     );
 

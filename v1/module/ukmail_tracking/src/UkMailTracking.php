@@ -4,7 +4,11 @@ include_once __DIR__ .'/../../../module/ukmail_tracking/src/Singleton/Singleton.
 include_once __DIR__ .'/../../../module/ukmail_tracking/src/Auth.php';
 include_once __DIR__ .'/../../../module/ukmail_tracking/src/Send.php';
 include_once __DIR__ .'/UkMailModel.php';
-            
+         
+ini_set('display_startup_errors', 1);
+ini_set('display_errors', 1);
+error_reporting(-1);
+   
 class UkMailTracking 
 {
 
