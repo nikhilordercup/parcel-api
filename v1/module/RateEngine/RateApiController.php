@@ -299,9 +299,7 @@ class RateApiController
     public function getLabelProvider()
     {
         if ('tuffnells' == 'tuffnells') {
-            $tuffnells = new TuffnellsLabels($this->_requestData);
-            $resp = $tuffnells->tuffnellLabelData($this->_requestData);
-            exit($resp);
+             (new TuffnellsLabels($this->_requestData))->tuffnellLabelData($this->_requestData);
         }
     }
 

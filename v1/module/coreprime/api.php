@@ -475,7 +475,7 @@ class Module_Coreprime_Api extends Icargo
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
-        curl_close($ch);//exit($server_output);
+        curl_close($ch);
         return $server_output;
     }
 

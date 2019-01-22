@@ -16,4 +16,8 @@ class UsersModel extends Model
     protected $table='users';
     protected $guarded=[];
     public $timestamps=false;
+    public function role()
+    {
+        return $this->belongsTo(UserLevelsModel::class,'user_level','id');
+    }
 }

@@ -259,6 +259,7 @@ class RateEngineModel
 
     public function searchUkPost($rec, $zip, $surcharge = false)
     {
+        $zip=strtolower($zip);
         if ($zip == trim($zip) && strpos($zip, ' ') == false) {
             $zip = substr_replace($zip, ' ', -3, -3);
         }
@@ -268,10 +269,10 @@ class RateEngineModel
             }
             for ($i = strlen($zip); $i >= 2; $i--) {
                 if ($surcharge) {
-                    if (trim($r) == substr($zip, 0, $i)) {
+                    if (strtolower(trim($r)) == substr($zip, 0, $i)) {
                         return $r;
                     }
-                } else if ($r['post_code'] == substr($zip, 0, $i)) {
+                } else if (strtolower($r['post_code']) == substr($zip, 0, $i)) {
                     return $r;
                 }
             }

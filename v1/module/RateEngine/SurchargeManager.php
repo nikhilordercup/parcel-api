@@ -410,16 +410,16 @@ class SurchargeManager {
             if (!isset($this->_surcharge->remoteArea->postCode) || $this->_surcharge->remoteArea->postCode == "") {
                 return TRUE;
             } else {
-                $postcodes = explode(',', $this->_surcharge->remoteArea->postCode);
+                $postcodes = explode(',', strtolower($this->_surcharge->remoteArea->postCode));
                 if ($location->country != 'GB') {
                     foreach ($postcodes as $p) {
-                        if ($p == $location->zip) {
+                        if ($p == strtolower($location->zip)) {
                             return TRUE;
                         }
                     }
                 }                
                 $model = new RateEngineModel();
-                $tPost = $model->searchUkPost($postcodes, $location->zip, TRUE);
+                $tPost = $model->searchUkPost($postcodes, strtolower($location->zip), TRUE);
                 if (count($tPost)) {
                     return TRUE;
                 }

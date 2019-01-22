@@ -108,8 +108,9 @@ class TuffnellsApi
 
                 //Package weight 7 Char Max (Required)
                 $string .=str_pad($data[$key]['total_weight'],7,"0",STR_PAD_LEFT);
-                //Delivery Surcharge 3 Char Max (Required)
-                $string .=str_pad($service_args[$keyval]['surcharge'],2," ",STR_PAD_RIGHT);
+
+//                //Delivery Surcharge 2 Char Max (Note Required)
+//                $string .=str_pad($service_args[$keyval]['surcharge'],2," ",STR_PAD_RIGHT);
 
                 //Package Type Field 1 3 Char Max (Required)
                 $packageType=$data[$key]['package_info'][0]->custom_package_type??'CAR';

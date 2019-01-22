@@ -27,7 +27,7 @@ class TuffnellsLabels extends \Icargo
 
     public function tuffnellLabelData($postData)
     {
-
+        header('Content-Type: application/json');
         $tbname = DB_PREFIX . 'rateengine_labels';
         $postvalues = array(
             'credential_info' => json_encode($postData->credentials),
@@ -49,13 +49,21 @@ class TuffnellsLabels extends \Icargo
             'load_identity'=>$postData->loadIdentity,
             'created_date' => date("Y-m-d H:i:s")
         );
-        $insertStmt=RateEngineLabelsModel::query()->create($postvalues);
-        if ($insertStmt->label_id) {
+        try {
+            $insertStmt = RateEngineLabelsModel::query()->create($postvalues);
+        }catch (\Exception $ex){
+            echo json_encode(array(
+                'status' => 'false',
+                'message' => $ex->getMessage()
+            ));
+        }
+
+        if ($insertStmt->id) {
             $responce = $this->genrateLabel($postData, $insertStmt->label_id);
             $responce['label_id'] = $insertStmt;
-            return json_encode($responce);
+            echo json_encode($responce);
         } else {
-            return json_encode(array(
+            echo json_encode(array(
                 'status' => 'false',
                 'message' => 'OOPS!!! Something went wrong'
             ));
@@ -200,10 +208,8 @@ class TuffnellsLabels extends \Icargo
         $dompdf->loadHtml($htmlParser);
         $dompdf->render();
         $output = $dompdf->output();
-//        $directory = dirname(dirname(dirname(dirname(__FILE__))));
-//        $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
         $uid = $data->loadIdentity;
-        $mkdir = LABEL_PATH.DIRECTORY_SEPARATOR.'label'.DIRECTORY_SEPARATOR.$uid.DIRECTORY_SEPARATOR;
+        $mkdir = LABEL_PATH.DIRECTORY_SEPARATOR.$uid.DIRECTORY_SEPARATOR;
         mkdir($mkdir, 0777, true);
         file_put_contents($mkdir.$uid.'.pdf', $output);
         unlink($horizontal);
