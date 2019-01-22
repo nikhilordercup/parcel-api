@@ -50,7 +50,7 @@ class Module_Package_Index extends Icargo
                 "company_id" => $param->company_id,
                 "created_by" => $param->customer_id,
 		"customer_user_id" => $param->collection_user_id,
-                "allowed_user" => $param->allow_other,
+                "allowed_user" => isset($param->allow_other) ? '1' : '0',
                 "is_internal" => $is_internal,
                 "package_code" => $package_code
             ));

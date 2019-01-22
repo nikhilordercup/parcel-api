@@ -5,12 +5,28 @@ require_once 'Process_Form.php';
 require_once 'Optimize_Route.php';
 require_once 'Logout.php';
 require_once 'Ws_Credential_Info.php';
+require_once 'App_Logger.php'; 
+
 class Idriver{
     public function __construct()
     {
     }
+
+    private $_ignoreLog = array('route/gps-location','save/user-credential-info','logout');
+
+    private function _saveAppLog($json)
+    {    
+        if(!in_array($json->service, $this->_ignoreLog)){
+            App_Logger::_getInstance()->_logEvent($json);
+        }
+    }
+
     public function services($params)
-    {
+    {   
+        if (APP_LOGGER) {
+            $this->_saveAppLog($params);
+        }
+
         if(isset($params->service))
         {
             switch($params->service)

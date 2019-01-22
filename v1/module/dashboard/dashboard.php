@@ -12,8 +12,9 @@ class Dashboard extends Icargo
     {
         $customer_id = $dataval->customer_id;
         $whereClause = $this->shipmentFilters($dataval);
+   
         $sql = "SELECT carrier_code, customer_id, instaDispatch_loadGroupTypeCode, COUNT(*) as shipment_count, shipment_service_type FROM " . DB_PREFIX . "shipment WHERE 
-                    $whereClause (carrier_code IS NOT NULL AND carrier_code!='') AND customer_id = $customer_id AND shipment_service_type = 'P' GROUP BY carrier_code";
+               $whereClause customer_id = $customer_id AND shipment_service_type = 'P' GROUP BY carrier_code";
         $result = $this->db->getAllRecords($sql);
         return array("status" => "success", "data" => $result);
     }
@@ -37,8 +38,9 @@ class Dashboard extends Icargo
             $jsonObj = json_decode($filterDate);
             $startDate = $jsonObj->start_date;
             $endDate = $jsonObj->end_date;
-            $shipment_type_fliter = (($shipment_type == "ALL") ? '' : "AND instaDispatch_loadGroupTypeCode = '$shipment_type'");
-            $whereClause .= "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' $shipment_type_fliter AND";
+           
+ $shipment_type_fliter = (($shipment_type == "ALL") ? "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND": (($filter_type == "ALL")  ? "instaDispatch_loadGroupTypeCode = '$shipment_type' AND" : "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND instaDispatch_loadGroupTypeCode = '$shipment_type' AND"));
+           $whereClause .= " $shipment_type_fliter ";
         }
 
 

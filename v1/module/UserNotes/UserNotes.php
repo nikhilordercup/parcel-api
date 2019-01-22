@@ -11,10 +11,9 @@ class UserNotes extends \Icargo
 
     private function getInstance()
     {
-        return new \v1\module\UserNotes(model\UserNotesModel();
+        return new \v1\module\UserNotes\model\UserNotesModel();
     }
-
-    public function insertUserNotes($data){
+   public function insertUserNotes($data){
         $tbname = DB_PREFIX . 'user_notes';
         $args = array( 'user_notes' => nl2br($data->data->user_notes), 'created_by' => $data->created_by, 'job_identity' => $data->job_identity, 'created_date' => date("Y-m-d H:i:s"));
         $column_args = array('user_notes', 'created_by', 'job_identity', 'created_date');
