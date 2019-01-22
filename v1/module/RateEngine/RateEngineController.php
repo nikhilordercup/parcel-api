@@ -106,7 +106,7 @@ class RateEngineController {
             $data = self::$_rateEngine->getSurcharge($r);
             echoResponse(200, $data);
         });
-        
+
         $app->post("/deleteSurcharge", function() use ($app) {
             $r = json_decode($app->request->getBody());
             self::createInstance();

@@ -228,7 +228,7 @@ class RateEngineModel
             if(!isset($lc[$r['account_number']])) {
                 $account = $this->_db->getOneRecord("SELECT id FROM " . DB_PREFIX . "courier_vs_company WHERE "
                     . " courier_id=$carrierId AND account_number='" . $r['account_number']."'");
-
+		//print_r($account);exit;
                 if (!$account) {
                     return [
                         'error' => true,
@@ -247,7 +247,7 @@ class RateEngineModel
         }
         $this->_db->startTransaction();
         foreach ($rates as $r) {
-            unset($r['account_number']);
+            unset($r['account_number']);//print_r($r);exit;
             $this->_db->save('rate_info', $r);
         }
         $this->_db->commitTransaction();
@@ -259,10 +259,12 @@ class RateEngineModel
 
     public function searchUkPost($rec, $zip, $surcharge = false)
     {
+        //$zip=strtolower($zip);
         if ($zip == trim($zip) && strpos($zip, ' ') == false) {
             $zip = substr_replace($zip, ' ', -3, -3);
         }
         foreach ($rec as $r) {
+		//$r=strtolower($r);
             if(isset($r['level']) && $r['level']!='Post Code'){
                 continue;
             }
@@ -282,10 +284,10 @@ class RateEngineModel
     public function getServices($courierId = 0, $companyId = 0)
     {
         if ($courierId > 0 && $companyId > 0) {
-            $query = "SELECT DISTINCT(CS.id),CS.service_name 
-FROM ".DB_PREFIX."courier_vs_services AS CS  
-LEFT JOIN ".DB_PREFIX."courier_vs_services_vs_company AS CSC ON CS.id=CSC.service_id 
-LEFT JOIN ".DB_PREFIX."courier_vs_company AS CC ON CC.courier_id=CSC.courier_id 
+            $query = "SELECT DISTINCT(CS.id),CS.service_name
+FROM ".DB_PREFIX."courier_vs_services AS CS
+LEFT JOIN ".DB_PREFIX."courier_vs_services_vs_company AS CSC ON CS.id=CSC.service_id
+LEFT JOIN ".DB_PREFIX."courier_vs_company AS CC ON CC.courier_id=CSC.courier_id
 WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         } else if ($courierId > 0 && $companyId == 0) {
             $query = "SELECT DISTINCT  * FROM " . DB_PREFIX . "courier_vs_services_vs_company "
@@ -360,10 +362,10 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
     public function getEndPointByEnv($env = null)
     {
         if ($env) {
-            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers 
+            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers
         WHERE provider_type='ENDPOINT' AND app_env='$env'");
         } else {
-            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers 
+            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers
         WHERE provider_type='ENDPOINT' ");
         }
     }
@@ -371,7 +373,7 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
     public function getProviderInfo($callType,$env,$providerType='ENDPOINT')
     {
             $query = "SELECT CSP.request_type,C.code, SP.rate_endpoint,SP.label_endpoint,SP.app_env,
-EP.provider_type, EP.provider 
+EP.provider_type, EP.provider
 FROM `icargo_carrier_service_provider` AS CSP
 LEFT JOIN icargo_courier AS C ON C.id=CSP.carrier_id
 LEFT JOIN icargo_service_providers AS SP ON SP.id =CSP.provider_id
@@ -418,7 +420,7 @@ WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND
         return $this->_db->update('courier_vs_services',$newData,"id=$serviceId");
     }
     public function addServiceOption($data){
-        $d=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."service_options 
+        $d=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."service_options
         WHERE service_id=".$data['service_id']);
         if(!$d) {
             return $this->_db->save('service_options', $data);
@@ -467,7 +469,7 @@ WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND
         }
     }
     public function getTaxInfoByIso2($iso){
-        $sql="SELECT T.* FROM ".DB_PREFIX."countries AS C LEFT JOIN 
+        $sql="SELECT T.* FROM ".DB_PREFIX."countries AS C LEFT JOIN
                 ".DB_PREFIX."tax_details AS T ON C.id=T.country_id WHERE C.alpha2_code='$iso'";
         return $this->_db->getOneRecord($sql);
     }

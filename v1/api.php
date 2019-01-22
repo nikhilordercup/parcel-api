@@ -1319,7 +1319,7 @@ $app->post('/getAllCourierDataOfSelectedCustomerwithStatus', function () use ($a
     verifyRequiredParams(array('access_token', 'company_id', 'customer_id', 'user_id'), $r);
     $obj = new Customer($r);
     $response = $obj->getAllCourierDataOfSelectedCustomerwithStatus($r);
-    
+
         echoResponse(200, $response);
 });
 $app->post('/getAllCourierServicesForSelectedCustomer', function () use ($app) {
@@ -2467,66 +2467,6 @@ $app->post('/checkChangedAddress', function () use ($app) {
     echoResponse(200, $response);
 });
 
-$app->post('/fixAddressString', function () use ($app) {//delete after execution
-    $r = json_decode($app->request->getBody());
-    $obj = new Module_Addressbook_Addressbook($r);
-    $response = $obj->getAllAddressesFromAddressBook();
-    echoResponse(200, $response);
-});
-
-$app->post('/fixDrivingModeAndRoundTrip', function () use ($app) {//delete after execution
-    $db = new DbHandler();
-    $sql = "SELECT * FROM icargo_configuration";
-    $records = $db->getAllRecords($sql);
-
-    foreach ($records as $record) {
-        $conf = json_decode($record["configuration_json"]);
-
-        if (!isset($conf->round_trip))
-            $conf->round_trip = ROUND_TRIP;
-
-        if (!isset($conf->driving_mode))
-            $conf->driving_mode = DRIVING_MODE;
-
-        $confJson = json_encode($conf);
-        $id = $record["id"];
-        $updateSql = "UPDATE icargo_configuration SET configuration_json='$confJson' WHERE id='$id'";
-        $db->updateData($updateSql);
-    }
-});
-
-$app->post('/podDuplicateFix', function () use ($app) {//delete after execution
-    $db = new DbHandler();
-    $sql = "SELECT count(1) as num_count, GROUP_CONCAT(pod_id) as pod_id FROM `icargo_shipments_pod` group by shipment_ticket, create_date, pod_name having num_count>1";
-    $records = $db->getAllRecords($sql);
-
-    foreach ($records as $record) {
-        $pod_id = explode(",", $record["pod_id"]);
-        foreach ($pod_id as $key => $pod) {
-            if ($key > 0) {
-                $sql = "DELETE FROM icargo_shipments_pod WHERE pod_id='$pod'";
-                $db->delete($sql);
-            }
-        }
-    }
-});
-
-$app->post('/fixAddressBookSearchString', function () use ($app) {//delete after execution
-    $db = new DbHandler();
-    $sql = "SELECT * FROM `icargo_address_book`";
-    $records = $db->getAllRecords($sql);
-    $commonObj = new Common();
-	
-	foreach($records as $record){
-		$temp = array("address_1"=>$record['address_line1'],"address_2"=>$record['address_line2'],"postcode"=>$record['postcode'],"city"=>$record['city'],"state"=>$record['state'],"country"=>$record['country'],"name"=>$record['first_name'],"email"=>$record['contact_email'],"company_id"=>$record['company_name']);	
-		$addressString = addslashes($commonObj->getAddressBookSearchString((object)$temp));
-		$address_id = $record["id"];
-
-        $sql = "UPDATE icargo_address_book SET search_string='$addressString' WHERE id='$address_id'";
-        $db->executeQuery($sql);
-    }
-});
-
 $app->post('/saveChildAccountData', function () use ($app) {
     $r = json_decode($app->request->getBody());
     $obj = new Customer($r);
@@ -2562,3 +2502,8 @@ $app->post('/getallreconciled', function() use ($app) {
     echoResponse(200, $response);
 });
 UkMailTracking::initRoutes($app);
+$app->get('/cDhlTracking', function () use ($app) {
+    $obj = new Create_Tracking();
+    $obj->saveDhlTracking();
+    exit();
+});
