@@ -195,6 +195,7 @@ class RateApiController
                             $serviceOption = $this->_reateEngineModel->getServiceOption($this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id']);
                             $serviceOptionManager = new \v1\module\RateEngine\ServiceOptions($request, $serviceOption);
                             if (!$serviceOptionManager->verifyRules()) {
+				unset($this->_responseData['rate'][$name][$k][$z][$key]);
                                 continue;
                             }
                             $manager = new \v1\module\RateEngine\SurchargeManager();

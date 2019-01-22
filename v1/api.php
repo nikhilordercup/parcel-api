@@ -1718,16 +1718,6 @@ $app->post('/savePackage', function () use ($app) {
     }
 });
 
-/*$app->post('/getPriceDetails', function() use ($app){
-    $r = json_decode($app->request->getBody());
-    $obj = new allShipments($r);
-    $response = $obj->getPriceDetails($r);
-    if($response["status"]=="error"){
-        echoResponse(500, $response);
-    }else{
-        echoResponse(200, $response);
-    }
-});*/
 
 /*start of save quote feature comment by kavita 2april2018*/
 $app->post('/sendQuoteEmail', function () use ($app) {
@@ -2562,3 +2552,8 @@ $app->post('/getallreconciled', function() use ($app) {
     echoResponse(200, $response);
 });
 UkMailTracking::initRoutes($app);
+$app->get('/cDhlTracking', function () use ($app) {
+    $obj = new Create_Tracking();
+    $obj->saveDhlTracking();
+    exit();
+});

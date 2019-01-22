@@ -15,11 +15,11 @@ class PackageTypesModel
     }
 
     public function getAllPackageTypesByUserID($data)
-    {   //print_r($data); die;
-        $filter = (($data->type == 'customer') ? "customer_user_id = '$data->user_id'" : "created_by = '$data->created_by'");
+    {    //print_r($data); die;
+        //$filter = (($data->type == 'customer') ? "customer_user_id = '$data->user_id'" : "created_by = '$data->created_by'");
 
         $sqlStmt = "SELECT PT.*,CP.name AS cusomer_name, CH.name as child_name FROM " . DB_PREFIX . "package_type AS PT LEFT JOIN " . DB_PREFIX . "users AS CP
-                    ON PT.created_by=CP.id LEFT JOIN " . DB_PREFIX . "users AS CH ON PT.customer_user_id=CH.id WHERE $filter ORDER BY PT.display_order ASC";
+                    ON PT.created_by=CP.id LEFT JOIN " . DB_PREFIX . "users AS CH ON PT.customer_user_id=CH.id WHERE created_by = '$data->created_by' ORDER BY PT.display_order ASC";
         $result = $this->_db->getAllRecords($sqlStmt);
         if (empty($result)) {
             return array('status' => 'false', 'message' => '!!!OOPS Package not found');
@@ -50,7 +50,6 @@ class PackageTypesModel
 
     public function updatePackageType($postData)
     {
-
         $pkgID = $postData->data->id;
         $type = $postData->data->type;
         $length = $postData->data->length;
@@ -71,6 +70,10 @@ class PackageTypesModel
         } else {
             return array('status' => 'false', 'message' => '!!OOPS Something went wrong.');
         }
+    }
+
+    public function deleteAllowOtherUseres($package_id){
+        $sqlStmt = "DELETE FROM ".DB_PREFIX ."package_type_allowed_users WHERE package_id = '$package_id'";
     }
 
 }

@@ -201,7 +201,6 @@ class Module_Coreprime_Api extends Icargo
             foreach ($carrier as $carrierData) {
                 if ($carrierData['is_self'] == 'YES') {
                     $service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
-
                     if (count($service) > 0) {
                         $tempservice = array();
                         foreach ($service as $key => $valData) {

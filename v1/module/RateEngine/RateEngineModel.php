@@ -185,11 +185,11 @@ class RateEngineModel
         return $this->_db->getAllRecords($query);
     }
 
-    public function getServiceByName($name)
+    public function getServiceByName($name,$carrierId=0)
     {
         $query = "SELECT CS.*,C.name FROM " . DB_PREFIX . "courier_vs_services As CS "
             . "LEFT JOIN " . DB_PREFIX . "courier AS C ON CS.courier_id=C.id "
-            . "WHERE CS.service_name='$name' ";
+            . "WHERE CS.service_name='$name' AND C.id=$carrierId";
         return $this->_db->getOneRecord($query);
     }
 
@@ -226,7 +226,7 @@ class RateEngineModel
             if(!isset($lc[$r['account_number']])) {
                 $account = $this->_db->getOneRecord("SELECT id FROM " . DB_PREFIX . "courier_vs_company WHERE "
                     . " courier_id=$carrierId AND account_number='" . $r['account_number']."'");
-
+		//print_r($account);exit;
                 if (!$account) {
                     return [
                         'error' => true,
@@ -245,7 +245,7 @@ class RateEngineModel
         }
         $this->_db->startTransaction();
         foreach ($rates as $r) {
-            unset($r['account_number']);
+            unset($r['account_number']);//print_r($r);exit;
             $this->_db->save('rate_info', $r);
         }
         $this->_db->commitTransaction();
@@ -257,10 +257,12 @@ class RateEngineModel
 
     public function searchUkPost($rec, $zip, $surcharge = false)
     {
+        //$zip=strtolower($zip);
         if ($zip == trim($zip) && strpos($zip, ' ') == false) {
             $zip = substr_replace($zip, ' ', -3, -3);
         }
         foreach ($rec as $r) {
+		//$r=strtolower($r);
             if(isset($r['level']) && $r['level']!='Post Code'){
                 continue;
             }

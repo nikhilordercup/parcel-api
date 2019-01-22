@@ -29,6 +29,7 @@ class PackageTypes extends \Icargo
 
     public function updateUserPackage($postData)
     {
+
         $userPkgData = $this->getInstance()->updatePackageType($postData);
         return $userPkgData;
     }

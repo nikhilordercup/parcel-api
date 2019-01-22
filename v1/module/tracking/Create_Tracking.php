@@ -1,7 +1,7 @@
 <?php
 require_once "model/Tracking_Model_Index.php";
 class Create_Tracking extends Icargo{
-    public $loadIdentity = null;
+    //public $loadIdentity = null;
 
 
 
@@ -9,8 +9,8 @@ class Create_Tracking extends Icargo{
         "pre_transit" => "INFO_RECEIVED",
         "in_transit" => "IN_TRANSIT",
         "out_for_delivery" => "OUTFORDELIVERY",
-        "delivered" => "DELIVERED",
-		    "unknown"  => "INFO_RECEIVED"
+        "delivered" => "DELIVERYSUCCESS",
+		"unknown"  => "INFO_RECEIVED"
     );
 
     public
@@ -37,14 +37,13 @@ class Create_Tracking extends Icargo{
 
     private
 
-    function _updateShipmentService($tracking_code){
-        $tracking_code = 0;
+    function _updateShipmentService($tracking_code, $tracking_data){
         $this->loadIdentity = null;
         $loadIdentity = $this->modelObj->findLoadIdentityByTrackingNo($tracking_code);
 
         if(isset($loadIdentity["load_identity"])){
             $this->loadIdentity = $loadIdentity["load_identity"];
-            $this->modelObj->updateTracking($this->loadIdentity, $this->statusArray[$this->trackingData->status]);
+            $this->modelObj->updateTracking($this->loadIdentity, $this->statusArray[$tracking_data->status]);
         }
     }
 
@@ -62,13 +61,43 @@ class Create_Tracking extends Icargo{
 
     private
 
+    function _findShipmentTicketByTrackingCodeAndLoadIdentity($load_ldentity, $code){
+        $shipmentData = $this->modelObj->findDeliveryShipmentlByLoadIdentity($load_ldentity);
+        return $shipmentData["shipment_ticket"];
+    }
+
+    private
+
+    function _savePod($shipment_ticket, $created_at, $tracking_id){
+        
+        $data = array(
+            "shipment_ticket" => $shipment_ticket,
+            "pod_name" => 'signature',
+            "comment" => 'text',
+            "contact_person" => $this->trackingData->signed_by,
+            "create_date" => $created_at,
+            "tracking_id" => $tracking_id,
+            "value" => ""
+        );
+
+        $temp = $this->modelObj->findPodByTrackingId($tracking_id);
+
+        if($temp["num_count"]>0){
+            $this->modelObj->updatePod($data, $tracking_id);
+        }else{
+            $this->modelObj->savePod($data);  
+        }
+    }
+
+    private
+
     function _saveShipmentTracking(){
         $data = array(
             "tracking_id" => $this->trackingData->id,
             "object" => $this->trackingData->object,
             "mode" => $this->trackingData->mode,
             "tracking_code" => $this->trackingData->tracking_code,
-            "code" => $this->statusArray[$this->trackingData->status],
+            //"code" => $this->statusArray[$this->trackingData->status],
             "status_detail" => $this->trackingData->status_detail,
             "created_at" => $this->trackingData->created_at,
             "updated_at" => $this->trackingData->updated_at,
@@ -88,10 +117,26 @@ class Create_Tracking extends Icargo{
             "api_string" => json_encode($this->trackingData)
         );
 
-        $temp = $this->modelObj->findTrackingById($this->trackingData->shipment_id, $this->statusArray[$this->trackingData->status], $this->trackingData->id, $this->trackingData->tracking_code, $this->trackingData->carrier, 'easypost');
+        foreach($this->trackingData->tracking_details as $details){
+            $date = new DateTime($details->datetime);
+            $data["create_date"] = $date->format('Y-m-d H:i:s');
 
-        if($temp["num_count"]==0)
-            $this->modelObj->saveTracking($data);
+            $data["code"] = $this->statusArray[$details->status];
+            $data["shipment_ticket"] = $this->_findShipmentTicketByTrackingCodeAndLoadIdentity($this->loadIdentity, $data["code"]);
+           
+            $temp = $this->modelObj->findTrackingById($this->loadIdentity, $data["code"], $this->trackingData->id, $this->trackingData->tracking_code, $this->trackingData->carrier, 'easypost');
+
+            if(count($temp)==0)
+                $tracking_id = $this->modelObj->saveTracking($data);
+            else{
+                $tracking_id = $temp["id"];
+                $this->modelObj->updateTrackingHistory($data, $tracking_id);
+            }
+
+            if($data["code"]=='DELIVERYSUCCESS'){
+                $this->_savePod($data["shipment_ticket"], $data["create_date"], $tracking_id);
+            }   
+        }
     }
 
     private
@@ -149,26 +194,16 @@ class Create_Tracking extends Icargo{
 				"origin" => 'easypost'
 			);
 
-          //if(isset($this->trackingData->result)){
+
             $temp = $this->modelObj->findTrackingCarrierDetail($this->trackingData->id);
             if($temp["num_count"]==0)
               $this->modelObj->saveTrackingCarrierDetail($data);
             else
               $this->modelObj->updateTrackingCarrierDetail($data, $this->trackingData->id);
-          //}else{
-          //    $this->modelObj->saveTrackingCarrierDetail($data);
-          //}
+
 
 
 		}
-		/*if(isset($this->trackingData->result)){
-			$temp = $this->modelObj->findTrackingCarrierDetail($this->trackingData->result->id);
-			if($temp["num_count"]==0)
-				$this->modelObj->saveTrackingCarrierDetail($data);
-			else
-				$this->modelObj->updateTrackingCarrierDetail($data, $this->trackingData->result->id);
-		}*/
-
     }
 
     private
@@ -176,7 +211,8 @@ class Create_Tracking extends Icargo{
     function _createTracking($tracking_code, $carrier){
         \EasyPost\EasyPost::setApiKey($this->apiInfo[ENV]["api_key"]);
         $this->trackingData = \EasyPost\Tracker::create(array('tracking_code' => $tracking_code, 'carrier' => $carrier));
-        $this->_updateShipmentService($tracking_code);
+
+        $this->_updateShipmentService($tracking_code, $this->trackingData);
         $this->_saveShipmentLifeHistory();
         $this->_saveShipmentTracking();
         $this->_saveTrackingCarrierDetail();
@@ -191,6 +227,30 @@ class Create_Tracking extends Icargo{
             case "dhl";
                 $this->_createTracking($tracking_code, "DHLExpress");
             break;
+        }
+    }
+
+    private function _saveCronDhlTracking($items, $counter=-1){
+        $counter++;
+        if($counter < $this->itemCount){
+            $tracking_code = (int)$items[$counter]["tracking_number"];
+            $carrier_code = $items[$counter]["carrier_code"];
+
+            if($tracking_code>0){
+                $this->createTracking($tracking_code, $carrier_code);
+            }
+            return $this->_saveCronDhlTracking($items, $counter);
+        }else{
+
+        }
+    }
+
+    public function saveDhlTracking(){
+        $items = $this->modelObj->getDhlTrackingId();
+
+        if(is_array($items) && count($items)){
+            $this->itemCount = count($items);
+            $this->_saveCronDhlTracking($items);
         }
     }
 }
