@@ -48,7 +48,13 @@ final class Commonservices extends Booking
             $preResponse     = json_decode($quotationData['response'],1);
             $preRequest      = json_decode($quotationData['request'],1);
             $preServiceKeys  = array_keys((array)$preResponse);
-            if(!in_array($serviceId['service_id'],$preServiceKeys)){
+            if($records->customer_id != $preRequest['customer_id']){
+                 $response = array();
+                 $response["status"]        = "fail";
+                 $response["message"]       = 'wrong quotation requested';
+                 $response["error_code"]    = "ERROR00C151";
+                 return $response;
+            }elseif(!in_array($serviceId['service_id'],$preServiceKeys)){ 
                  $response = array();
                  $response["status"]        = "fail";
                  $response["message"]       = 'service code is missmatch with quotation';
