@@ -371,7 +371,7 @@ class Process_Route
         {
             return array(
                 'success' => false,
-                'status' => false,
+                'status' => "error",
                 'message' => "Route " . $route_data['route_name'] . " has not paused by ".$driver_data['name']
             );
         }
