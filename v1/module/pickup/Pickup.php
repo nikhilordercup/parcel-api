@@ -83,10 +83,15 @@ class Pickup extends Icargo
             'latest_pickup_time'    => $data->closeTime,
             'pickup_reference'      => isset($data->pickup_reference) ? $data->pickup_reference : '',
             'instruction_todriver'  => $data->special_instruction,
-            'search_string'         => $searchString
+            'search_string'         => $searchString,
+            'loginemail'         => $data->email,
+            'access_token'         => $data->access_token
         );
-          
-        $pickupConfDetail = $this->_getConfirmationNumber($pickupData, $data->pickup_country->alpha2_code);                       
+                          
+        $pickupConfDetail = $this->_getConfirmationNumber($pickupData, $data->pickup_country->alpha2_code); 
+        unset($pickupData['loginemail']);
+        unset($pickupData['access_token']);
+        
         if ( isset( $pickupConfDetail->pickup->confirmation_number) )
         {
             $respDetail = $pickupConfDetail->pickup;
@@ -113,12 +118,12 @@ class Pickup extends Icargo
             );
         }
         else
-        {
+        { 
             $response = array(
                 "status" => "error",
                 "confirmation_number" => "",
                 "message" => $pickupConfDetail->error
-            );
+            ); 
         }    
 
         return $response;
@@ -147,7 +152,7 @@ class Pickup extends Icargo
             "close_time" => $pickupData['latest_pickup_time'],
             "number_of_pieces" => $pickupData['package_quantity'],
             "instructions" => $pickupData['instruction_todriver'],
-			"type_codes" => "S"
+			"type_codes" => "A"
         );
         $pickupRequest['pickup_contact'] = array (
             "name" => $pickupData['name'],
@@ -156,11 +161,36 @@ class Pickup extends Icargo
         );
         $pickupRequest['confirmation_number'] = '';
         $pickupRequest['method_type'] = 'post';
-        $pickupRequest['pickup'] = '';   
-        
-        $obj = new CarrierPickupRequest();        
-        $confirmationDetail = $obj->_postRequest( 'pickup', json_encode($pickupRequest) );
-        
+        $pickupRequest['pickup'] = '';  
+                               
+        $carrierCode = 'DHL';                
+        $bkgModel = new \Booking_Model_Booking();
+        $providerInfo = $bkgModel->getProviderInfo('PICKUP',ENV,'PROVIDER',$carrierCode);             
+        if($providerInfo['provider'] == 'Core')
+        {  
+            $formatedReq = new \stdClass();
+            $dataObj = new \stdClass();
+            $dataObj->email = $pickupData['loginemail'];
+            $dataObj->access_token = $pickupData['access_token']; 
+            
+            if($carrierCode == 'DHL')
+            {
+                $dhlApiObj = new \v1\module\RateEngine\core\dhl\DhlApi();
+                $formatedReq = $dhlApiObj->formatPickupData($pickupRequest);
+                $formatedReq->callType = 'createpickup';
+                $formatedReq->pickupEndPoint = $providerInfo['rate_endpoint'];
+                $formatedReq->carrier = $carrierCode;
+            }
+            
+            $obj = new \Module_Coreprime_Api($dataObj);
+            $rawResponse = $obj->_postRequest($formatedReq);            
+            $confirmationDetail = $dhlApiObj->formatPickupResponseData($rawResponse);            
+        }
+        else
+        {         
+            $obj = new CarrierPickupRequest();        
+            $confirmationDetail = $obj->_postRequest( 'pickup', json_encode($pickupRequest) );
+        }           
         return $confirmationDetail;
        
     }

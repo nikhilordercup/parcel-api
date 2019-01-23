@@ -24,39 +24,16 @@ Class Carrier_Coreprime_Request{
 
     Public
 
-    function _postRequestt($url, $data_string){
+    function _postRequest($url, $data_string){
         //$this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";
-		$this->apiConn = 'live'; 
+		$this->apiConn = 'stagging'; 
 		
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];
 
         return $this->_send($url, $data_string);
     }
-    
-    
-    function _postRequest($url, $data_string)
-    {         
-       $this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";
-       if($url = 'label')
-       {
-           $callType = 'LABEL';           
-       }       
-       $data = json_decode($data_string);
-       $pd = $this->filterServiceProvider($data);              
-       if(isset($pd['Postmen']))
-       { 
-            $results = $this->sendToPostmen('Postmen', $data);
-            return $results;            
-       }
-       else
-       {
-            $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
-            $this->access_url = $this->_environment[$this->apiConn]["access_url"];
-            return $this->_send($url, $data_string);
-       }                                    
-    }
-
+            
     private function _send($url, $data_string){ 
         $url = "$this->access_url/$url";
         //print_r($url);die;
@@ -102,27 +79,5 @@ Class Carrier_Coreprime_Request{
         }        
         return $filteredData;
     }
-    
-    public function sendToPostmen($provider, $data)
-    { 
-        $url = "";
-        foreach ($this->_endpoints as $ep) {
-            if ($ep['provider'] == $provider) {
-                $url = $ep['label_endpoint'];
-            }
-        }
-        $data_string = json_encode($data); 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($data_string))
-        );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
-        curl_close($ch);//exit($server_output);
-        return $server_output;
-    }
+  
 }

@@ -2569,3 +2569,5 @@ $app->get('/cDhlTracking', function () use ($app) {
     $obj->saveDhlTracking();
     exit();
 });
+use v1\module\RateEngine\core\dhl\DhlApi;
+DhlApi::initRoutes($app);
