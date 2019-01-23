@@ -28,14 +28,42 @@ class UkMailTracking
     public static function initRoutes($app){               
         $app->get('/ukmailtracking', function() use ($app) {                               
             $ukMailModel = UkMailModel::getInstance();
-            $shipmentsToTrack = $ukMailModel->getShipmentToTrack(); 
+            $shipmentsToTrack = $ukMailModel->getShipmentToTrack();                                       
+            //print_r($shipmentsToTrack);die;
+//            $shipmentsToTrack = array();
+//            $shipmentsToTrack[] = array(
+//                                'id' =>'3152',
+//                                'load_identity' =>'ICARGOS194000959',
+//                                'carrier' =>10,
+//                                'status' =>'success',
+//                                'accountkey' =>'B900971',
+//                                'parent_account_key' =>'B020626',
+//                                'label_tracking_number' =>'41634640000025',
+//                                'tracking_code' =>'INFO_RECEIVED',
+//                                'company_id' =>194
+//                            );
+            
             if(count($shipmentsToTrack) > 0)
             {                
                 foreach($shipmentsToTrack as $shipment)
                 { 
                     $credentials = $ukMailModel->getAccountCredential($shipment['company_id'],$shipment['parent_account_key']);  
                     if(count($credentials) > 0)
-                    {                       
+                    {              
+//                        try
+//                        {
+//                            self::doTracking($credentials['username'], $credentials['password'],'',$shipment['label_tracking_number'],0);   
+//                        }
+//                        catch(Exception $e)
+//                        {
+//                            //break;
+//                            echo $e->getMessage();
+//                            //echo "<br/>";
+//                            
+//                            echo '<pre>'; print_r($shipment);
+//                            die;
+//                        }     
+                        
                         self::doTracking($credentials['username'], $credentials['password'],'',$shipment['label_tracking_number'],0);
                     }                                                            
                 }
