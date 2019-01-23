@@ -1139,7 +1139,7 @@ final class Nextday extends Booking
             foreach($val as $key1=>$val2){ 
               foreach($val2 as $key3=>$val3){
                  foreach($val3 as $key4=>$val4){ 
-                      foreach($val4 as $key5=>$val5){
+                      foreach($val4 as $key5=>$val5){ 
                       $surcharges = array();
                       $collectionKey = ($param->collected_by!='self')?0:1;
                       if(key_exists('surcharges',$val5[0]->collected_by[$collectionKey]) and count($val5[0]->collected_by[$collectionKey]['surcharges'])>0){
@@ -1181,7 +1181,9 @@ final class Nextday extends Booking
                       $calculatedTax                 =  number_format(((($temp['surcharges'] + $temp['price'])* $val5[0]->taxes->tax_percentage)/100),2);
                       $temp['taxes']                 =  $calculatedTax;
                       //$temp['total']               =  $val5[0]->collected_by[$collectionKey]['customer_price_info']['grand_total'];
-                      $temp['carrier']               =  $val5[0]->collected_by[$collectionKey]['name'];
+                      //$temp['carrier']               =  $val5[0]->collected_by[$collectionKey]['name'];
+                      $temp['carrier']               =  $val5[0]->carrier_info['code'];
+                      $temp['collection_carrier']    =  $val5[0]->collected_by[$collectionKey]['carrier_code'];
                       $temp['total']                 =  ($temp['surcharges'] + $temp['price'] + $temp['taxes']);
                       $temp['transit_distance']      =  '';
                       $temp['transit_time']          =  '';

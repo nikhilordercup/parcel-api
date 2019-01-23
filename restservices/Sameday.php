@@ -164,6 +164,7 @@ class Sameday extends  Booking
                   $temp['taxes']                = $val2->chargable_tax;
                   $temp['total']                = ($temp['price'] + $temp['surcharges'] + $temp['taxes']);//$val2->total_price;
                   $temp['carrier']              = $key;
+                  $temp['collection_carrier']   = $key;
                   $temp['transit_distance']     = $transit['transit_distance'];
                   $temp['transit_time']         = $transit['transit_time'];
                   $temp['transit_distance_text'] = $transit['transit_distance_text'];
@@ -837,12 +838,24 @@ class Sameday extends  Booking
                     unset($shipmentService->message);
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"version"=>$priceVersionNo));
                     $service_id = $this->_saveSamedayShipmentService($shipmentService);
-                    $paymentStatus = $this->_manageAccountsDetails($service_id, $loadIdentity, $data->customer_id,$this->company_id,$grandTotal);
-                    if($paymentStatus["status"]=="error"){
+                  
+                    $status = $this->saveShipmentCollection((Object)array(
+                                    "carrier_code"=>$carrierCode,
+                                    "collection_date_time"=>$data->service_date,
+                                    "is_regular_pickup"=>"no",
+                                    "pickup"=>"0",
+                                    "service_id"=>$service_id
+                    ));
+                    if($status["status"]=="success"){
+                        $paymentStatus = $this->_manageAccountsDetails($service_id, $loadIdentity, $data->customer_id,$this->company_id,$grandTotal);
+                          if($paymentStatus["status"]=="error"){
+                            $this->rollBackTransaction();
+                          }
+                    ++$counter;
+                    }else{
                         $this->rollBackTransaction();
                     }
-                    ++$counter;
-                }
+                 }
                 elseif($shipmentStatus["status"]=="error"){
                     $this->rollBackTransaction();
                     return $shipmentStatus;
@@ -1361,6 +1374,7 @@ class Sameday extends  Booking
                  $response["error_code"] = "ERROR0044";
         }
         else{
+            
              $collectionStatus = $this->validateCollectionAddress();
              $deliveryStatus   = $this->validateDeliveryAddress();
              if($collectionStatus['status']=='success'){
@@ -1457,7 +1471,7 @@ class Sameday extends  Booking
                  }
                }
             }
-        //print_r($reccuringBucket);die;
+       
         return $reccuringBucket;
     }
     public      function canCancelJob($param){
@@ -1712,8 +1726,21 @@ class Sameday extends  Booking
         return $return;
     }
     public      function formattedReqest($param,$quoteRequest){ 
-      foreach($quoteRequest->delivery as $key=>$datainer){  
-          if(isset($param->delivery) and count($param->delivery)>0){
+       foreach($quoteRequest->delivery as $key=>$datainer){    
+          if(isset($param->delivery)){
+              if(array_key_exists($key,(array)$param->delivery)){
+                   unset($param->delivery[$key]->address->country);
+                   unset($param->delivery[$key]->address->postcode);
+                   unset($param->delivery[$key]->address->currency_code);
+                   unset($param->delivery[$key]->address->country_code);
+              }else{
+                   $param->delivery[$key] = (object)array('address'=>array());
+              }
+            }else{    
+                 $param->delivery[$key] = (object)array('address'=>array());
+             }
+          
+          /*if(isset($param->delivery) and count($param->delivery)>0){ 
              unset($param->delivery[$key]->address->country);
              unset($param->delivery[$key]->address->postcode);
              unset($param->delivery[$key]->address->currency_code);
@@ -1724,7 +1751,9 @@ class Sameday extends  Booking
              $quoteRequest->delivery[$key]->address = (array)$param->delivery[$key]->address + (array)$datainer->address;
              unset($param->delivery[$key]->address);
              $quoteRequest->delivery[$key] = (array)$quoteRequest->delivery[$key] + (array)$param->delivery[$key];
-         }
+         */
+        }
+       
         $quoteRequest->collection= array($quoteRequest->collection);
         
         foreach($quoteRequest->collection as $key=>$datainer){
@@ -1742,6 +1771,20 @@ class Sameday extends  Booking
          };
      return $quoteRequest;  
     }
+    
 
+    public function saveShipmentCollection($data){
+        $collection_data = array();
+        $collection_data["carrier_code"]         = $data->carrier_code;
+        $collection_data["collection_date_time"] = $data->collection_date_time;
+        $collection_data["is_regular_pickup"]    = $data->is_regular_pickup;
+        $collection_data["pickup"]               = $data->pickup;
+        $collection_data["service_id"]           = $data->service_id;
+        $status = $this->db->save("shipment_collection", $collection_data);
+        if($status==0){
+            return array("status"=>"error", "message"=>"shipment collection detail not saved");
+        };
+        return array("status"=>"success", "message"=>"shipment collection detail saved");
+    }
 }
 ?>
