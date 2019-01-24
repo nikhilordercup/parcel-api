@@ -2507,3 +2507,10 @@ $app->get('/cDhlTracking', function () use ($app) {
     $obj->saveDhlTracking();
     exit();
 });
+$app->post('/loadAllCustomers', function () use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token', 'company_id', 'email'), $r);
+    $obj = new Invoice($r);
+    $response = $obj->loadAllCustomers($r->company_id);
+    echoResponse(200, $response);
+});
