@@ -838,7 +838,7 @@ final class Nextday extends Booking
         );
     }
     
-    public function   getNextDayQuotation($param,$quotation_ref){ 
+    public function   getNextDayQuotation($param,$quotation_ref){
        if(key_exists('parcel',(array)$param)){
            if(count($param->delivery)==1){
             try{ 
@@ -1051,7 +1051,7 @@ final class Nextday extends Booking
                  $response["error_code"] = "ERRORN004";   
                  return $response;
             }
-          
+            
             $this->collection_postcode = $param->collection->address->postcode;
             $collectionCountry =  $this->resrServiceModel->getCountryData($param->collection->address->country);
             $param->collection->address->id = $collectionCountry['id'];
@@ -1069,7 +1069,7 @@ final class Nextday extends Booking
              
             $this->_setPostRequest($param);
             $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0.00); 
-           if ($this->data["status"] == "success"){
+           if($this->data["status"] == "success"){
             $requestStr = json_encode($this->data);
             $responseStr = $this->_postRequest($this->data); //print_r($response);die;
             $response = json_decode($responseStr);
@@ -1139,7 +1139,7 @@ final class Nextday extends Booking
             foreach($val as $key1=>$val2){ 
               foreach($val2 as $key3=>$val3){
                  foreach($val3 as $key4=>$val4){ 
-                      foreach($val4 as $key5=>$val5){ 
+                      foreach($val4 as $key5=>$val5){ //print_r($val5);print_r($response); die;
                       $surcharges = array();
                       $collectionKey = ($param->collected_by!='self')?0:1;
                       if(key_exists('surcharges',$val5[0]->collected_by[$collectionKey]) and count($val5[0]->collected_by[$collectionKey]['surcharges'])>0){
@@ -1147,6 +1147,7 @@ final class Nextday extends Booking
                            $surcharges[$keydata] = $data['price_with_ccf'];
                         }
                       }
+                          
                       if($param->collected_by=='self'){ 
                         $surcharges['pickup_surcharge'] = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
                             $val5[0]->surcharges->pickup_surcharge = $val5[0]->collected_by[$collectionKey]['pickup_surcharge'];
@@ -1165,13 +1166,13 @@ final class Nextday extends Booking
                             $val5[0]->collected_by[$collectionKey]['surcharges']['collection_surcharge']["carrier_id"] = $val5[0]->collected_by[$collectionKey]['account_id']; 
 
                          }
-                        
+                       
                       $temp                          =   array();
                       $temp['job_type']              =   'NEXTDAY';  
                       $temp['service_code']          =   $val5[0]->rate->info['courier_service_code'];
                       $temp['service_name']          =   $val5[0]->rate->info['courier_service_name'];
                       $temp['service_id']            =   $val5[0]->rate->info['service_id'];
-                      $temp['act_number']            =   $val5[0]->rate->act_number;
+                      $temp['act_number']            =   $val5[0]->carrier_info['account_number'];
                       $temp['max_delivery_time']     =  '00:00:00';
                       $temp['max_waiting_time']      =  '00:00:00';
                       $val5[0]->collected_by[$collectionKey]['customer_price_info']['surcharges'] = array_sum($surcharges);
@@ -1189,7 +1190,7 @@ final class Nextday extends Booking
                       $temp['transit_time']          =  '';
                       $temp['transit_distance_text'] =  '';
                       $temp['transit_time_text']     =  '';
-                      $temp['service_options']       =  $val5[0]->service_options;
+                      $temp['service_options']       =  isset($val5[0]->service_options)?$val5[0]->service_options:array();
                       $temp['flow_type']             =  isset($val5[0]->rate->flow_type)?$val5[0]->rate->flow_type:'Domestic';
                       $temp['rate_type']             =  $val5[0]->rate->rate_type;
                       $val5['job_type']              = 'NEXTDAY';
@@ -1717,7 +1718,14 @@ final class Nextday extends Booking
         }else{
         $response["status"] = 'success';
         if(isset($current_request->delivery) and count($current_request->delivery)>0){
-            foreach($current_request->delivery as $key=>$val){
+             if(count($current_request->delivery) != count($pre_request->delivery)){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'Delivery count mismatch with Quotation request';
+                 $response["error_code"] = "ERROR00N173";
+                 return $response;
+             }
+            /*foreach($current_request->delivery as $key=>$val){
              if(!isset($val->address)  || ($val->address=='')){
                  $response = array();
                  $response["status"] = "fail";
@@ -1753,10 +1761,10 @@ final class Nextday extends Booking
                  $response["error_code"] = "ERROR00N77";
                  return $response;
             }
-           }
+           }*/
         }
         
-        if(isset($current_request->collection->consignee)){
+       /* if(isset($current_request->collection->consignee)){
                 $current_request->collection->address->name  = $current_request->collection->consignee->name;
                 $current_request->collection->address->email = $current_request->collection->consignee->email;
                 $current_request->collection->address->phone = $current_request->collection->consignee->phone;
@@ -1764,8 +1772,10 @@ final class Nextday extends Booking
             
         $temparray['collection_address'][] = isset($current_request->collection->address)?$current_request->collection->address:'';
             if(isset($current_request->delivery) and count($current_request->delivery)>0){
-               foreach($current_request->delivery as $key=>$vals){
-                 if($vals->address->postcode != $pre_request->delivery[$key]->address->postcode){
+               
+                foreach($current_request->delivery as $key=>$vals){
+                 
+                if($vals->address->postcode != $pre_request->delivery[$key]->address->postcode){
                     $response["status"] = "fail";
                     $response["message"] = 'Delivery postcode are missmatch in delivery address.';
                     $response["error_code"] = "ERROR00N49";
@@ -1780,7 +1790,7 @@ final class Nextday extends Booking
                     $response["status"] = "success";
                 }
              }
-            }
+            } */
             
           }
         if($response["status"] == 'success'){

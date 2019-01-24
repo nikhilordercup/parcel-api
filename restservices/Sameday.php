@@ -1740,18 +1740,10 @@ class Sameday extends  Booking
                  $param->delivery[$key] = (object)array('address'=>array());
              }
           
-          /*if(isset($param->delivery) and count($param->delivery)>0){ 
-             unset($param->delivery[$key]->address->country);
-             unset($param->delivery[$key]->address->postcode);
-             unset($param->delivery[$key]->address->currency_code);
-             unset($param->delivery[$key]->address->country_code);
-           }else{
-              $param->delivery[] = (object)array('address'=>array());
-           }
-             $quoteRequest->delivery[$key]->address = (array)$param->delivery[$key]->address + (array)$datainer->address;
+            $quoteRequest->delivery[$key]->address = (array)$param->delivery[$key]->address + (array)$datainer->address;
              unset($param->delivery[$key]->address);
              $quoteRequest->delivery[$key] = (array)$quoteRequest->delivery[$key] + (array)$param->delivery[$key];
-         */
+         
         }
        
         $quoteRequest->collection= array($quoteRequest->collection);
@@ -1769,6 +1761,7 @@ class Sameday extends  Booking
              unset($param->collection->address);
              $quoteRequest->collection = (array)$quoteRequest->collection[$key] + (array)$param->collection;
          };
+    
      return $quoteRequest;  
     }
     
