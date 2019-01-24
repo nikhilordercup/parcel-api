@@ -5,13 +5,17 @@ class UkMailModel extends Singleton
      * key is tracking code that comes from API and corresponding shipment_code( from shipment_tracking_code) stored in shipment_tracking_table
      * @var type 
      */
-    public static $consignmentStatus = array(
+     public static $consignmentStatus = array(
         '1' =>  'COLLECTION_AWAITED'
         ,'2' =>  'COLLECTED'
         ,'3' =>  'AT_DELIVERY_LOCATION'
         ,'4' =>  'OUTFORDELIVERY'
         ,'5' =>  'DELIVERYSUCCESS'
+        ,'6' =>  'PART_DELIVERY' 
+        ,'7' =>  'DELIVERYATTEMPTED'
         ,'8' =>  'DELAYED'
+        ,'9' =>  'PLEASECALL'
+        ,'10' =>  'DELIVERYREARRANGEDBYRECIPIENT'
     );
     
     public static $PodDeliveryTypeCode = array(
@@ -186,6 +190,7 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                 $trackingId = '';
                 $consignmentStatus = $ConsignmentDetailInfo->ConsignmentStatus->GetConsignmentDetailsStatus;
                 
+                
                 $isMultipleStatus = FALSE;
                 $isMultipleStatus = is_array($consignmentStatus); 
 
@@ -196,11 +201,11 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                     foreach($consignmentStatus as $conStatus)
                     {                         
                         if($isMultipleStatus)
-                        {
+                        {                            
                             $statusCode1 = self::$consignmentStatus[$conStatus->StatusCode];
                         }
                         else
-                        {
+                        {                           
                             $statusCode1 = self::$consignmentStatus[$consignmentStatus->StatusCode];
                         }
                                             

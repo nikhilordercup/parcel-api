@@ -32,14 +32,14 @@ class UkMailTracking
             //print_r($shipmentsToTrack);die;
 //            $shipmentsToTrack = array();
 //            $shipmentsToTrack[] = array(
-//                                'id' =>'3152',
-//                                'load_identity' =>'ICARGOS194000959',
+//                                'id' =>'3116',
+//                                'load_identity' =>'ICARGOS194000903',
 //                                'carrier' =>10,
 //                                'status' =>'success',
-//                                'accountkey' =>'B900971',
+//                                'accountkey' =>'M901043',
 //                                'parent_account_key' =>'B020626',
-//                                'label_tracking_number' =>'41634640000025',
-//                                'tracking_code' =>'INFO_RECEIVED',
+//                                'label_tracking_number' =>'41679540000036',
+//                                'tracking_code' =>'DELAYED',
 //                                'company_id' =>194
 //                            );
             

@@ -805,6 +805,14 @@ class Sameday extends  Booking
                     unset($shipmentService->message);
                     $priceBreakdownStatus = $this->_saveShipmentPriceBreakdown(array("shipment_type"=>"Same","service_opted"=>$data->service_detail,"version"=>$priceVersionNo));
                     $service_id = $this->_saveSamedayShipmentService($shipmentService);
+                    
+                    $this->_saveShipmentCollection((Object)array(
+                                    "carrier_code"=>$carrierCode,
+                                    "collection_date_time"=>$data->service_date,
+                                    "is_regular_pickup"=>"no",
+                                    "pickup"=>"0",
+                                    "service_id"=>$service_id
+                    ));
                     $paymentStatus = $this->_manageAccountsDetails($service_id, $loadIdentity, $data->customer_id,$this->company_id,$grandTotal);
                     if($paymentStatus["status"]=="error"){
                         $this->rollBackTransaction();
@@ -1661,7 +1669,19 @@ class Sameday extends  Booking
 
         }
       }
-
+   /* private     function _saveShipmentCollection($data){
+        $collection_data = array();
+        $collection_data["carrier_code"]         = $data->carrier_code;
+        $collection_data["collection_date_time"] = $data->collection_date_time;
+        $collection_data["is_regular_pickup"]    = $data->is_regular_pickup;
+        $collection_data["pickup"]               = $data->pickup;
+        $collection_data["service_id"]           = $data->service_id;
+        $status = $this->db->save("shipment_collection", $collection_data);
+        if($status==0){
+            return array("status"=>"error", "message"=>"shipment collection detail not saved");
+        }
+        return array("status"=>"success", "message"=>"shipment collection detail saved");
+    }*/
 
 }
 ?>
