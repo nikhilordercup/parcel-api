@@ -2561,4 +2561,11 @@ $app->post('/getallreconciled', function() use ($app) {
     $response = $obj->getAllReconciled($r);
     echoResponse(200, $response);
 });
+$app->post('/loadAllCustomers', function () use ($app) {
+    $r = json_decode($app->request->getBody());
+    verifyRequiredParams(array('access_token', 'company_id', 'email'), $r);
+    $obj = new Invoice($r);
+    $response = $obj->loadAllCustomers($r->company_id);
+    echoResponse(200, $response);
+});
 UkMailTracking::initRoutes($app);
