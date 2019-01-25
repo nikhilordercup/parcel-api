@@ -20,7 +20,6 @@ class Custom_Label
         );
 
         $dirPath = "../label/$load_identity/$carrier_code";
-        echo $carrier_code;
         $path = "$dirPath/$load_identity.pdf";
         if (!file_exists($dirPath)) {
             mkdir($dirPath, 0777, true);

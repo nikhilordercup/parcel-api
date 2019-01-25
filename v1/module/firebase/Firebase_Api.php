@@ -25,14 +25,14 @@ class Firebase_Api{
         if(ENV=='live')
             return './credentials/idriver-production-270f0f61a989.json';
         else
-            return './credentials/idriver-1476714038443-dca3cfbca340.json';
+            return './credentials/idriver-staging-5c94aa176af5.json';
     }
 
     private function _getFirebaseDb(){
         if(ENV=='live')
             return 'https://idriver-1476714038443.firebaseio.com/';//return 'https://idriver-production.firebaseio.com/';
         else
-            return 'https://idriver-1476714038443.firebaseio.com/';
+            return 'https://idriver-staging.firebaseio.com/';
     }
 
     public function getFirebase(){
@@ -43,13 +43,6 @@ class Firebase_Api{
 
     function save($url, $data){
         $newPostKey = $this->createNewPostKey($url);
-
-        /*$newPost = $this->database
-            ->getReference($url)
-            ->push($data);
-        $newPostKey = $newPost->getKey();
-        $this->update("$url/$newPostKey", array("postId"=>$newPostKey));*/
-
         $data["postId"] = $newPostKey;
         $this->update("$url/$newPostKey", $data);
         return $newPostKey;
