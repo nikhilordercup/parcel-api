@@ -28,8 +28,7 @@ class UkMailModel extends Singleton
         'DT12' => 'Unknown status',
         'DT13' => 'Leave your parcel in a safe place.'        
     );
-    
-    const UKMAIL = 2;
+
     
     /**
      * This function update table carrier_user_token
@@ -40,13 +39,13 @@ class UkMailModel extends Singleton
     {          
         $q1 = "SELECT `id`,`username`,`authentication_token`,`authentication_token_created_at`,`authentication_token_expire_at` 
                FROM `".DB_PREFIX."carrier_user_token` 
-               WHERE `username` = '".$username."'";
+               WHERE `username` = '$username' AND `carrier` = 'UKMAIL'";
        
         $res = $this->db->getAllRecords($q1);                         
         if(count($res) > 0)
         {
             $q = "UPDATE `".DB_PREFIX."carrier_user_token` 
-                   SET `authentication_token` = '".$authenticationKey."' 
+                   SET `authentication_token` = '$authenticationKey' 
                    ,`authentication_token_expire_at` =  DATE_ADD( NOW(), INTERVAL 24 HOUR )
                    WHERE  `username` =  '$username' ";              
             $this->db->updateData($q);

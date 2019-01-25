@@ -287,6 +287,7 @@ class Booking extends Icargo
 
     function _saveParcel($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type,$loadidentity){
         $parcel = (object)$parcel;
+		//print_r($parcel);die;
         $parcelTicketNumber = $this->modelObj->generateParcelTicketNumber($company_id);
         $parcelData = array();
         $parcelData['shipment_id'] = $shipment_id;

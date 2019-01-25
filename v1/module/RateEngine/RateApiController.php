@@ -8,7 +8,8 @@ namespace v1\module\RateEngine;
 
 use v1\module\RateEngine\tuffnells\TuffnellsLabels;
 use v1\module\RateEngine\postmen\ShipmentManager;
-
+use v1\module\RateEngine\ukmail\src\UkmailMaster;
+use v1\Library;
 /**
  * Description of RateApiController
  *
@@ -71,7 +72,7 @@ class RateApiController
             } 
             else 
             {                
-                $controller->getLabelProvider($r);
+                $controller->getLabelProvider();
             }                                                
         });
         
@@ -339,26 +340,27 @@ class RateApiController
         }
         unset($this->_responseData['accountInfo'], $this->_responseData['zone']);
     }
-    
+
     /**
-     * If provider is not set then set it in db and add code for your provider
-     * @param String $provider
-     * @return type
-     */
-    public function getLabelProvider($request)
-    { 
-        $provider = $request->providerInfo->provider;        
-        if($provider == 'Local') 
-        { 
-            $tuffnells = new TuffnellsLabels($this->_requestData);
-            $resp = $tuffnells->tuffnellLabelData($this->_requestData); 
-            exit($resp);
-        }elseif($provider == 'Postmen')
-        {   
-            $this->_requestData->directlyCallForPostmen = "false";            
-            \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj()
-                ->createLabelAction($this->_requestData);                                                                                                 
-        }        
+    * If provider is not set then set it in db and add code for your provider
+    * @param String $provider
+    * @return type
+    */
+   public function getLabelProvider()
+   { 
+	    $provider = isset($this->_requestData->providerInfo->provider) ? $this->_requestData->providerInfo->provider : "Local"; 
+        if($provider == 'Postmen'){ 
+           $this->_requestData->directlyCallForPostmen = "false";            
+            \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj()->createLabelAction($this->_requestData);                                  
+        }elseif($provider == 'Ukmail'){
+           $ukmailObj = new UkmailMaster();
+           $ukmailObj::initRoutes($this->_requestData); 
+		   exit;
+        }else{ 
+           $tuffnells = new TuffnellsLabels($this->_requestData);
+           $resp = $tuffnells->tuffnellLabelData($this->_requestData); 
+           exit($resp);
+        }       
     }
 
     public function loadTaxRate($fromAddress)

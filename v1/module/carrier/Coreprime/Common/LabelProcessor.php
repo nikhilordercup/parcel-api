@@ -22,14 +22,11 @@ class LabelProcessor
 
     private function _getLabel($loadIdentity, $json_data,$child_account_data)
     {
-        $json_data = json_decode($json_data); 
+        $json_data = json_decode($json_data);
         $app = new \Slim\Slim();
-        $request = json_decode($app->request->getBody());
-        $json_data->email = $request->email;
-        $json_data->access_token = $request->access_token;
         $obj = new \Module_Coreprime_Api($json_data);
-
         $label = $obj->_postRequest($json_data);
+		
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
         $labelArrBkp = $labelArr;
         $labelArr = $labelArr['label'];  
@@ -38,16 +35,17 @@ class LabelProcessor
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
             $labelArr['label_tracking_number'] = $labelArr['tracking_number'];
-            $labelArr['label_json'] = json_encode(array('label'=>$labelArr));
-            $labelArr['label_files_png'] = '';
+            $labelArr['label_json'] = $labelArrBkp['label_json'];
+            $labelArr['file_loc'] = $labelArr['file_url'];
+            $labelArr['label_files_png'] = isset($labelArr['label_files_png']) ?  $labelArr['label_files_png'] : "";
             $labelArr['label_detail'] = new \stdClass();
-            $labelArr['label_detail']->label = (object)$labelArr; 
-            $labelArr['file_loc'] = $labelArr['file_url'];             
-            if(!isset($labelArrBkp['callFromPostmen']))
-            { 
-                $labelArr['label_json'] = '';
-            }
-        }       
+            $labelArr['label_detail']->label = (object)$labelArr;
+            if($json_data->carrier=='Tuffnells'){
+				$labelArr['label_json'] = '';
+			}elseif($json_data->carrier=='UKMAIL'){
+				$labelArr['child_account_data'] = $child_account_data;
+			}
+        } 
         return $labelArr;
     }
     
@@ -106,6 +104,7 @@ class LabelProcessor
         $response['package'] = $this->getPackageInfo($loadIdentity);
         $serviceInfo = $this->getServiceInfo($loadIdentity);
         $delivery_instruction = $this->modelObj->getDeliveryInstructionByLoadIdentity($loadIdentity);
+		$pickup_instruction   = $this->modelObj->getPickupInstructionByLoadIdentity($loadIdentity);
         $response['currency'] = $serviceInfo['currency'];
         $response['service'] = $serviceInfo['service_code'];
         $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
@@ -135,6 +134,7 @@ class LabelProcessor
             "auto_return" => "",
             "return_service_id" => "",
             "special_instruction" => $delivery_instruction['shipment_instruction'],
+			"pickup_instruction" => $pickup_instruction['shipment_instruction'],
             "custom_desciption" => $serviceInfo['customer_reference1'],
             "custom_desciption2" => $serviceInfo['customer_reference2'],
             "custom_desciption3" => "",
@@ -170,6 +170,8 @@ class LabelProcessor
         $response['label'] = array();
         $response['providerInfo'] = $allData->providerInfo;
         $response['method_type'] = "post";
+		$response['access_token'] = $allData->access_token;
+		$response['email'] = $allData->email;
 
         
         $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);

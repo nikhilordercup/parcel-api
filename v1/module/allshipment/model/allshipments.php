@@ -213,6 +213,8 @@ class AllShipment_Model
 	  $record = $this->db->getAllRecords($sql);
       return $record;
     }
+	
+	
 
      public function getShipmentsInvoiceDetail($identity){
        $record = array();
