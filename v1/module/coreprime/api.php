@@ -48,7 +48,7 @@ class Module_Coreprime_Api extends Icargo
     public
 
     function _postRequest($data)
-    {         
+    { 
         global $_GLOBAL_CONTAINER;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
@@ -500,7 +500,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);print_r($server_output);die;
+        $server_output = curl_exec($ch);
         curl_close($ch);
         return $server_output;
     }

@@ -728,7 +728,7 @@ final class Nextday extends Booking
 	public
 
     function saveBooking()
-        { 
+        {
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if ($accountStatus["status"] == "error")
             {
@@ -793,8 +793,14 @@ final class Nextday extends Booking
                 }
 
             if ($key == 0) $loadIdentity = $shipmentStatus["shipment_ticket"];
+			$total_weight = 0;
+			$this->_param->LongLength = 'false';	
             foreach($this->_param->parcel as $item)
                 {
+				if($item->length>=140)
+				$this->_param->LongLength = 'true';	
+				$total_weight += $item->weight;
+                $this->_param->parcel_total_weight	= $total_weight;		
                 for ($i = 0; $i < $item->quantity; $i++)
                     {
                     $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"], $shipmentStatus["shipment_ticket"], $customerWarehouseId, $this->_param->company_id, $company_code, $item, "P", $loadIdentity);

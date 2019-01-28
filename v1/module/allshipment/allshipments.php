@@ -1544,7 +1544,7 @@ class allShipments extends Icargo
 				$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($load_identity);
 				foreach($shipmentStatus as $status){
 					if($status['status']!='cancel'){
-						$labelInfo = $carrierObj->getLabelByLoadIdentity($load_identity);
+						$labelInfo = $this->getLabelByLoadIdentity($load_identity);
 					}else{
 						return array("status"=>"error","file_path"=>"","message"=>"One of selected shipment is cancelled, you cannot print label for that shipment");
 					}
@@ -1552,7 +1552,7 @@ class allShipments extends Icargo
 			}else{
 				$shipmentStatus = $this->modelObj->getStatusByLoadIdentity($param->load_identity);
 				if($shipmentStatus!='cancel'){
-					$labelInfo = $carrierObj->getLabelByLoadIdentity($param->load_identity);
+					$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
 				}else{
 					return array("status"=>"error","file_path"=>"","One of selected shipment is cancelled, you cannot print label for that shipment");
 				}
@@ -1588,7 +1588,7 @@ class allShipments extends Icargo
 
 	}
 
-	public function cancelShipmentByLoadIdentity($param){ 
+	/* public function cancelShipmentByLoadIdentity($param){ 
             $carrierObj = new Carrier();
             $carrier_code = $param->carrier_code; 
             $comObj = new \Common();            
@@ -1630,6 +1630,59 @@ class allShipments extends Icargo
                  return $this->_updateShipmentCancel($param);
                  return array("status"=>"success","message"=>"cancel request completed by carrier");
             }
+	} */
+	
+	public function cancelShipmentByLoadIdentity($param){
+		$carrier_code = $param->carrier_code;                        
+		$env = ( ENV == 'live' ) ? 'PROD' : 'DEV';               
+		$bookingObj = new Booking_Model_Booking();
+		$providerInfo = $bookingObj->getProviderInfo('LABEL',$env,'PROVIDER',$param->carrier);  
+		
+		switch (strtolower($carrier_code))
+		{
+			case 'dhl':
+				if($providerInfo['provider'] == 'Postmen'){
+					$resultObj = $this->cancelLabelByProvider($param, $providerInfo);
+					if(isset($resultObj->id) && $resultObj->id != '' && $resultObj->status == 'cancelled')
+						return $this->_updateShipmentCancel($param);                        
+					else
+						return array("status"=>"error","message"=>"cancel request not completed by postmen");
+				}else{
+					return $this->_updateShipmentCancel($param);
+				} 
+				break;
+
+			case 'ukmail':
+				$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
+				$param->labelInfo = $labelInfo;
+				if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' ){
+					$labelArr = json_decode($labelInfo[0]['label_json']);
+					//get credentials for child account
+					if($labelInfo[0]['accountkey']!=$labelInfo[0]['parent_account_key'])
+						$credentialData = $bookingObj->getCredentialDataForChildAccount($labelArr->label->accountnumber,$labelInfo[0]['parent_account_key']);
+					else //get credentials for parent account
+						$credentialData = $bookingObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
+					$param->username = "nikhil.kumar@ordercup.com";//$credentialData['username'];
+				}else{
+					return array("status"=>"error","message"=>"cancel request not completed by carrier");
+				}
+				
+				if($providerInfo['provider'] == 'Ukmail'){
+					$cancelShipment = $this->cancelLabelByProvider($param, $providerInfo);
+				}else{
+					$cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($credentialData,$param);
+					$cancelShipment = json_decode($cancelShipment);
+				}
+				if(isset($cancelShipment->void_consignment))
+					return $this->_updateShipmentCancel($param);
+				else
+					return array("status"=>"error","message"=>"cancel request not completed by carrier");
+				break;
+
+			default:
+				return $this->_updateShipmentCancel($param);
+				break;	
+		}
 	}
 
     private function _updateShipmentCancel($param) { 
@@ -2180,13 +2233,19 @@ public function getNextDayCarriersofCompany($param){
         $json_data->providerInfo = (object)array(
             'provider' => $providerInfo['provider'],
             'endPointUrl' => $providerInfo['label_endpoint']
-        );                    
+        ); 
+		$json_data->labelInfo = (isset($param->labelInfo)) ? $param->labelInfo : "";
+		$json_data->username = (isset($param->username)) ? $param->username : "";		
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
         $resultObj = json_decode($label);   
         return $resultObj;
     }
-    
-    
-        }
+	
+	public function getLabelByLoadIdentity($loadIdentity){
+		$bookingObj = new Booking_Model_Booking();
+		$labelInfo = $bookingObj->getLabelByLoadIdentity($loadIdentity);
+		return $labelInfo;
+	}
+}
 ?>

@@ -13,6 +13,7 @@ class UkmailMaster
      */
 	public static function initRoutes($app){
 		$labelResp = array();
+		$response = array();
 		if(ENV == 'dev')
 			$wsdlBaseUrl = 'https://qa-api.ukmail.com/Services/';
 		else
@@ -20,11 +21,12 @@ class UkmailMaster
 		
 		$ukMailModel = new UkMailModel();
 		
+		if(isset($app->doLabelCancel)){
+		   return self::cancelLabel($app,$wsdlBaseUrl);
+		}
 		$app->credentials->username = "nikhil.kumar@ordercup.com";
         $app->credentials->password = "b85op06w";
         $app->credentials->account_number = "K906430";
-		$app->collection_start_date_time = "2019-01-21T11:48:00.000";
-		$app->collection_end_date_time = "2019-01-21T11:48:00.000";
 		
 		$authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($app->credentials->username,$app->carrier);
 		if($authToken!=''){
@@ -35,21 +37,25 @@ class UkmailMaster
 				$app->credentials->authenticationToken = $loginResp['authentication_token'];
 			}else{
 				//login failed
-				return array("status"=>"error","message"=>$loginResp['message']);
+				$response['label'] = array("status"=>"error","message"=>$loginResp['message']);
+				exit(json_encode($response));
 			}
 		}
 		//book collection request after successfully getting authentication token
 		$collectionArr = self::formatCollectionRequest($app);
 		$bookCollectionResp = UkmailBookCollection::bookCollection($collectionArr,$wsdlBaseUrl);
-		
 		if($bookCollectionResp['status']=='success'){
 			$app->collectionjobnumber = $bookCollectionResp['collection_job_number'];
+			//format extended cover value
+			$app->extended_cover = ($app->extra->extended_cover_required!='') ? self::getExtendedCover($app->extra->extended_cover_required) : 0;
+			
 			//label generation call after successfully getting collection job number
 			$labelResp['label'] = UkmailGenerateLabel::generateLabel($app,$wsdlBaseUrl);
 			exit(json_encode($labelResp));
 		}else{
 			//book collection failed
-			return array("status"=>"error","message"=>$bookCollectionResp['message']);
+			$response['label'] = array("status"=>"error","message"=>$bookCollectionResp['message']);
+			exit(json_encode($response));
 		}
 	}
 		
@@ -62,11 +68,68 @@ class UkmailMaster
 		$collectionArr->AuthenticationToken = $app->credentials->authenticationToken;
 		$collectionArr->Username = $app->credentials->username;
 		$collectionArr->AccountNumber = $app->credentials->account_number;
-		$collectionArr->EarliestTime = $app->collection_start_date_time;
-		$collectionArr->LatestTime = $app->collection_end_date_time;
-		$collectionArr->RequestedCollectionDate = $app->collection_start_date_time;
+		$collectionArr->EarliestTime = $app->credentials->earliest_time;
+		$collectionArr->LatestTime = $app->credentials->latest_time;
+		$collectionArr->RequestedCollectionDate = $app->credentials->requested_collection_date;
 		$collectionArr->ClosedForLunch = "false";
 		$collectionArr->SpecialInstructions = $app->extra->pickup_instruction;
 		return $collectionArr;
+	}
+	
+	/**
+	 * This function returns extended cover value.
+	 * @return number
+	 */
+	public static function getExtendedCover($insurance_amount){
+		switch ($insurance_amount)
+		{
+		case range(1,1000):
+			return 1; 
+			break;
+		case range(1001,2000):
+			return 2; 
+			break;
+		case range(2001,3000):
+			return 3; 
+			break;
+		case range(3001,4000):
+			return 4; 
+			break;
+		case range(4001,5000):
+			return 5; 
+			break;
+		case range(5001,6000):
+			return 6; 
+			break;
+		case range(6001,7000):
+			return 7; 
+			break;
+		case range(7001,8000):
+			return 8; 
+			break;
+		case range(8001,9000):
+			return 9; 
+			break;
+		case range(9001,10000):
+			return 10; 
+			break;
+		}
+	}
+	
+	/**
+	 * This function returns label cancellation response.
+	 * @return Array
+	 */
+	public static function cancelLabel($param,$wsdlBaseUrl){
+		$labelInfo = (object)$param->labelInfo[0];
+		$labelInfo = json_decode($labelInfo->label_json);
+	    
+		$app = new \stdClass();
+		$app->AuthenticationToken = $labelInfo->label->authenticationtoken;
+		$app->ConsignmentNumber = $labelInfo->label->tracking_number;
+		$app->Username = $param->username;
+		
+		$cancelLabel = UkmailCancelLabel::voidCall($app,$wsdlBaseUrl);
+		exit(json_encode($cancelLabel));
 	}
 }

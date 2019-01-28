@@ -56,12 +56,19 @@ class RateApiController
             $env = ( ENV == 'live' ) ? 'PROD' : 'DEV';
             $callType = ($controller->_isLabelCall) ? 'LABEL':'RATE';                                                                              
                                       
-            if(isset($r->providerInfo) && $r->providerInfo->provider == 'Postmen' && isset($r->doLabelCancel))
-            { 
-                $controller->_doLabelCancel = true;
-                $shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();                                
-                $formatedRequest = $shipmentManagerObj->getFormatedCancelLabelRequest($r);                                
-                $shipmentManagerObj->cancelLabelAction($formatedRequest);                  
+            if(isset($r->providerInfo) && isset($r->doLabelCancel))
+            {   
+				$controller->_doLabelCancel = true;
+				if($r->providerInfo->provider == 'Postmen'){
+					$shipmentManagerObj = \v1\module\RateEngine\postmen\ShipmentManager::getShipmentManagerObj();                                
+					$formatedRequest = $shipmentManagerObj->getFormatedCancelLabelRequest($r);                                
+					$shipmentManagerObj->cancelLabelAction($formatedRequest);
+				}elseif($r->providerInfo->provider == 'Ukmail'){
+					$ukmailObj = new UkmailMaster();
+					$ukmailObj::initRoutes($r); 
+					exit;
+				}
+                                  
             }
             
             if (!$controller->_isLabelCall) 

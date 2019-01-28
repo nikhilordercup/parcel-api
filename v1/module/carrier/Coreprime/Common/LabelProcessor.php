@@ -24,9 +24,11 @@ class LabelProcessor
         $app = new \Slim\Slim();
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
-		
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
         $labelArr = $labelArr['label'];  
+		if($labelArr['status']=='error'){
+			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
+		}
         if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
@@ -43,7 +45,7 @@ class LabelProcessor
     }
 
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail = array(), $allData = array())
-    {  
+    { 
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
         foreach ($shipmentInfo as $key => $data) {
@@ -93,7 +95,7 @@ class LabelProcessor
 		$pickup_instruction   = $this->modelObj->getPickupInstructionByLoadIdentity($loadIdentity);
         $response['currency'] = $serviceInfo['currency'];
         $response['service'] = $serviceInfo['service_code'];
-        $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
+        $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity,$allData);
 
         /*start of binding child account data*/
         if (isset($response['credentials']['is_child_account']) && $response['credentials']['is_child_account'] == 'yes') {
@@ -109,7 +111,7 @@ class LabelProcessor
 
         $response['extra'] = array(
             "service_key" => $serviceInfo['service_code'],
-            "long_length" => "",
+            "long_length" => $allData->LongLength,
             "bookin" => "",
             "exchange_on_delivery" => "",
             "reference_id" => "",
@@ -127,7 +129,7 @@ class LabelProcessor
             "document_only" => "",
             "no_dangerous_goods" => "",
             "in_free_circulation_eu" => "",
-            "extended_cover_required" => isset($allData->is_insured) ? $allData->insurance_amount : "",
+            "extended_cover_required" => (isset($allData->is_insured) && $allData->is_insured!='') ? $allData->insurance_amount : "",
             "invoice_type" => ""
         );
 
@@ -157,6 +159,7 @@ class LabelProcessor
         $response['method_type'] = "post";
 		$response['access_token'] = $allData->access_token;
 		$response['email'] = $allData->email;
+		$response['parcel_total_weight'] = $allData->parcel_total_weight;
 
         return $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);
         //return $response;
@@ -180,7 +183,7 @@ class LabelProcessor
         return $serviceInfo;
     }
 
-    public function getCredentialInfo($carrierAccountNumber, $loadIdentity)
+    public function getCredentialInfo($carrierAccountNumber, $loadIdentity,$allData)
     {
         $credentialData = array();
         $credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
@@ -192,8 +195,9 @@ class LabelProcessor
         $credentialInfo["token"] = $credentialData["token"];
         $credentialInfo["account_number"] = $carrierAccountNumber;
         $credentialInfo["master_carrier_account_number"] = "";
-        $credentialInfo["latest_time"] = "17:00:00";
-        $credentialInfo["earliest_time"] = "14:00:00";
+        $credentialInfo["latest_time"] = $allData->pickup_latest_time;
+        $credentialInfo["earliest_time"] = $allData->pickup_earliest_time;
+		$credentialInfo["requested_collection_date"] = $allData->pickup_latest_time;
         $credentialInfo["carrier_account_type"] = array("1");
 
         return $credentialInfo;
