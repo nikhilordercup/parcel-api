@@ -127,10 +127,10 @@ class ShipmentManager extends PostMenMaster
         }
         
         $isDocument = (strtolower($request->extra->is_document) == "true") ? TRUE : FALSE;        
-        $payload = $this->buildRequestToCalculateRate($fromAddress, $toAddress, $package, $shipper_accounts, $isDocument,FALSE);  
+        $payload = $this->buildRequestToCalculateRate($fromAddress, $toAddress, $package, $shipper_accounts, $isDocument,FALSE); 
         try 
         {            
-            $rawRates = $this->calculateRates($payload);                         
+            $rawRates = $this->calculateRates($payload);   
             header('Content-Type: application/json'); 
             if($rawRates)
             {
@@ -233,9 +233,16 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['service_options']["dimensions"] =$dimensions; 
                 $innerRate['service_options']["weight"] =$weight; 
                 $innerRate['service_options']["time"] =$time; 
+                
+                $innerRate['service_options']['others'] = array(
+                    'pickup_deadline' => $rate->pickup_deadline,
+                    'booking_cut_off' => $rate->booking_cut_off,
+                    'delivery_date' => $rate->delivery_date,
+                    'transit_time' => $rate->transit_time
+                );
                                                    
                 $innerRate['taxes'] = array("total_tax"=>$taxAmt,"tax_percentage"=>$tax_percentage);
-                                                    
+                
                 $tempServiceType[$rate->shipper_account->id][] = $rate->service_type;                                                                                                                                            
                 $differentAcIds[$rate->shipper_account->id] = array_unique($tempServiceType[$rate->shipper_account->id]);                                     
                 $length = array_search($rate->shipper_account->id, array_keys($differentAcIds));

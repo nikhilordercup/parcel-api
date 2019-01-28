@@ -927,17 +927,12 @@ final class Nextday extends Booking
 
         
         if (($isInternalCarrier==='YES'))
-        {
-            $bkgModel = new \Booking_Model_Booking();
-            $providerInfo = $bkgModel->getProviderInfo('LABEL',ENV,'PROVIDER',$carrier_code);
-            $provider = $providerInfo['provider'];            
-            
+        {                        
             $label_path = "$labelHttpPath/$loadIdentity/$carrier_code/$loadIdentity.pdf";
             $customLabel = new Custom_Label();
             $customLabel->createLabel($loadIdentity,$carrier_code);
             $labelData = array(
-                "label_file_pdf" => $label_path,
-                "provider" => $provider
+                "label_file_pdf" => $label_path                
             );
             $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
             $statusArr = array(
@@ -994,12 +989,17 @@ final class Nextday extends Booking
             $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData); 
             if ($labelInfo['status'] == 'success')
                 {
+                $bkgModel = new \Booking_Model_Booking();
+                $providerInfo = $bkgModel->getProviderInfo('LABEL',ENV,'PROVIDER',$carrier_code);
+                $provider = ($providerInfo['provider'] != NULL) ? $providerInfo['provider']: NULL;
+            
                 $labelData = array(
                     "label_tracking_number" => isset($labelInfo['label_tracking_number']) ? $labelInfo['label_tracking_number'] : '0',
                     "label_files_png" => isset($labelInfo['label_files_png']) ? $labelInfo['label_files_png'] : '',
                     "label_file_pdf" => isset($labelInfo['file_path']) ? $labelInfo['file_path'] : '',
                     "label_json" => isset($labelInfo['label_json']) ? $labelInfo['label_json'] : '',
-					"invoice_created"=>isset($labelInfo['invoice_created']) ? $labelInfo['invoice_created'] : 0
+					"invoice_created"=>isset($labelInfo['invoice_created']) ? $labelInfo['invoice_created'] : 0,
+                    "provider" => $provider
                 );
                 $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
 
