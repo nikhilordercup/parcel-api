@@ -1,5 +1,7 @@
 <?php 
 date_default_timezone_set('Europe/London');
+//$headers = apache_request_headers();
+//print_r($headers); die;
 require_once '../v1/constant.php';
 require_once '../Credentials.php';
 //require_once '../v1/dbHandler.php';
@@ -34,6 +36,7 @@ require_once '../v1/module/allshipment/model/allshipments.php';
     
 require_once './model/restservicesModel.php';
 require_once './restservices.php';
+
 
 /*
 require_once('model/api.php');
@@ -75,7 +78,7 @@ function verifyRequiredParams($required_fields,$request_params) {
 }
 
 function verifyToken($app,$r) {
-    
+
     $response = array();
     $responceData = array();
     $error = false;
@@ -311,6 +314,8 @@ ehde/zUxo6UvS7UrBQIDAQAB
 -----END PUBLIC KEY-----
 EOD;
 
+
+
     try{
          $jwtData = JWT::decode($data, $publicKey, array('RS256')); 
     }
@@ -319,7 +324,7 @@ EOD;
         $app = \Slim\Slim::getInstance();
         $response["status"] = "error";
         $response["message"] = 'unauthorized token';
-        $response["error_code"] = "ERROR001"; 
+        $response["error_code"] = "ERROR001";
         echoResponse(400, $response);die;
         $app->stop();
     }
