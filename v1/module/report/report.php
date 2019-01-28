@@ -108,33 +108,16 @@ class Report extends Icargo
         else{
             $revenuePrice = $this->revenuePricePerJob * $job_count;
             $revenuePrice = array(
-                "driver_carrier_price_per_drop" => number_format($revenuePrice, 2),
-                "driver_customer_price_per_drop" => number_format($revenuePrice, 2),
-                "driver_carrier_price_per_drop" => 0,
-                "driver_customer_price_per_drop" => 0
+                "driver_carrier_price_per_drop" => $this->revenuePricePerJob,
+                "driver_customer_price_per_drop" => $this->revenuePricePerJob,
+                "driver_carrier_price" => number_format($revenuePrice, 2),
+                "driver_customer_price" => number_format($revenuePrice, 2),
             );
         }
         return $revenuePrice;
         }
 
-    /*private function _findDriverShipmentBetweenDate($driver_id)
-        {
-        $items = $this->modelObj->findDriverShipmentBetweenDate($this->param->start_date, $this->param->end_date, $this->param->company_id, $driver_id, $this->_getServiceTypeName());
-        $totalDrops = count($items);
-        $this->driverShipmentInfo = array();
-        $driverShipmentInfo = array();
-        $loadIdentity = array();
-        foreach($items as $item){
-            $dropName = $this->commonObj->getDropName(array("postcode"=>$item["shipment_postcode"], "address_1"=>$item["shipment_address1"]));
-            $driverShipmentInfo[$item["load_identity"]] = $dropName;
-            $loadIdentity[$item["load_identity"]] = $item["load_identity"];
-        }
-        $this->driverShipmentInfo = array(
-          "total_jobs" => count($loadIdentity),
-          "total_drops" => $totalDrops,
-          "load_identity" => $loadIdentity
-        );
-        }*/
+    
 
         private function _findDriverDeliveredDrop($shipmentRouteList, $loadIdentityStr, $driverId){
             $dropInfo = $this->modelObj->findDriverDropInfo($shipmentRouteList, $loadIdentityStr, $driverId);
@@ -192,7 +175,12 @@ class Report extends Icargo
                
 		private function _findDriverInfo($type)
 				{
-		    $shipmentInfo = $this->modelObj->findDriverTimeInfo($this->param->start_date, $this->param->end_date, $type, $this->param->company_id);
+            if($type=='Vendor'){
+                $shipmentInfo = $this->modelObj->findDriverTimeInfoForLastMile($this->param->start_date, $this->param->end_date, $type, $this->param->company_id);
+            }else{
+                $shipmentInfo = $this->modelObj->findDriverTimeInfo($this->param->start_date, $this->param->end_date, $type, $this->param->company_id);
+            }
+		    
             $driverRouteData = array();
            
             foreach($shipmentInfo as $item){
@@ -226,20 +214,6 @@ class Report extends Icargo
 
         $this->totalDistanceMeter;
         }
-
-    /*private function _findTotalMiles($shipment_route_id)
-        {
-        $this->totalDistanceMiles = 0;
-        $items = $this->modelObj->findLoadIdentityByShipmentTicket($shipment_route_id);
-        $loadIdentity = array();
-        foreach($items as $item)
-            $loadIdentity[$item["load_identity"]] = $item["load_identity"];
-
-        $loadIdentityStr = implode("','",$loadIdentity);
-        $this->_findAllTransitDistance($loadIdentityStr);
-
-        $this->totalDistanceMiles = $this->_getMeterToMiles($this->totalDistanceMeter);
-        }*/
 
     private function _findTotalMiles($load_identity_str)
         {
@@ -286,17 +260,6 @@ class Report extends Icargo
         $items = $this->modelObj->findAllActiveReportByCompanyId($this->param->company_id, $this->param->service_type);
         $this->reportLists[$this->param->service_type] = $items;
         }
-
-    /*private function _findAllDriverShipmentBetweenDate($driver_id, $type)
-        {
-        $items = $this->modelObj->findAllDriverShipmentBetweenDate($this->param->start_date, $this->param->end_date, $this->param->company_id, $driver_id, $type);
-
-        $loadIdentity = array();
-        foreach($items as $item)
-            $loadIdentity[$item["load_identity"]] = $item["load_identity"];
-
-        return count($loadIdentity);
-        }*/
 
     private function _findDriverAllShipmentCount($driver_time_info)
         {
@@ -425,11 +388,11 @@ class Report extends Icargo
                 $item->driver_name,
                 $item->start_date,
                 $item->end_date,
-                $item->total_time_on_job,
-                $item->total_drops,
-                $item->total_jobs,
-                $item->days,
-                $item->total_miles,
+                $item->time_taken_in_hr_min,
+                $item->no_of_drops,
+                $item->no_of_jobs,
+                $item->no_of_days,
+                $item->total_distance_miles,
                 $item->daily_drop_rate,
                 $item->average_speed,
                 $item->average_time_per_drop,
