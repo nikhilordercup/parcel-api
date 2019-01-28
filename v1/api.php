@@ -2564,3 +2564,10 @@ $app->post('/getallreconciled', function() use ($app) {
     echoResponse(200, $response);
 });
 UkMailTracking::initRoutes($app);
+$app->get('/cDhlTracking', function () use ($app) {
+    $obj = new Create_Tracking();
+    $obj->saveDhlTracking();
+    exit();
+});
+use v1\module\RateEngine\core\dhl\DhlApi;
+DhlApi::initRoutes($app);

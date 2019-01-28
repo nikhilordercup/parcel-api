@@ -120,6 +120,8 @@ class CustomerCostFactor
         $serviceCcfPrice = isset($service_ccf_price["price"]) ? $service_ccf_price["price"] : '0';
 
         $service_ccf_price["price_with_ccf"] = number_format( $serviceCcfPrice + $serviceprice, 2);
+        $service_ccf_price["original_price"] = isset($service_ccf_price["original_price"]) ? $service_ccf_price["original_price"] : 0;
+        
         return $service_ccf_price;
     }
 

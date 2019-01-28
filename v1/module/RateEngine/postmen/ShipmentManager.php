@@ -709,7 +709,7 @@ class ShipmentManager extends PostMenMaster
             $labels = explode(",", $labelArr['label']['file_url']);                        
             $label_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/label/';                                                                        
             $loadIdentity = $request->loadIdentity;
-            $carrier = $request->carrier;          
+            $carrier = strtolower($request->carrier);          
             $file_url = mkdir($label_path . $loadIdentity .'/'.$carrier.'/', 0777, true);
             
             foreach ($labels as $dataFile) {                

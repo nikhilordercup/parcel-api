@@ -65,7 +65,13 @@ class Module_Coreprime_Api extends Icargo
             $this->_isLabelCall = true;
             $label=$this->doLabelCall($data);
             return $label;
-        } 
+        }
+        
+        if (isset($data->callType) && $data->callType == 'createpickup' ) 
+        {       
+            return $this->postToRateEngineUrl($data->pickupEndPoint, $data);                        
+        }
+        
         $pd = $this->filterServiceProvider($data); 
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
@@ -209,7 +215,6 @@ class Module_Coreprime_Api extends Icargo
             foreach ($carrier as $carrierData) {
                 if ($carrierData['is_self'] == 'YES') {
                     $service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
-
                     if (count($service) > 0) {
                         $tempservice = array();
                         foreach ($service as $key => $valData) {

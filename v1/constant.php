@@ -9,4 +9,5 @@ define('PDFURL','http://'.$_SERVER['HTTP_HOST'].'/api/label');
 define('BASE_PATH',__DIR__);
 define('LABEL_PATH',BASE_PATH.DIRECTORY_SEPARATOR.'label');
 global $_GLOBAL_CONTAINER;
+define('APP_LOGGER', false);
 ?>

@@ -22,9 +22,7 @@ Class Carrier_Coreprime_Request{
 
 
 
-    Public
-
-    function _postRequest($url, $data_string){
+    public function _postRequest($url, $data_string){
         $this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";
 		
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
@@ -78,4 +76,5 @@ Class Carrier_Coreprime_Request{
         }        
         return $filteredData;
     }
+
 }

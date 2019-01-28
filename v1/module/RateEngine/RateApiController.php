@@ -82,6 +82,24 @@ class RateApiController
                 $controller->getLabelProvider();
             }                                                
         });
+        
+        $app->post('/rate-engine/getCorePoint', function () use ($app) 
+        {                
+            $r = json_decode($app->request->getBody());   
+            $controller = new RateApiController();
+            $controller->_responseData = array();
+            if($r->callType == 'createpickup')
+            {                
+                if($r->carrier == 'DHL')
+                {                    
+                    $dhlApiObj = new \v1\module\RateEngine\core\dhl\DhlApi();
+                    $xmlRequest = $dhlApiObj->getPickupRequest($r);                     
+                    $controller->_responseData = $dhlApiObj->postDataToDhl($xmlRequest);
+                }                
+            }            
+            exit(json_encode($controller->_responseData));                                     
+        });
+        
     }
 
     public function breakRequest($param)
@@ -377,7 +395,7 @@ class RateApiController
     
     public function mergeOtherCarrierRates($rateResponse, $rateResponse1)
     {                
-        if(count($rateResponse1['rate']) > 0)
+        if( isset($rateResponse1['rate']) && count($rateResponse1['rate']) > 0)
         {
             foreach($rateResponse1 as $rate => $rateData)
             { 
