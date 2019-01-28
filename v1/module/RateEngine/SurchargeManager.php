@@ -210,10 +210,10 @@ class SurchargeManager {
         } else {
             $baseUnit = $this->_surcharge->sameDay->wait;
             $extra = $this->_requestData->transit[0]->total_waiting_time;
-            $chargableUnit = ($extra / count($this->_packages)) -$baseUnit;
+            $chargableUnit = ($extra / $this->_requestData->transit[0]->number_of_drops) -$baseUnit;
         }
         if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
-            foreach ($this->_packages as $p) {
+            for ($i=1;$i<=$this->_requestData->transit[0]->number_of_drops;$i++) {
                 $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
             }
         } else {
