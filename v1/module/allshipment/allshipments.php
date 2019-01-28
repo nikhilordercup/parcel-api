@@ -1448,7 +1448,7 @@ class allShipments extends Icargo
             $tempval['driver_id']        = '0';
             $tempval['type']             = 'text';
             $tempval['value']            = 'text';
-            $tempval['pod_name']         = 'NULL';
+            $tempval['pod_name']         = 'signature';
             $tempval['comment']          = $param['data']['comment'];
             $tempval['contact_person']   = $param['data']['contact_person'];
             $tempval['status']           = '1';

@@ -159,7 +159,7 @@ class Booking extends Icargo
 
         if($ticketNumber){
 
-            $data["notification_status"] = (isset($param2->notification)) ? $param2->notification : "";
+            $data["notification_status"] = (isset($param2->notification)) ? $param2->notification :0;
             $data['shipment_address1'] = $addressInfo->address_line1;
             $data['shipment_address2'] = (isset($addressInfo->address_line2)) ? $addressInfo->address_line2 : "";
             $data['shipment_customer_city'] = (isset($addressInfo->city)) ? $addressInfo->city : "";

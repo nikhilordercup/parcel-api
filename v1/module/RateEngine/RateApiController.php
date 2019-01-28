@@ -247,7 +247,7 @@ class RateApiController
                                 continue;
                             }
                             $manager = new \v1\module\RateEngine\SurchargeManager();
-                            $manager->filterSurcharge($this->_responseData['surchargeList'][$name][$k][$z] ?? null, $transitData, $packages, $this->_responseData['rate'][$name][$k][$z][$key]['rate'], $request);
+                            $manager->filterSurcharge($this->_responseData['surchargeList'][$name][$k][$z] ?? null, $transitData, $packages, $this->_responseData['rate'][$name][$k][$z][$key]['rate'], $request,$this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost']);
                             $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
                             $this->_responseData['rate'][$name][$k][$z][$key]['service_options'] = $serviceOptionManager->formatOptionForResponse();
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'];

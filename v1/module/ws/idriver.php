@@ -15,14 +15,14 @@ class Idriver{
     private $_ignoreLog = array('route/gps-location','save/user-credential-info','logout');
 
     private function _saveAppLog($json)
-    {    
+    {
         if(!in_array($json->service, $this->_ignoreLog)){
             App_Logger::_getInstance()->_logEvent($json);
         }
     }
 
     public function services($params)
-    {   
+    {
         if (APP_LOGGER) {
             $this->_saveAppLog($params);
         }
@@ -73,7 +73,7 @@ class Idriver{
                 break;
                 case 'save/user-credential-info' :
                     return $this->_saveCredentialInfo($params);
-            }   
+            }
         }
     }
     private function _authenticate($params)
@@ -89,7 +89,7 @@ class Idriver{
         return $data;
     }
      private function _route_paused($params)
-    {  
+    {
         $params->loadActionCode = 'PAUSED';
         $obj = new Process_Route($params);
         $data = $obj->route_action();
@@ -106,7 +106,7 @@ class Idriver{
         $params->id = $params->user_id;
         $obj = new Process_Route($params);
         $data = $obj->route_action();
-        return $data;   
+        return $data;
     }
     private function _process_start_route($params)
     {
@@ -114,18 +114,32 @@ class Idriver{
         $params->loadActionCode = $params->service;
         $obj = new Process_Route($params);
         $data = $obj->route_action();
-        return $data;   
+        return $data;
     }
     private function _process_route_form($params)
     {
+        $tempService = $params->service;
+
+        $params->loadActionCode = "ACCEPT";
+        $this->_route_accepted($params);
+
+        $params->service = "START-ROUTE";
+        $this->_process_start_route($params);
+
+        unset($params->loadActionCode);
+
+        $params->service = $tempService;
         $params->id = $params->driver_id;
-        $params->loadActionCode = $params->service;
+
+        $params->id = $params->driver_id;
+        $params->loadActionCode = $tempService;
+
         $obj = new Process_Form($params);
         $data = $obj->process();
         return $data;
     }
     private function _process_route_optimization($params)
-    { 
+    {
         $obj = new Optimize_Route($params);
         $data = $obj->optimize();
         return $data;

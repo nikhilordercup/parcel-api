@@ -50,6 +50,11 @@ class Module_Google_Api extends Icargo
             {
                 $matrix['data']->rows[0]->elements[0]->duration_in_traffic = $matrix['data']->rows[0]->elements[0]->duration;
             }
+            else
+            if ($param["mode"] == "driving") // save distance as duration_in_traffic
+            {
+                $matrix['data']->rows[0]->elements[0]->duration_in_traffic = $matrix['data']->rows[0]->elements[0]->duration;
+            }
 
             return $matrix;
         }

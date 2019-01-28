@@ -451,7 +451,7 @@ final class Nextday extends Booking
     /************DHL Service list (Start from Here)**********/
     private
     function getDhlServiceList($carrier_code, $lists)
-    { 
+    {
         foreach($lists as $key1 => $list)
         {
             foreach($list as $accountNumber => $items)
@@ -459,7 +459,7 @@ final class Nextday extends Booking
                 foreach($items as $key3 => $item)
                 {
                     foreach($item as $service_code => $services)
-                    { 
+                    {
                         if (!isset($services[0]->rate->error))
                         {
 							$services = $this->calculateSurchargesAndBasePrice($services);/**surcharges and base price calculation**/
@@ -487,6 +487,18 @@ final class Nextday extends Booking
                                     );
                                 }
 
+                                if (isset($service->taxes))
+                                {
+                                    if (isset($service->taxes->total_tax))
+                                    {
+                                        $service->taxes->total_tax = number_format($service->taxes->total_tax, 2);
+                                    }
+
+                                    if (isset($service->taxes->tax_percentage))
+                                    {
+                                        $service->taxes->tax_percentage = number_format($service->taxes->tax_percentage, 2);
+                                    }
+                                }
 								
 								if((isset($services[0]->rate->total_tax)) && ($services[0]->rate->total_tax!=0)){
 									$service->taxes = (object)array();

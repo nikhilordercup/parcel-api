@@ -741,7 +741,6 @@ class AllShipment_Model
         $sql .= " AND (`S`.`instaDispatch_loadGroupTypeCode` = 'SAME' OR `S`.`instaDispatch_loadGroupTypeCode` = 'NEXT')";
         //$sql .= " ORDER BY S.shipment_id DESC";
         $sql .= " LIMIT $start, $end";
-        //echo $sql;
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
@@ -763,11 +762,10 @@ class AllShipment_Model
         LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.courier_id = SST.carrier AND COMCOUR.account_number = SST.accountkey
         LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
         LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
-        WHERE S.instaDispatch_loadIdentity IN ('$ticket_string')
+        WHERE SST.load_identity IN ('$ticket_string')
 
         ORDER BY S.shipment_id DESC, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
         //#LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
-		//echo $sql;die;
         $record = $this->db->getAllRecords($sql);
         return $record;
     }

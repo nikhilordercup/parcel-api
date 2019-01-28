@@ -191,7 +191,7 @@ class RateEngineModel
     {
         $query = "SELECT CS.*,C.name FROM " . DB_PREFIX . "courier_vs_services As CS "
             . "LEFT JOIN " . DB_PREFIX . "courier AS C ON CS.courier_id=C.id "
-            . "WHERE CS.service_name='$name' AND C.id=$carrierId";
+            . "WHERE CS.service_name='$name' AND C.id=$carrierId ";
         return $this->_db->getOneRecord($query);
     }
 
@@ -284,10 +284,10 @@ class RateEngineModel
     public function getServices($courierId = 0, $companyId = 0)
     {
         if ($courierId > 0 && $companyId > 0) {
-            $query = "SELECT DISTINCT(CS.id),CS.service_name 
-FROM ".DB_PREFIX."courier_vs_services AS CS  
-LEFT JOIN ".DB_PREFIX."courier_vs_services_vs_company AS CSC ON CS.id=CSC.service_id 
-LEFT JOIN ".DB_PREFIX."courier_vs_company AS CC ON CC.courier_id=CSC.courier_id 
+            $query = "SELECT DISTINCT(CS.id),CS.service_name
+FROM ".DB_PREFIX."courier_vs_services AS CS
+LEFT JOIN ".DB_PREFIX."courier_vs_services_vs_company AS CSC ON CS.id=CSC.service_id
+LEFT JOIN ".DB_PREFIX."courier_vs_company AS CC ON CC.courier_id=CSC.courier_id
 WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         } else if ($courierId > 0 && $companyId == 0) {
             $query = "SELECT DISTINCT  * FROM " . DB_PREFIX . "courier_vs_services_vs_company "
@@ -362,10 +362,10 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
     public function getEndPointByEnv($env = null)
     {
         if ($env) {
-            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers 
+            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers
         WHERE provider_type='ENDPOINT' AND app_env='$env'");
         } else {
-            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers 
+            return $this->_db->getAllRecords("SELECT * FROM " . DB_PREFIX . "service_providers
         WHERE provider_type='ENDPOINT' ");
         }
     }
@@ -428,7 +428,7 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         return $this->_db->update('courier_vs_services',$newData,"id=$serviceId");
     }
     public function addServiceOption($data){
-        $d=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."service_options 
+        $d=$this->_db->getOneRecord("SELECT * FROM ".DB_PREFIX."service_options
         WHERE service_id=".$data['service_id']);
         if(!$d) {
             return $this->_db->save('service_options', $data);
@@ -477,7 +477,7 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         }
     }
     public function getTaxInfoByIso2($iso){
-        $sql="SELECT T.* FROM ".DB_PREFIX."countries AS C LEFT JOIN 
+        $sql="SELECT T.* FROM ".DB_PREFIX."countries AS C LEFT JOIN
                 ".DB_PREFIX."tax_details AS T ON C.id=T.country_id WHERE C.alpha2_code='$iso'";
         return $this->_db->getOneRecord($sql);
     }

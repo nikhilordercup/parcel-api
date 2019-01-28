@@ -12,7 +12,7 @@ class Carrier_Business_Day extends Business_Days_Calculator{
         $this->_calculator = self::$businessObj;
     }
 
-    public function _findBusinessDay(Datetime $startDate, int $businessDays = 0, string $carrierCode){
+    public function _findBusinessDay( $startDate,  $businessDays = 0,  $carrierCode){
         $holidays = array(); //[new DateTime("2014-06-01"), new DateTime("2014-06-02")]
         $this->_calculator->setParam($startDate, $holidays, [Business_Days_Calculator::SATURDAY, Business_Days_Calculator::SUNDAY]);
         $this->_calculator->addBusinessDays($businessDays);
