@@ -916,11 +916,16 @@ final class Nextday extends Booking
         
         if (($isInternalCarrier==='YES'))
         {
+            $bkgModel = new \Booking_Model_Booking();
+            $providerInfo = $bkgModel->getProviderInfo('LABEL',ENV,'PROVIDER',$carrier_code);
+            $provider = $providerInfo['provider'];            
+            
             $label_path = "$labelHttpPath/$loadIdentity/$carrier_code/$loadIdentity.pdf";
             $customLabel = new Custom_Label();
             $customLabel->createLabel($loadIdentity,$carrier_code);
             $labelData = array(
-                "label_file_pdf" => $label_path
+                "label_file_pdf" => $label_path,
+                "provider" => $provider
             );
             $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
             $statusArr = array(
