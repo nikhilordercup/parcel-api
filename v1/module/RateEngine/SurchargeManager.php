@@ -26,6 +26,7 @@ class SurchargeManager {
     protected $_packages = null;
     protected $_rate = null;
     protected $_requestData = null;
+	protected $_finalCost=0;
     protected $_countedSurcharge = [
 	"long_length_surcharge"=>0,
         "remote_area_surcharge"=>0,
@@ -43,7 +44,7 @@ class SurchargeManager {
         "congestion_surcharge"=>0,
         "same_day_drop_surcharge"=>0,
         "same_day_waiting_surcharge"=>0,
-        "overwieght_surcharge"=>0,
+        "overweight_surcharge"=>0,
         "extrabox_surcharge"=>0,
         "residential_surcharge"=>0
 	];
@@ -69,7 +70,7 @@ class SurchargeManager {
         "congestion_surcharge",
         "same_day_drop_surcharge",
         "same_day_waiting_surcharge",
-        "overwieght_surcharge",
+        "overweight_surcharge",
         "extrabox_surcharge",
         "residential_surcharge"
     ];
@@ -83,16 +84,16 @@ class SurchargeManager {
      * @param object $rate Rate object on which surcharge will be calculated.
      * @param object $request Complete request data which we are receiving in api request.
      */
-    public function filterSurcharge($surcharges, $transitData, $packages, $rate, $request) {
+    public function filterSurcharge($surcharges, $transitData, $packages, $rate, $request,$finalCost=0) {
         $this->_packages = $packages;
         $this->_rate = $rate;
         $this->_transitData = $transitData;
         $this->_requestData = $request;
-
-        $date = new \DateTime();
-        $match_date = new \DateTime($request->ship_date);
-        $interval = $date->diff($match_date);
-        if($interval->days == 0) {
+	$this->_finalCost=$finalCost;
+//        $date = new \DateTime();
+  //      $match_date = new \DateTime($request->ship_date);
+    //    $interval = $date->diff($match_date);
+        if(is_null($packages) || count($packages) == 0) {
             $this->_isSameDay=true;
         }
         if (is_null($surcharges)) {
@@ -132,7 +133,7 @@ class SurchargeManager {
                 case 16:
                     $this->sameDayDropWaitSurcharge($rate, $surchargeObj->surcharge);
                     break;
-                case 17:
+                case 17://print_r($this->_isSameDay);exit('ov');
                     if($this->_isSameDay)break;
                     $this->overWeightSurcharge($rate);
                     break;
@@ -209,10 +210,10 @@ class SurchargeManager {
         } else {
             $baseUnit = $this->_surcharge->sameDay->wait;
             $extra = $this->_requestData->transit[0]->total_waiting_time;
-            $chargableUnit = ($extra / count($this->_packages)) -$baseUnit;
+            $chargableUnit = ($extra / $this->_requestData->transit[0]->number_of_drops) -$baseUnit;
         }
         if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
-            foreach ($this->_packages as $p) {
+            for ($i=1;$i<=$this->_requestData->transit[0]->number_of_drops;$i++) {
                 $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
             }
         } else {
@@ -254,7 +255,7 @@ class SurchargeManager {
             $totalWeight = $this->calculateWeight();
             $allowedWeight=count($this->_packages)*$this->_surcharge->overWeight->freeWeight;
             $extraWeight=$totalWeight-$allowedWeight;
-        }
+        }//echo $extraWeight;exit($extraWeight);
         $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('overWeight',$extraWeight);
 //        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
         $this->_countedSurcharge["overweight_surcharge"] = $this->overUnitSlabCalculator($extraWeight,$rate);
@@ -293,7 +294,8 @@ class SurchargeManager {
                 $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate' => $appliedSurcharges[$this->surcharges[$id - 1]]]);
             }
         }
-        $finalSurcharge += $this->calculateSurcharge($d->commonData, $rate);
+	$this->_finalCost=$this->_finalCost>$rate['rate']?$this->_finalCost:$rate['rate'];
+        $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate'=>$this->_finalCost]);
         $this->_countedSurcharge["fuel_surcharge"] = round($finalSurcharge,2);
     }
 
@@ -368,6 +370,10 @@ class SurchargeManager {
      * @return bool
      */
     public function isSideApplicable($p, $side) {
+	if(!isset($this->_surcharge->lengthData->tUnit) || !isset($this->_surcharge->lengthData->sUnit))
+        {
+            return false;
+        }
         $unit = ($side == 1) ? $this->_surcharge->lengthData->tUnit : $this->_surcharge->lengthData->sUnit;
         $lengthApplicable = $this->isConditionTrue($p->length, '>', $unit);
         $widthApplicable = $this->isConditionTrue($p->width, '>', $unit);

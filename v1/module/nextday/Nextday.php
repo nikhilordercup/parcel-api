@@ -1384,6 +1384,13 @@ final class Nextday extends Booking
 				}else{
 					$services[$key]->surcharges->over_weight_charge = '';
 				}
+				if(isset($service->rate->over_sized_charge)){
+					$service->rate->over_sized_charge = ($service->rate->over_sized_charge/6)*5;
+					$service->rate->over_sized_charge = number_format($service->rate->over_sized_charge,2);
+					$services[$key]->surcharges->over_sized_charge = $service->rate->over_sized_charge;
+				}else{
+					$services[$key]->surcharges->over_sized_charge = '';
+				}
 			}else{
 				if(isset($service->rate->fuel_surcharge)){
 					$service->rate->fuel_surcharge = number_format($service->rate->fuel_surcharge,2);
@@ -1409,11 +1416,17 @@ final class Nextday extends Booking
 				}else{
 					$services[$key]->surcharges->over_weight_charge = '';
 				}
+				if(isset($service->rate->over_sized_charge)){
+					$service->rate->over_sized_charge = number_format($service->rate->over_sized_charge,2);
+					$services[$key]->surcharges->over_sized_charge = $service->rate->over_sized_charge;
+				}else{
+					$services[$key]->surcharges->over_sized_charge = '';
+				}
 			}
 			
-			$service->rate->total_surcharge = $service->rate->fuel_surcharge + $service->rate->remote_area_delivery + $service->rate->insurance_charge + $service->rate->over_weight_charge;
+			$service->rate->total_surcharge = @$service->rate->fuel_surcharge + @$service->rate->remote_area_delivery + @$service->rate->insurance_charge + @$service->rate->over_weight_charge + @$service->rate->over_sized_charge;
 			$service->rate->weight_charge_with_tax = $service->rate->weight_charge;
-			$service->rate->weight_charge = $service->rate->weight_charge - ($service->rate->total_surcharge + $service->rate->total_tax);
+			$service->rate->weight_charge = $service->rate->weight_charge - ($service->rate->total_surcharge + @$service->rate->total_tax);
 		}	
 		return $services;
 	}

@@ -18,7 +18,6 @@
     "easypost/easypost-php": "~3.0",
     "php-units-of-measure/php-units-of-measure": "^2.1",
     "postmen/sdk-php": "^1.0",
-    "ext-json": "*",
     "ext-pdo": "*",
     "illuminate/database": "^5.5.0",
     "illuminate/events": "^5.5.0",

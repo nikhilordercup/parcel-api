@@ -176,7 +176,7 @@ $app->post('/signUp', function() use ($app) {
             $notificationObj = new Courier_Signup();
             $notificationObj->send($user);
             $mailer=new \v1\module\Mailer\SystemEmail();
-            $mailer->sendWelcomeEmail();
+//            $mailer->sendWelcomeEmail();
             $response["status"] = "success";
             $response["message"] = "User account created successfully";
             $response["id"] = $user;

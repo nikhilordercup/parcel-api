@@ -46,7 +46,7 @@ class Module_Coreprime_Api extends Icargo
     public
 
     function _postRequest($data)
-    { //print_r($data);exit;
+    { //print_r(json_encode($data));exit;
         global $_GLOBAL_CONTAINER;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
@@ -200,7 +200,6 @@ class Module_Coreprime_Api extends Icargo
             foreach ($carrier as $carrierData) {
                 if ($carrierData['is_self'] == 'YES') {
                     $service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
-
                     if (count($service) > 0) {
                         $tempservice = array();
                         foreach ($service as $key => $valData) {
@@ -481,7 +480,7 @@ class Module_Coreprime_Api extends Icargo
     }
 
     public function postToCorePrime($cpData)
-    {
+    {//exit('core');
         $url = "";
         foreach ($this->_endpoints as $ep) {
             if ($ep['provider'] == 'Coreprime') {
