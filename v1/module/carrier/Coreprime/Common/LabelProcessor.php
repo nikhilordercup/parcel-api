@@ -50,7 +50,9 @@ class LabelProcessor
     }
     
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail = array(), $allData = array())
-    {  
+    {       
+        $collection = (array)$allData->collection;
+        $delivery = (array)$allData->delivery;        
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
         
@@ -72,8 +74,10 @@ class LabelProcessor
                     "state" => $data["shipment_county"],
                     "zip" => $data["shipment_postcode"],
                     "country" => $data["shipment_country_code"],
-                    "country_name" => $data["shipment_customer_country"],
-                    "is_apo_fpo" => ""
+                    "country_name" => $data["shipment_customer_country"],                    
+                    "is_apo_fpo" => "",
+                    "email" => ($collection[0]->email != '') ? $collection[0]->email : '',
+                    "is_res" => ($collection[0]->address_type == 'Residential') ? TRUE : FALSE
                 );
                 $response['ship_date'] = $data['shipment_required_service_date'];
 
@@ -94,13 +98,13 @@ class LabelProcessor
                     "country_name" => $data["shipment_customer_country"],
                     "email" => $data["shipment_customer_email"],
                     "is_apo_fpo" => "",
-                    "is_residential" => ""
+                    "is_res" => ($delivery[0]->address_type == 'Residential') ? TRUE : FALSE
                 );
 
                 $carrierAccountNumber = $data["carrier_account_number"];
                 //$response['ship_date'] = $data['shipment_required_service_date'];
             }
-        }
+        }                
         $response['package'] = $this->getPackageInfo($loadIdentity);
         $serviceInfo = $this->getServiceInfo($loadIdentity);
         $delivery_instruction = $this->modelObj->getDeliveryInstructionByLoadIdentity($loadIdentity);

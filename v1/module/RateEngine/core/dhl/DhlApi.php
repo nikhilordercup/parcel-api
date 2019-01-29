@@ -54,28 +54,29 @@ class DhlApi extends DhlApiBase
             $this->formatPickupResponseData($resultData);                                                                      
         });
         
-        $app->post('/pickupcancel', function() use ($app) {             
-            $r = json_decode($app->request->getBody());                                                 
-            $dhlApiObj = new DhlApi();
-            
+        $app->post('/pickupcancel', function() use ($app) {                                                   
+            $xml = simplexml_load_string($app->request->getBody());
+            $reqObj = json_decode(json_encode($xml));
+
             $rawData = array();
             $rawData['credentials'] = array(
-                'username' => 'kuberusinfos',
-                'password' => 'GgfrBytVDz',
+                'username' => $reqObj->Request->ServiceHeader->SiteID,
+                'password' => $reqObj->Request->ServiceHeader->Password,
                 'third_party_account_number' => '',
-                'account_number' => '420714888',
-                'token' => '4GTWC_jR3DIj9NpgY9JdBBL07Hd-6Cy-0'
+                'account_number' => '',
+                'token' => $reqObj->Request->ServiceHeader->token,
             );
             $rawData['carrier'] = 'dhl';
-            $rawData['ConfirmationNumber'] = 'PRG190204000141';
-            $rawData['CountryCode'] = 'GB';
-            $rawData['PickupDate'] = '2019-02-05';
+            $rawData['ConfirmationNumber'] = $reqObj->ConfirmationNumber;
+            $rawData['CountryCode'] = $reqObj->CountryCode;
+            $rawData['PickupDate'] = $reqObj->PickupDate;
             $rawData['CancelTime'] = date("H:i");
             $rawData['Reason'] = '002';
             $rawData['OriginSvcArea'] = '';
-            $rawData['RegionCode'] = 'EU';
-            $rawData['RequestorName'] = 'Kavita'; 
+            $rawData['RegionCode'] = $reqObj->RegionCode;
+            $rawData['RequestorName'] = $reqObj->RequestorName;
                         
+            $dhlApiObj = new DhlApi();                                   
             $payload = $dhlApiObj->formatPickupCancelationReq($rawData); 
             $xmlRequest = $dhlApiObj->getPickupCacelationRequest($payload);                      
             $resultData = $dhlApiObj->postDataToDhl($xmlRequest);

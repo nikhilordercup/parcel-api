@@ -63,8 +63,8 @@ abstract class PostMenMaster extends Postmen
             $finalAddress['country'] = (strlen($address->country) == 2) ? ShipmentManager::getAlpha3CodeFromAlpha2($address->country) : $address->country ;
         }
         
-        $finalAddress['email']= ( isset($address->email) && $address->email != '' ) ? $address->email : 'test@test.test';  // need discussion
-        $finalAddress['type']= ( isset($address->type) && $address->type != '' ) ? $address->type : 'business';  // need discussion     
+        $finalAddress['email']= ( isset($address->email) && $address->email != '' ) ? $address->email : 'test@test.test';        
+        $finalAddress['type']= ( isset($address->is_res) && (boolean)$address->is_res === TRUE ) ? 'residential' : 'business';
         if( (isset($address->zip)) && $address->zip != '')
         {
              $finalAddress['postal_code']= $address->zip;
