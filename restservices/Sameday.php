@@ -768,7 +768,7 @@ class Sameday extends  Booking
         }
           return array("status"=>"error", "message"=>"shipment service not saved");
     }
-    public      function bookSameDayShipment($data){
+    public  function bookSameDayShipment($data){
         $carrier_id = $data->service_detail->otherinfo->courier_id;
         $accountStatus = $this->_checkCustomerAccountStatus($data->customer_id);
         $carrierCode =  $this->_getCarrierCode($carrier_id);
@@ -938,7 +938,7 @@ class Sameday extends  Booking
             return array("status"=>"error", "message"=>"Customer account disabled.");
         }
     }
-    private     function _save_shipment($param){
+    private function _save_shipment($param){
         
         $data = array();
         $ticketNumber =  $this->modelObj->generateTicketNo($param["company_id"]);//$this->_generate_ticket_no();
@@ -1062,7 +1062,7 @@ class Sameday extends  Booking
             return array('status'=>"error",'message'=>'Configuration not found');
         }
     }
-    private     function _bookSameDayShipment($param){ 
+    private function _bookSameDayShipment($param){ 
     
             $shipment_data = $param["shipment_data"];
             $shipmentStatus = $this->_save_shipment($shipment_data);
@@ -1073,7 +1073,7 @@ class Sameday extends  Booking
                 return array("status"=>"error","message"=>$shipmentStatus["message"]);
             }
        }
-    private     function _prepareShipmentData($param){
+    private function _prepareShipmentData($param){
         
         $_data       = array();
         $data        = $param["shipment_data"];
@@ -1135,7 +1135,7 @@ class Sameday extends  Booking
         }
         return $_data;
     }
-    private     function _saveShipmentPriceBreakdown($param){
+    private function _saveShipmentPriceBreakdown($param){
         
         $priceVersionNo = $param["version"];
         $shipmentType = $param["shipment_type"];
@@ -1227,7 +1227,7 @@ class Sameday extends  Booking
         }
         return $response;
     }
-    private     function _saveSamedayShipmentService($param){
+    private function _saveSamedayShipmentService($param){
         
         $_data = array();
         $_attribute = array();
@@ -1337,13 +1337,9 @@ class Sameday extends  Booking
         }
         return $service_id;
     }
-    public      function bookSameDayQuotation($param,$records){
+    public  function bookSameDayQuotation($param,$records){
         
         $qRef = $param->quation_reference;
-        //$validReqData    = $this->validateQuotation($param,json_decode(json_encode($records['request_data'])));
-        //if($validReqData['status']!='success'){
-            //return $validReqData;
-        //}
         $formatedReqData = $this->formattedReqest($param,json_decode(json_encode($records['request_data'])));
         $paramReq = json_decode(json_encode($formatedReqData));
         $bookingData = array();
@@ -1445,7 +1441,7 @@ class Sameday extends  Booking
              return array("status" => "fail","rate"=>array(),"availiable_balence" => $available_credit['available_credit']);
         }
      }
-    public      function getEligibleRecurringJob(){
+    public  function getEligibleRecurringJob(){
         
         $reccuringBucket =  array();
         $recurringData = $this->resrServiceModel->getSamedayReccuringJobs();
@@ -1481,7 +1477,7 @@ class Sameday extends  Booking
        
         return $reccuringBucket;
     }
-    public      function canCancelJob($param){
+    public  function canCancelJob($param){
         
         $endpoint      = $this->endpoint;
         $param->customer_id = $param->customer_id;
@@ -1511,7 +1507,7 @@ class Sameday extends  Booking
 
         }
        }
-    public      function cancelJob($param){
+    public  function cancelJob($param){
         
         $param->job_identity = array($param->identity);
         $param->user = $param->company_id;
@@ -1549,7 +1545,7 @@ class Sameday extends  Booking
 
         }
       }
-    public      function saveWebReqResponce($req,$resp,$app){
+    public  function saveWebReqResponce($req,$resp,$app){
         
         $token      = decodeJWtKey($app->request->headers->get("Authorization"));
         $url        = $app->request->getRootUri();
@@ -1562,12 +1558,12 @@ class Sameday extends  Booking
         $data['create_date'] = date('Y-m-d H:i:s');
         $this->resrServiceModel->addContent('api_request_response',$data);
     }
-    public      function isValidServiceDate($date, $format = 'Y-m-d H:i'){
+    public  function isValidServiceDate($date, $format = 'Y-m-d H:i'){
         
                     $d = DateTime::createFromFormat($format, $date);
                     return $d && $d->format($format) == $date;
         }
-    public      function getShipmentTracking($param){
+    public  function getShipmentTracking($param){
         
         $param->job_identity = array($param->identity);
         $param->user = $param->company_id;
@@ -1599,7 +1595,7 @@ class Sameday extends  Booking
 
         }
       }
-    public      function bookSamedayByLoadIdentity($loadidentity){
+    public  function bookSamedayByLoadIdentity($loadidentity){
         
         $jsonData                           = array('collection'=>array(),'delivery'=>array());
         $loadServicedetails                 = $this->resrServiceModel->getLoadServiceDetails($loadidentity);
@@ -1661,7 +1657,7 @@ class Sameday extends  Booking
         return $data;
 
      }
-    public      function bookSameDayJobWithoutQuotion($param){
+    public  function bookSameDayJobWithoutQuotion($param){
         
         if(!isset($param->service_code) || ($param->service_code=='')){
                  $response = array();
@@ -1681,6 +1677,8 @@ class Sameday extends  Booking
                     $commonObj   = new Commonservices();  
                     $records = $commonObj->getRequestedQuotationInfo((object)array(
                         'service_code'=>$param->service_code,
+                        'act_number'=>$param->act_number,
+                        'carrier_code'=>$param->carrier_code,
                         'quation_reference'=>$quotation_ref,
                         'customer_id'=>$param->customer_id,
                         'company_id'=>$param->company_id));
@@ -1705,7 +1703,7 @@ class Sameday extends  Booking
                     }
                }
            }
-    public      function executeSameDayRecurringJob(){
+    public  function executeSameDayRecurringJob(){
         
         $reccuringBucket =  array();
         $return  =  array();
@@ -1740,7 +1738,7 @@ class Sameday extends  Booking
         }
         return $return;
     }
-    public      function formattedReqest($param,$quoteRequest){ 
+    public  function formattedReqest($param,$quoteRequest){ 
         
        foreach($quoteRequest->delivery as $key=>$datainer){    
           if(isset($param->delivery)){
@@ -1780,9 +1778,7 @@ class Sameday extends  Booking
     
      return $quoteRequest;  
     }
-    
-
-    public function saveShipmentCollection($data){
+    public  function saveShipmentCollection($data){
         $collection_data = array();
         $collection_data["carrier_code"]         = $data->carrier_code;
         $collection_data["collection_date_time"] = $data->collection_date_time;

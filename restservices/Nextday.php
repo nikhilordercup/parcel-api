@@ -1838,10 +1838,11 @@ final class Nextday extends Booking
                         }
                         if(in_array($param->service_code,$ablServices)){
                            $param->quation_reference =  $quotation_ref;
-                            
                             $commonObj      = new Commonservices();
                             $records        = $commonObj->getRequestedQuotationInfo((object)array(
                             'service_code'=>$param->service_code,
+                            'act_number'=>$param->act_number,
+                            'carrier_code'=>$param->carrier_code,
                             'quation_reference'=>$quotation_ref,
                             'customer_id'=>$param->customer_id,
                             'company_id'=>$param->company_id));

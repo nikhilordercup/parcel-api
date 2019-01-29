@@ -35,6 +35,18 @@ final class Commonservices extends Booking
                  $response["message"] = 'service code is missing';
                  $response["error_code"] = "ERROR00C44";
                  return $response;
+        }elseif(!isset($records->act_number) || ($records->act_number=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'account number is missing';
+                 $response["error_code"] = "ERROR00C544";
+                 return $response;
+        }elseif(!isset($records->carrier_code) || ($records->carrier_code=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'carrier code is missing';
+                 $response["error_code"] = "ERROR00C644";
+                 return $response;
         }else{
            $quotationData =  $this->restModel->getQuotationData($records->quation_reference);
              if($quotationData==''){
@@ -44,7 +56,7 @@ final class Commonservices extends Booking
                  $response["error_code"]    = "ERROR00C60";
                  return $response;
            }else{
-            $serviceId = $this->restModel->getCustomerCarrierDataByServiceCode($records->customer_id,$records->service_code,$records->company_id);
+            $serviceId = $this->restModel->getCustomerCarrierDataByServiceCodeAndAccontCarrier($records->customer_id,$records->service_code,$records->company_id,$records->act_number,$records->carrier_code);
             $preResponse     = json_decode($quotationData['response'],1);
             $preRequest      = json_decode($quotationData['request'],1);
             $preServiceKeys  = array_keys((array)$preResponse);
@@ -79,9 +91,23 @@ final class Commonservices extends Booking
                  $response["message"] = 'service code is missing';
                  $response["error_code"] = "ERROR00C144";
                  return $response;
+        }elseif(!isset($records->act_number) || ($records->act_number=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'account number is missing';
+                 $response["error_code"] = "ERROR00C514";
+                 return $response;
+        }elseif(!isset($records->carrier_code) || ($records->carrier_code=='')){
+                 $response = array();
+                 $response["status"] = "fail";
+                 $response["message"] = 'carrier code is missing';
+                 $response["error_code"] = "ERROR00C614";
+                 return $response;
         }else{
-                 $serviceId = $this->restModel->getCustomerCarrierDataByServiceCode($records->customer_id,$records->service_code,$records->company_id);
-                 if(is_array($serviceId)){
+                 //$serviceId = $this->restModel->getCustomerCarrierDataByServiceCode($records->customer_id,$records->service_code,$records->company_id);
+           $serviceId = $this->restModel->getCustomerCarrierDataByServiceCodeAndAccontCarrier($records->customer_id,$records->service_code,$records->company_id,$records->act_number,$records->carrier_code);
+                  
+           if(is_array($serviceId)){
                      $response = array();
                      $response["status"]         = "success";
                      $response["job_type"]       = $serviceId['service_type'];

@@ -137,6 +137,16 @@ class restservices_Model
         $sql = "SELECT C.* FROM " . DB_PREFIX . "countries as C
                 WHERE  C.short_name LIKE '$country'";
         return $this->db->getRowRecord($sql);
-    }  
+    } 
+  public function getCustomerCarrierDataByServiceCodeAndAccontCarrier($customerId,$servicecode,$company,$account,$carrier){ 
+       $sql = "SELECT S.service_type,A.service_id FROM " . DB_PREFIX . "company_vs_customer_vs_services  as A
+               INNER JOIN " . DB_PREFIX . "courier_vs_services as S on S.id = A.service_id
+               INNER JOIN " . DB_PREFIX . "courier_vs_company_vs_customer as C on C.company_courier_account_id  = A.courier_id 
+                                                                                   AND A.company_customer_id  = C.customer_id
+               INNER JOIN " . DB_PREFIX . "courier as Cu on Cu.id = C.courier_id
+               WHERE A.company_customer_id =  '$customerId' AND S.service_code = '$servicecode' AND C.account_number = '$account' AND Cu.code = '$carrier'"; 
+      $data =  $this->db->getRowRecord($sql);
+       return $data;
+    }
  }
 ?>
