@@ -235,9 +235,9 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['service_options']["time"] =$time; 
                 
                 $innerRate['service_options']['others'] = array(
-                    'pickup_deadline' => $rate->pickup_deadline,
-                    'booking_cut_off' => $rate->booking_cut_off,
-                    'delivery_date' => $rate->delivery_date,
+                    'pickup_deadline' => date('Y-m-d H:i',strtotime($rate->pickup_deadline)),
+                    'booking_cut_off' => date('Y-m-d H:i',strtotime($rate->booking_cut_off)),
+                    'delivery_date' => date('Y-m-d H:i',strtotime($rate->delivery_date)),
                     'transit_time' => $rate->transit_time
                 );
                                                    
