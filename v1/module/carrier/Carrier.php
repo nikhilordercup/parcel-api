@@ -241,30 +241,18 @@ class Carrier{
     }
 
 	/*****start of cancelling shipment from shipment grid*******/
-	public function cancelShipmentByLoadIdentity($param){
+	public function cancelShipmentByLoadIdentity($credentialData,$param){
 		$obj = new Carrier_Coreprime_Request();
 		$requestArr = array();
-		$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
-		//$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
-		if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' ){
-			$labelArr = json_decode($labelInfo[0]['label_json']);
-			
-			//get credentials for child account
-			if($labelInfo[0]['accountkey']!=$labelInfo[0]['parent_account_key'])
-				$credentialData = $this->modelObj->getCredentialDataForChildAccount($labelArr->label->accountnumber,$labelInfo[0]['parent_account_key']);
-			else //get credentials for parent account
-				$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
 
-			$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>'','token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
-            //$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
+		$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>'','token'=> $credentialData["token"],'account_number'=>$credentialData["accountnumber"]);  
 
-			$requestArr['carrier'] = strtolower($param->carrier);
-			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
-			$requestArr['carrier_cancel_return'] = false;
-			$requestArr['ship_date'] = $param->ship_date;
-			$cancel = $obj->_postRequest("void",json_encode($requestArr));
-			return $cancel;
-		}
+		$requestArr['carrier'] = strtolower($param->carrier);
+		$requestArr['tracking_number'] = $credentialData["tracking_number"];
+		$requestArr['carrier_cancel_return'] = false;
+		$requestArr['ship_date'] = $param->ship_date;
+		$cancel = $obj->_postRequest("void",json_encode($requestArr));
+		return $cancel;
 
 	}
 	/*****end of cancelling shipment from shipment grid*******/

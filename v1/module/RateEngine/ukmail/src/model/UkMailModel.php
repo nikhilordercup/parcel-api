@@ -307,5 +307,40 @@ class UkMailModel
         $record = $this->db->getOneRecord($query1);                         
         return $record['authentication_token'];
     }
+	
+	public function saveCollection($data)
+    {   
+	    $pickupData = array();
+		$pickupData['carrier_id'] = "";
+		$pickupData['carrier_code'] = $data->carrier;
+		$pickupData['company_id'] = $data->company_id;
+		$pickupData['customer_id'] = $data->customer_id;
+		$pickupData['account_number'] = $data->credentials->account_number;
+		$pickupData['user_id'] = $data->collection_user_id;
+		$pickupData['address_line1'] = "";
+		$pickupData['address_line2'] = "";
+		$pickupData['city'] = "";
+		$pickupData['state'] = "";
+		$pickupData['country'] = $data->from->country;
+		$pickupData['postal_code'] = "";
+		$pickupData['address_type'] = "";
+		$pickupData['package_quantity'] = count($data->package);
+		$pickupData['package_type'] = "Package";
+		$pickupData['is_overweight'] = "";
+		$pickupData['package_location'] = "";
+		$pickupData['pickup_date'] = $data->credentials->pickup_date;
+		$pickupData['earliest_pickup_time'] = $data->credentials->earliest_pickup_time;
+		$pickupData['latest_pickup_time'] = $data->credentials->latest_pickup_time;
+		$pickupData['pickup_reference'] = "";
+		$pickupData['instruction_todriver'] = $data->extra->pickup_instruction;
+		$pickupData['confirmation_number'] = $data->collectionjobnumber;
+		$pickupData['currency_code'] = $data->currency;
+		$pickupData['ready_time'] = "";
+		$pickupData['status'] = 1;
+		$pickupData['created'] = date("Y-m-d H:i:s");
+		$pickupData['updated'] = date("Y-m-d H:i:s");
+        $pickup_id = $this->db->save("pickups", $pickupData);
+        return $pickup_id;
+    }
 }
 ?>

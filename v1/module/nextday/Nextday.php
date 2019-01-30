@@ -740,7 +740,7 @@ final class Nextday extends Booking
 	public
 
     function saveBooking()
-        { 
+        {
         $accountStatus = $this->_checkCustomerAccountStatus($this->_param->customer_id);
         if ($accountStatus["status"] == "error")
             {
@@ -805,8 +805,14 @@ final class Nextday extends Booking
                 }
 
             if ($key == 0) $loadIdentity = $shipmentStatus["shipment_ticket"];
+			$total_weight = 0;
+			$this->_param->LongLength = 'false';	
             foreach($this->_param->parcel as $item)
                 {
+				if($item->length>=140)
+				$this->_param->LongLength = 'true';	
+				$total_weight += $item->weight;
+                $this->_param->parcel_total_weight	= $total_weight;		
                 for ($i = 0; $i < $item->quantity; $i++)
                     {
                     $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"], $shipmentStatus["shipment_ticket"], $customerWarehouseId, $this->_param->company_id, $company_code, $item, "P", $loadIdentity);
@@ -965,7 +971,7 @@ final class Nextday extends Booking
                 ));
                 return array(
                     "status" => "success",
-                    "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+                    "message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
                     "file_path" => $label_path,
                     "auto_print" => $autoPrint['auto_label_print'],
                     'pickups' => $checkPickupExist,
@@ -1047,7 +1053,7 @@ final class Nextday extends Booking
 						$fileUrl = $this->libObj->get_api_url();
 						return array(
 							"status" => "success",
-							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
 							"file_path" => $labelInfo['file_path'],
 							"invoice_file"=>$fileUrl."/label/".$loadIdentity.'/dhl/'.$loadIdentity.'-custom.pdf',
 							"auto_print" => $autoPrint['auto_label_print'],
@@ -1057,7 +1063,7 @@ final class Nextday extends Booking
 					}else{
 						return array(
 							"status" => "success",
-							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
 							"file_path" => $labelInfo['file_path'],
 							"auto_print" => $autoPrint['auto_label_print'],
 							'pickups' => $checkPickupExist,
@@ -1099,7 +1105,7 @@ final class Nextday extends Booking
             {
             return array(
                 "status" => "success",
-                "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+                "message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
                 "file_path" => "",
                 "auto_print" => "",
                 'pickups' => "",

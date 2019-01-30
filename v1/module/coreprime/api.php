@@ -48,7 +48,7 @@ class Module_Coreprime_Api extends Icargo
     public
 
     function _postRequest($data)
-    {         
+    { 
         global $_GLOBAL_CONTAINER;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];

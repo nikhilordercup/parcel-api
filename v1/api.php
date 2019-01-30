@@ -2518,3 +2518,9 @@ $app->post('/loadAllCustomers', function () use ($app) {
 });    
 use v1\module\RateEngine\core\dhl\DhlApi;
 DhlApi::initRoutes($app);
+$app->post('/fetchPickup', function () use ($app) {
+	$r = json_decode($app->request->getBody());
+    $obj = new Pickup($r);
+    $response = $obj->getPickupData($r);
+    echoResponse(200, $response);
+});

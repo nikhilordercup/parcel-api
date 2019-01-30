@@ -30,8 +30,10 @@ class LabelProcessor
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
         $labelArrBkp = $labelArr;
         $labelArr = $labelArr['label'];  
-        if($labelArr['tracking_number'] != "") 
-        {
+		if($labelArr['status']=='error'){
+			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
+		}
+        if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
             $labelArr['label_tracking_number'] = $labelArr['tracking_number'];
@@ -111,7 +113,7 @@ class LabelProcessor
 		$pickup_instruction   = $this->modelObj->getPickupInstructionByLoadIdentity($loadIdentity);
         $response['currency'] = $serviceInfo['currency'];
         $response['service'] = $serviceInfo['service_code'];
-        $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity);
+        $response['credentials'] = $this->getCredentialInfo($carrierAccountNumber, $loadIdentity,$allData);
 
         /*start of binding child account data*/
         if (isset($response['credentials']['is_child_account']) && $response['credentials']['is_child_account'] == 'yes') {
@@ -127,7 +129,7 @@ class LabelProcessor
 
         $response['extra'] = array(
             "service_key" => $serviceInfo['service_code'],
-            "long_length" => "",
+            "long_length" => $allData->LongLength,
             "bookin" => "",
             'paperless_trade' => "$paperLessTrade", 
             "exchange_on_delivery" => "",
@@ -146,7 +148,7 @@ class LabelProcessor
             "document_only" => "",
             "no_dangerous_goods" => "",
             "in_free_circulation_eu" => "",
-            "extended_cover_required" => isset($allData->is_insured) ? $allData->insurance_amount : "",
+            "extended_cover_required" => (isset($allData->is_insured) && $allData->is_insured!='') ? $allData->insurance_amount : "",
             "invoice_type" => ""
         );
 
@@ -176,6 +178,10 @@ class LabelProcessor
         $response['method_type'] = "post";
 		$response['access_token'] = $allData->access_token;
 		$response['email'] = $allData->email;
+		$response['company_id'] = $allData->company_id;
+		$response['customer_id'] = $allData->customer_id;
+		$response['collection_user_id'] = $allData->collection_user_id;
+		$response['parcel_total_weight'] = $allData->parcel_total_weight;
 
         
         $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);
@@ -328,7 +334,7 @@ class LabelProcessor
         return $serviceInfo;
     }
 
-    public function getCredentialInfo($carrierAccountNumber, $loadIdentity)
+    public function getCredentialInfo($carrierAccountNumber, $loadIdentity,$allData)
     {
         $credentialData = array();
         $credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
@@ -340,8 +346,13 @@ class LabelProcessor
         $credentialInfo["token"] = $credentialData["token"];
         $credentialInfo["account_number"] = $carrierAccountNumber;
         $credentialInfo["master_carrier_account_number"] = "";
-        $credentialInfo["latest_time"] = "17:00:00";
-        $credentialInfo["earliest_time"] = "14:00:00";
+        $credentialInfo["latest_time"] = isset($allData->pickup_latest_time) ? $allData->pickup_latest_time : "";
+        $credentialInfo["earliest_time"] = isset($allData->pickup_earliest_time) ? $allData->pickup_earliest_time : "";
+		$credentialInfo["requested_collection_date"] = isset($allData->pickup_latest_time) ? $allData->pickup_latest_time : "";
+		$credentialInfo["pickup_date"] = isset($allData->pickup_date) ? $allData->pickup_date : "";
+		$credentialInfo["earliest_pickup_time"] = isset($allData->earliest_pickup_time) ? $allData->earliest_pickup_time : "";
+		$credentialInfo["latest_pickup_time"] = isset($allData->latest_pickup_time) ? $allData->latest_pickup_time : "";
+		$credentialInfo["collectionjobnumber"] = isset($allData->collectionjobnumber) ? $allData->collectionjobnumber : "";
         $credentialInfo["carrier_account_type"] = array("1");
 
         return $credentialInfo;

@@ -22,18 +22,15 @@ Class Carrier_Coreprime_Request{
 
 
 
-    Public
-
-    function _postRequest($url, $data_string){
-        //$this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";
-		$this->apiConn = 'stagging'; 
+    public function _postRequest($url, $data_string){
+        $this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";
 		
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];
 
         return $this->_send($url, $data_string);
     }
-            
+
     private function _send($url, $data_string){ 
         $url = "$this->access_url/$url";
         //print_r($url);die;
@@ -79,5 +76,5 @@ Class Carrier_Coreprime_Request{
         }        
         return $filteredData;
     }
-  
+
 }

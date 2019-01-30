@@ -38,11 +38,12 @@ class UkmailGenerateLabel
 			    $AddDomesticConsignment = new \stdClass();
 				$AddDomesticConsignment->request = self::formatDomesticConsignmentRequest($request,$data);
 				$AddDomesticConsignmentResponse = $soapClient->AddDomesticConsignment($AddDomesticConsignment);
+				
 				if(isset($AddDomesticConsignmentResponse->AddDomesticConsignmentResult->Errors->UKMWebError)){
 					return array("status"=>"error","label_generation_error_code"=>$AddDomesticConsignmentResponse->AddDomesticConsignmentResult->Errors->UKMWebError->Code,"label_generation_error_message"=>$AddDomesticConsignmentResponse->AddDomesticConsignmentResult->Errors->UKMWebError->Description,"message"=>$AddDomesticConsignmentResponse->AddDomesticConsignmentResult->Errors->UKMWebError->Description);
 				}else{
 					$ConsignmentNumber = $AddDomesticConsignmentResponse->AddDomesticConsignmentResult->ConsignmentNumber;
-					$labelArr["label"] = array("tracking_number"=>$ConsignmentNumber,"base_encode"=>$AddDomesticConsignmentResponse->AddDomesticConsignmentResult->Labels->base64Binary,"account_number"=>$data->credentials->account_number,"collectionjobnumber"=>$data->collectionjobnumber,"authentication_token"=>$data->credentials->authenticationToken);
+					$labelArr["label"] = array("tracking_number"=>$ConsignmentNumber,"base_encode"=>$AddDomesticConsignmentResponse->AddDomesticConsignmentResult->Labels->base64Binary,"account_number"=>$data->credentials->account_number,"collectionjobnumber"=>$data->collectionjobnumber,"authentication_token"=>$data->credentials->authenticationToken,"username"=>$data->credentials->username);
 					return self::saveLabelInDirectory($labelArr,$loadIdentity);			
 				}
 				break;
@@ -88,14 +89,14 @@ class UkmailGenerateLabel
         $param->SpecialInstructions1 = $data->extra->special_instruction;
 		$param->SpecialInstructions2 = $data->extra->pickup_instruction;
 		$param->Telephone = $data->to->phone;
-		$param->Weight = "2"; //total weight of parcels.minimum 1KG
+		$param->Weight = $data->parcel_total_weight;
         $param->BookIn = "false";
 		$param->CODAmount = "0.00";
 		$param->ConfirmationEmail = $data->to->email;
 		$param->ConfirmationTelephone = $data->to->phone;
         $param->ExchangeOnDelivery = "false";
-		$param->ExtendedCover = "0";//$data->extra->extended_cover_required;
-		$param->LongLength = "false"; //If any of the parcels are over 1.4m in length then set this flag to true, otherwise false
+		$param->ExtendedCover = $data->extended_cover;
+		$param->LongLength = $data->extra->long_length;
 		$param->PreDeliveryNotification = "NonRequired";
 		$param->SecureLocation1 = "";
 		$param->SecureLocation2 = "";
@@ -110,12 +111,11 @@ class UkmailGenerateLabel
 		$files = array();
 		if(is_array($pdf_base64)){
 			foreach($pdf_base64 as $key=>$value){
-				array_push($files,$labelArr['label']['tracking_number'].$key.'.png');
+				array_push($files,$labelArr['label']['tracking_number'].'-'.$key.'.png');
 			}
 		}else{
-			$files = array($labelArr['label']['tracking_number'].'1.png');
+			$files = array($labelArr['label']['tracking_number'].'-0.png');
 		}
-
 		$label_path = ROOT_DIR.DIRECTORY_SEPARATOR.'label';
 		$labelPath = "$label_path/$loadIdentity/ukmail";
 		$fileUrl = $libObj->get_api_url();
@@ -154,7 +154,10 @@ class UkmailGenerateLabel
             $fileName = uniqid().".png";
             $file = "$labelPath/$fileName";
 			try{
+			if(is_array($pdf_base64))
             $success = file_put_contents($file, $pdf_base64[$key]);
+			else
+			$success = file_put_contents($file, $pdf_base64);	
 			header('Content-Type: application/image');
 			}catch(Exception $e){
 				print_r($e);die;
