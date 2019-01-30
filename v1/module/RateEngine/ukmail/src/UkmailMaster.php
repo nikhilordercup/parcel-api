@@ -24,6 +24,8 @@ class UkmailMaster
 		if(isset($app->doLabelCancel)){
 		   return self::cancelLabel($app,$wsdlBaseUrl);
 		}
+		
+		
 		$app->credentials->username = "nikhil.kumar@ordercup.com";
         $app->credentials->password = "b85op06w";
         $app->credentials->account_number = "K906430";
@@ -32,30 +34,69 @@ class UkmailMaster
 		if($authToken!=''){
 			$app->credentials->authenticationToken = $authToken;
 		}else{
-			$loginResp = UkmailLogin::doLogin($app,$wsdlBaseUrl);
+			$loginResp = self::getAuthToken($app,$wsdlBaseUrl);
 			if($loginResp['status']=='success'){
-				$app->credentials->authenticationToken = $loginResp['authentication_token'];
+				$app->credentials->authenticationToken = $loginResp['authenticationtoken'];
 			}else{
 				//login failed
 				$response['label'] = array("status"=>"error","message"=>$loginResp['message']);
 				exit(json_encode($response));
 			}
 		}
-		//book collection request after successfully getting authentication token
-		$collectionArr = self::formatCollectionRequest($app);
-		$bookCollectionResp = UkmailBookCollection::bookCollection($collectionArr,$wsdlBaseUrl);
-		if($bookCollectionResp['status']=='success'){
-			$app->collectionjobnumber = $bookCollectionResp['collection_job_number'];
+		
+		if($app->credentials->collectionjobnumber==''){
+			//book collection request after successfully getting authentication token
+			$collectionArr = self::formatCollectionRequest($app);
+			$bookCollectionResp = UkmailBookCollection::bookCollection($collectionArr,$wsdlBaseUrl);
+			if($bookCollectionResp['status']=='success'){
+				$app->collectionjobnumber = $bookCollectionResp['collection_job_number'];
+				//save pickup
+				$saveCollection = $ukMailModel->saveCollection($app);
+
+				
+				//format extended cover value
+				$app->extended_cover = 0;//($app->extra->extended_cover_required!='') ? self::getExtendedCover($app->extra->extended_cover_required) : 0;
+				//label generation call after successfully getting collection job number
+				$labelResp['label'] = UkmailGenerateLabel::generateLabel($app,$wsdlBaseUrl);
+				exit(json_encode($labelResp));
+			}else{
+				//re login
+				if($bookCollectionResp['book_collection_error_code']=="2050"){
+					$LoginResponse = self::getAuthToken($app,$wsdlBaseUrl);
+					if($LoginResponse['authenticationtoken']!=''){
+						$collectionArr->AuthenticationToken = $LoginResponse['authenticationtoken'];
+						$bookCollectionResp = UkmailBookCollection::bookCollection($collectionArr,$wsdlBaseUrl);
+						if($bookCollectionResp['status']=='success'){
+							$app->collectionjobnumber = $bookCollectionResp['collection_job_number'];
+							//save pickup
+							$saveCollection = $ukMailModel->saveCollection($app);
+							//format extended cover value
+							$app->extended_cover = ($app->extra->extended_cover_required!='') ? self::getExtendedCover($app->extra->extended_cover_required) : 0;
+							//label generation call after successfully getting collection job number
+							$labelResp['label'] = UkmailGenerateLabel::generateLabel($app,$wsdlBaseUrl);
+							exit(json_encode($labelResp));
+						}else{
+							//book collection failed
+							$response['label'] = array("status"=>"error","message"=>$bookCollectionResp['message']);
+							exit(json_encode($response));
+						}
+					}else{
+						$response['label'] = array("status"=>"error","message"=>$LoginResponse['message']);
+						exit(json_encode($response));
+					}
+				}else{
+					//book collection failed
+					$response['label'] = array("status"=>"error","message"=>$bookCollectionResp['message']);
+					exit(json_encode($response));
+				}
+			}
+		}else{//collection already created
+		     $app->collectionjobnumber = $app->credentials->collectionjobnumber;
 			//format extended cover value
-			$app->extended_cover = ($app->extra->extended_cover_required!='') ? self::getExtendedCover($app->extra->extended_cover_required) : 0;
-			
+			$app->extended_cover = 0;//($app->extra->extended_cover_required!='') ? self::getExtendedCover($app->extra->extended_cover_required) : 0;
 			//label generation call after successfully getting collection job number
 			$labelResp['label'] = UkmailGenerateLabel::generateLabel($app,$wsdlBaseUrl);
 			exit(json_encode($labelResp));
-		}else{
-			//book collection failed
-			$response['label'] = array("status"=>"error","message"=>$bookCollectionResp['message']);
-			exit(json_encode($response));
 		}
 	}
 		
@@ -131,5 +172,21 @@ class UkmailMaster
 		
 		$cancelLabel = UkmailCancelLabel::voidCall($app,$wsdlBaseUrl);
 		exit(json_encode($cancelLabel));
+	}
+	
+	/**
+	 * This function returns authentication token after login call.
+	 * @return Array
+	 */
+	public static function getAuthToken($app,$wsdlBaseUrl){
+		$response = array();
+		$loginResp = UkmailLogin::doLogin($app,$wsdlBaseUrl);
+		if($loginResp['status']=='success')
+			$authenticationToken = $loginResp['authentication_token'];
+		else
+			$authenticationToken = "";
+		
+		$response = array("status"=>$loginResp['status'],"message"=>$loginResp['message'],"authenticationtoken"=>$authenticationToken);
+		return $response;
 	}
 }

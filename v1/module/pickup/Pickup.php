@@ -270,5 +270,12 @@ class Pickup extends Icargo
         $record = $this->db->getRowRecord($sql);        
         return $record;
     }
+	
+	public function getPickupData($param) {
+		$carrier_code = $param->carrier->code;
+        $sql = "SELECT confirmation_number as collectionjobnumber,pickup_date,earliest_pickup_time,latest_pickup_time FROM ".DB_PREFIX."pickups IP WHERE IP.carrier_code='$carrier_code' AND IP.account_number='$param->account_number' AND IP.pickup_date='$param->pickup_date' AND IP.company_id = $param->company_id";
+        $record = $this->db->getRowRecord($sql); 
+    	return array("status"=>"success", "data"=>$record);
+    }
 }
 ?>

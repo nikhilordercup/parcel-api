@@ -169,6 +169,9 @@ class LabelProcessor
         $response['method_type'] = "post";
 		$response['access_token'] = $allData->access_token;
 		$response['email'] = $allData->email;
+		$response['company_id'] = $allData->company_id;
+		$response['customer_id'] = $allData->customer_id;
+		$response['collection_user_id'] = $allData->collection_user_id;
 		$response['parcel_total_weight'] = $allData->parcel_total_weight;
 
         
@@ -334,9 +337,13 @@ class LabelProcessor
         $credentialInfo["token"] = $credentialData["token"];
         $credentialInfo["account_number"] = $carrierAccountNumber;
         $credentialInfo["master_carrier_account_number"] = "";
-        $credentialInfo["latest_time"] = $allData->pickup_latest_time;
-        $credentialInfo["earliest_time"] = $allData->pickup_earliest_time;
-		$credentialInfo["requested_collection_date"] = $allData->pickup_latest_time;
+        $credentialInfo["latest_time"] = isset($allData->pickup_latest_time) ? $allData->pickup_latest_time : "";
+        $credentialInfo["earliest_time"] = isset($allData->pickup_earliest_time) ? $allData->pickup_earliest_time : "";
+		$credentialInfo["requested_collection_date"] = isset($allData->pickup_latest_time) ? $allData->pickup_latest_time : "";
+		$credentialInfo["pickup_date"] = isset($allData->pickup_date) ? $allData->pickup_date : "";
+		$credentialInfo["earliest_pickup_time"] = isset($allData->earliest_pickup_time) ? $allData->earliest_pickup_time : "";
+		$credentialInfo["latest_pickup_time"] = isset($allData->latest_pickup_time) ? $allData->latest_pickup_time : "";
+		$credentialInfo["collectionjobnumber"] = isset($allData->collectionjobnumber) ? $allData->collectionjobnumber : "";
         $credentialInfo["carrier_account_type"] = array("1");
 
         return $credentialInfo;

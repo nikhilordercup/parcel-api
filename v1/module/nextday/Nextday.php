@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 require_once "../v1/module/business_day_cal/Carrier_Business_Day.php";
 
@@ -960,7 +959,7 @@ final class Nextday extends Booking
                 ));
                 return array(
                     "status" => "success",
-                    "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+                    "message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
                     "file_path" => $label_path,
                     "auto_print" => $autoPrint['auto_label_print'],
                     'pickups' => $checkPickupExist,
@@ -1037,7 +1036,7 @@ final class Nextday extends Booking
 						$fileUrl = $this->libObj->get_api_url();
 						return array(
 							"status" => "success",
-							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
 							"file_path" => $labelInfo['file_path'],
 							"invoice_file"=>$fileUrl."/label/".$loadIdentity.'/dhl/'.$loadIdentity.'-custom.pdf',
 							"auto_print" => $autoPrint['auto_label_print'],
@@ -1047,7 +1046,7 @@ final class Nextday extends Booking
 					}else{
 						return array(
 							"status" => "success",
-							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
 							"file_path" => $labelInfo['file_path'],
 							"auto_print" => $autoPrint['auto_label_print'],
 							'pickups' => $checkPickupExist,
@@ -1089,7 +1088,7 @@ final class Nextday extends Booking
             {
             return array(
                 "status" => "success",
-                "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+                "message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
                 "file_path" => "",
                 "auto_print" => "",
                 'pickups' => "",
