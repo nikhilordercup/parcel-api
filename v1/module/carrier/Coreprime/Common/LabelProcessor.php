@@ -76,8 +76,8 @@ class LabelProcessor
                     "country" => $data["shipment_country_code"],
                     "country_name" => $data["shipment_customer_country"],                    
                     "is_apo_fpo" => "",
-                    "email" => ($collection[0]->email != '') ? $collection[0]->email : '',
-                    "is_res" => ($collection[0]->address_type == 'Residential') ? TRUE : FALSE
+                    "email" => (isset($collection[0]->email) && $collection[0]->email != '') ? $collection[0]->email : '',
+                    "is_res" => (isset($collection[0]->address_type) && $collection[0]->address_type == 'Residential') ? TRUE : FALSE
                 );
                 $response['ship_date'] = $data['shipment_required_service_date'];
 
