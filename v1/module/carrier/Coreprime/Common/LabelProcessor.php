@@ -30,7 +30,7 @@ class LabelProcessor
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
         $labelArrBkp = $labelArr;
         $labelArr = $labelArr['label'];  
-		if($labelArr['status']=='error'){
+		if($labelArrBkp['status']=='error'){
 			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
 		}
         if ($labelArr['tracking_number'] != "") {
