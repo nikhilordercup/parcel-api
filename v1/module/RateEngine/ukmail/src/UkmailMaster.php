@@ -1,7 +1,5 @@
 <?php
 namespace v1\module\RateEngine\ukmail\src; 
-
-use v1\module\RateEngine\ukmail\src\Model\UkMailModel;
             
 class UkmailMaster
 {
@@ -19,7 +17,7 @@ class UkmailMaster
 		else
 			$wsdlBaseUrl = 'https://api.ukmail.com/Services/';
 		
-		$ukMailModel = new UkMailModel();
+		$ukMailModel = new model\UkMailModel();
 		
 		if(isset($app->doLabelCancel)){
 		   return self::cancelLabel($app,$wsdlBaseUrl);
