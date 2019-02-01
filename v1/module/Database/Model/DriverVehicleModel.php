@@ -2,8 +2,8 @@
 /**
  * Created by CLI.
  * User: Mandeep Singh Nain
- * Date: 17-01-2019
- * Time: 12:31 PM
+ * Date: 24-01-2019
+ * Time: 05:03 PM
  */
 
 namespace v1\module\Database\Model;
@@ -11,10 +11,9 @@ namespace v1\module\Database\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserLevelsModel extends Model
+class DriverVehicleModel extends Model
 {
-    protected $table='user_level';
-    public $timestamps=false;
+    protected $table='driver_vehicle';
     protected $guarded=[];
-
+    public $timestamps=false;
 }

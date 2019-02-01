@@ -178,6 +178,8 @@ class SubscriptionController {
                 $helper->cancelSubscription($m->chargebee_subscription_id);
                 $m->status='subscription_cancelled';
                 $m->save();
+                $m=new \v1\module\Mailer\SystemEmail();
+                $m->sendSubscriptionCancelEmail($d->first_name,$d->email,$d->subscription->chargebee_subscription_id);
             }
             echoResponse(200,['result'=>'success','message'=>'Subscription canceled successfully.']);
         });

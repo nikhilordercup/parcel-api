@@ -16,4 +16,7 @@ class CompanyUsersModel extends Model
     protected $guarded=[];
     public $timestamps=false;
     protected $table='company_users';
+    public function userInfo(){
+        return $this->belongsTo(UsersModel::class,'user_id','id');
+    }
 }

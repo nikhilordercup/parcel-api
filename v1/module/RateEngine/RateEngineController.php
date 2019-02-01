@@ -1,5 +1,6 @@
 <?php
 namespace v1\module\RateEngine;
+use v1\module\Database\Model\CarrierModel;
 use v1\module\RateEngine\ExcelBuilder;
 use v1\module\RateEngine\ExcelReader;
 use v1\module\RateEngine\RateEngineModel;
@@ -343,9 +344,20 @@ class RateEngineController {
         return $this->_rateEngineModel->deleteSurcharge($d->id);
     }
     public function saveCarrierInfo($request){
-        $id=$this->_rateEngineModel
-            ->addCarrier($request->name,$request->code,$request->desc,
-                "",$request->company_id);
+        if(isset($request->id)){
+            $data=[
+                'name'=>$request->name,
+                'code'=>$request->code,
+                'icon'=>"",
+                'description'=>$request->desc,
+            ];
+            $this->_rateEngineModel->updateCarrier($request->id,$data);
+            $id=$request->id;
+        }else {
+            $id = $this->_rateEngineModel
+                ->addCarrier($request->name, $request->code, $request->desc,
+                    "", $request->company_id);
+        }
         if($id){
             echoResponse(200,['success'=>true]);
         }else{

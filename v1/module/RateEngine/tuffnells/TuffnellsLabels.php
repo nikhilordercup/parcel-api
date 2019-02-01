@@ -59,7 +59,7 @@ class TuffnellsLabels extends \Icargo
         }
 
         if ($insertStmt->id) {
-            $responce = $this->genrateLabel($postData, $insertStmt->label_id);
+            $responce = $this->genrateLabel($postData, $insertStmt->id);
             $responce['label_id'] = $insertStmt;
             echo json_encode($responce);
         } else {

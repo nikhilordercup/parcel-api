@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mailer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="background: #e8e8e8; padding: 45px 0">
+<div class="container" style="width: 600px;margin: auto;text-align: center">
+
+    <img src="https://icargo-public.s3.eu-west-1.amazonaws.com/logo.png" style="width: 33%;margin-bottom: 20px">
+    <table width="600px" cellspacing="0" cellpadding="15" align="center"
+           style="font-family: 'Lato', sans-serif; background: #fff">
+        <tr align="center">
+            <td style="padding: 30px 20px">
+                <table style="width:580px;">
+                    <tr>
+                        <td style="font-size: 30px;font-weight: 600">
+                            Dear {{name}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 20px">
+                            <strong>As you requested, we have canceled your membership effective from {{date}}</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 20px">
+                            <strong>Membership Summary</strong>
+                            <ul style="list-style: none;">
+                                <li>Membership ID: {{subscription_id}}</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 20px">
+                            You can simply restart your membership to enjoy all the services of Instadispatch without interruption.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding-top: 20px">
+                            <a style="display: block;width: 40%;height: 20px;background:red;padding: 10px;text-align: center;border-radius: 5px;color: white;font-weight: bold; text-decoration: none;"
+                            href="{{link}}#/account">RESTART MEMBERSHIP</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 25px">
+                            Thank You,
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="font-weight: 500;font-size: 17px; line-height: 30px;">
+                            InstaDispatch Support<br/>
+                            <a href="http://support.instadispatch.com">http://support.instadispatch.com</a><br/>
+                            <a href="mailto:support@instadispatch.com">support@instadispatch.com</a><br/>
+                            +44(0) 2037441871 (Hours 8am - 5pm BST)<br/>
+                            For additional information, including pricing for usage and support, please visit us at:
+                            <a href="http://www.instadispatch.com" target="_blank">
+                                http://www.instadispatch.com</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+    </table>
+</div>
+</body>
+</html>
+
