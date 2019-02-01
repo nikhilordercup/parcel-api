@@ -83,6 +83,11 @@ class Report extends Icargo
         $tempDriverDropCount = 0;
         $tempDriverShipmentCount = 0;
 
+        $tempDriverCarrierPriceDrop = 0;
+        $tempDriverCustomerPriceDrop = 0;
+        $tempDriverCarrierPriceShipment = 0;
+        $tempDriverCustomerPriceShipment = 0;
+
         foreach($job_lists as $loadIdentity => $item){
             $loadPrice = $this->modelObj->findSamedayRevenue($loadIdentity);
 
@@ -109,6 +114,7 @@ class Report extends Icargo
 
             $driverCarrierPriceShipment = number_format(($driverCarrierPricePerShipment * $driverShipmentCount), 2);
             $driverCustomerPriceShipment = number_format(($driverCustomerPricePerShipment * $driverShipmentCount), 2);
+
 
             $tempDriverCarrierPriceDrop += $driverCarrierPriceDrop;
             $tempDriverCustomerPriceDrop += $driverCustomerPriceDrop;
@@ -151,6 +157,11 @@ class Report extends Icargo
         $priceData["driver_carrier_price_shipment"] = number_format($tempDriverCarrierPriceShipment, 2);
         $priceData["driver_customer_price_shipment"] = number_format($tempDriverCustomerPriceShipment, 2);
 
+        $priceData["driver_carrier_price_drop"] = $tempDriverCarrierPriceDrop;
+        $priceData["driver_customer_price_drop"] = $tempDriverCustomerPriceDrop;
+        $priceData["driver_carrier_price_shipment"] = $tempDriverCarrierPriceShipment;
+        $priceData["driver_customer_price_shipment"] = $tempDriverCustomerPriceShipment;
+
         $priceData["all_drop_count"] = $tempAllDropCount;
         $priceData["all_shipment_count"] = $tempAllShipmentCount;
 
@@ -165,7 +176,7 @@ class Report extends Icargo
         $revenuePrice = 0;
         if ($this->_getServiceTypeName() == "SAME") {
             $revenuePrice = $this->_findSamedayRevenue($job_lists, $driver_drop_count, $driver_shipment_count);
-
+            
             $revenuePrice = array(
                 "driver_carrier_price_drop" => $revenuePrice["driver_carrier_price_drop"],
                 "driver_customer_price_drop" => $revenuePrice["driver_customer_price_drop"],
@@ -185,10 +196,19 @@ class Report extends Icargo
             $job_count = count($job_lists);
             $revenuePrice = $this->revenuePricePerJob * $job_count;
             $revenuePrice = array(
-                "driver_carrier_price_drop" => number_format($revenuePrice, 2) ,
-                "driver_customer_price_drop" => number_format($revenuePrice, 2) ,
-                "driver_carrier_price" => number_format($revenuePrice, 2) ,
-                "driver_customer_price" => number_format($revenuePrice, 2)
+                "driver_carrier_price_drop" => $revenuePrice ,
+                "driver_customer_price_drop" => $revenuePrice,
+
+                "driver_carrier_price_shipment" => $revenuePrice,
+                "driver_customer_price_shipment" => $revenuePrice,
+
+                "total_shipment_count" => $job_count,
+                "total_drop_count" => $job_count,
+
+                "driver_shipment_count" => $job_count,
+                "driver_drop_count" => $job_count,
+                "cost_breakdown" => array()
+
             );
         }
         return $revenuePrice;
@@ -265,8 +285,8 @@ class Report extends Icargo
                 $driverRouteData["driver_data"][$item["driver_id"]] = array();
                 $driverRouteData["driver_data"][$item["driver_id"]]["job_lists"] = array();
                 $driverRouteData["driver_data"][$item["driver_id"]]["route_lists"] = array();
-                $driverRouteData["driver_data"][$item["driver_id"]]["drop_count"] = $dropCount;
-                $driverRouteData["driver_data"][$item["driver_id"]]["shipment_count"] = $shipmentCount;
+                $driverRouteData["driver_data"][$item["driver_id"]]["drop_count"] = 0;
+                $driverRouteData["driver_data"][$item["driver_id"]]["shipment_count"] = 0;
             }
             if(!array_key_exists($item["load_identity"], $driverRouteData["driver_data"][$item["driver_id"]]["job_lists"])){
                 $driverRouteData["driver_data"][$item["driver_id"]]["job_lists"][$item["load_identity"]] = array();
