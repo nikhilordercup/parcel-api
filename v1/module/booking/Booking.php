@@ -341,14 +341,14 @@ class Booking extends Icargo
 
     protected
 
-    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail,$serviceId, $cust_ref1, $cust_ref2,$ismanualbooking,$manualbookingreference){
+    function _saveShipmentService($serviceOpted, $surcharges, $load_identity, $customer_id, $booking_status, $otherDetail,$serviceId, $cust_ref1, $cust_ref2,$ismanualbooking,$manualbookingreference,$costwithoutvat){
 
         $service_data = array();
 
         $price_version = $this->modelObj->findPriceNextVersionNo($load_identity);
 
         //save price breakdown
-        $surchargeAndTaxValue = $this->_savePriceBreakdown($serviceOpted, $surcharges, $load_identity, $price_version);
+        $surchargeAndTaxValue = $this->_savePriceBreakdown($serviceOpted, $surcharges, $load_identity, $price_version,$costwithoutvat);
 
         if($surchargeAndTaxValue["status"]=="success"){
 
@@ -370,7 +370,8 @@ class Booking extends Icargo
             $service_data["surcharges"] = $surchargeAndTaxValue["total_surcharge_value"];
             $service_data["taxes"] = $surchargeAndTaxValue["total_tax_value"];
 
-            $service_data["total_price"] = $serviceOpted->rate->info->price_with_ccf;
+            //$service_data["total_price"] = $serviceOpted->rate->info->price_with_ccf;
+            $service_data["total_price"]   = $surchargeAndTaxValue["total_service_value"];
             $service_data["grand_total"] = $service_data["total_price"] + $service_data["surcharges"] + $service_data["taxes"];
             $service_data["charge_from_base"] = (!empty($serviceOpted->charge_from_base)) ? $serviceOpted->charge_from_base : "0";
 
@@ -407,7 +408,8 @@ class Booking extends Icargo
             $service_data["status"] = $booking_status;
             $service_data["customer_reference1"] = $cust_ref1;
             $service_data["customer_reference2"] = $cust_ref2;
-            $service_data["is_manualbooking"] = $ismanualbooking;
+            $service_data["is_manualbooking"]  = $ismanualbooking;
+            $service_data["costwithoutvat"]    = $costwithoutvat;
             $service_data["manualbooking_ref"] = $manualbookingreference;
             $service_data["booked_service_id"] = $serviceOpted->rate->info->service_id;
 
@@ -442,12 +444,13 @@ class Booking extends Icargo
 
     private
 
-    function _savePriceBreakdown($data, $surcharges, $load_identity, $price_version){
+    function _savePriceBreakdown($data, $surcharges, $load_identity, $price_version,$costwithoutvat){
+        //print_r($costwithoutvat);die;
         $totalSurchargeValue = 0;
         $totalTaxValue = 0;
 
         $price_breakdown = array();
-
+        $service_price = 0;
         $price_breakdown["load_identity"] = $load_identity;
         $price_breakdown["shipment_type"] = $data->rate->shipment_type;
         $price_breakdown["version"]       = $price_version;
@@ -458,7 +461,12 @@ class Booking extends Icargo
         $price_breakdown["ccf_level"]     = $data->rate->info->level;
         $price_breakdown["baseprice"]     = isset( $data->rate->info->original_price ) ? $data->rate->info->original_price : '0';
         $price_breakdown["ccf_price"]     = $data->rate->info->price;
-        $price_breakdown["price"]         = isset( $data->rate->info->price_with_ccf ) ? $data->rate->info->price_with_ccf : '0';
+        if($costwithoutvat>0){
+           $service_price    = $costwithoutvat; 
+        }else{
+            $service_price   = isset( $data->rate->info->price_with_ccf ) ? $data->rate->info->price_with_ccf : '0';
+        }
+        $price_breakdown["price"]         = $service_price;
         $price_breakdown["service_id"]    = $data->rate->info->service_id;
         //$price_breakdown["carrier_id"]    = $data->carrier_info->carrier_id;
         $price_breakdown["carrier_id"]    = $data->carrier_info->account_id;
@@ -470,7 +478,8 @@ class Booking extends Icargo
             if(is_object($surcharges)){
                 foreach($surcharges as $surcharge_code => $item){
                     $totalcarrierSurchage += $item->original_price;
-                    $totalcustomerSurchage += $item->price_with_ccf;
+                    //$totalcustomerSurchage += $item->price_with_ccf;
+                    $totalcustomerSurchage +=  ($costwithoutvat>0)?0:$item->price_with_ccf;
                     $price_breakdown = array();
                     $price_breakdown["load_identity"] = $load_identity;
                     $price_breakdown["shipment_type"] = $data->rate->shipment_type;
@@ -482,14 +491,16 @@ class Booking extends Icargo
                     $price_breakdown["ccf_level"]     = $item->level;
                     $price_breakdown["baseprice"]     = $item->original_price;
                     $price_breakdown["ccf_price"]     = $item->price;
-                    $price_breakdown["price"]         = $item->price_with_ccf;
+                  //$price_breakdown["price"]         = $item->price_with_ccf;
+                    $price_breakdown["price"]         = ($costwithoutvat>0)?0:$item->price_with_ccf;
                     $price_breakdown["service_id"]    = $item->surcharge_id;
                     $price_breakdown["carrier_id"]    = $item->carrier_id;
                     $status = $this->modelObj->saveShipmentPrice($price_breakdown);
                     if(!$status){
                         return array("status"=>"error", "message"=>"shipment price breakdown not saved");
                     }
-                    $totalSurchargeValue += $item->price_with_ccf;
+                    //$totalSurchargeValue += $item->price_with_ccf;
+                     $totalSurchargeValue += $price_breakdown["price"]; 
                 }
             }
             //save taxes
@@ -497,7 +508,8 @@ class Booking extends Icargo
                 $price_breakdown = array();
                 //$price_without_tax = $data->rate->info->original_price;
 
-                $price_without_tax = ($totalcustomerSurchage  + $data->rate->info->price_with_ccf);
+                //$price_without_tax = ($totalcustomerSurchage  + $data->rate->info->price_with_ccf);
+                $price_without_tax = ($totalcustomerSurchage  + $service_price);
                 $carriertotalpriceWithouttax = ($totalcarrierSurchage  + $data->rate->info->original_price);
                 foreach($data->taxes as $key => $item){
                     if($key=='total_tax'){
@@ -528,7 +540,7 @@ class Booking extends Icargo
                 }
                 $totalTaxValue += $price_breakdown["price"];
             }
-            return array("status"=>"success","total_surcharge_value"=>number_format($totalSurchargeValue, 2), "total_tax_value"=>number_format($totalTaxValue, 2));
+            return array("status"=>"success","total_surcharge_value"=>number_format($totalSurchargeValue, 2), "total_tax_value"=>number_format($totalTaxValue, 2),'total_service_value'=>number_format($service_price,2));
         }
         return array("status"=>"error", "message"=>"shipment price breakdown not saved");
     }

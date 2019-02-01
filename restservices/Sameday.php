@@ -403,16 +403,17 @@ class Sameday extends  Booking
         if(isset($param->service_code)){
             $carrierCode = (isset($param->carrier_id) && ($param->carrier_id)>0)?$param->carrier_id:0;
             $carrier = $this->modelObjCorePrime->getCustomerCarrierDataByServiceId($param->customer_id,$param->service_id, $param->company_id,$carrierCode);
-        }else{
+        }
+        else{
             $carrier = $this->modelObjCorePrime->getCustomerInternalCarrierData($param->customer_id, $param->company_id);
         }
-
+        
         if(count($carrier)>0){
             foreach($carrier as $carrierData){
                 if(isset($param->service_id)){
-                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceDataFromServiceId($param->customer_id, $param->company_id, $carrierData['courier_id'],$param->service_id);
+                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceDataFromServiceId($param->customer_id, $param->company_id, $carrierData['courier_account_id'],$param->service_id);
                 }else{
-                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_id']);
+                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
                 }
                 if(count($service)>0){
                     $tempservice = array();
@@ -481,7 +482,8 @@ class Sameday extends  Booking
             $param->transit_time_text       = $transit_time_text;
             $data = $this->_getWbFormat($data,$transitdata,$param,$endpoint,$googleRequest);
            return array("status" => "success","rate"=>$data,"service_date"=>$param->service_date,"availiable_balence" => $available_credit['available_credit']);
-        }else{
+        }
+        else{
              return array("status" => "fail","rate"=>array(),"service_date"=>$param->service_date,"availiable_balence" => $available_credit['available_credit']);
         }
      }

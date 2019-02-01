@@ -97,7 +97,7 @@ class Coreprime_Model_Api
     }   
     public function getCustomerCarrierDataByServiceId($customerId,$serviceId, $company,$carrierId){ 
         $subquery = ($carrierId>0)?"CCST.courier_id = '$carrierId'":"1 = 1";
-        $sql = "SELECT C3.username,C3.password,CCST.courier_id,C3.account_number,C3.token,C3.currency,C2.code,C2.icon 
+        $sql = "SELECT C3.username,C3.password,CCST.courier_id,C3.account_number,C3.token,C3.currency,C2.code,C2.icon,C3.id as courier_account_id 
                   FROM `" . DB_PREFIX . "company_vs_customer_vs_services` AS CCST 
                   INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS C1 ON C1.id = CCST.company_service_id
 				  INNER JOIN  " . DB_PREFIX . "courier_vs_company as C3 on CCST.courier_id = C3.id 

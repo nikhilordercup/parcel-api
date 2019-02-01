@@ -1334,8 +1334,9 @@ final class Nextday extends Booking
             $param->customer_reference1 = (isset($param->customer_reference1)) ? $param->customer_reference1 : "";
             $param->customer_reference2 = (isset($param->customer_reference2)) ? $param->customer_reference2 : "";
             $param->service_opted->collection_carrier->surcharges = isset($param->service_opted->collection_carrier->surcharges) ? $param->service_opted->collection_carrier->surcharges : 0;
-            
-            $serviceStatus = $this->_saveShipmentService($param->service_opted, $param->service_opted->collection_carrier->surcharges, $loadIdentity, $param->customer_id, "pending", $otherDetail, $serviceId, $param->customer_reference1, $param->customer_reference2, $param->ismanualbooking, $param->manualbookingreference);
+            $param->costwithoutvat = isset($param->costwithoutvat)?$param->costwithoutvat:0;
+            $param->ismanualbooking= isset($param->ismanualbooking)?$param->ismanualbooking:false;
+            $serviceStatus = $this->_saveShipmentService($param->service_opted, $param->service_opted->collection_carrier->surcharges, $loadIdentity, $param->customer_id, "pending", $otherDetail, $serviceId, $param->customer_reference1, $param->customer_reference2, $param->ismanualbooking, $param->manualbookingreference,$param->costwithoutvat);
             $this->_saveInfoReceived($loadIdentity);
             if ($serviceStatus["status"] == "error")
                 {
@@ -1425,6 +1426,7 @@ final class Nextday extends Booking
             {
             foreach($param->items as $item)
                 {
+                $item->country_of_origin =  (object)$this->resrServiceModel->getCountryData($item->country_of_origin);
                 $itemStatus = $this->_saveShipmentItems($item, $loadIdentity, $param->customer_id, $booking_status = 0);
                 if ($itemStatus["status"] == "error")
                     {
@@ -1986,5 +1988,6 @@ final class Nextday extends Booking
         return $data;
 
      }
+    
 }
 ?>
