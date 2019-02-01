@@ -355,8 +355,9 @@ class ShipmentManager extends PostMenMaster
                 $this->formatCreateLabelResponse($labelResponse);
                 if(!$directlyCallForPostmen)
                 {
-                    $res = $this->createAndSavePdf($request);                   
-                    exit(json_encode($res));
+                    $res = $this->createAndSavePdf($request);
+                    $res1 = $this->createPickup($request, $res);
+                    exit(json_encode($res1));
                 }
             }
             else
@@ -707,6 +708,14 @@ class ShipmentManager extends PostMenMaster
         return $res->alpha3_code;
     }
     
+    public static function getAlpha2CodeFromAlpha3($alpha3)
+    {        
+        $res =  \v1\module\Database\Model\Countries::all()
+            ->where('alpha3_code','=',$alpha3)                                             
+            ->first();         
+        return $res->alpha2_code;
+    }
+    
     public function createAndSavePdf($request)
     {        
         $labelArr = $this->responseData;          
@@ -738,7 +747,7 @@ class ShipmentManager extends PostMenMaster
                     "label_files_png" => '',
                     "label_json" =>json_encode($labelArr),
                     "callFromPostmen" =>"true"
-            );         
+            );  
            return $res;
         }        
     }
@@ -758,4 +767,126 @@ class ShipmentManager extends PostMenMaster
         }
         return $requestObj;
     }
+    
+    public static function preparePickupData($request)
+    {                       
+        $pickupRequest = array();
+        $pickupRequest['credentials'] = (array)$request->credentials;
+        $pickupRequest['carrier'] = $request->carrier;
+        $pickupRequest['services'] = "";
+        $pickupRequest['address'] = array( 
+            "location_type" => ((boolean)$request->from->is_res == TRUE) ? 'R' : 'B',
+            "package_location" => $request->pickup_detail->package_location,
+            "company" => $request->from->company,
+            "street1" => $request->from->street1,
+            "street2" => $request->from->street2,
+            "city" => $request->from->city,
+            "state" => $request->from->state,
+            "country" => self::getAlpha2CodeFromAlpha3($request->from->country),
+            "zip" => $request->from->zip
+        );
+                                        
+        $type_code = (strtotime(date('Y-m-d')) - strtotime($request->pickup_detail->pickup_date) == 0) ? 'S' : 'A';
+        
+        $pickupRequest['pickup_details'] = array(
+            "pickup_date" => date('Y-m-d', strtotime($request->pickup_detail->pickup_date)),
+            "ready_time" => $request->pickup_detail->earliest_pickup_time,
+            "close_time" => $request->pickup_detail->latest_pickup_time,
+            "number_of_pieces" => $request->pickup_detail->package_quantity,
+            "instructions" => $request->pickup_detail->pickup_instruction,
+			"type_codes" => $type_code,
+			"package_location" => $request->pickup_detail->package_location
+        );
+        
+        $pickupRequest['pickup_contact'] = array (
+            "name" => $request->from->name,
+            "phone" => $request->from->phone,
+            "email" => $request->from->email
+        );
+         
+        $pickupRequest['confirmation_number'] = '';
+        $pickupRequest['method_type'] = 'post';
+        $pickupRequest['pickup'] = '';                                                                                                    
+        return $pickupRequest;
+    }
+    
+    public function createPickup($request, $res)
+    {
+        $date = date('Y-m-d H:i:s');        
+        $dhlApiObj = new \v1\module\RateEngine\core\dhl\DhlApi();
+        $bkgModel = new \Booking_Model_Booking();        
+        $providerInfo = $bkgModel->getProviderInfo('PICKUP',ENV,'PROVIDER',$request->carrier);
+        
+        $pickupRequest = self::preparePickupData($request);   //print_r($pickupRequest);die;                                     
+        $formatedReq = $dhlApiObj->formatPickupData($pickupRequest);                                
+        $formatedReq->callType = 'createpickup';
+        $formatedReq->pickupEndPoint = $providerInfo['rate_endpoint'];
+        $formatedReq->carrier = $request->carrier;
+        
+        $xmlRequest = $dhlApiObj->getPickupRequest($formatedReq);        
+        $rawConfirmationDetail = $dhlApiObj->postDataToDhl($xmlRequest);
+        $confirmationDetail = $dhlApiObj->formatPickupResponseData(json_encode($rawConfirmationDetail));
+                                
+        if(isset($confirmationDetail->pickup->confirmation_number) && $confirmationDetail->pickup->confirmation_number != '')
+        { 
+            $respDetail = $confirmationDetail->pickup;
+            $pickupData['confirmation_number'] =  isset( $respDetail->confirmation_number ) ? $respDetail->confirmation_number : '';
+            $pickupData['currency_code'] =  isset( $respDetail->currency_code ) ? $respDetail->currency_code : '';
+            $pickupData['charge'] =  isset( $respDetail->charge ) ? $respDetail->charge : '';
+            $pickupData['origin_service_area'] =  isset( $respDetail->origin_service_area ) ? $respDetail->origin_service_area : '';
+            $pickupData['ready_time'] =  isset( $respDetail->ready_time ) ? $respDetail->ready_time : '';
+            $pickupData['second_time'] =  isset( $respDetail->second_time ) ? $respDetail->second_time : '';
+            $pickupData['status'] =  isset($data->status) ? $data->status : 1;             
+            $pickupData['carrier_id'] =  $this->getCarrierIdByName($request->carrier);
+            $pickupData['company_id'] =  $request->company_id;
+            $pickupData['customer_id'] =  $request->customer_id;
+            $pickupData['account_number'] =  $pickupRequest['credentials']['account_number'];
+            $pickupData['user_id'] =  $request->collection_user_id;
+            $pickupData['address_line1'] = $pickupRequest['address']['street1'];
+            $pickupData['address_line2'] = $pickupRequest['address']['street2'];
+            $pickupData['city'] = $pickupRequest['address']['city'];
+            $pickupData['state'] = $pickupRequest['address']['state'];
+            $pickupData['country'] = $pickupRequest['address']['country'];
+            $pickupData['postal_code'] = $pickupRequest['address']['zip'];
+            $pickupData['address_type'] = $pickupRequest['address']['location_type'];
+            $pickupData['package_quantity'] = $pickupRequest['pickup_details']['number_of_pieces'];
+            $pickupData['package_type'] = "Package";
+            $pickupData['is_overweight'] = "";
+            $pickupData['package_location'] = (isset($pickupRequest['pickup_details']['package_location'])) ? $pickupRequest['pickup_details']['package_location']:'Front Desk';
+            $pickupData['pickup_date'] = $pickupRequest['pickup_details']['pickup_date'];
+            $pickupData['earliest_pickup_time'] = $pickupRequest['pickup_details']['ready_time'];
+            $pickupData['latest_pickup_time'] = $pickupRequest['pickup_details']['close_time'];
+            $pickupData['pickup_reference'] = "";
+            $pickupData['instruction_todriver'] = $pickupRequest['pickup_details']['instructions'];						            
+            $pickupData['name'] = $pickupRequest['pickup_contact']['name'];						
+            $pickupData['company_name'] = $pickupRequest['address']['company'];						
+            $pickupData['phone'] = $pickupRequest['pickup_contact']['phone'];						
+            $pickupData['email'] = $pickupRequest['pickup_contact']['email'];						                                                
+            $pickupData['status'] = 1;                                    
+            $pickupData['created'] =  $date;
+            $pickupData['updated'] =  $date;
+            $pickupData['carrier_code'] =  $request->carrier;
+                                                
+            $this->db->startTransaction();            
+            
+            $pickupId = $this->db->save("pickups", $pickupData);   
+            
+            $this->db->commitTransaction();
+            
+            $label_json_arr = json_decode($res['label_json']);
+            $label_json_arr->label->collectionjobnumber = $confirmationDetail->pickup->confirmation_number;            
+            $label_json_arr->label->collectionstatus = 'created';            
+            $res['label_json'] = json_encode($label_json_arr);                                                            
+        }
+        else
+        {
+            $label_json_arr = json_decode($res['label_json']);
+            $label_json_arr->label->collectionjobnumber = '';            
+            $label_json_arr->label->collectionstatus = 'failed';
+            $res['label_json'] = json_encode($label_json_arr);
+        }
+        return $res;
+    }
+    
+    
 }

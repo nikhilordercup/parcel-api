@@ -146,13 +146,16 @@ class Pickup extends Icargo
             "country" => $countryCode,
             "zip" => $pickupData['postal_code'],
         );        
+        
+        $type_codes = ( strtotime(date('Y-m-d')) - strtotime(date('Y-m-d', strtotime($pickupData['pickup_date']))) == 0 ) ? 'S' : 'A';
+        
         $pickupRequest['pickup_details'] = array (
             "pickup_date" => date('Y-m-d', strtotime($pickupData['pickup_date'])),
             "ready_time" => $pickupData['earliest_pickup_time'],
             "close_time" => $pickupData['latest_pickup_time'],
             "number_of_pieces" => $pickupData['package_quantity'],
             "instructions" => $pickupData['instruction_todriver'],
-			"type_codes" => "A"
+			"type_codes" => $type_codes
         );
         $pickupRequest['pickup_contact'] = array (
             "name" => $pickupData['name'],
@@ -273,7 +276,7 @@ class Pickup extends Icargo
 	
 	public function getPickupData($param) {
 		$carrier_code = $param->carrier->code;
-        $sql = "SELECT confirmation_number as collectionjobnumber,pickup_date,earliest_pickup_time,latest_pickup_time FROM ".DB_PREFIX."pickups IP WHERE IP.carrier_code='$carrier_code' AND IP.account_number='$param->account_number' AND IP.pickup_date='$param->pickup_date' AND IP.company_id = $param->company_id";
+        $sql = "SELECT confirmation_number as collectionjobnumber,pickup_date,package_location,earliest_pickup_time,latest_pickup_time,account_number FROM ".DB_PREFIX."pickups IP WHERE IP.carrier_code='$carrier_code' AND IP.account_number='$param->account_number' AND IP.pickup_date >='$param->pickup_date' AND IP.company_id = $param->company_id order by id desc limit 0,1"; //echo $sql;die;
         $record = $this->db->getRowRecord($sql); 
     	return array("status"=>"success", "data"=>$record);
     }

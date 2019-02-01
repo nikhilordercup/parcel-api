@@ -53,7 +53,7 @@ class LabelProcessor
     
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail = array(), $allData = array())
     {       
-        $collection = (array)$allData->collection;
+        $collection = (array)$allData->collection; 
         $delivery = (array)$allData->delivery;        
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
@@ -182,8 +182,19 @@ class LabelProcessor
 		$response['customer_id'] = $allData->customer_id;
 		$response['collection_user_id'] = $allData->collection_user_id;
 		$response['parcel_total_weight'] = $allData->parcel_total_weight;
-
         
+        
+        $tempParcel = (array)$allData->parcel;
+        $parcel = $tempParcel[0];        
+        $response['pickup_detail'] = array(
+            'pickup_date'=>(isset($allData->pickup_date)) ? $allData->pickup_date : '',
+            'earliest_pickup_time'=> (isset($allData->earliest_pickup_time)) ? $allData->earliest_pickup_time : '00:00',
+            'latest_pickup_time'=> (isset($allData->latest_pickup_time)) ? $allData->latest_pickup_time : '00:00',
+            'pickup_instruction'=>(isset($collection[0]->pickup_instruction)) ? $collection[0]->pickup_instruction : '',
+            'package_quantity'=>(isset($parcel->quantity)) ? $parcel->quantity:1,
+            'package_location'=> (isset($allData->package_location) && $allData->package_location != '') ? $allData->package_location : 'Front Desk',
+        );
+                                        
         $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);
         if($allData->service_opted->collected_by[0]->carrier_code == 'DHL')
         {
@@ -193,7 +204,7 @@ class LabelProcessor
             } else {
                 unset($response['label_detail']);
             }
-        }                 
+        }     
         return $response;        
     }
 

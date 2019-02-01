@@ -992,7 +992,7 @@ final class Nextday extends Booking
 
         if(($isInternalCarrier ==='NO') && $this->_param->manualbookingreference=='')
         { 
-            $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData); 
+            $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
             if ($labelInfo['status'] == 'success')
                 {
                 $bkgModel = new \Booking_Model_Booking();
