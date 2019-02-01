@@ -28,8 +28,8 @@ class BucketManager
             'region' => 'eu-west-1',
             'version' => 'latest',
             'credentials' => [
-                'key' => 'AKIAJO35W34IHPA2JURQ',
-                'secret' => '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'
+                'key' => 'old@@AKIAJO35W__author__34IHPA2JURQ@@old',
+                'secret' => '__ZWO+E+Enc9K6ZR3DLJa__gdp__BLKEhJNoeqEbvkQK1lOHD__'
             ],
             'http' => ['verify' => false]
         ]);
