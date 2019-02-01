@@ -1016,7 +1016,7 @@ final class Nextday extends Booking
                 $statusArr = array(
                     "status" => "success"
                 );
-				
+                
 				/*start of update ukmail child account data*/
 				if ((strtolower($carrier_code) == 'ukmail') && (isset($labelInfo['child_account_data']) && count($labelInfo['child_account_data'])>0)){
 				    $this->modelObj->updateChildAccountData("shipment_service",array("accountkey"=>$labelInfo['child_account_data']['child_account_number']),"load_identity='".$loadIdentity."'");
@@ -1034,6 +1034,16 @@ final class Nextday extends Booking
                         $carrierId = $this->_param->service_opted->carrier_info->carrier_id;
                         $collectionDate = date('Y-m-d', strtotime($this->_param->service_opted->collection_carrier->collection_date_time));
                         $checkPickupExist = $this->modelObj->checkExistingPickupForShipment($this->_param->customer_id, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity);
+                        if($provider == 'Postmen')
+                        {
+                            $labelJsonStr = $labelData['label_json'];
+                            $labelDataArr = json_decode($labelJsonStr);                    
+                            if($labelDataArr->label->collectionstatus == 'created')
+                            {
+                                $checkPickupExist =  array('search' => 1,'assign' => 1);                        
+                            }                                                            
+                        }
+                        
                         }
 
                     Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array(
