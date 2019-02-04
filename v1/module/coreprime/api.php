@@ -512,7 +512,7 @@ class Module_Coreprime_Api extends Icargo
     }
 
     public function postToCorePrime($cpData)
-    {
+    {//exit('core');
         $url = "";
         foreach ($this->_endpoints as $ep) {
             if ($ep['provider'] == 'Coreprime') {
