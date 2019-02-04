@@ -193,8 +193,7 @@ class LabelProcessor
                 $parcelQuantity = $parcel->quantity;
             }
         } 
-        
-        $parcel = $tempParcel[0];        
+                    
         $response['pickup_detail'] = array(
             'pickup_date'=>(isset($allData->pickup_date)) ? $allData->pickup_date : '',
             'earliest_pickup_time'=> (isset($allData->earliest_pickup_time)) ? $allData->earliest_pickup_time : '00:00',
@@ -202,6 +201,7 @@ class LabelProcessor
             'pickup_instruction'=>(isset($collection[0]->pickup_instruction)) ? $collection[0]->pickup_instruction : '',
             'package_quantity'=>$parcelQuantity,
             'package_location'=> (isset($allData->package_location) && $allData->package_location != '') ? $allData->package_location : 'Front Desk',
+            'collectionjobnumber'=> (isset($allData->collectionjobnumber) && $allData->collectionjobnumber != '') ? $allData->collectionjobnumber : ''
         );
                                         
         $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);

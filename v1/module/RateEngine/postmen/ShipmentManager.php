@@ -311,7 +311,7 @@ class ShipmentManager extends PostMenMaster
 
 
     public function createLabelAction($request)
-    {                               
+    {                          
         $fromAddress = $this->convertAddress($request->from);                
         $toAddress = $this->convertAddress($request->to);    
                        
@@ -795,7 +795,8 @@ class ShipmentManager extends PostMenMaster
             "number_of_pieces" => $request->pickup_detail->package_quantity,
             "instructions" => $request->pickup_detail->pickup_instruction,
 			"type_codes" => $type_code,
-			"package_location" => $request->pickup_detail->package_location
+			"package_location" => $request->pickup_detail->package_location,
+			"confirmation_number" => (isset($request->pickup_detail->collectionjobnumber) && $request->pickup_detail->collectionjobnumber != '') ? $request->pickup_detail->collectionjobnumber :''
         );
         
         $pickupRequest['pickup_contact'] = array (
@@ -880,9 +881,11 @@ class ShipmentManager extends PostMenMaster
         }
         else
         {
-            $label_json_arr = json_decode($res['label_json']);
-            $label_json_arr->label->collectionjobnumber = '';            
-            $label_json_arr->label->collectionstatus = 'failed';
+            $label_json_arr = json_decode($res['label_json']);             
+            $cNo = (isset($pickupRequest['pickup_details']['confirmation_number'])  && $pickupRequest['pickup_details']['confirmation_number'] != '' ) ? $pickupRequest['pickup_details']['confirmation_number'] : '';
+            $cStatus = ($cNo != '') ? 'created':'failed';                        
+            $label_json_arr->label->collectionjobnumber = $cNo;            
+            $label_json_arr->label->collectionstatus = $cStatus;
             $res['label_json'] = json_encode($label_json_arr);
         }
         return $res;
