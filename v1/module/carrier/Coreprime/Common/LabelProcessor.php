@@ -100,7 +100,7 @@ class LabelProcessor
                     "country_name" => $data["shipment_customer_country"],
                     "email" => $data["shipment_customer_email"],
                     "is_apo_fpo" => "",
-                    "is_res" => ($delivery[0]->address_type == 'Residential') ? TRUE : FALSE
+                    "is_res" => (isset($delivery[0]->address_type) && $delivery[0]->address_type == 'Residential') ? TRUE : FALSE
                 );
 
                 $carrierAccountNumber = $data["carrier_account_number"];
@@ -184,14 +184,23 @@ class LabelProcessor
 		$response['parcel_total_weight'] = $allData->parcel_total_weight;
         
         
+        $parcelQuantity = 1;
         $tempParcel = (array)$allData->parcel;
+        if(count($tempParcel) > 0)
+        {
+            foreach($tempParcel as $parcel)
+            {
+                $parcelQuantity = $parcel->quantity;
+            }
+        } 
+        
         $parcel = $tempParcel[0];        
         $response['pickup_detail'] = array(
             'pickup_date'=>(isset($allData->pickup_date)) ? $allData->pickup_date : '',
             'earliest_pickup_time'=> (isset($allData->earliest_pickup_time)) ? $allData->earliest_pickup_time : '00:00',
             'latest_pickup_time'=> (isset($allData->latest_pickup_time)) ? $allData->latest_pickup_time : '00:00',
             'pickup_instruction'=>(isset($collection[0]->pickup_instruction)) ? $collection[0]->pickup_instruction : '',
-            'package_quantity'=>(isset($parcel->quantity)) ? $parcel->quantity:1,
+            'package_quantity'=>$parcelQuantity,
             'package_location'=> (isset($allData->package_location) && $allData->package_location != '') ? $allData->package_location : 'Front Desk',
         );
                                         
