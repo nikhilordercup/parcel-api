@@ -76,7 +76,7 @@ class Module_Package_Index extends Icargo
             $this->modelObj->commitTransaction();
 
             return array("status"=>"success", "message"=>"Package saved successfully","package_lists"=>$this->_getPackages($param->collection_user_id, $param->customer_id));
-        }catch(Exception $e){print_r($e);die;
+        }catch(Exception $e){
             $this->modelObj->rollBackTransaction();
             return array("status"=>"error", "message"=>"Package not saved. Record rollback.");
         }
