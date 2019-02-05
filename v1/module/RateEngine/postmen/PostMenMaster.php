@@ -76,7 +76,7 @@ abstract class PostMenMaster extends Postmen
     {                     
         $finalPackage = [];
         $finalPackage['description'] = ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type;
-        $finalPackage['box_type'] = ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type;
+        $finalPackage['box_type'] = ($package->packaging_type == 'CP') ? 'custom' : 'custom';
         $finalPackage['weight'] = array(
             'value'=> (float)$package->weight,
             'unit'=> strtolower($package->weight_unit)

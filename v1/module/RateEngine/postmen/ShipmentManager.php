@@ -157,7 +157,12 @@ class ShipmentManager extends PostMenMaster
         {       
             $differentAcIds = array();
             foreach($rawRates as $rate)
-            {              
+            {             
+                /*
+                 *  There were two rate with same date and amount 
+                    but for one booking cut off time was NULL and it's transit time was minimum                 
+                 */
+                if(!$rate->booking_cut_off){continue;}
                 if(in_array($rate->service_type, $notSupportdRates)){ continue;}                 
                 $innerRate = array();
                 $innerRate['rate']['id'] = '';
