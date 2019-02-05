@@ -10,7 +10,6 @@ class Dashboard extends Icargo
 
     public function getCarrierShipment($dataval = array())
     {
-
         $customer_id = $dataval->customer_id;
         $whereClause = $this->shipmentFilters($dataval);
         $sql = "SELECT carrier_code, customer_id, instaDispatch_loadGroupTypeCode, COUNT(*) as shipment_count, shipment_service_type FROM " . DB_PREFIX . "shipment WHERE 
@@ -41,10 +40,9 @@ class Dashboard extends Icargo
            $shipment_type_fliter = (($shipment_type == "ALL") ? "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND": (($filter_type == "ALL")  ? "instaDispatch_loadGroupTypeCode = '$shipment_type' AND" : "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND instaDispatch_loadGroupTypeCode = '$shipment_type' AND"));
            $whereClause .= " $shipment_type_fliter ";
         }
-
-
         return $whereClause;
     }
+
 
     public function dashboardFilter($data)
     {

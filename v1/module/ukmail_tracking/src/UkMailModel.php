@@ -5,13 +5,17 @@ class UkMailModel extends Singleton
      * key is tracking code that comes from API and corresponding shipment_code( from shipment_tracking_code) stored in shipment_tracking_table
      * @var type 
      */
-    public static $consignmentStatus = array(
+     public static $consignmentStatus = array(
         '1' =>  'COLLECTION_AWAITED'
         ,'2' =>  'COLLECTED'
         ,'3' =>  'AT_DELIVERY_LOCATION'
         ,'4' =>  'OUTFORDELIVERY'
         ,'5' =>  'DELIVERYSUCCESS'
+        ,'6' =>  'PART_DELIVERY' 
+        ,'7' =>  'DELIVERYATTEMPTED'
         ,'8' =>  'DELAYED'
+        ,'9' =>  'PLEASECALL'
+        ,'10' =>  'DELIVERYREARRANGEDBYRECIPIENT'
     );
     
     public static $PodDeliveryTypeCode = array(
@@ -28,8 +32,7 @@ class UkMailModel extends Singleton
         'DT12' => 'Unknown status',
         'DT13' => 'Leave your parcel in a safe place.'        
     );
-    
-    const UKMAIL = 2;
+
     
     /**
      * This function update table carrier_user_token
@@ -40,13 +43,13 @@ class UkMailModel extends Singleton
     {          
         $q1 = "SELECT `id`,`username`,`authentication_token`,`authentication_token_created_at`,`authentication_token_expire_at` 
                FROM `".DB_PREFIX."carrier_user_token` 
-               WHERE `username` = '".$username."'";
+               WHERE `username` = '$username' AND `carrier` = 'UKMAIL'";
        
         $res = $this->db->getAllRecords($q1);                         
         if(count($res) > 0)
         {
             $q = "UPDATE `".DB_PREFIX."carrier_user_token` 
-                   SET `authentication_token` = '".$authenticationKey."' 
+                   SET `authentication_token` = '$authenticationKey' 
                    ,`authentication_token_expire_at` =  DATE_ADD( NOW(), INTERVAL 24 HOUR )
                    WHERE  `username` =  '$username' ";              
             $this->db->updateData($q);
@@ -114,6 +117,7 @@ $podRecipientName = 'NA';
 $podDeliveryComments = 'NA';
 $podDeliveryTypeCode = 'NA';
 if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+<<<<<<< HEAD
 {
 	    $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
             $podQuantity = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity;
@@ -122,6 +126,32 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
             $podRecipientName = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName;
             $podDeliveryComments = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments;
             $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;
+=======
+{         
+    if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+    {
+        $GetConsignmentDetailsPod = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;
+        $GetConsignmentDetailsPodLastDetail = $GetConsignmentDetailsPod[count($GetConsignmentDetailsPod) -1];
+                       
+        $podDescription = ($GetConsignmentDetailsPodLastDetail->PodDescription != '') ? $GetConsignmentDetailsPodLastDetail->PodDescription : $podDescription;
+        $podQuantity = ($GetConsignmentDetailsPodLastDetail->PodQuantity != '') ? $GetConsignmentDetailsPodLastDetail->PodQuantity : $podQuantity;
+        $podSequence = ($GetConsignmentDetailsPodLastDetail->PodSequence != '') ? $GetConsignmentDetailsPodLastDetail->PodSequence : $podSequence;
+        $podTimeStamp = ($GetConsignmentDetailsPodLastDetail->PodTimeStamp != '') ? $GetConsignmentDetailsPodLastDetail->PodTimeStamp:$podTimeStamp;
+        $podRecipientName = ($GetConsignmentDetailsPodLastDetail->PodRecipientName != '') ? $GetConsignmentDetailsPodLastDetail->PodRecipientName: $podRecipientName;
+        $podDeliveryComments = ($GetConsignmentDetailsPodLastDetail->PodDeliveryComments != '') ? $GetConsignmentDetailsPodLastDetail->PodDeliveryComments :'';
+        $podDeliveryTypeCode = ($GetConsignmentDetailsPodLastDetail->PodDeliveryTypeCode != '') ? $GetConsignmentDetailsPodLastDetail->PodDeliveryTypeCode : $podDeliveryTypeCode;
+    }
+    else
+    {
+        $podDescription = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription : $podDescription;
+        $podQuantity = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity : $podQuantity;
+        $podSequence = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence : $podSequence;
+        $podTimeStamp = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp:$podTimeStamp;
+        $podRecipientName = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName: $podRecipientName;
+        $podDeliveryComments = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments :$ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
+        $podDeliveryTypeCode = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode : $podDeliveryTypeCode;
+    }    
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
 }
 		
                     
@@ -169,14 +199,26 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
             {
                 $trackingId = '';
                 $consignmentStatus = $ConsignmentDetailInfo->ConsignmentStatus->GetConsignmentDetailsStatus;
+                
+                
+                $isMultipleStatus = FALSE;
+                $isMultipleStatus = is_array($consignmentStatus); 
 
                 $queryContinue = FALSE;
                 if(count($consignmentStatus) > 0)
                 { 
                     $cStatusQuery = "insert into ".DB_PREFIX."shipment_tracking(shipment_ticket,load_identity,code,create_date,carrier,status_detail,event_id,origin)values";
                     foreach($consignmentStatus as $conStatus)
-                    {
-                        $statusCode1 = self::$consignmentStatus[$conStatus->StatusCode];                    
+                    {                         
+                        if($isMultipleStatus)
+                        {                            
+                            $statusCode1 = self::$consignmentStatus[$conStatus->StatusCode];
+                        }
+                        else
+                        {                           
+                            $statusCode1 = self::$consignmentStatus[$consignmentStatus->StatusCode];
+                        }
+                                            
                         $q1 = "select id from ".DB_PREFIX."shipment_tracking 
                                where load_identity = '$load_identity'  and carrier = 'UKMAIL' and code = '$statusCode1'";
                         $res1 = $this->db->getOneRecord($q1);
@@ -185,10 +227,10 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                         if( count($res1) > 0 ){ $trackingId = $res1['id']; continue; }
                         
                         $queryContinue = TRUE;
-                        $statusCode = self::$consignmentStatus[$conStatus->StatusCode]; 
-                        $statusDescription = $conStatus->StatusDescription;
-                        $statusSequence = $conStatus->StatusSequence;
-                        $statusTimeStamp = date("Y-m-d H:i:s", strtotime($conStatus->StatusTimeStamp)); 
+                        $statusCode = ($isMultipleStatus) ? self::$consignmentStatus[$conStatus->StatusCode]: self::$consignmentStatus[$consignmentStatus->StatusCode]; 
+                        $statusDescription = ($isMultipleStatus) ? $conStatus->StatusDescription : $consignmentStatus->StatusDescription;
+                        $statusSequence = ($isMultipleStatus) ? $conStatus->StatusSequence : $consignmentStatus->StatusSequence;
+                        $statusTimeStamp = ($isMultipleStatus) ? date("Y-m-d H:i:s", strtotime($conStatus->StatusTimeStamp)) : date("Y-m-d H:i:s", strtotime($consignmentStatus->StatusTimeStamp)); 
                         $cStatusQuery .= "('$shipment_ticket','$load_identity','$statusCode','$statusTimeStamp','UKMAIL','$statusDescription','$statusSequence','API')"; 
                         $cStatusQuery .= ",";                    
                     }
@@ -211,9 +253,31 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                     {           
                          if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                          {
+<<<<<<< HEAD
 		                $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
 		                $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
 		                $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+=======
+                             
+                             if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+                             {
+                                 $GetConsignmentDetailsPod = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;
+                                 $GetConsignmentDetailsPodLastDetail = $GetConsignmentDetailsPod[count($GetConsignmentDetailsPod) -1];
+                                 
+                                 $podObj = $GetConsignmentDetailsPodLastDetail;                                   
+                                 $PodDeliveryType =  ($podObj->PodDeliveryTypeCode != '') ? self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode]:'';
+                                 $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+                        
+                             }
+                             else
+                             {
+                                 $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
+                                 //var_dump($podObj->PodDeliveryTypeCode);die;
+                                 $PodDeliveryType =  ($podObj->PodDeliveryTypeCode != '') ? self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode]:'';
+                                 $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+                             }
+		                
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
 		                        
 		                                                                                                              
 		                $sql1 = "insert into ".DB_PREFIX."shipments_pod
@@ -240,7 +304,7 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                     }
                                                                                 
                     // Updating shipment_service table column tracking_code by latest status
-                    $lastConsignmentStatusInfo = $consignmentStatus[count($consignmentStatus) - 1];
+                    $lastConsignmentStatusInfo = ($isMultipleStatus) ? $consignmentStatus[count($consignmentStatus) - 1]:$consignmentStatus;
                     $lastConsignmentStatus = self::$consignmentStatus[$lastConsignmentStatusInfo->StatusCode];                    
                     $qToUShipSer = "UPDATE `".DB_PREFIX."shipment_service` 
                             SET `tracking_code` = '".$lastConsignmentStatus."'

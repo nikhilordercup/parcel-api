@@ -643,6 +643,12 @@ class Booking_Model_Booking
 			return $this->_db->getOneRecord($sql);
 		}
 		
+	 public function getPickupInstructionByLoadIdentity($load_identity)
+		{
+			$sql = "SELECT shipment_instruction FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$load_identity' AND shipment_service_type = 'P'";
+			return $this->_db->getOneRecord($sql);
+		}
+		
 	public function getChildAccountData($accountNumber,$loadIdentity){
 		$customer_id = $this->_db->getRowRecord("SELECT customer_id FROM " . DB_PREFIX . "shipment_service AS t1 WHERE t1.load_identity = '$loadIdentity'");
 		$customer_id = $customer_id['customer_id'];
@@ -672,6 +678,17 @@ class Booking_Model_Booking
         $record = $this->_db->getRowRecord($sql);
         return $record['is_internal'];
     }
+	
+	public function getProviderInfo($callType,$env,$providerType='ENDPOINT',$carrier_code)
+	{
+		$query = "SELECT CSP.request_type,C.code, SP.rate_endpoint,SP.label_endpoint,SP.app_env, EP.provider as endpoint,SP.provider AS provider 
+		   FROM `icargo_carrier_service_provider` AS CSP
+		   LEFT JOIN icargo_courier AS C ON C.id=CSP.carrier_id
+		   LEFT JOIN icargo_service_providers AS SP ON SP.id =CSP.provider_id
+		   LEFT JOIN icargo_service_providers AS EP ON EP.id=CSP.provider_endpoint_id
+		   WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND CSP.request_type='$callType' AND SP.app_env='$env' AND CSP.carrier_code='$carrier_code'";							
+		return $this->_db->getRowRecord($query);
+	}
 	
 }
 ?>

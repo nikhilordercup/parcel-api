@@ -159,7 +159,7 @@ class Booking extends Icargo
 
         if($ticketNumber){
 
-            $data["notification_status"] = (isset($param2->notification)) ? $param2->notification : "";
+            $data["notification_status"] = (isset($param2->notification)) ? $param2->notification :0;
             $data['shipment_address1'] = $addressInfo->address_line1;
             $data['shipment_address2'] = (isset($addressInfo->address_line2)) ? $addressInfo->address_line2 : "";
             $data['shipment_customer_city'] = (isset($addressInfo->city)) ? $addressInfo->city : "";
@@ -287,6 +287,7 @@ class Booking extends Icargo
 
     function _saveParcel($shipment_id,$shipment_ticket,$warehouse_id,$company_id,$company_code,$parcel,$parcel_type,$loadidentity){
         $parcel = (object)$parcel;
+		//print_r($parcel);die;
         $parcelTicketNumber = $this->modelObj->generateParcelTicketNumber($company_id);
         $parcelData = array();
         $parcelData['shipment_id'] = $shipment_id;

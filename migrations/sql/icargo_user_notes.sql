@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -- phpMyAdmin SQL Dump
 -- version 4.7.7
 -- https://www.phpmyadmin.net/
@@ -28,6 +29,8 @@ SET time_zone = "+00:00";
 -- Table structure for table `icargo_user_notes`
 --
 
+=======
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
 CREATE TABLE `icargo_user_notes` (
   `note_id` int(11) NOT NULL,
   `user_notes` text NOT NULL,
@@ -69,7 +72,10 @@ ALTER TABLE `icargo_user_notes`
 ALTER TABLE `icargo_user_notes`
   MODIFY `note_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 COMMIT;
+<<<<<<< HEAD
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+=======
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95

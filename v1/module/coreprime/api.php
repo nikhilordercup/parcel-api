@@ -16,6 +16,8 @@ class Module_Coreprime_Api extends Icargo
             "access_url" => "http://api.icargo.in/v1/RateEngine/getRate"
         )
     );
+    
+    private $_doLabelCancel = false;
 
     public
 
@@ -46,19 +48,31 @@ class Module_Coreprime_Api extends Icargo
     public
 
     function _postRequest($data)
-    { //print_r($data);exit;
+    { 
         global $_GLOBAL_CONTAINER;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
         }
 
+        if(isset($data->doLabelCancel))
+        {
+            $this->_doLabelCancel = true; 
+            $label=$this->doLabelCall($data);
+            return $label;
+        }
+        
         if (isset($data->label)) {
             $this->_isLabelCall = true;
             $label=$this->doLabelCall($data);
             return $label;
         }
-        $pd = $this->filterServiceProvider($data);
 
+        if (isset($data->callType) && $data->callType == 'createpickup' ) 
+        {       
+            return $this->postToRateEngineUrl($data->pickupEndPoint, $data);                        
+        }
+        
+        $pd = $this->filterServiceProvider($data);
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
             $cpData = $data;
@@ -72,7 +86,7 @@ class Module_Coreprime_Api extends Icargo
             $localRate = $this->postToRateEngine('Local', $lcData);
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
-        }
+        } 
 //        exit(json_encode($finalPrice));
         return json_encode($finalPrice);
     }
@@ -443,8 +457,8 @@ class Module_Coreprime_Api extends Icargo
             $callType = 'LABEL';
         }
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
-        $providerList = $rateEngModel->getProviderInfo($callType, $env);//print_r($providerList);exit;
-        $this->_endpoints = $providerList;
+        $providerList = $rateEngModel->getProviderInfo($callType, $env);
+        $this->_endpoints = $providerList; 
         $filteredData = [];
         foreach ($data['carriers'] as $c) {
             foreach ($providerList as $p) {
@@ -452,11 +466,12 @@ class Module_Coreprime_Api extends Icargo
                     $filteredData[$p['provider']][] = $c;
             }
         }
+        //print_r($filteredData);die;
         return $filteredData;
     }
 
     public function postToRateEngine($provider, $data)
-    {
+    { 
         $url = "";
         foreach ($this->_endpoints as $ep) {
             if ($ep['provider'] == $provider) {
@@ -474,20 +489,37 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
-        curl_close($ch);//exit($server_output);
+        $server_output = curl_exec($ch); //print_r($server_output);die;
+        curl_close($ch);
+        return $server_output;
+    }
+    
+    public function postToRateEngineUrl($url, $data)
+    {                
+        $data_string = json_encode($data);
+        $ch = curl_init($url);        
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($data_string))
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $server_output = curl_exec($ch);//print_r($server_output);die('postToRateEngineUrl');
+        curl_close($ch);
         return $server_output;
     }
 
     public function postToCorePrime($cpData)
-    {
+    {//exit('core');
         $url = "";
         foreach ($this->_endpoints as $ep) {
             if ($ep['provider'] == 'Coreprime') {
                 $url = $ep['rate_endpoint'];
             }
         }
-        $data_string = json_encode($cpData);
+        $data_string = json_encode($cpData);//echo $url;echo $data_string;die;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
@@ -498,7 +530,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
+        $server_output = curl_exec($ch); 
         curl_close($ch);
         return $server_output;
     }
@@ -506,20 +538,20 @@ class Module_Coreprime_Api extends Icargo
     public function mergePrice(&$finalArray, $price)
     {
         if (trim($price) === "") return false;
-        $price = json_decode($price);//print_r($price->rate);exit;
+        $price = json_decode($price);
         foreach ($price->rate as $k => $p) {
             $finalArray['rate'][$k] = $p;
         }
     }
 
-    public function doLabelCall($data)
-    {
+    /* public function doLabelCall($data)
+    { 
         $env = 'DEV';
-        if (ENV == 'live') {
+        if (ENV == 'live')
             $env = 'PROD';
-        }
+		
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
-        $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'PROVIDER');
+        $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'ENDPOINT');
         $obj = is_object ($data)?$data:json_decode($data);
 
         foreach ($providerList as $p) {
@@ -534,8 +566,12 @@ class Module_Coreprime_Api extends Icargo
             }
 
         }
-	//print_r($obj);
-	//print_r($providerList);exit('yati');
         return [];
+    } */
+    
+    public function doLabelCall($data)
+    {   
+		$res = $this->postToRateEngineUrl($data->providerInfo->endPointUrl,$data);         
+		return ($res) ? $res : [];
     }
 }

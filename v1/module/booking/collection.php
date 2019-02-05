@@ -248,10 +248,11 @@ final Class Collection
             $collectionList = $this->_prepareCollectionList($item);
             if ($item["pickup"] == 1 || $this->isRegularPickup == "yes" || $this->skipPickupProcess == true)
             {
-                // collected by carrier itself
+               // collected by carrier itself
                 $collectionList["collected_by"][] = array(
                     "carrier_code" => $collectionList["carrier_code"],
                     "account_number" => $collectionList["account_number"],
+                    "account_id" => $collectionList["account_id"],
                     "is_internal" => $collectionList["internal"],
                     "name" => $collectionList["name"],
                     "icon" => $collectionList["icon"],
@@ -266,10 +267,11 @@ final Class Collection
             }
 
             if (isset($this->internalCarrier))
-            {
+            {   
                 $collectionList["collected_by"][] = array(
                     "carrier_code" => $this->internalCarrier["carrier_code"],
                     "account_number" => $this->internalCarrier["account_number"],
+                    "account_id" => $this->internalCarrier["account_id"],
                     "is_internal" => $this->internalCarrier["internal"],
                     "name" => $this->internalCarrier["name"],
                     "icon" => $this->internalCarrier["icon"],
@@ -282,7 +284,7 @@ final Class Collection
                     "pickup" => $this->internalCarrier["pickup"]
                 );
             }
-
+            
             $this->collectionList[] = $collectionList;
             $this->carrierList[$item["account_number"]] = $item;
         }

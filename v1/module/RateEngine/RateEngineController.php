@@ -106,7 +106,7 @@ class RateEngineController {
             $data = self::$_rateEngine->getSurcharge($r);
             echoResponse(200, $data);
         });
-        
+
         $app->post("/deleteSurcharge", function() use ($app) {
             $r = json_decode($app->request->getBody());
             self::createInstance();
@@ -310,8 +310,8 @@ class RateEngineController {
             case 'rateExcel': {
                     $d = $this->_excelReader->loadExcelFromPost()
                             ->readRateDetails($_POST['carrierId']);
-			//print_r($d);exit;
-                    if (isset($d['error'])) {
+
+                    if (isset($d['error_type'])) {
                         echo json_encode($d);
                     } else {
                         $this->_rateEngineModel->addNewRate($_POST['carrierId'], $d);

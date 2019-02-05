@@ -1,6 +1,6 @@
 <?php
 //error_reporting(E_ALL);
-//ini_set("display_errors", 0);
+//ini_set("display_errors", 1);
 ini_set('date.timezone', 'Europe/London');
 
 //date_default_timezone_set('UTC');
@@ -55,11 +55,6 @@ require_once 'api.php';
 require_once 'common.php';
 require_once 'default-form.php';
 require_once 'dev.test.php';
-//require_once('../vendor/setasign/fpdf/fpdf.php');
-//require_once('../vendor/setasign/fpdi/src/autoload.php');
-//require_once 'module/fpdf/ConcatPdf.php';
-
-//require_once('../vendor/dompdf/autoload.inc.php');
 require_once 'module/route/complete.php';
 require_once 'module/route/model/complete.php';
 

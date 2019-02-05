@@ -16,4 +16,4 @@ define('DB_HOST', 'localhost');
 define('DB_NAME', 'appstb');
 define('DB_PREFIX', 'icargo_');
 define('PDFURL','http://'.$_SERVER['HTTP_HOST'].'masterapi/label');
-global $_GLOBAL_CONTAINER;
+

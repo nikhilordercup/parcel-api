@@ -290,7 +290,7 @@ class ServiceOptions
             ],
             "time" => [
                 "max_waiting_time" => $this->_serviceOptions['max_waiting_time'] ?? '',
-                "unit" => $this->_serviceOptions['time_unit']??''
+                "unit" => $this->_serviceOptions['time_unit'] ?? ''
             ]
         ];
         return $serviceOption;
