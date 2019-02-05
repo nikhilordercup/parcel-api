@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipments_parcel` ADD `parcel_content` TEXT NULL AFTER`shipment_ticket`;  
