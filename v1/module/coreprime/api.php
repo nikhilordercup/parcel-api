@@ -66,13 +66,13 @@ class Module_Coreprime_Api extends Icargo
             $label=$this->doLabelCall($data);
             return $label;
         }
-        
+
         if (isset($data->callType) && $data->callType == 'createpickup' ) 
         {       
             return $this->postToRateEngineUrl($data->pickupEndPoint, $data);                        
         }
         
-        $pd = $this->filterServiceProvider($data); 
+        $pd = $this->filterServiceProvider($data);
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
             $cpData = $data;
@@ -506,7 +506,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);//print_r($server_output);die('postToRateEngineUrl');
+        $server_output = curl_exec($ch);//print_r($server_output);die;
         curl_close($ch);
         return $server_output;
     }

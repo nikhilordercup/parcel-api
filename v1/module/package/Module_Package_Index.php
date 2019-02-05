@@ -17,7 +17,7 @@ class Module_Package_Index extends Icargo
 
     public
     function savePackage($param)
-    {//print_r($param);die;
+    { //print_r($param);die;
         try {
             $this->modelObj->startTransaction();
             if (isset($param->display_order) and $param->display_order > 0) {
@@ -49,7 +49,7 @@ class Module_Package_Index extends Icargo
                 "display_order" => $display_order,
                 "company_id" => $param->company_id,
                 "created_by" => $param->customer_id,
-		"customer_user_id" => $param->collection_user_id,
+                "customer_user_id" => $param->collection_user_id,
                 "allowed_user" => isset($param->allow_other) ? '1' : '0',
                 "is_internal" => $is_internal,
                 "package_code" => $package_code

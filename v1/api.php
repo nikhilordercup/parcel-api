@@ -1718,16 +1718,6 @@ $app->post('/savePackage', function () use ($app) {
     }
 });
 
-/*$app->post('/getPriceDetails', function() use ($app){
-    $r = json_decode($app->request->getBody());
-    $obj = new allShipments($r);
-    $response = $obj->getPriceDetails($r);
-    if($response["status"]=="error"){
-        echoResponse(500, $response);
-    }else{
-        echoResponse(200, $response);
-    }
-});*/
 
 /*start of save quote feature comment by kavita 2april2018*/
 $app->post('/sendQuoteEmail', function () use ($app) {
@@ -2433,10 +2423,16 @@ SubscriptionController::initRoutes($app);
 \v1\module\RateEngine\RateApiController::initRoutes($app);
 DashboardApi::dashboardRoutes($app);
 \v1\module\RateEngine\tuffnells\TuffnellsApi::rateEngineRoutes($app);
+
+//\v1\module\PackageTypes\PackagesApi::packageTypesRoutes($app);
+//\v1\module\UserNotes\NotesApi::UserNotesApi($app);
+
+\v1\module\CustomerGrid\CustomerGridApi::customerGridApi($app);
 \v1\module\RateEngine\easypost\ShipmentManager::shipmentRoutes($app);
 \v1\module\RateEngine\postmen\ShipmentManager::shipmentRoutes($app);
 \v1\module\PackageTypes\PackagesApi::packageTypesRoutes($app);
 \v1\module\UserNotes\NotesApi::UserNotesApi($app);
+
 
 $app->post('/apiLogin', function () use ($app) {
     $r = json_decode($app->request->getBody());
@@ -2509,6 +2505,8 @@ $app->get('/cDhlTracking', function () use ($app) {
     $obj->saveDhlTracking();
     exit();
 });
+
+
 $app->post('/loadAllCustomers', function () use ($app) {
     $r = json_decode($app->request->getBody());
     verifyRequiredParams(array('access_token', 'company_id', 'email'), $r);
@@ -2524,3 +2522,4 @@ $app->post('/fetchPickup', function () use ($app) {
     $response = $obj->getPickupData($r);
     echoResponse(200, $response);
 });
+

@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_pickups` ADD `carrier_code` VARCHAR(55) NULL DEFAULT NULL COMMENT 'carrier code ' AFTER `carrier_id`; 
