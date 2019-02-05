@@ -157,7 +157,12 @@ class ShipmentManager extends PostMenMaster
         {       
             $differentAcIds = array();
             foreach($rawRates as $rate)
-            {              
+            {             
+                /*
+                 *  There were two rate with same date and amount 
+                    but for one booking cut off time was NULL and it's transit time was minimum                 
+                 */
+                if(!$rate->booking_cut_off){continue;}
                 if(in_array($rate->service_type, $notSupportdRates)){ continue;}                 
                 $innerRate = array();
                 $innerRate['rate']['id'] = '';
@@ -313,9 +318,8 @@ class ShipmentManager extends PostMenMaster
     public function createLabelAction($request)
     {                          
         $fromAddress = $this->convertAddress($request->from);                
-        $toAddress = $this->convertAddress($request->to);    
-                       
-        $package = $this->convertPackage($request->package[0],$request->currency);                                         
+        $toAddress = $this->convertAddress($request->to);                            
+        $package = $this->packagesToOrder($request->package,$request->currency);                                        
         $isDocument = (isset($request->extra->is_document) && strtolower($request->extra->is_document) == "true") ? TRUE : FALSE;        
         $returnShipment = (isset($request->extra->return_shipment) && strtolower($request->extra->return_shipment) == "true") ? TRUE : FALSE;
         $reference_id1 = (isset($request->extra->reference_id) && $request->extra->custom_desciption != '') ? $request->extra->custom_desciption : '';
@@ -337,7 +341,7 @@ class ShipmentManager extends PostMenMaster
         $others['purpose'] = 'merchandise';        
         $directlyCallForPostmen = ($request->directlyCallForPostmen == "false") ? FALSE : TRUE;        
         $serviceDetail = $this->getServiceCodeMapped($request->service,$directlyCallForPostmen); // ui se false api se true  
-                
+               
         $others['service_type'] = $serviceDetail['provServiceCode'];        
         $others['paper_size'] = (isset($request_options->size) && $request_options->size != '') ? $request_options->size : 'default';
         
@@ -357,11 +361,11 @@ class ShipmentManager extends PostMenMaster
                 {
                     $res = $this->createAndSavePdf($request);
                     $res1 = $this->createPickup($request, $res);
-                    exit(json_encode($res1));
+                    exit(json_encode(array('label'=>$res1)));
                 }
             }
             else
-            {                
+            {         
                 $this->getErrorDetails();
             }            
             exit(json_encode($this->responseData)); 
@@ -739,11 +743,10 @@ class ShipmentManager extends PostMenMaster
             unset($labelArr['label']['base_encode']);
             $res =  array(
                     "status" => "success",
-                    "message" => "label generated successfully",
-                    "label" => $labelArr['label'],
-                    "file_loc"=>$file_name,
-                    "file_path" => $fileUrl . "/label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',
-                    "label_tracking_number"=>$labelArr['label']['tracking_number'],
+                    "message" => "label generated successfully",                    
+                    "file_loc"=>$file_name,                    
+                    "file_url" => $fileUrl . "/label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',                    
+                    "tracking_number"=>$labelArr['label']['tracking_number'],
                     "label_files_png" => '',
                     "label_json" =>json_encode($labelArr),
                     "callFromPostmen" =>"true"

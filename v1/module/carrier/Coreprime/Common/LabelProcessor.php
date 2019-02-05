@@ -27,17 +27,16 @@ class LabelProcessor
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
 		
-        $labelArr = is_string($label) ? json_decode($label, true) : $label;
-        $labelArrBkp = $labelArr;
+        $labelArr = is_string($label) ? json_decode($label, true) : $label;        
         $labelArr = $labelArr['label'];  
-		if($labelArrBkp['status']=='error'){
+		if($labelArr['status']=='error'){
 			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
 		}
         if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
             $labelArr['label_tracking_number'] = $labelArr['tracking_number'];
-            $labelArr['label_json'] = $labelArrBkp['label_json'];
+            $labelArr['label_json'] = $labelArr['label_json'];
             $labelArr['file_loc'] = $labelArr['file_url'];
             $labelArr['label_files_png'] = isset($labelArr['label_files_png']) ?  $labelArr['label_files_png'] : "";
             $labelArr['label_detail'] = new \stdClass();
