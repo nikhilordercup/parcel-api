@@ -90,7 +90,6 @@ class SurchargeManager {
         $this->_transitData = $transitData;
         $this->_requestData = $request;
         $this->_finalCost=$finalCost;
-
        if(is_null($packages) || count($packages) == 0) {
             $this->_isSameDay=true;
         }
@@ -131,7 +130,7 @@ class SurchargeManager {
                 case 16:
                     $this->sameDayDropWaitSurcharge($rate, $surchargeObj->surcharge);
                     break;
-                case 17:
+                case 17://print_r($this->_isSameDay);exit('ov');
                     if($this->_isSameDay)break;
                     $this->overWeightSurcharge($rate);
                     break;
@@ -253,7 +252,7 @@ class SurchargeManager {
             $totalWeight = $this->calculateWeight();
             $allowedWeight=count($this->_packages)*$this->_surcharge->overWeight->freeWeight;
             $extraWeight=$totalWeight-$allowedWeight;
-        }
+        }//echo $extraWeight;exit($extraWeight);
         $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('overWeight',$extraWeight);
 //        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
         $this->_countedSurcharge["overweight_surcharge"] = $this->overUnitSlabCalculator($extraWeight,$rate);

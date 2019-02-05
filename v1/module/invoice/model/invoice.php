@@ -74,7 +74,7 @@ class AllInvoice_Model
          $record = $this->db->getRowRecord($sql);
          return  $record['invoicecycle'];
     }
-    public function  getAllInvoicedDocket($companyId,$from,$to,$customerfilter){
+    public function  getAllInvoicedDocket__bck($companyId,$from,$to,$customerfilter){
         $record = array();
         $sqldata = 'S.shipment_id as reference_id,A.load_identity as reference,
                     DATE_FORMAT(S.shipment_create_date,"%Y-%m-%d") AS booking_date,
@@ -104,7 +104,36 @@ class AllInvoice_Model
         $record = $this->db->getAllRecords($sql);
         return $record;
      }
-
+    public function  getAllInvoicedDocket($companyId,$from,$to,$customerfilter){
+        $record = array();
+        $sqldata = 'S.shipment_id as reference_id,A.load_identity as reference,
+                    DATE_FORMAT(S.shipment_create_date,"%Y-%m-%d") AS booking_date,
+                    S.shipment_total_item AS items,S.shipment_total_weight AS weight,
+                    S.shipment_total_volume AS volume,S.shipment_customer_name AS consignee,
+                    S.instaDispatch_customerReference AS customer_booking_reference,
+                    A.service_name as service_name,
+                    (A.base_price +  A.courier_commission_value)as base_amount,
+                    A.surcharges as surcharge_total,A.taxes as tax,A.rate_type as rate_type,
+                    A.transit_distance_text as chargable_value,A.total_price as total,A.customer_id,
+                    SP.price as fual_surcharge,A.customer_reference1 as reference1,A.customer_reference2 as reference2';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "shipment_service as A
+                LEFT JOIN " . DB_PREFIX . "shipment as S on S.instaDispatch_loadIdentity = A.load_identity
+                LEFT JOIN " . DB_PREFIX . "shipment_price as SP on (SP.load_identity = A.load_identity AND SP.api_key = 'surcharges' AND SP.price_code = 'fual_surcharge')
+                LEFT JOIN " . DB_PREFIX . "customer_info AS CI ON CI.user_id = A.customer_id
+                WHERE A.isInvoiced = 'NO'
+                AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca')
+                ".$customerfilter."
+                AND A.create_date between '" . $from . "' AND '" . $to . "'
+                AND S.company_id = '" .$companyId ."'
+                AND S.shipment_service_type = 'P'
+                AND A.is_hold = 'NO'
+                AND CI.customer_type = 'POSTPAID' 
+                group by A.load_identity 
+                ORDER BY A.customer_id";
+        
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+     }
     public function _generate_invoice_no($company_id){
         $libObj = new Library();
 		$record = $this->db->getRowRecord("SELECT (invoice_end_number + 1) AS invoice_reference, invoice_prefix AS invoice_prefix FROM " . DB_PREFIX . "configuration WHERE company_id = ".$company_id);
@@ -285,6 +314,14 @@ class AllInvoice_Model
         }
         return $record;
      }
-
+    public function getAllCustomers($company_id){
+        $record = array();
+        $sqldata = 'U.name,U.id,U.email';
+        $sql = "SELECT " . $sqldata . " FROM " . DB_PREFIX . "users as U
+                LEFT JOIN " . DB_PREFIX ."customer_info as C ON C.user_id = U.id
+                WHERE U.user_level = 5  AND U.parent_id = '$company_id' order by U.name";
+        $record = $this->db->getAllRecords($sql);
+        return $record;
+     }
    }
 ?>
