@@ -120,9 +120,9 @@ class Process_Route
                 $this->model_rest->update('shipment', $shpDataArr, $condition);
                 $condition         = "shipment_accepted='Pending' AND shipment_route_id = '" . $shipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $shipmentDetails['assigned_driver'] . "'  AND shipment_ticket IN('$ticket')";
                 $status = $this->model_rest->update('driver_shipment', array(
-                        'shipment_accepted' => 'YES',
-                        'taken_action_by' => 'Driver'
-                    ), $condition);
+                    'shipment_accepted' => 'YES',
+                    'taken_action_by' => 'Driver'
+                ), $condition);
                 if ($status) {
                     $route_data = $this->get_route_by_shipment_route_id();
                     $this->model_rest->update('shipment_route', array('driver_accepted' => 1), "shipment_route_id = '$this->shipment_route_id'");
@@ -199,10 +199,10 @@ class Process_Route
                 $this->model_rest->update('shipment', array('is_driver_accept' => 'No'), $condition);
                 $condition = "shipment_route_id = '" . $shipmentDetails['shipment_routed_id'] . "' AND driver_id = '" . $shipmentDetails['assigned_driver'] . "'  AND shipment_ticket IN('$ticket')";
                 $status = $this->model_rest->update('driver_shipment', array(
-                        'shipment_accepted' => 'No',
-                        'is_driveraction_complete' => 'N',
-                        'taken_action_by' => 'Driver'
-                    ), $condition);
+                    'shipment_accepted' => 'No',
+                    'is_driveraction_complete' => 'N',
+                    'taken_action_by' => 'Driver'
+                ), $condition);
                 if ($status) {
                     $route_data = $this->get_route_by_shipment_route_id();
                     //'driver_accepted' => 2; rejected
@@ -273,7 +273,7 @@ class Process_Route
         if ($status) {
             $route_data = $this->get_route_by_shipment_route_id();
             $driver_data = $this->_get_driver_by_id();
-            
+
             //save addShipmentlifeHistory
             $common_obj = new Common();
             $shipmentsData = $this->model_rest->get_available_shipment_for_service_by_shipment_route_id($this->shipment_route_id);
@@ -359,7 +359,7 @@ class Process_Route
             case 'SAVE-GPS-LOCATION':
                 return $this->_save_gps_location();
                 break;
-           case 'PAUSED':
+            case 'PAUSED':
                 return $this->_route_paused();
                 break;
         }

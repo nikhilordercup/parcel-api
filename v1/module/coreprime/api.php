@@ -66,13 +66,13 @@ class Module_Coreprime_Api extends Icargo
             $label=$this->doLabelCall($data);
             return $label;
         }
-        
+
         if (isset($data->callType) && $data->callType == 'createpickup' ) 
         {       
             return $this->postToRateEngineUrl($data->pickupEndPoint, $data);                        
         }
         
-        $pd = $this->filterServiceProvider($data); 
+        $pd = $this->filterServiceProvider($data);
         $finalPrice = [];
         if (isset($pd['Coreprime']) && count($pd['Coreprime'])) {
             $cpData = $data;

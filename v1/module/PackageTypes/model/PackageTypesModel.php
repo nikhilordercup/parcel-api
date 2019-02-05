@@ -15,11 +15,19 @@ class PackageTypesModel
     }
 
     public function getAllPackageTypesByUserID($data)
+<<<<<<< HEAD
+    {    //print_r($data); die;
+        //$filter = (($data->type == 'customer') ? "customer_user_id = '$data->user_id'" : "created_by = '$data->created_by'");
+
+        $sqlStmt = "SELECT PT.*,CP.name AS cusomer_name, CH.name as child_name FROM " . DB_PREFIX . "package_type AS PT LEFT JOIN " . DB_PREFIX . "users AS CP
+                    ON PT.created_by=CP.id LEFT JOIN " . DB_PREFIX . "users AS CH ON PT.customer_user_id=CH.id WHERE created_by = '$data->created_by' ORDER BY PT.display_order ASC";
+=======
     {   //print_r($data); die;
        // $filter = (($data->type == 'customer') ? "customer_user_id = '$data->user_id'" : "created_by = '$data->created_by'");
 
         $sqlStmt = "SELECT PT.*,CP.name AS cusomer_name, CH.name as child_name FROM " . DB_PREFIX . "package_type AS PT LEFT JOIN " . DB_PREFIX . "users AS CP
                     ON PT.created_by=CP.id LEFT JOIN " . DB_PREFIX . "users AS CH ON PT.customer_user_id=CH.id WHERE created_by = '$data->created_by'  ORDER BY PT.display_order ASC";
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
         $result = $this->_db->getAllRecords($sqlStmt);
         if (empty($result)) {
             return array('status' => 'false', 'message' => '!!!OOPS Package not found');
@@ -50,7 +58,10 @@ class PackageTypesModel
 
     public function updatePackageType($postData)
     {
+<<<<<<< HEAD
+=======
 
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
         $pkgID = $postData->data->id;
         $type = $postData->data->type;
         $length = $postData->data->length;
@@ -61,7 +72,11 @@ class PackageTypesModel
         $contents = $postData->data->contents;
         $commodity_code = $postData->data->commodity_code;
         $display_order = $postData->data->display_order;
+<<<<<<< HEAD
+        $allowed_user = $postData->data->allowed_user;
+=======
         $allowed_user = isset($postData->data->allowed_user) ? $postData->data->allowed_user : '0';
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
         $args = array('type' => $type, 'contents' => $contents, 'description' => $description, 'weight' => $weight,
             'length' => $length, 'width' => $width, 'height' => $height, 'commodity_code' => $commodity_code, 'display_order' => $display_order,
             'allowed_user' => $allowed_user);
@@ -73,4 +88,12 @@ class PackageTypesModel
         }
     }
 
+<<<<<<< HEAD
+    public function deleteAllowOtherUseres($package_id){
+        $sqlStmt = "DELETE FROM ".DB_PREFIX ."package_type_allowed_users WHERE package_id = '$package_id'";
+    }
+
 }
+=======
+}
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95

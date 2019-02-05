@@ -117,6 +117,16 @@ $podRecipientName = 'NA';
 $podDeliveryComments = 'NA';
 $podDeliveryTypeCode = 'NA';
 if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+<<<<<<< HEAD
+{
+	    $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
+            $podQuantity = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity;
+            $podSequence = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence;
+            $podTimeStamp = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp;
+            $podRecipientName = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName;
+            $podDeliveryComments = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments;
+            $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;
+=======
 {         
     if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
     {
@@ -141,6 +151,7 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
         $podDeliveryComments = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments :$ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
         $podDeliveryTypeCode = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode : $podDeliveryTypeCode;
     }    
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
 }
 		
                     
@@ -242,6 +253,11 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                     {           
                          if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                          {
+<<<<<<< HEAD
+		                $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
+		                $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
+		                $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+=======
                              
                              if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                              {
@@ -261,6 +277,7 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                                  $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
                              }
 		                
+>>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
 		                        
 		                                                                                                              
 		                $sql1 = "insert into ".DB_PREFIX."shipments_pod

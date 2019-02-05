@@ -13,22 +13,27 @@ class UserNotes extends \Icargo
     {
         return new \v1\module\UserNotes\model\UserNotesModel();
     }
-   public function insertUserNotes($data){
+
+
+    public function insertUserNotes($data)
+    {
         $tbname = DB_PREFIX . 'user_notes';
-        $args = array( 'user_notes' => nl2br($data->data->user_notes), 'created_by' => $data->created_by, 'job_identity' => $data->job_identity, 'created_date' => date("Y-m-d H:i:s"));
+        $args = array('user_notes' => addslashes(nl2br($data->data->user_notes)), 'created_by' => $data->created_by, 'job_identity' => $data->job_identity, 'created_date' => date("Y-m-d H:i:s"));
         $column_args = array('user_notes', 'created_by', 'job_identity', 'created_date');
         $insertStmt = $this->db->insertIntoTable($args, $column_args, $tbname);
-        if($insertStmt){
+        if ($insertStmt) {
             return array('status' => 'true', 'message' => 'Insert successfully');
-        }else{
+        } else {
             return array('status' => 'false', 'message' => '!!!OOPS Something went wrong.');
         }
     }
 
 
-    public function getAllUserNotesByJobIdentity($data = array()){
+    public function getAllUserNotesByJobIdentity($data = array())
+    {
         $userNotes = $this->getInstance()->getAllUserNotesByJobIdentity($data->job_identity);
         return array('status' => 'true', 'data' => $userNotes);
     }
 
 }
+
