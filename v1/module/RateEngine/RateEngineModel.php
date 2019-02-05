@@ -191,11 +191,7 @@ class RateEngineModel
     {
         $query = "SELECT CS.*,C.name FROM " . DB_PREFIX . "courier_vs_services As CS "
             . "LEFT JOIN " . DB_PREFIX . "courier AS C ON CS.courier_id=C.id "
-<<<<<<< HEAD
-            . "WHERE CS.service_name='$name' AND C.id=$carrierId";
-=======
             . "WHERE CS.service_name='$name' AND C.id=$carrierId ";
->>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
         return $this->_db->getOneRecord($query);
     }
 

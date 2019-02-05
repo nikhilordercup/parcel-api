@@ -212,7 +212,7 @@ abstract class PostMenMaster extends Postmen
         $payload['shipper_account'] = array(
             'id'=>$shipperAccountId            
         );
-        $payload['shipment']['parcels'][] = $package;
+        $payload['shipment']['parcels'] = $package;
         $payload['shipment']['ship_from'] = $fromAddress;
         $payload['shipment']['ship_to'] = $toAddress;                
         $payload['references'] = $others['references'];                

@@ -506,7 +506,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);//print_r($server_output);die('postToRateEngineUrl');
+        $server_output = curl_exec($ch);//print_r($server_output);die;
         curl_close($ch);
         return $server_output;
     }
