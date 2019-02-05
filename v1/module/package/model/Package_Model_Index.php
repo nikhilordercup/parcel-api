@@ -89,7 +89,7 @@ class Package_Model_Index
 
     public function getParcelPackageByUserId($user_id, $customer_id)
     {
-        return $this->_db->getAllRecords("SELECT package_code AS package_code, type AS name, weight AS weight, length AS length, height AS height, width AS width 
+        return $this->_db->getAllRecords("SELECT package_code AS package_code, type AS name, weight AS weight, length AS length, height AS height, width AS width,contents AS package_content
         FROM " . DB_PREFIX . "package_type WHERE customer_user_id = '$user_id' OR (created_by = '$customer_id' AND allowed_user = 1)");
 
     }
