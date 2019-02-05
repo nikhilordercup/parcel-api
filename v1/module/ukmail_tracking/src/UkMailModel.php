@@ -32,7 +32,8 @@ class UkMailModel extends Singleton
         'DT12' => 'Unknown status',
         'DT13' => 'Leave your parcel in a safe place.'        
     );
-
+    
+    const UKMAIL = 2;
     
     /**
      * This function update table carrier_user_token
@@ -43,13 +44,13 @@ class UkMailModel extends Singleton
     {          
         $q1 = "SELECT `id`,`username`,`authentication_token`,`authentication_token_created_at`,`authentication_token_expire_at` 
                FROM `".DB_PREFIX."carrier_user_token` 
-               WHERE `username` = '$username' AND `carrier` = 'UKMAIL'";
+               WHERE `username` = '".$username."'";
        
         $res = $this->db->getAllRecords($q1);                         
         if(count($res) > 0)
         {
             $q = "UPDATE `".DB_PREFIX."carrier_user_token` 
-                   SET `authentication_token` = '$authenticationKey' 
+                   SET `authentication_token` = '".$authenticationKey."' 
                    ,`authentication_token_expire_at` =  DATE_ADD( NOW(), INTERVAL 24 HOUR )
                    WHERE  `username` =  '$username' ";              
             $this->db->updateData($q);
@@ -117,16 +118,6 @@ $podRecipientName = 'NA';
 $podDeliveryComments = 'NA';
 $podDeliveryTypeCode = 'NA';
 if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
-<<<<<<< HEAD
-{
-	    $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
-            $podQuantity = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity;
-            $podSequence = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence;
-            $podTimeStamp = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp;
-            $podRecipientName = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName;
-            $podDeliveryComments = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments;
-            $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;
-=======
 {         
     if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
     {
@@ -151,7 +142,6 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
         $podDeliveryComments = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments :$ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
         $podDeliveryTypeCode = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode : $podDeliveryTypeCode;
     }    
->>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
 }
 		
                     
@@ -253,11 +243,6 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                     {           
                          if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                          {
-<<<<<<< HEAD
-		                $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
-		                $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
-		                $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
-=======
                              
                              if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                              {
@@ -277,7 +262,6 @@ if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
                                  $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
                              }
 		                
->>>>>>> c4b8f48364e5ea958585b4219b60eab23a181c95
 		                        
 		                                                                                                              
 		                $sql1 = "insert into ".DB_PREFIX."shipments_pod
