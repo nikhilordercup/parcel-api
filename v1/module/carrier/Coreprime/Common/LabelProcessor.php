@@ -26,9 +26,7 @@ class LabelProcessor
         $app = new \Slim\Slim();
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
-		
-        $labelArr = is_string($label) ? json_decode($label, true) : $label;
-        //$labelArrBkp = $labelArr;
+        $labelArr = is_string($label) ? json_decode($label, true) : $label;        
         $labelArr = $labelArr['label'];  
 		if($labelArr['status']=='error'){
 			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
@@ -38,7 +36,7 @@ class LabelProcessor
             $labelArr['file_path'] = $labelArr['file_url'];
             $labelArr['label_tracking_number'] = $labelArr['tracking_number'];
             $labelArr['label_json'] = $labelArr['label_json'];
-            $labelArr['file_loc'] = $labelArr['file_url'];
+            $labelArr['file_loc'] = isset($labelArr['file_url']) ? $labelArr['file_url'] : "";
             $labelArr['label_files_png'] = isset($labelArr['label_files_png']) ?  $labelArr['label_files_png'] : "";
             $labelArr['label_detail'] = new \stdClass();
             $labelArr['label_detail']->label = (object)$labelArr;
@@ -54,7 +52,23 @@ class LabelProcessor
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail = array(), $allData = array())
     {       
         $collection = (array)$allData->collection; 
-        $delivery = (array)$allData->delivery;        
+        $delivery = (array)$allData->delivery;     
+        if(count($collection) > 0)
+        {
+            foreach($collection as $collectionTmp)
+            {
+               $collection = $collectionTmp;
+            }
+        }
+        
+        if(count($delivery) > 0)
+        {
+            foreach($delivery as $deliveryTmp)
+            {
+               $delivery = $deliveryTmp;
+            }
+        }
+                       
         $response = array();
         $shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($loadIdentity);
         
@@ -73,13 +87,13 @@ class LabelProcessor
                     "street1" => $data["shipment_address1"],
                     "street2" => $data["shipment_address2"],
                     "city" => $data["shipment_customer_city"],
-                    "state" => $data["shipment_county"],
+                    "state" => (isset($data["shipment_county"]) ? $data["shipment_county"]: $collection->state),
                     "zip" => $data["shipment_postcode"],
                     "country" => $data["shipment_country_code"],
                     "country_name" => $data["shipment_customer_country"],                    
                     "is_apo_fpo" => "",
-                    "email" => (isset($collection[0]->email) && $collection[0]->email != '') ? $collection[0]->email : '',
-                    "is_res" => (isset($collection[0]->address_type) && $collection[0]->address_type == 'Residential') ? TRUE : FALSE
+                    "email" => (isset($collection->email) && $collection->email != '') ? $collection->email : '',
+                    "is_res" => (isset($collection->address_type) && $collection->address_type == 'Residential') ? TRUE : FALSE
                 );
                 $response['ship_date'] = $data['shipment_required_service_date'];
 
@@ -93,14 +107,14 @@ class LabelProcessor
                     "street1" => $data["shipment_address1"],
                     "street2" => $data["shipment_address2"],
                     "city" => $data["shipment_customer_city"],
-                    "state" => $data["shipment_county"],
+                    "state" => (isset($data["shipment_county"]) ? $data["shipment_county"] : $delivery->state),
                     "zip" => $data["shipment_postcode"],
                     "zip_plus4" => "",
                     "country" => $data["shipment_country_code"],
                     "country_name" => $data["shipment_customer_country"],
                     "email" => $data["shipment_customer_email"],
                     "is_apo_fpo" => "",
-                    "is_res" => (isset($delivery[0]->address_type) && $delivery[0]->address_type == 'Residential') ? TRUE : FALSE
+                    "is_res" => (isset($delivery->address_type) && $delivery->address_type == 'Residential') ? TRUE : FALSE
                 );
 
                 $carrierAccountNumber = $data["carrier_account_number"];
@@ -198,7 +212,7 @@ class LabelProcessor
             'pickup_date'=>(isset($allData->pickup_date)) ? $allData->pickup_date : '',
             'earliest_pickup_time'=> (isset($allData->earliest_pickup_time)) ? $allData->earliest_pickup_time : '00:00',
             'latest_pickup_time'=> (isset($allData->latest_pickup_time)) ? $allData->latest_pickup_time : '00:00',
-            'pickup_instruction'=>(isset($collection[0]->pickup_instruction)) ? $collection[0]->pickup_instruction : '',
+            'pickup_instruction'=>(isset($collection->pickup_instruction)) ? $collection->pickup_instruction : '',
             'package_quantity'=>$parcelQuantity,
             'package_location'=> (isset($allData->package_location) && $allData->package_location != '') ? $allData->package_location : 'Front Desk',
             'collectionjobnumber'=> (isset($allData->collectionjobnumber) && $allData->collectionjobnumber != '') ? $allData->collectionjobnumber : ''
