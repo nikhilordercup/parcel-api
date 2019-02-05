@@ -20,12 +20,16 @@ use v1\module\Database\Model\CompanyCustomerServicesModel;
 use v1\module\Database\Model\CompanyDefaultRegistrationSetupModel;
 use v1\module\Database\Model\CompanyUsersModel;
 use v1\module\Database\Model\CompanyWarehouseModel;
+use v1\module\Database\Model\CustomerInfoModel;
 use v1\module\Database\Model\DriverVehicleModel;
 use v1\module\Database\Model\UsersModel;
 use v1\module\Database\Model\VehicleCategoryMasterModel;
 use v1\module\Database\Model\VehicleModel;
 use v1\module\Database\Model\WarehouseModel;
 
+/**
+ * @property \Illuminate\Database\Eloquent\Model|null|object|static _warehouse
+ */
 class CustomerSetup
 {
     protected $_customerId;
@@ -33,6 +37,7 @@ class CustomerSetup
 
     public function setupStepOne($params)
     {
+        $this->_warehouse=CompanyWarehouseModel::query()->where('company_id','=',$params->company_id)->first();
         $customer = $this->setDefaultCustomer($params);
         $carrier = $this->addCarrier($params);
         $service = $this->addService($carrier, $params);
@@ -40,7 +45,7 @@ class CustomerSetup
         $this->enableCarrierForCustomer($params->company_id, $account, $carrier, $customer);
         foreach ($service as $s) {
             $companyServiceId = $this->enableServicesForCompany($s, $account, $params->company_id);
-            $this->enableServiceForCustomer($s, $companyServiceId, $carrier, $params->company_id, $customer);
+            $this->enableServiceForCustomer($s, $companyServiceId, $carrier, $params->company_id, $customer,$account);
         }
     }
 
@@ -68,7 +73,8 @@ class CustomerSetup
                 'country' => $param->companyCountry,
                 'user_level' => $param->user_level,
                 'uid' => '',
-                'register_in_firebase' => $param->register_in_firebase
+                'register_in_firebase' => $param->register_in_firebase,
+                'is_default'=>1
             ];
             $this->_customerId = (UsersModel::query()->create($data))->id;
             $relationData = array(
@@ -77,6 +83,14 @@ class CustomerSetup
                 'user_id' => $this->_customerId
             );
             $this->_companyCustomerId = (CompanyUsersModel::query()->create($relationData))->id;
+            $customerInfo=[
+                'user_id'=>$this->_customerId, 'billing_full_name'=>$param->contactName,
+                'billing_address_1'=>$param->address_one, 'billing_address_2'=>$param->address_two,
+                'billing_postcode'=>$param->companyPost, 'billing_city'=>$param->companyCity,
+                'billing_state'=>$param->companyState, 'billing_country'=>$param->companyCountry,
+                'billing_phone'=>$param->companyPhone,  'webapi_token'=>''
+            ];
+            CustomerInfoModel::query()->create($customerInfo);
             return $this->_customerId;
         } else {
             return 0;
@@ -85,6 +99,8 @@ class CustomerSetup
 
     public function addDriver($param,$companyInfo)
     {
+        $this->_warehouse=CompanyWarehouseModel::query()->where('company_id','=',$companyInfo->id)->first();
+
         $param->company_id=$companyInfo->id;
         $companyDriver = UsersModel::query()
             ->where('email', '=', $param->email)
@@ -115,11 +131,11 @@ class CustomerSetup
                 'country' => $companyInfo->country ?? ""
             );
             $driver_id = (UsersModel::query()->create($data))->id;
-            $warehouse=CompanyWarehouseModel::query()->where('company_id','=',$param->company_id)->first();
+
             if ($driver_id != NULL) {
                 $relationData = array(
                     'company_id' => $param->company_id,
-                    'warehouse_id' => $warehouse->warehouse_id,
+                    'warehouse_id' => $this->_warehouse->warehouse_id,
                     'user_id' => $driver_id
                 );
                 $relationTblEntry = (CompanyUsersModel::query()->create($relationData))->id;
@@ -161,6 +177,7 @@ class CustomerSetup
             'description' => '',
             'is_self' => 'YES',
             'company_id' => $param->company_id,
+            'created_by'=>$param->company_id,
             'status' => 1,
             'is_apiused' => 'YES'
         ];
@@ -210,7 +227,8 @@ class CustomerSetup
             'create_date' => date('Y-m-d'),
             'company_ccf_operator_service' => 'FLAT',
             'company_ccf_operator_surcharge' => 'FLAT',
-            'address_id' => '0',
+            'address_id' => $params->warehouse_id,
+            'is_internal'=>1,
             'status' => '1'
         ];
         return (CompanyCarrierAccountsModel::query()->create($accountInfo))->id;
@@ -240,12 +258,12 @@ class CustomerSetup
         return (CompanyCarrierCustomersModel::query()->create($data))->id;
     }
 
-    public function enableServiceForCustomer($serviceId, $companyService, $carrierId, $companyId, $companyCustomerId)
+    public function enableServiceForCustomer($serviceId, $companyService, $carrierId, $companyId, $companyCustomerId,$account)
     {
         $data = [
             'service_id' => $serviceId,
             'company_service_id' => $companyService,//Id from CompanyCarrierServicesModel
-            'courier_id' => $carrierId,
+            'courier_id' => $account,//ID from courier_vs_company
             'company_id' => $companyId,
             'company_customer_id' => $companyCustomerId,//Id from Company
             'create_date' => date('Y-m-d'),
@@ -274,6 +292,14 @@ class CustomerSetup
             $r = json_decode($app->request->getBody());
             $company=CompanyWarehouseModel::query()->where('company_id','=',$r->company_id)->count();
             echoResponse(200,['status'=>'success','message'=>$company]);
+        });
+        $app->get('/checkIt',function ()use ($app){
+            $u=\v1\module\Database\Model\UsersModel::query()
+                ->with('companyWarehouse','companyWarehouse.warehouse')
+                ->where('email','abc11@gmail.com')
+                ->first()->toArray();
+            echo '<pre>';
+            print_r($u);exit;
         });
     }
 

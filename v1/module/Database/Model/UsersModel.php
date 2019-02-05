@@ -24,4 +24,7 @@ class UsersModel extends Model
     public function companyUsers(){
         return $this->hasMany(CompanyUsersModel::class,'id','user_id');
     }
+    public function companyWarehouse(){
+        return $this->hasMany(CompanyWarehouseModel::class,'company_id','id');
+    }
 }

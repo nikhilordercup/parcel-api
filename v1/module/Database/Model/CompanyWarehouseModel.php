@@ -16,4 +16,7 @@ class CompanyWarehouseModel extends Model
     protected $table='company_warehouse';
     public $timestamps=false;
     protected $guarded=[];
+    public function warehouse(){
+        return $this->hasOne(WarehouseModel::class,'id','warehouse_id');
+    }
 }

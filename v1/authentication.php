@@ -254,6 +254,7 @@ $app->post('/loadInfo', function () use ($app) {
     $r->loginType = 'controllerLogin';
     verifyRequiredParams(array('email', 'password'), $r->auth);
     $u=\v1\module\Database\Model\UsersModel::query()
+        ->with('companyWarehouse','companyWarehouse.warehouse')
         ->where('email',$r->auth->email)
         ->first()->toArray();
     $u['status']="success";

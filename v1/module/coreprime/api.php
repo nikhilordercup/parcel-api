@@ -72,7 +72,9 @@ class Module_Coreprime_Api extends Icargo
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
         }
-//        exit(json_encode($finalPrice));
+        if(count($pd)==0){
+            return (new \v1\module\RateEngine\SampleRate())->getRates();
+        }
         return json_encode($finalPrice);
     }
 
