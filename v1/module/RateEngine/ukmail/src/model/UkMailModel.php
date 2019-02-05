@@ -308,10 +308,17 @@ class UkMailModel
         return $record['authentication_token'];
     }
 	
+	public function getCarrierIdByName($courierName)
+    {          
+        $sql = "SELECT id FROM " . DB_PREFIX . "courier WHERE name = '$courierName' limit 0,1";
+        $res = $this->db->getRowRecord($sql); 
+        return($res == NULL) ? 0 : $res['id'];        
+    }
+	
 	public function saveCollection($data)
     {   
 	    $pickupData = array();
-		$pickupData['carrier_id'] = "";
+		$pickupData['carrier_id'] = $this->getCarrierIdByName($data->carrier);
 		$pickupData['carrier_code'] = $data->carrier;
 		$pickupData['company_id'] = $data->company_id;
 		$pickupData['customer_id'] = $data->customer_id;

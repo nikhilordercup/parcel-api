@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_customer_courier_child_accont` ADD `address_id` INT NOT NULL COMMENT 'child account registered address' AFTER `customer_id`;

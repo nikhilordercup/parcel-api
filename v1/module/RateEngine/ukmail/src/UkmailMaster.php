@@ -9,7 +9,7 @@ class UkmailMaster
 	 * Login call can be skipped if authentication token for same username is already in icargo_carrier_user_token for the particular username & ukmail carrier and is not expired. We have to request for book collection and label call everytime.
      * @return Array
      */
-	public static function initRoutes($app){
+	public static function initRoutes($app){//print_r($app);die;
 		$labelResp = array();
 		$response = array();
 		if(ENV == 'dev')
@@ -24,9 +24,9 @@ class UkmailMaster
 		}
 		
 		
-		$app->credentials->username = "nikhil.kumar@ordercup.com";
+		/* $app->credentials->username = "nikhil.kumar@ordercup.com";
         $app->credentials->password = "b85op06w";
-        $app->credentials->account_number = "K906430";
+        $app->credentials->account_number = "K906430"; */
 		
 		$authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($app->credentials->username,$app->carrier);
 		if($authToken!=''){

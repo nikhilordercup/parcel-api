@@ -12,9 +12,8 @@ class Dashboard extends Icargo
     {
         $customer_id = $dataval->customer_id;
         $whereClause = $this->shipmentFilters($dataval);
-   
         $sql = "SELECT carrier_code, customer_id, instaDispatch_loadGroupTypeCode, COUNT(*) as shipment_count, shipment_service_type FROM " . DB_PREFIX . "shipment WHERE 
-               $whereClause customer_id = $customer_id AND shipment_service_type = 'P' GROUP BY carrier_code";
+                    $whereClause customer_id = $customer_id AND shipment_service_type = 'P' GROUP BY carrier_code";
         $result = $this->db->getAllRecords($sql);
         return array("status" => "success", "data" => $result);
     }
@@ -23,8 +22,8 @@ class Dashboard extends Icargo
     {
         $whereClause = '';
         $shipment_type = strtoupper($data->shipment_type);
-        $filter_type = $data->filter;
-        if ($shipment_type == "ALL" && $filter_type == "All") {
+        $filter_type = strtoupper($data->filter);
+        if ($shipment_type == "ALL" && $filter_type == "ALL") {
             $whereClause .= '';
         } elseif ($data->filter == "customrange") {
 
@@ -34,16 +33,13 @@ class Dashboard extends Icargo
             $whereClause .= "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' $filter AND";
         } else {
 
-            $filterDate = $this->dashboardFilter($data);
-            $jsonObj = json_decode($filterDate);
-            $startDate = $jsonObj->start_date;
-            $endDate = $jsonObj->end_date;
-           
- $shipment_type_fliter = (($shipment_type == "ALL") ? "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND": (($filter_type == "ALL")  ? "instaDispatch_loadGroupTypeCode = '$shipment_type' AND" : "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND instaDispatch_loadGroupTypeCode = '$shipment_type' AND"));
+           $filterDate = $this->dashboardFilter($data);
+           $jsonObj = json_decode($filterDate);
+           $startDate = $jsonObj->start_date;
+           $endDate = $jsonObj->end_date;
+           $shipment_type_fliter = (($shipment_type == "ALL") ? "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND": (($filter_type == "ALL")  ? "instaDispatch_loadGroupTypeCode = '$shipment_type' AND" : "shipment_create_date BETWEEN '$startDate 00:00:00' AND '$endDate 00:00:00' AND instaDispatch_loadGroupTypeCode = '$shipment_type' AND"));
            $whereClause .= " $shipment_type_fliter ";
         }
-
-
         return $whereClause;
     }
 
