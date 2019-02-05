@@ -34,43 +34,43 @@ class Idriver{
                 case 'authenticateglobal' :
                     verifyRequiredParams(array('username', 'password'), $params);
                     return $this->_authenticate($params);
-                break;
+                    break;
                 case 'processdriveraction' :
                     verifyRequiredParams(array('accessToken', 'primary_email', 'latitude', 'longitude'), $params);
                     return $this->_process_driver_action($params);
-                break;
+                    break;
                 case 'route/accepted' :
                     return $this->_route_accepted($params);
-                break;
+                    break;
                 case 'cancel-route' :
                     verifyRequiredParams(array('user_id', 'cancel_reason', 'accessToken', 'primary_email', 'latitude', 'longitude'), $params);
                     return $this->_process_cancel_request($params);
-                break;
+                    break;
                 case 'start-route' :
                     verifyRequiredParams(array('driver_id', 'accessToken', 'shipment_route_id', 'latitude', 'longitude'), $params);
                     return $this->_process_start_route($params);
-                break;
+                    break;
                 case 'processdriversuccessaction' :
                     return $this->_process_route_form($params);
-                break;
+                    break;
                 case 'processdriverfailaction' :
                     return $this->_process_route_form($params);
-                break;
+                    break;
                 case 'route/optimize-route' :
                     return $this->_process_route_optimization($params);
-                break;
+                    break;
                 case 'scan/onc-collected' :
                     return $this->_save_load_scan_status($params);
-                break;
+                    break;
                 case 'route/gps-location' :
                     return $this->_save_driver_gps_location($params);
-                break;
+                    break;
                 case 'route-paused' :
                     return $this->_route_paused($params);
-                break;
+                    break;
                 case 'logout' :
                     return $this->_logout($params);
-                break;
+                    break;
                 case 'save/user-credential-info' :
                     return $this->_saveCredentialInfo($params);
             }
@@ -88,7 +88,7 @@ class Idriver{
         $data = $obj->route_action();
         return $data;
     }
-     private function _route_paused($params)
+    private function _route_paused($params)
     {
         $params->loadActionCode = 'PAUSED';
         $obj = new Process_Route($params);
@@ -146,7 +146,7 @@ class Idriver{
     }
     private function _save_load_scan_status($params)
     {
-           return $params;
+        return $params;
     }
     private function _save_driver_gps_location($params)
     {
