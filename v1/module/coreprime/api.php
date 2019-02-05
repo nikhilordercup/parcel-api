@@ -65,10 +65,10 @@ class Module_Coreprime_Api extends Icargo
             $cpRate = $this->postToCorePrime($cpData);
             $this->mergePrice($finalPrice, $cpRate);
         }
-        if (isset($pd['Local']) && count($pd['Local'])) {
+        if (isset($pd['Local']) && count($pd['Local'])) { 
             $lcData = $data;
             $lcData['carriers'] = $pd['Local'];
-            $localRate = $this->postToRateEngine('Local', $lcData);
+            $localRate = $this->postToRateEngine('Local', $lcData);//print_r($lcData);print_r($localRate);die;
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
         }
@@ -206,7 +206,7 @@ class Module_Coreprime_Api extends Icargo
                             $tempservice[] = $valData['service_code'];
                         }
                         $carriers[$carrierData['code']][] = array('credentials' => array('username' => '', 'password' => '', 'account_number' => $carrierData['account_number']), 'services' => implode(',', $tempservice));
-                    } else {
+                     } else {
                         return array("status" => "error", "message" => "Service Not configured or disabled for this customer");
                     }
                 }
@@ -475,7 +475,7 @@ class Module_Coreprime_Api extends Icargo
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
-        curl_close($ch);//exit($server_output);
+        curl_close($ch);//exit($data_string);
         return $server_output;
     }
 

@@ -72,7 +72,7 @@ class Report extends Icargo
         {
         $item = $this->modelObj->findSamedayRevenue($load_identity_str);
 
-       
+
         $revenuePrice = array(
             "driver_carrier_price_per_drop" => 0,
             "driver_customer_price_per_drop" => 0
@@ -117,7 +117,7 @@ class Report extends Icargo
         return $revenuePrice;
         }
 
-    
+
 
         private function _findDriverDeliveredDrop($shipmentRouteList, $loadIdentityStr, $driverId){
             $dropInfo = $this->modelObj->findDriverDropInfo($shipmentRouteList, $loadIdentityStr, $driverId);
@@ -132,24 +132,24 @@ class Report extends Icargo
 		private function _findDriverTimeInfo()
 				{
                 $driverRouteData = $this->_findDriverInfo($this->_getServiceTypeName());
-    		    
 
 
-          
+
+
                 $items = array();
 
                 if(isset($driverRouteData["driver_data"])){
                     foreach($driverRouteData["driver_data"] as $driver_id => $item){
 
-                        
+
 
                         $shipmentRouteList = implode("','",$item["route_lists"]);
 
                         $loadIdentityStr = implode("','",$item["job_lists"]);
-                    
+
 
                         $routeInfo = $this->modelObj->findDriverTimeInfoByShipmentRouteId($shipmentRouteList);
-                       
+
                         $driverName = $this->modelObj->findDriverNameById($driver_id);
 
                         $dropInfo = $this->_findDriverDeliveredDrop($shipmentRouteList, $loadIdentityStr, $driver_id);
@@ -172,7 +172,7 @@ class Report extends Icargo
 
 
 				}
-               
+
 		private function _findDriverInfo($type)
 				{
             if($type=='Vendor'){
@@ -180,9 +180,9 @@ class Report extends Icargo
             }else{
                 $shipmentInfo = $this->modelObj->findDriverTimeInfo($this->param->start_date, $this->param->end_date, $type, $this->param->company_id);
             }
-		    
+
             $driverRouteData = array();
-           
+
             foreach($shipmentInfo as $item){
                     $driverRouteData["driver_data"][$item["driver_id"]]["job_lists"][$item["load_identity"]] = $item["load_identity"];
                     $driverRouteData["driver_data"][$item["driver_id"]]["route_lists"][$item["shipment_route_id"]] = $item["shipment_route_id"];
@@ -190,7 +190,7 @@ class Report extends Icargo
                     $driverRouteData["all_job_lists"][$item["driver_id"]][$item["load_identity"]] = $item["load_identity"];
 
                 }
-               
+
                 return $driverRouteData;
 				}
 
@@ -301,7 +301,7 @@ class Report extends Icargo
     private function _generateDerReport()
         {
 		$driverTimeInfo = $this->_findDriverTimeInfo();//$this->_findDriverInfo();
-        
+
         $noOfDays = $this->_findDaysDiff();
         $allActiveReportByCompanyId = $this->_findAllActiveReportByCompanyId();
 

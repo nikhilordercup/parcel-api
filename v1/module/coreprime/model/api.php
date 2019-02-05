@@ -39,7 +39,7 @@ class Coreprime_Model_Api
         FROM " . DB_PREFIX . "courier_vs_company_vs_customer as C1 
         INNER JOIN " . DB_PREFIX . "courier as C2 on C1.courier_id = C2.id 
         INNER JOIN " . DB_PREFIX . "courier_vs_company as C3 on C1.company_courier_account_id = C3.id AND C3.company_id = '$company' 
-        WHERE C1.customer_id = '$customerId' AND C2.is_apiused = 'YES' AND C1.status = 1";
+        WHERE C1.customer_id = '$customerId' AND C2.is_apiused = 'YES' AND C1.status = 1 AND C3.status = 1";
         return $this->_db->getAllRecords($sql);
     }
     function isServiceAvailableforCustomer($service_code,$customer_id,$company_id,$courier_id)
@@ -97,7 +97,7 @@ class Coreprime_Model_Api
     }   
     public function getCustomerCarrierDataByServiceId($customerId,$serviceId, $company,$carrierId){ 
         $subquery = ($carrierId>0)?"CCST.courier_id = '$carrierId'":"1 = 1";
-        $sql = "SELECT C3.username,C3.password,CCST.courier_id,C3.account_number,C3.token,C3.currency,C2.code,C2.icon 
+        $sql = "SELECT C3.username,C3.password,CCST.courier_id,C3.account_number,C3.token,C3.currency,C2.code,C2.icon ,C3.id as courier_account_id 
                   FROM `" . DB_PREFIX . "company_vs_customer_vs_services` AS CCST 
                   INNER JOIN " . DB_PREFIX . "courier_vs_services_vs_company AS C1 ON C1.id = CCST.company_service_id
 				  INNER JOIN  " . DB_PREFIX . "courier_vs_company as C3 on CCST.courier_id = C3.id 

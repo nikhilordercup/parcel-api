@@ -344,9 +344,20 @@ class RateEngineController {
         return $this->_rateEngineModel->deleteSurcharge($d->id);
     }
     public function saveCarrierInfo($request){
+	if(isset($request->id)){
+            $data=[
+                'name'=>$request->name,
+                'code'=>$request->code,
+                'icon'=>"",
+                'description'=>$request->desc,
+            ];
+            $this->_rateEngineModel->updateCarrier($request->id,$data);
+            $id=$request->id;
+        }else {
         $id=$this->_rateEngineModel
             ->addCarrier($request->name,$request->code,$request->desc,
                 "",$request->company_id);
+	}
         if($id){
             echoResponse(200,['success'=>true]);
         }else{
