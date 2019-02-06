@@ -6,11 +6,12 @@ class ShipmentManager extends PostMenMaster
     private static $shipmentManagerObj = NULL;
     protected $db = NULL;
     protected $responseData = [];
-    
+    protected $request = '';
+
     public static function shipmentRoutes($app)
     {
         $app->post('/postmen/calculateRate', function () use ($app) {              
-            $request = json_decode($app->request->getBody());    
+            $request = json_decode($app->request->getBody());             
             $shipmentManagerObj = self::getShipmentManagerObj(); 
             $pd = array('Postmen'=>'');
             $result = $shipmentManagerObj->calculateRateAction($request,$pd); 
@@ -102,6 +103,7 @@ class ShipmentManager extends PostMenMaster
 
     public function calculateRateAction($request, $pd=array())
     {      
+        $this->request = $request; 
         if(!isset($pd['Postmen']))
         {
             return json_encode(array());
@@ -150,7 +152,7 @@ class ShipmentManager extends PostMenMaster
     }
             
     public function formatRate($rawRates, $newShiperAc)
-    {                           
+    {         
         $notSupportdRates = array('dhl_express_easy');        
         $rates['rate'] = array(); 
         if (count($rates) > 0) 
@@ -186,7 +188,14 @@ class ShipmentManager extends PostMenMaster
                 $innerRate['surcharges']['extrabox_surcharge'] = 0; 
                 $innerRate['surcharges']['overweight_surcharge'] = 0; 
                 $innerRate['surcharges']['isle_weight_surcharge'] = 0; 
-                $innerRate['surcharges']['insurance_charge'] = 0; 
+                
+                //Calculating insurance showing on ui for hint                     
+                $insurance_charge = 0;
+                if(isset($this->request->insurance) && $this->request->insurance->value != '')
+                {                
+                    $insurance_charge = $this->calculateInsuranceAmount($this->request->insurance->value, $this->request->insurance->currency);
+                }
+                $innerRate['surcharges']['insurance_charge'] = $insurance_charge; 
                                 
                 $fuel_surchargeAmt = 0;
                 $taxAmt = 0;
@@ -339,6 +348,7 @@ class ShipmentManager extends PostMenMaster
         $others['account_number'] = (isset($request->billing_account->billing_account) && $request->billing_account->billing_account != '') ? $request->billing_account->billing_account : ''; 
         $others['type'] = 'account';
         $others['purpose'] = 'merchandise';        
+        $others['currency'] = $request->currency;        
         $directlyCallForPostmen = ($request->directlyCallForPostmen == "false") ? FALSE : TRUE;        
         $serviceDetail = $this->getServiceCodeMapped($request->service,$directlyCallForPostmen); // ui se false api se true  
                
@@ -349,11 +359,19 @@ class ShipmentManager extends PostMenMaster
         if($reference_id1 != ''){$tempRef[] = $reference_id1;}
         if($reference_id2 != ''){$tempRef[] = $reference_id2;}        
         $others['references'] = $tempRef;
-                        
+                                        
+        if(isset($request->insurance) && $request->insurance != '')
+        {
+            $others['insurance_detail'] = array(
+                'amount'=>$request->insurance->value,
+                'currency'=>$request->insurance->currency                
+            );
+        }
+        
         $payload = $this->buildCreateLabelRequest($fromAddress, $toAddress, $package, $shipperAccountId,$others, $isDocument, $returnShipment,FALSE);                                                
         try 
-        {             
-            $labelResponse = $this->createLabel($payload); 
+        {   
+            $labelResponse = $this->createLabel($payload);                         
             if($labelResponse)
             { 
                 $this->formatCreateLabelResponse($labelResponse);
@@ -725,6 +743,7 @@ class ShipmentManager extends PostMenMaster
         $labelArr = $this->responseData;          
         if( isset($labelArr['label']) ) 
         {
+            $libObj = new \Library();
             $pdf_base64 = $labelArr['label']['base_encode'];
             $labels = explode(",", $labelArr['label']['file_url']);                        
             $label_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/label/';                                                                        
@@ -738,14 +757,14 @@ class ShipmentManager extends PostMenMaster
                 $data = base64_decode($pdf_base64);
                 file_put_contents($file_name, $data);
                 header('Content-Type: application/pdf');
-            }
-            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            }            
+            $fileUrl = $libObj->get_api_url();
             unset($labelArr['label']['base_encode']);
             $res =  array(
                     "status" => "success",
                     "message" => "label generated successfully",                    
                     "file_loc"=>$file_name,                    
-                    "file_url" => $fileUrl . "/label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',                    
+                    "file_url" => $fileUrl . "label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',                    
                     "tracking_number"=>$labelArr['label']['tracking_number'],
                     "label_files_png" => '',
                     "label_json" =>json_encode($labelArr),
@@ -894,5 +913,17 @@ class ShipmentManager extends PostMenMaster
         return $res;
     }
     
-    
+    public function calculateInsuranceAmount($amount, $currency)
+    {
+        $calculatedAmount = ( $amount * 1.5 ) / 100; 
+        if($calculatedAmount <= 12)
+        {
+            return 12;
+        }
+        else
+        {
+            return $calculatedAmount;
+        }
+    }
+        
 }
