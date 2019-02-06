@@ -22,6 +22,7 @@
     "illuminate/database": "^5.5.0",
     "illuminate/events": "^5.5.0",
     "aws/aws-sdk-php": "^3.82",
-    "ext-gd": "*"
+    "ext-gd": "*",
+    "phpoffice/phpspreadsheet": "^1.6"
   }
 }

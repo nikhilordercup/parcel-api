@@ -72,8 +72,8 @@ class Module_Coreprime_Api extends Icargo
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
         }
-        if(count($pd)==0){
-            return (new \v1\module\RateEngine\SampleRate())->getRates();
+        if(count($pd)==0){ //print_r($data);exit();
+            return (new \v1\module\RateEngine\SampleRate($data))->getRates();
         }
         return json_encode($finalPrice);
     }
@@ -536,8 +536,6 @@ class Module_Coreprime_Api extends Icargo
             }
 
         }
-	//print_r($obj);
-	//print_r($providerList);exit('yati');
         return [];
     }
 }

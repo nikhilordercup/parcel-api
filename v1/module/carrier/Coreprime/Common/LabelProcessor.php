@@ -30,6 +30,7 @@ class LabelProcessor
         $label = $obj->_postRequest($json_data);
         $labelArr = is_string($label) ? json_decode($label, true) : $label;
         $labelArr = $labelArr['label'];
+
         if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];

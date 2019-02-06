@@ -27,7 +27,7 @@ class SampleRate
                                     'service_code': '__SERVICE__',
                                     'rate_type': 'Distance',
                                     'rate_unit': 'Miles',
-                                    'price': 371.085,
+                                    'price': 2.085,
                                     'act_number': '__ACCOUNT__'
                                 },
                                 'surcharges': {
@@ -68,8 +68,8 @@ class SampleRate
                                     }
                                 },
                                 'taxes': {
-                                    'total_tax': 74.217,
-                                    'tax_percentage': '20'
+                                    'total_tax': 0,
+                                    'tax_percentage': '0'
                                 }
                             }
                         ]
@@ -108,7 +108,7 @@ class SampleRate
      * @return string
      */
     public function getRates(){
-        return $this->_rate;
+        return str_replace("'",'"',$this->_rate);
     }
 
 }

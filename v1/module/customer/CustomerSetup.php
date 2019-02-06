@@ -22,6 +22,9 @@ use v1\module\Database\Model\CompanyUsersModel;
 use v1\module\Database\Model\CompanyWarehouseModel;
 use v1\module\Database\Model\CustomerInfoModel;
 use v1\module\Database\Model\DriverVehicleModel;
+use v1\module\Database\Model\RouteLocalityModel;
+use v1\module\Database\Model\RouteModel;
+use v1\module\Database\Model\RoutePostcodeModel;
 use v1\module\Database\Model\UsersModel;
 use v1\module\Database\Model\VehicleCategoryMasterModel;
 use v1\module\Database\Model\VehicleModel;
@@ -37,16 +40,17 @@ class CustomerSetup
 
     public function setupStepOne($params)
     {
-        $this->_warehouse=CompanyWarehouseModel::query()->where('company_id','=',$params->company_id)->first();
+        $this->_warehouse = CompanyWarehouseModel::query()->where('company_id', '=', $params->company_id)->first();
         $customer = $this->setDefaultCustomer($params);
         $carrier = $this->addCarrier($params);
-        $service = $this->addService($carrier, $params);
         $account = $this->addCarrierAccount($carrier, $params);
+        $service = $this->addService($carrier, $params,$account,$customer);
         $this->enableCarrierForCustomer($params->company_id, $account, $carrier, $customer);
-        foreach ($service as $s) {
-            $companyServiceId = $this->enableServicesForCompany($s, $account, $params->company_id);
-            $this->enableServiceForCustomer($s, $companyServiceId, $carrier, $params->company_id, $customer,$account);
-        }
+//        foreach ($service as $s) {
+//            $companyServiceId = $this->enableServicesForCompany($s, $account, $params->company_id);
+//            $this->enableServiceForCustomer($s, $companyServiceId, $carrier, $params->company_id, $customer, $account);
+//        }
+        $this->setupRoute($params);
     }
 
     public function setDefaultCustomer($param)
@@ -74,7 +78,7 @@ class CustomerSetup
                 'user_level' => $param->user_level,
                 'uid' => '',
                 'register_in_firebase' => $param->register_in_firebase,
-                'is_default'=>1
+                'is_default' => 1
             ];
             $this->_customerId = (UsersModel::query()->create($data))->id;
             $relationData = array(
@@ -83,12 +87,14 @@ class CustomerSetup
                 'user_id' => $this->_customerId
             );
             $this->_companyCustomerId = (CompanyUsersModel::query()->create($relationData))->id;
-            $customerInfo=[
-                'user_id'=>$this->_customerId, 'billing_full_name'=>$param->contactName,
-                'billing_address_1'=>$param->address_one, 'billing_address_2'=>$param->address_two,
-                'billing_postcode'=>$param->companyPost, 'billing_city'=>$param->companyCity,
-                'billing_state'=>$param->companyState, 'billing_country'=>$param->companyCountry,
-                'billing_phone'=>$param->companyPhone,  'webapi_token'=>''
+            $customerInfo = [
+                'user_id' => $this->_customerId, 'billing_full_name' => $param->contactName,
+                'billing_address_1' => $param->address_one, 'billing_address_2' => $param->address_two,
+                'billing_postcode' => $param->companyPost, 'billing_city' => $param->companyCity,
+                'billing_state' => $param->companyState, 'billing_country' => $param->companyCountry,
+                'billing_phone' => $param->companyPhone, 'webapi_token' => '','ccf_operator_service'=>'PERCENTAGE',
+                'ccf_operator_surcharge'=>'PERCENTAGE',
+                'customer_type'=>'PREPAID','available_credit'=>500
             ];
             CustomerInfoModel::query()->create($customerInfo);
             return $this->_customerId;
@@ -97,11 +103,11 @@ class CustomerSetup
         }
     }
 
-    public function addDriver($param,$companyInfo)
+    public function addDriver($param, $companyInfo)
     {
-        $this->_warehouse=CompanyWarehouseModel::query()->where('company_id','=',$companyInfo->id)->first();
+        $this->_warehouse = CompanyWarehouseModel::query()->where('company_id', '=', $companyInfo->id)->first();
 
-        $param->company_id=$companyInfo->id;
+        $param->company_id = $companyInfo->id;
         $companyDriver = UsersModel::query()
             ->where('email', '=', $param->email)
             ->first();
@@ -125,7 +131,7 @@ class CustomerSetup
                 'city' => $companyInfo->city ?? "",
                 'postcode' => $companyInfo->postcode ?? "",
                 'user_level' => 4,
-                'uid' =>  $param->uid,
+                'uid' => $param->uid,
                 'register_in_firebase' => 1,
                 'state' => $companyInfo->state ?? "",
                 'country' => $companyInfo->country ?? ""
@@ -177,14 +183,14 @@ class CustomerSetup
             'description' => '',
             'is_self' => 'YES',
             'company_id' => $param->company_id,
-            'created_by'=>$param->company_id,
+            'created_by' => $param->company_id,
             'status' => 1,
             'is_apiused' => 'YES'
         ];
         return (CarrierModel::query()->create($courier))->id;
     }
 
-    public function addService($carrierId, $params)
+    public function addService($carrierId, $params, $account, $customer)
     {
         $sameDayService = [
             'courier_id' => $carrierId,
@@ -196,24 +202,28 @@ class CustomerSetup
             'service_type' => 'SAMEDAY',
             'flow_type' => ''
         ];
+        $sameDayId = (CarrierServicesModel::query()->create($sameDayService))->id;
+        $companyServiceId = $this->enableServicesForCompany($sameDayId, $account, $params->company_id);
+        $this->enableServiceForCustomer($sameDayId, $companyServiceId, $carrierId, $params->company_id, $customer, $account);
         $nextDayService = [
             'courier_id' => $carrierId,
             'service_name' => $params->companyName,
-            'service_code' => 'SAMEDAY' . strtoupper(str_replace(' ', '_', $params->companyName)),
+            'service_code' => 'NEXTDAY' . strtoupper(str_replace(' ', '_', $params->companyName)),
             'service_icon' => '',
             'service_description' => '',
             'create_date' => date('Y-m-d'),
             'service_type' => 'NEXTDAY',
             'flow_type' => ''
         ];
-        if (CarrierServicesModel::query()->where('courier_id', '=', $carrierId)
-                ->count() == 0) {
-            $sameDayId = (CarrierServicesModel::query()->create($sameDayService))->id;
-            $nextDayId = (CarrierServicesModel::query()->create($nextDayService))->id;
-            return [$sameDayId, $nextDayId];
-        } else {
-            return [];
-        }
+
+        $nextDayId = (CarrierServicesModel::query()->create($nextDayService))->id;
+        $companyServiceId = $this->enableServicesForCompany($nextDayId, $account, $params->company_id);
+        $this->enableServiceForCustomer($nextDayId, $companyServiceId, $carrierId, $params->company_id, $customer, $account);
+
+        return [0 => $sameDayId, 1 => $nextDayId];
+//        } else {
+//            return [];
+//        }
     }
 
     public function addCarrierAccount($carrierId, $params)
@@ -225,10 +235,10 @@ class CustomerSetup
             'username' => 'blank',
             'password' => 'blank',
             'create_date' => date('Y-m-d'),
-            'company_ccf_operator_service' => 'FLAT',
-            'company_ccf_operator_surcharge' => 'FLAT',
-            'address_id' => $params->warehouse_id,
-            'is_internal'=>1,
+            'company_ccf_operator_service' => 'PERCENTAGE',
+            'company_ccf_operator_surcharge' => 'PERCENTAGE',
+            'address_id' => $params->warehouse_id,//Warehouse ID
+            'is_internal' => 1,
             'status' => '1'
         ];
         return (CompanyCarrierAccountsModel::query()->create($accountInfo))->id;
@@ -253,12 +263,14 @@ class CustomerSetup
             'courier_id' => $carrierId,
             'customer_id' => $customerId,
             'create_date' => date('Y-m-d'),
+            'company_ccf_operator_service'=>'PERCENTAGE',
+            'company_ccf_operator_surcharge'=>'PERCENTAGE',
             'status' => 1
         ];
         return (CompanyCarrierCustomersModel::query()->create($data))->id;
     }
 
-    public function enableServiceForCustomer($serviceId, $companyService, $carrierId, $companyId, $companyCustomerId,$account)
+    public function enableServiceForCustomer($serviceId, $companyService, $carrierId, $companyId, $companyCustomerId, $account)
     {
         $data = [
             'service_id' => $serviceId,
@@ -267,9 +279,36 @@ class CustomerSetup
             'company_id' => $companyId,
             'company_customer_id' => $companyCustomerId,//Id from Company
             'create_date' => date('Y-m-d'),
+            'ccf_operator'=>'PERCENTAGE',
+            'create_by'=>$companyId,
             'status' => 1
         ];
         return (CompanyCustomerServicesModel::query()->create($data))->id;
+    }
+
+    public function setupRoute($params)
+    {
+        $route = [
+            'name' => $params->companyName,
+            'company_id' => $params->company_id,
+            'warehouse_id' => $params->warehouse_id,
+            'create_date' => date('Y-m-d'),
+            'allowed_drops' => 30
+        ];
+        $route = (RouteModel::query()->create($route))->id;
+        $locality = [
+            'route_id' => $route,
+            'locality' => $params->companyState,
+            'city' => $params->companyCity
+        ];
+        RouteLocalityModel::query()->create($locality);
+        $rPost = [
+            'postcode' => $params->companyPost,
+            'route_id' => $route,
+            'company_id' => $params->company_id,
+            'warehouse_id' => $params->warehouse_id,
+        ];
+        RoutePostcodeModel::query()->create($rPost);
     }
 
     /**
@@ -277,29 +316,30 @@ class CustomerSetup
      */
     public static function initRoutes($app)
     {
-        $app->post('/getVehicleMasterCategories',function ()use ($app){
-           $categories=VehicleCategoryMasterModel::query()->where('status','=',1)
-               ->get();
-           echoResponse(200,['status'=>'success','message'=>$categories]);
+        $app->post('/getVehicleMasterCategories', function () use ($app) {
+            $categories = VehicleCategoryMasterModel::query()->where('status', '=', 1)
+                ->get();
+            echoResponse(200, ['status' => 'success', 'message' => $categories]);
         });
-        $app->post('/createOnBoardDriver',function ()use ($app){
+        $app->post('/createOnBoardDriver', function () use ($app) {
             $r = json_decode($app->request->getBody());
-            $company=UsersModel::query()->where('id','=',$r->company_id)->first();
-            (new CustomerSetup())->addDriver($r->driver,$company);
-            echoResponse(200,['status'=>'success','message'=>'Driver created successfully']);
+            $company = UsersModel::query()->where('id', '=', $r->company_id)->first();
+            (new CustomerSetup())->addDriver($r->driver, $company);
+            echoResponse(200, ['status' => 'success', 'message' => 'Driver created successfully']);
         });
-        $app->post('/getWarehouseCount',function ()use ($app){
+        $app->post('/getWarehouseCount', function () use ($app) {
             $r = json_decode($app->request->getBody());
-            $company=CompanyWarehouseModel::query()->where('company_id','=',$r->company_id)->count();
-            echoResponse(200,['status'=>'success','message'=>$company]);
+            $company = CompanyWarehouseModel::query()->where('company_id', '=', $r->company_id)->count();
+            echoResponse(200, ['status' => 'success', 'message' => $company]);
         });
-        $app->get('/checkIt',function ()use ($app){
-            $u=\v1\module\Database\Model\UsersModel::query()
-                ->with('companyWarehouse','companyWarehouse.warehouse')
-                ->where('email','abc11@gmail.com')
+        $app->get('/checkIt', function () use ($app) {
+            $u = \v1\module\Database\Model\UsersModel::query()
+                ->with('companyWarehouse', 'companyWarehouse.warehouse')
+                ->where('email', 'abc11@gmail.com')
                 ->first()->toArray();
             echo '<pre>';
-            print_r($u);exit;
+            print_r($u);
+            exit;
         });
     }
 
