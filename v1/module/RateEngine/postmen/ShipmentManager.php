@@ -743,6 +743,7 @@ class ShipmentManager extends PostMenMaster
         $labelArr = $this->responseData;          
         if( isset($labelArr['label']) ) 
         {
+            $libObj = new \Library();
             $pdf_base64 = $labelArr['label']['base_encode'];
             $labels = explode(",", $labelArr['label']['file_url']);                        
             $label_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/label/';                                                                        
@@ -756,14 +757,14 @@ class ShipmentManager extends PostMenMaster
                 $data = base64_decode($pdf_base64);
                 file_put_contents($file_name, $data);
                 header('Content-Type: application/pdf');
-            }
-            $fileUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'].LABEL_URL;
+            }            
+            $fileUrl = $libObj->get_api_url();
             unset($labelArr['label']['base_encode']);
             $res =  array(
                     "status" => "success",
                     "message" => "label generated successfully",                    
                     "file_loc"=>$file_name,                    
-                    "file_url" => $fileUrl . "/label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',                    
+                    "file_url" => $fileUrl . "label/" . $loadIdentity . '/'.$carrier.'/' . $loadIdentity . '.pdf',                    
                     "tracking_number"=>$labelArr['label']['tracking_number'],
                     "label_files_png" => '',
                     "label_json" =>json_encode($labelArr),
