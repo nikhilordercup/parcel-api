@@ -211,7 +211,18 @@ abstract class PostMenMaster extends Postmen
                       
         $payload['shipper_account'] = array(
             'id'=>$shipperAccountId            
-        );
+        );                        
+        $payload['service_options'] = array();
+        if(isset($others['insurance_detail']) && $others['insurance_detail']['amount'] > 0)
+        {
+            $payload['service_options'][] =  array(
+                'type' =>'insurance',
+                'insured_value' =>array(
+                   'amount'=>$others['insurance_detail']['amount'],
+                   'currency'=> $others['insurance_detail']['currency']                   
+                )
+            );
+        }                      
         $payload['shipment']['parcels'] = $package;
         $payload['shipment']['ship_from'] = $fromAddress;
         $payload['shipment']['ship_to'] = $toAddress;                
