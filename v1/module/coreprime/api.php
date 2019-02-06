@@ -46,7 +46,7 @@ class Module_Coreprime_Api extends Icargo
     public
 
     function _postRequest($data)
-    {
+    { //print_r(json_encode($data));exit;
         global $_GLOBAL_CONTAINER;
         if (isset($_GLOBAL_CONTAINER['loadIdentity'])) {
             $data->loadIdentity = $_GLOBAL_CONTAINER['loadIdentity'];
@@ -65,10 +65,10 @@ class Module_Coreprime_Api extends Icargo
             $cpRate = $this->postToCorePrime($cpData);
             $this->mergePrice($finalPrice, $cpRate);
         }
-        if (isset($pd['Local']) && count($pd['Local'])) {
+        if (isset($pd['Local']) && count($pd['Local'])) { 
             $lcData = $data;
             $lcData['carriers'] = $pd['Local'];
-            $localRate = $this->postToRateEngine('Local', $lcData);
+            $localRate = $this->postToRateEngine('Local', $lcData);//print_r($lcData);print_r($localRate);die;
            // echo($localRate);exit;
             $this->mergePrice($finalPrice, $localRate);
         }
@@ -200,14 +200,13 @@ class Module_Coreprime_Api extends Icargo
             foreach ($carrier as $carrierData) {
                 if ($carrierData['is_self'] == 'YES') {
                     $service = $this->modelObj->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
-
                     if (count($service) > 0) {
                         $tempservice = array();
                         foreach ($service as $key => $valData) {
                             $tempservice[] = $valData['service_code'];
                         }
                         $carriers[$carrierData['code']][] = array('credentials' => array('username' => '', 'password' => '', 'account_number' => $carrierData['account_number']), 'services' => implode(',', $tempservice));
-                    } else {
+                     } else {
                         return array("status" => "error", "message" => "Service Not configured or disabled for this customer");
                     }
                 }
@@ -443,7 +442,7 @@ class Module_Coreprime_Api extends Icargo
             $callType = 'LABEL';
         }
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
-        $providerList = $rateEngModel->getProviderInfo($callType, $env);
+        $providerList = $rateEngModel->getProviderInfo($callType, $env);//print_r($providerList);exit;
         $this->_endpoints = $providerList;
         $filteredData = [];
         foreach ($data['carriers'] as $c) {
@@ -452,6 +451,7 @@ class Module_Coreprime_Api extends Icargo
                     $filteredData[$p['provider']][] = $c;
             }
         }
+        //print_r($filteredData);die;
         return $filteredData;
     }
 
@@ -475,19 +475,19 @@ class Module_Coreprime_Api extends Icargo
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
-        curl_close($ch);
+        curl_close($ch);//exit($data_string);
         return $server_output;
     }
 
     public function postToCorePrime($cpData)
-    {
+    {//exit('core');
         $url = "";
         foreach ($this->_endpoints as $ep) {
             if ($ep['provider'] == 'Coreprime') {
                 $url = $ep['rate_endpoint'];
             }
         }
-        $data_string = json_encode($cpData);
+        $data_string = json_encode($cpData);//echo $url;echo $data_string;die;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
@@ -521,6 +521,7 @@ class Module_Coreprime_Api extends Icargo
         $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
         $providerList = $rateEngModel->getProviderInfo('LABEL', $env,'PROVIDER');
         $obj = is_object ($data)?$data:json_decode($data);
+
         foreach ($providerList as $p) {
             if (strtolower($p['code']) == strtolower($obj->carrier)) {
                 if ($p['provider'] == 'Coreprime') {
@@ -533,6 +534,8 @@ class Module_Coreprime_Api extends Icargo
             }
 
         }
+	//print_r($obj);
+	//print_r($providerList);exit('yati');
         return [];
     }
 }

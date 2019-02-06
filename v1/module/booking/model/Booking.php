@@ -287,11 +287,20 @@ class Booking_Model_Booking
 
     public
 
-    function getCompanyCarrier($company_id)
+    function getCompanyCarrier__bck($company_id)
     {
         $sql = "SELECT CT.description as description, CT.icon AS icon, CCT.courier_id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' AND CCT.is_internal='0'";
         return $this->_db->getAllRecords($sql);
     }
+    
+     public
+
+    function getCompanyCarrier($company_id)
+    {
+        $sql = "SELECT CT.description as description, CT.icon AS icon, CCT.courier_id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' ";
+        return $this->_db->getAllRecords($sql);
+    }
+
 
     public
 
@@ -348,7 +357,8 @@ class Booking_Model_Booking
 
     function getLabelByLoadIdentity($loadIdentity)
     {
-        $sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+        //$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, CR.code as carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_courier CR ON SST.carrier=CR.id WHERE SST.load_identity IN('$loadIdentity')";
+		$sql = "SELECT SST.label_file_pdf, SST.label_json, SST.load_identity, ST.carrier_code,invoice_created,accountkey,parent_account_key FROM " . DB_PREFIX . "shipment_service AS SST INNER JOIN icargo_shipment ST ON SST.load_identity = ST.instaDispatch_loadIdentity WHERE SST.load_identity IN('$loadIdentity') group by ST.instaDispatch_loadIdentity";
         return $this->_db->getAllRecords($sql);
     }
 

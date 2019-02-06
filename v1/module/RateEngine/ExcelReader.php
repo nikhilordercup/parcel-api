@@ -112,7 +112,7 @@ class ExcelReader {
             if(trim($d[0])==""){
                 return $queryData;
             }
-            $service = $this->_reateEngineModel->getServiceByName($d[0]);
+            $service = $this->_reateEngineModel->getServiceByName($d[0],$carrierId);
             if (!$service) {
                 $error = [
                     'error_type' => 'Service',

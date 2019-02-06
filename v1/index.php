@@ -1,12 +1,15 @@
 <?php
-error_reporting(E_ALL);
-ini_set("display_errors", 1);
+//error_reporting(E_ALL);
+//ini_set("display_errors", 1);
 ini_set('date.timezone', 'Europe/London');
+
+//date_default_timezone_set('UTC');
 
 require_once 'constant.php';
 require_once '../Credentials.php';
 require_once 'passwordHash.php';
 require_once 'array_column.php';
+//require '.././libs/Slim/Slim.php';
 require '../vendor/autoload.php';
 require_once 'dbHandler.php';
 \Slim\Slim::registerAutoloader();

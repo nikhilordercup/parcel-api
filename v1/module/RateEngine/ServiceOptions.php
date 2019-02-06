@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: perce
@@ -6,6 +7,7 @@
  * Time: 05:37 PM
  */
 namespace v1\module\RateEngine;
+
 class ServiceOptions
 {
     private $_serviceOptions = null;
@@ -20,7 +22,7 @@ class ServiceOptions
 
     public function verifyRules()
     {
-        if ($this->_serviceOptions || !count($this->_serviceOptions)) {
+        if (is_null($this->_serviceOptions) || !count($this->_serviceOptions)) {
             return true;
         }
         $this->_serviceOptions = (array)$this->_serviceOptions;
@@ -226,6 +228,7 @@ class ServiceOptions
 
     private function commonConditionProcessor($name)
     {
+	if(!isset($this->_serviceOptions[$name]))return true;
 
         if ($this->_serviceOptions[$name]
             && isset($this->_requestData->extra->{$name}) && $this->_requestData->extra->{$name}) {
@@ -259,7 +262,7 @@ class ServiceOptions
                 $status = false;
             }
         }
-        return false;
+        return $status;
     }
 
     private function calculateWeight()
@@ -289,7 +292,7 @@ class ServiceOptions
             ],
             "time" => [
                 "max_waiting_time" => $this->_serviceOptions['max_waiting_time'] ?? '',
-                "unit" => $this->_serviceOptions['time_unit']??''
+                "unit" => $this->_serviceOptions['time_unit'] ?? ''
             ]
         ];
         return $serviceOption;

@@ -5,16 +5,32 @@ class UkMailModel extends Singleton
      * key is tracking code that comes from API and corresponding shipment_code( from shipment_tracking_code) stored in shipment_tracking_table
      * @var type 
      */
-    public static $consignmentStatus = array(
+     public static $consignmentStatus = array(
         '1' =>  'COLLECTION_AWAITED'
         ,'2' =>  'COLLECTED'
         ,'3' =>  'AT_DELIVERY_LOCATION'
         ,'4' =>  'OUTFORDELIVERY'
         ,'5' =>  'DELIVERYSUCCESS'
+        ,'6' =>  'PART_DELIVERY' 
+        ,'7' =>  'DELIVERYATTEMPTED'
+        ,'8' =>  'DELAYED'
+        ,'9' =>  'PLEASECALL'
+        ,'10' =>  'DELIVERYREARRANGEDBYRECIPIENT'
     );
     
     public static $PodDeliveryTypeCode = array(
-        'DT01' => 'signature'
+        'DT01' => 'signature',
+        'DT02' => 'There was no answer at the address and the parcels have been left in the porch.',
+        'DT03' => 'There was no answer at the address and the parcels have been left behind the gate.',
+        'DT04' => 'There was no answer at the address and the parcels have been left in the shed.',
+        'DT05' => 'There was no answer at the address and the parcels have been left in the garage.',
+        'DT06' => 'There was no answer at the address and the parcels have been left with the porter/caretaker.',
+        'DT07' => 'There was no answer at the address and the parcels have been left in the conservatory.',
+        'DT09' => 'There was no answer at the address and the parcels have been left in another secure location. The secure location where the parcels have been left will be displayed in the comments field.',
+        'DT10' => 'There was no answer at the address and the parcels have been left with a neighbour. The recipient name will be the name of the neighbour. The signature image will be the signature of the neighbour. The comments will contain the house number of the neighbour.',
+        'DT11' => 'The recipient has missed a delivery attempt, has been left a card and has then chosen to have the parcels left in the safe place they have specified for the 2 nd delivery attempt. The signature image will be a scanned in copy of the card where the customer has given signed authority to leave in a safe place and specified the location of the safe place.',
+        'DT12' => 'Unknown status',
+        'DT13' => 'Leave your parcel in a safe place.'        
     );
     
     const UKMAIL = 2;
@@ -93,13 +109,42 @@ class UkMailModel extends Singleton
             $subRef2 = $ConsignmentDetailInfo->ConsignmentSubs->GetConsignmentDetailsSub->SubRef2;
             $subSequence = $ConsignmentDetailInfo->ConsignmentSubs->GetConsignmentDetailsSub->SubSequence;
             ///////////////////////////////////
-            $podDescription = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
-            $podQuantity = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity;
-            $podSequence = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence;
-            $podTimeStamp = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp;
-            $podRecipientName = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName;
-            $podDeliveryComments = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments;
-            $podDeliveryTypeCode = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode;        
+
+$podDescription = 'NA';
+$podQuantity = 0;
+$podSequence = 0;
+$podTimeStamp = '0000-00-00T00:00:00+00:00';
+$podRecipientName = 'NA';
+$podDeliveryComments = 'NA';
+$podDeliveryTypeCode = 'NA';
+if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+{         
+    if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+    {
+        $GetConsignmentDetailsPod = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;
+        $GetConsignmentDetailsPodLastDetail = $GetConsignmentDetailsPod[count($GetConsignmentDetailsPod) -1];
+                       
+        $podDescription = ($GetConsignmentDetailsPodLastDetail->PodDescription != '') ? $GetConsignmentDetailsPodLastDetail->PodDescription : $podDescription;
+        $podQuantity = ($GetConsignmentDetailsPodLastDetail->PodQuantity != '') ? $GetConsignmentDetailsPodLastDetail->PodQuantity : $podQuantity;
+        $podSequence = ($GetConsignmentDetailsPodLastDetail->PodSequence != '') ? $GetConsignmentDetailsPodLastDetail->PodSequence : $podSequence;
+        $podTimeStamp = ($GetConsignmentDetailsPodLastDetail->PodTimeStamp != '') ? $GetConsignmentDetailsPodLastDetail->PodTimeStamp:$podTimeStamp;
+        $podRecipientName = ($GetConsignmentDetailsPodLastDetail->PodRecipientName != '') ? $GetConsignmentDetailsPodLastDetail->PodRecipientName: $podRecipientName;
+        $podDeliveryComments = ($GetConsignmentDetailsPodLastDetail->PodDeliveryComments != '') ? $GetConsignmentDetailsPodLastDetail->PodDeliveryComments :'';
+        $podDeliveryTypeCode = ($GetConsignmentDetailsPodLastDetail->PodDeliveryTypeCode != '') ? $GetConsignmentDetailsPodLastDetail->PodDeliveryTypeCode : $podDeliveryTypeCode;
+    }
+    else
+    {
+        $podDescription = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription : $podDescription;
+        $podQuantity = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodQuantity : $podQuantity;
+        $podSequence = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodSequence : $podSequence;
+        $podTimeStamp = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodTimeStamp:$podTimeStamp;
+        $podRecipientName = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodRecipientName: $podRecipientName;
+        $podDeliveryComments = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryComments :$ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDescription;
+        $podDeliveryTypeCode = ($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode != '') ? $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod->PodDeliveryTypeCode : $podDeliveryTypeCode;
+    }    
+}
+		
+                    
             $createdOn = date('Y-m-d H:i:s');
 
             // Check if already status saved
@@ -144,13 +189,26 @@ class UkMailModel extends Singleton
             {
                 $trackingId = '';
                 $consignmentStatus = $ConsignmentDetailInfo->ConsignmentStatus->GetConsignmentDetailsStatus;
+                
+                
+                $isMultipleStatus = FALSE;
+                $isMultipleStatus = is_array($consignmentStatus); 
+
                 $queryContinue = FALSE;
                 if(count($consignmentStatus) > 0)
                 { 
                     $cStatusQuery = "insert into ".DB_PREFIX."shipment_tracking(shipment_ticket,load_identity,code,create_date,carrier,status_detail,event_id,origin)values";
                     foreach($consignmentStatus as $conStatus)
-                    {
-                        $statusCode1 = self::$consignmentStatus[$conStatus->StatusCode];                    
+                    {                         
+                        if($isMultipleStatus)
+                        {                            
+                            $statusCode1 = self::$consignmentStatus[$conStatus->StatusCode];
+                        }
+                        else
+                        {                           
+                            $statusCode1 = self::$consignmentStatus[$consignmentStatus->StatusCode];
+                        }
+                                            
                         $q1 = "select id from ".DB_PREFIX."shipment_tracking 
                                where load_identity = '$load_identity'  and carrier = 'UKMAIL' and code = '$statusCode1'";
                         $res1 = $this->db->getOneRecord($q1);
@@ -159,10 +217,10 @@ class UkMailModel extends Singleton
                         if( count($res1) > 0 ){ $trackingId = $res1['id']; continue; }
                         
                         $queryContinue = TRUE;
-                        $statusCode = self::$consignmentStatus[$conStatus->StatusCode]; 
-                        $statusDescription = $conStatus->StatusDescription;
-                        $statusSequence = $conStatus->StatusSequence;
-                        $statusTimeStamp = date("Y-m-d H:i:s", strtotime($conStatus->StatusTimeStamp)); 
+                        $statusCode = ($isMultipleStatus) ? self::$consignmentStatus[$conStatus->StatusCode]: self::$consignmentStatus[$consignmentStatus->StatusCode]; 
+                        $statusDescription = ($isMultipleStatus) ? $conStatus->StatusDescription : $consignmentStatus->StatusDescription;
+                        $statusSequence = ($isMultipleStatus) ? $conStatus->StatusSequence : $consignmentStatus->StatusSequence;
+                        $statusTimeStamp = ($isMultipleStatus) ? date("Y-m-d H:i:s", strtotime($conStatus->StatusTimeStamp)) : date("Y-m-d H:i:s", strtotime($consignmentStatus->StatusTimeStamp)); 
                         $cStatusQuery .= "('$shipment_ticket','$load_identity','$statusCode','$statusTimeStamp','UKMAIL','$statusDescription','$statusSequence','API')"; 
                         $cStatusQuery .= ",";                    
                     }
@@ -173,7 +231,7 @@ class UkMailModel extends Singleton
                     }
                     
                     // Making new row for shipments_pod table
-                    $podId = '';
+                    $podId = 0;
                     $query3 = "SELECT pod_id, shipment_ticket FROM ".DB_PREFIX."shipments_pod WHERE shipment_ticket = '$shipment_ticket' order by pod_id desc";
                     $res3 = $this->db->getOneRecord($query3);                         
                     $res3 = ($res3 != NULL) ? $res3 : array();
@@ -182,21 +240,41 @@ class UkMailModel extends Singleton
                         $podId = $res3['pod_id'];
                     }
                     else
-                    {                       
-                        $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
-                        $PodDeliveryType =  self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode];
-                        $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
-                                
-                                                                                                                      
-                        $sql1 = "insert into ".DB_PREFIX."shipments_pod
-                        (
-                            shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
-                        )
-                        values( 
-                            '$shipment_ticket','0','','','$PodDeliveryType','$PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
-                            ,'0','$trackingId'       
-                        )"; 
-                        $podId = $this->db->executeQuery($sql1);
+                    {           
+                         if(isset($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+                         {
+                             
+                             if(is_array($ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod))
+                             {
+                                 $GetConsignmentDetailsPod = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;
+                                 $GetConsignmentDetailsPodLastDetail = $GetConsignmentDetailsPod[count($GetConsignmentDetailsPod) -1];
+                                 
+                                 $podObj = $GetConsignmentDetailsPodLastDetail;                                   
+                                 $PodDeliveryType =  ($podObj->PodDeliveryTypeCode != '') ? self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode]:'';
+                                 $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+                        
+                             }
+                             else
+                             {
+                                 $podObj = $ConsignmentDetailInfo->ConsignmentPods->GetConsignmentDetailsPod;  
+                                 //var_dump($podObj->PodDeliveryTypeCode);die;
+                                 $PodDeliveryType =  ($podObj->PodDeliveryTypeCode != '') ? self::$PodDeliveryTypeCode[$podObj->PodDeliveryTypeCode]:'';
+                                 $PodDeliveryComments = ($podObj->PodDeliveryComments != '') ? $podObj->PodDeliveryComments : $podObj->PodDescription;
+                             }
+		                
+		                        
+		                                                                                                              
+		                $sql1 = "insert into ".DB_PREFIX."shipments_pod
+		                (
+		                    shipment_ticket,driver_id,type,value,pod_name,comment,contact_person,latitude,longitude,status,create_date,is_custom_create,tracking_id
+		                )
+		                values( 
+		                    '$shipment_ticket','0','','','$PodDeliveryType','$PodDeliveryComments','$podObj->PodRecipientName','0','0','1','$createdOn'
+		                    ,'0','$trackingId'       
+		                )"; 
+		                $podId = $this->db->executeQuery($sql1);
+                       }            
+                        
                     }
                     
                     // Making new row for tracking_pod table                                        
@@ -210,7 +288,7 @@ class UkMailModel extends Singleton
                     }
                                                                                 
                     // Updating shipment_service table column tracking_code by latest status
-                    $lastConsignmentStatusInfo = $consignmentStatus[count($consignmentStatus) - 1];
+                    $lastConsignmentStatusInfo = ($isMultipleStatus) ? $consignmentStatus[count($consignmentStatus) - 1]:$consignmentStatus;
                     $lastConsignmentStatus = self::$consignmentStatus[$lastConsignmentStatusInfo->StatusCode];                    
                     $qToUShipSer = "UPDATE `".DB_PREFIX."shipment_service` 
                             SET `tracking_code` = '".$lastConsignmentStatus."'
@@ -255,7 +333,7 @@ class UkMailModel extends Singleton
      */
     public function getShipmentToTrack()
     {
-        $ukMailCarrierId = self::UKMAIL;
+        //$ukMailCarrierId = self::UKMAIL;
         $query1 = "SELECT ss.id,ss.load_identity,ss.carrier,ss.`status`,ss.accountkey,ss.parent_account_key
                    ,ss.label_tracking_number,ss.tracking_code,sh.company_id 
                    FROM ".DB_PREFIX."shipment_service as ss
@@ -264,12 +342,12 @@ class UkMailModel extends Singleton
                    ON ss.load_identity = sh.instaDispatch_loadIdentity
                    AND sh.shipment_service_type = 'P'
 
-                   WHERE ss.carrier = $ukMailCarrierId 
+                   WHERE sh.carrier_code = 'ukmail' 
                    AND ss.accountkey != ''
                    AND ss.parent_account_key != ''
                    AND ss.`status` = 'success' 
                    AND ss.tracking_code != 'DELIVERYSUCCESS'                       
-                   ";        
+                   ";     
         $shipments = $this->db->getAllRecords($query1);         
         return $shipments;                    
     }

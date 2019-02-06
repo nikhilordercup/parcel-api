@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 class ChargebeeSubscriptionsModel extends Model
 {
     protected $table='chargebee_subscription';
+    protected $guarded=[];
+    public $timestamps=false;
     public function customer(){
         return $this->belongsTo(ChargebeeCustomersModel::class,'chargebee_customer_id','chargebee_customer_id');
     }

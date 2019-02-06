@@ -1,10 +1,12 @@
-<?php
-date_default_timezone_set('Europe/London');
+<?php //error_reporting(E_ALL);
+//ini_set("display_errors", 1);
+date_default_timezone_set('Europe/London'); 
 require_once '../v1/constant.php';
 require_once '../Credentials.php';
+//require_once '../v1/dbHandler.php';
 //require_once '../v1/passwordHash.php';
 //require_once '../v1/array_column.php';
-require '../libs/Slim/Slim.php';
+//require '../libs/Slim/Slim.php';
 require '../vendor/autoload.php';
 require_once '../v1/dbHandler.php';
 \Slim\Slim::registerAutoloader();
@@ -14,6 +16,8 @@ require_once '../v1/module/base/icargo.php';
 require_once '../v1/module/carrier/model/carrier.php';
 require_once '../v1/module/booking/collection.php';
 require_once '../v1/module/carrier/CustomerCostFactor.php';
+require_once '../v1/module/carrier/Carrier.php';
+//require_once '../v1/module/carrier/Coreprime/Common/LabelProcessor.php';
 require_once '../v1/module/booking/model/Booking.php';
 require_once '../v1/module/booking/Booking.php';
 require_once '../v1/library.php';
@@ -23,23 +27,20 @@ require_once '../v1/module/google/api.php';
 require_once '../v1/module/coreprime/api.php';
 require_once './Sameday.php';
 require_once './Nextday.php';
+require_once '../v1/common.php';
+require_once './Commonservices.php';
 require_once '../v1/module/notification/index.php';
 require_once '../v1/module/notification/model/index.php';
 require_once '../v1/module/notification/Consignee_Notification.php';
 require_once '../v1/module/notification/Notification_Email.php';
 require_once '../v1/module/allshipment/allshipments.php';
 require_once '../v1/module/allshipment/model/allshipments.php';
-
-    
+require_once '../v1/module/business_day_cal/Carrier_Business_Day.php';  
 require_once './model/restservicesModel.php';
 require_once './restservices.php';
-
 /*
 require_once('model/api.php');
-
-
 require_once '../v1/module/base/icargo.php';
-
 require_once '../v1/module/booking/model/Booking.php';
 require_once '../v1/module/booking/Shipment.php';
 require_once '../v1/module/booking/Booking.php';
@@ -47,8 +48,6 @@ require_once '../v1/module/nextday/Nextday.php';
 require_once '../v1/module/nextday/Nextday.php';
 require_once '../v1/module/shipment/model/shipment.php';
 require_once '../v1/module/shipment/save.php';
-
-
 */
 
 function verifyRequiredParams($required_fields,$request_params) {

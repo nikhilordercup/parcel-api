@@ -15,6 +15,7 @@ class allShipments extends Icargo
     public function getallshipments($param)
     {
         $filterShipment = array();
+        $basefilter = array();
         if(isset($param->data)){
 
             if(isset($param->data->customer)){
@@ -22,11 +23,11 @@ class allShipments extends Icargo
                     $param->data->customer = array($param->data->customer);
 
                 $customer_id_string = implode("','", array_filter($param->data->customer));
-                $filterShipment["customer_filter"] = "S.customer_id IN('" . $customer_id_string . "')";
+                $filterShipment["customer_filter"] = "SST.customer_id IN('" . $customer_id_string . "')";
             }
 
             if(isset($param->warehouse_id)){
-                $filterShipment["warehouse_filter"] = "S.warehouse_id = '" . $param->warehouse_id . "'";
+                $basefilter["warehouse_filter"] = "S.warehouse_id = '" . $param->warehouse_id . "'";
             }
 
             if(isset($param->data->job_identity)){
@@ -81,7 +82,7 @@ class allShipments extends Icargo
             }
 
             if(isset($param->company_id)){
-                $filterShipment["company_filter"] = "S.company_id = '" . $param->company_id . "'";
+                $basefilter["company_filter"] = "S.company_id = '" . $param->company_id . "'";
             }
 
             if(isset($param->data->collection_date_filter)){
@@ -152,7 +153,7 @@ class allShipments extends Icargo
             }
 
             if(isset($param->data->amount) AND !empty($param->data->amount)){
-                $filterShipment["postcode_filter"] = "SST.grand_total = '" . $param->data->amount . "'";
+                $filterShipment["postcode_filter"] = "SST.grand_total = " . $param->data->amount . "";
             }
 
             if(isset($param->data->customer_reference1) AND !empty($param->data->customer_reference1)){
@@ -165,12 +166,15 @@ class allShipments extends Icargo
 
         }
 
-        $filterString = 1;
-        if(count($filterShipment)>0){
-            $filterString = implode(" AND ", $filterShipment);
+        $basefilterString = 1;
+        $filterString = '';
+        if(count($basefilter)>0){
+            $basefilterString = implode(" AND ", $basefilter);
         }
-
-        $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost);
+        if(count($filterShipment)>0){
+             $filterString = " AND ".implode(" AND ", $filterShipment);
+        }
+        $items = $this->modelObj->getAllShipmentTicket($filterString, $param->datalimitpre, $param->datalimitpost,$basefilterString);
 
         $filterLoadIdentity = array();
 
@@ -184,7 +188,6 @@ class allShipments extends Icargo
         $shipmentsData = $this->_prepareShipments($shipmentsData);
         return $shipmentsData;
     }
-
     private function _getCurrentTrackingStatusByLoadIdentity($load_identity){
         $currentTrackingStatus = $this->modelObj->getCurrentTrackingStatusByLoadIdentity($load_identity);
         return $currentTrackingStatus["code_translation"];
@@ -242,7 +245,7 @@ class allShipments extends Icargo
                             $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
                             $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
                             $data['tracking_no']        = $pickupData['tracking_no'];
-                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            //$data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]           = $pickupData['current_status'];
 							$data['total_item']       = 'NA';
 							$data['total_weight']       = 'NA';
@@ -305,10 +308,10 @@ class allShipments extends Icargo
                             $data['booking_date']       = Library::_getInstance()->date_format($pickupData['booking_date']);
                             $data['collection_date']       = Library::_getInstance()->date_format($pickupData['collection_date_time']);
                             $data['tracking_no']        = $pickupData['tracking_no'];
-                            $data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
+                            //$data['shipment_instructions'] = $this->_findShipmentInstructionByLoadIdentity($data['job_identity']);
                             $shipmentstatus[]    = $pickupData['current_status'];
 							$data['total_item']       = $totalWeightAndItem['total_item'];
-							$data['total_weight']       = $totalWeightAndItem['total_weight'];
+							$data['total_weight']       = round($totalWeightAndItem['total_weight'],2);
                         }
                     }
                     if (array_key_exists('D', $innerval['NEXT'])) {
@@ -367,10 +370,10 @@ class allShipments extends Icargo
 		$parcelData            = $this->modelObj->getAllParcelsByIdentity($identity);
 		$temp = array();
 		$parcelInfo = array();
-		$parcelCount = 1;
 		foreach($parcelData as $data){
+			$parcelQuantity = $this->modelObj->getQuantityByRowIdAndIdentity($identity,$data['parcel_row_id']);
 			$tempKey = strtolower(preg_replace('/\s+/',"",implode("",$data)));
-			$temp[$tempKey] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package'],'parcel_quantity'=>$parcelCount++);
+			$temp[$tempKey] = array('parcel_height'=>$data['parcel_height'],'parcel_length'=>$data['parcel_length'],'parcel_width'=>$data['parcel_width'],'parcel_weight'=>$data['total_weight'],'package'=>$data['package'],'parcel_quantity'=>$parcelQuantity[0]['quantity']);
 		}
 		foreach($temp as $data){
 			$parcelInfo['package'][] = $data;
@@ -1445,7 +1448,7 @@ class allShipments extends Icargo
             $tempval['driver_id']        = '0';
             $tempval['type']             = 'text';
             $tempval['value']            = 'text';
-            $tempval['pod_name']         = 'NULL';
+            $tempval['pod_name']         = 'signature';
             $tempval['comment']          = $param['data']['comment'];
             $tempval['contact_person']   = $param['data']['contact_person'];
             $tempval['status']           = '1';
@@ -1554,7 +1557,7 @@ class allShipments extends Icargo
 					return array("status"=>"error","file_path"=>"","One of selected shipment is cancelled, you cannot print label for that shipment");
 				}
 			}
-
+            
 			if(count($labelInfo)==1){
 				if($labelInfo[0]['label_file_pdf']!==''){
 					if($labelInfo[0]['invoice_created']==1){
@@ -1945,7 +1948,7 @@ class allShipments extends Icargo
              $shipment_type =  $this->modelObj->getShipmentsType($valdata);
              if($shipment_type and $shipment_type['shipment_type']!=''){
                 if($shipment_type['shipment_type']=='NEXT'){
-					$carrier_code = $this->modelObj->getCarrierByLoadIdentity($valdata);
+					$carrier_code = $this->modelObj->getCarrierCodeByLoadIdentity($valdata);//$this->modelObj->getCarrierByLoadIdentity($valdata);
                     $tempdata = array();
                     $tempdata['load_identity']  = $valdata;
                     $tempdata['carrier']        = $carrier_code;//$shipment_type['code'];

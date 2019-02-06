@@ -147,7 +147,7 @@ class ChargebeeModel {
 
     public function updateBillingInfo($userId, $chargeBeeId) {
         try {
-            $savedCard = ChargeBee_Customer::retrieve($chargeBeeId);
+            $savedCard = \ChargeBee_Customer::retrieve($chargeBeeId);
             $address = $savedCard->customer()->billingAddress;
             $billingAddressInfo = array(
                 'user_id' => $userId,
@@ -166,8 +166,8 @@ class ChargebeeModel {
             } else {
                 return $this->_db()->save("billing_addresses", $billingAddressInfo);
             }
-        } catch (Exception $ex) {
-            return array('error' => TRUE, 'error_message' => $ex->getMessage());
+        } catch (\Exception $ex) {
+            return array('error' => TRUE, 'message' => $ex->getMessage());
         }
     }
 
@@ -180,7 +180,8 @@ class ChargebeeModel {
         return ChargebeeCustomersModel::query()
             ->with('subscription')
             ->whereHas('subscription',function ($query)use ($planType){
-                $query->whereIn("plan_type",[$planType,str_replace('_','',$planType)]);
+                $query->whereIn("plan_type",[$planType,str_replace('_','',$planType)])
+                    ->whereIn("status",['active','in_trial']);
             })
             ->where('user_id','=',$companyId)
             ->first();

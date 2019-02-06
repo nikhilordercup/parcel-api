@@ -15,7 +15,11 @@ class dbConnect {
         include_once '../config.php';
 
         // Connecting to mysql database
-        $this->conn = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
+       //try{
+            $this->conn = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
+        //}catch(Exception $e){
+           // print_r($e->getMessage());die;
+        //}
 
         // Check for database connection error
         if (mysqli_connect_errno()) {
@@ -26,7 +30,7 @@ class dbConnect {
         return $this->conn;
     }
     public static function bootGlobal()
-    {
+    {   if(!class_exists ('\Illuminate\Database\Capsule\Manager'))return true;
         if(!defined('DB_HOST')) {
             require_once '../config.php';
         }

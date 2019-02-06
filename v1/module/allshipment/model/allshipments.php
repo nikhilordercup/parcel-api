@@ -203,7 +203,13 @@ class AllShipment_Model
       }
 
 	public function getAllParcelsByIdentity($identity){
-      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package_name as package,total_weight,shipment_ticket FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' AND parcel_type='P'";
+      $sql = "SELECT parcel_weight,parcel_height,parcel_length,parcel_width,package_name as package,total_weight,shipment_ticket,parcel_row_id FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' AND parcel_type='P'";
+	  $record = $this->db->getAllRecords($sql);
+      return $record;
+    }
+	
+	public function getQuantityByRowIdAndIdentity($identity,$rowId){
+      $sql = "SELECT count(instaDispatch_loadIdentity) as quantity FROM ".DB_PREFIX."shipments_parcel AS P WHERE P.instaDispatch_loadIdentity = '$identity' AND parcel_type='P' AND parcel_row_id = $rowId";
 	  $record = $this->db->getAllRecords($sql);
       return $record;
     }
@@ -722,16 +728,17 @@ class AllShipment_Model
         $record = $this->db->getAllRecords($sql);
         return  $record;
     }
-
-    public function getAllShipmentTicket($filter, $start, $end){
-        $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS load_Identity,S.shipment_id FROM " . DB_PREFIX . "shipment AS S";
-        $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=S.instaDispatch_loadIdentity";
-        $sql .= " WHERE $filter ";
+    
+    public function getAllShipmentTicket($filter, $start, $end,$basefilterString){ 
+        $sql = "SELECT DISTINCT(S.instaDispatch_loadIdentity) AS load_Identity FROM " . DB_PREFIX . "shipment AS S";
+        if($filter){
+           $sql .= " INNER JOIN " . DB_PREFIX . "shipment_service AS SST ON SST.load_identity=S.instaDispatch_loadIdentity";
+        }
+        $sql .= " WHERE $basefilterString  $filter ";
         $sql .= " AND (S.current_status = 'C' OR  S.current_status = 'O' OR  S.current_status = 'S' OR  S.current_status = 'D' OR  S.current_status = 'Ca' OR S.current_status = 'Cancel')";
         $sql .= " AND (`S`.`instaDispatch_loadGroupTypeCode` = 'SAME' OR `S`.`instaDispatch_loadGroupTypeCode` = 'NEXT')";
         $sql .= " ORDER BY S.shipment_id DESC";
         $sql .= " LIMIT $start, $end";
-        //echo $sql;
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
@@ -753,10 +760,9 @@ class AllShipment_Model
         LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.courier_id = SST.carrier AND COMCOUR.account_number = SST.accountkey
         LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
         LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
-        WHERE S.instaDispatch_loadIdentity IN ('$ticket_string')
+        WHERE SST.load_identity IN ('$ticket_string')
         ORDER BY S.shipment_id DESC, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
         //#LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
-		//echo $sql;die;
         $record = $this->db->getAllRecords($sql);
         return $record;
     }
@@ -798,7 +804,7 @@ class AllShipment_Model
 	}
 	
 	public function getTotalWeightAndItemByLoadIdentity($loadIdentity){
-		$sql = "SELECT COUNT('instaDispatch_loadIdentity') as total_item, total_weight FROM " . DB_PREFIX . "shipments_parcel AS SPT where SPT.instaDispatch_loadIdentity = '$loadIdentity' AND parcel_type='P'";
+		$sql = "SELECT COUNT('instaDispatch_loadIdentity') as total_item, SUM(parcel_weight) as total_weight FROM " . DB_PREFIX . "shipments_parcel AS SPT where SPT.instaDispatch_loadIdentity = '$loadIdentity' AND parcel_type='P'";
 		$record = $this->db->getRowRecord($sql);
 		return  $record;
 	}
@@ -807,6 +813,12 @@ class AllShipment_Model
 		$sql = "SELECT SUM(baseprice) as carrier_amount FROM " . DB_PREFIX . "shipment_price AS SPT where SPT.load_identity = '$loadIdentity' AND version='$priceVersion'";
 		$record = $this->db->getOneRecord($sql);
 		return  $record['carrier_amount'];
+	}
+	
+	public function getCarrierCodeByLoadIdentity($loadIdentity){
+		$sql = "SELECT carrier_code FROM " . DB_PREFIX . "shipment AS ST where ST.instaDispatch_loadIdentity = '$loadIdentity'";
+		$record = $this->db->getOneRecord($sql);
+		return  $record['carrier_code'];
 	}
 	  
   }

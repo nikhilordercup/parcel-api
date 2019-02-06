@@ -30,7 +30,7 @@ class Recurring
         if(count($notificationData)>0){
            $companyInfo = $this->_getModelInstance()->getUserInfo($param['rowdata']['company_id']);
            $subject_msg = $this->headerMsg;
-           $companyadminEmail = 'roopesh.madhesia@ordercup.com';//$companyInfo['email'];
+           $companyadminEmail = 'deepak.sethi@perceptive-solutions.com';//$companyInfo['email'];
            $companyName = $companyInfo['name'];  
            foreach($notificationData as $item){
                 if($item["trigger_type"]=="email"){ 

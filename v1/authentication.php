@@ -106,14 +106,20 @@ $app->post('/signUp', function() use ($app) {
                     "code"=>str_replace(array(" ","-"),array("_","_"), strtolower($r->company->name)).$user
                 )
             );
-            $basic_plan = $db->getOneRecord("select * from ".DB_PREFIX."chargebee_plan ORDER BY price DESC ");
+
+            $plan[1]=\v1\module\Database\Model\ChargebeePlansModel::all()
+                ->where('plan_type','=','SAME_DAY')
+                ->where('status','=','active')->first();
+//            $plan[2]=\v1\module\Database\Model\ChargebeePlansModel::all()
+//                ->where('plan_type','=','LAST_MILE')
+//                ->where('status','=','active')->first();
             //register user plan
             //chargebee customer data
             $chargebee_customer_data = (object) array("billing_city"=>$r->company->city,"billing_country"=>$r->company->alpha2_code,
                 "billing_first_name"=>$r->company->contact_name,"billing_last_name"=>$r->company->name,
                 "billing_line1"=>$r->company->address_1,"billing_state"=>$r->company->state,
                 "billing_zip"=>$r->company->postcode,"first_name"=>$r->company->name,"last_name"=>$r->company->name,
-                "customer_email"=>$r->company->email,"user_id"=>$user,'phone'=>$r->company->phone,'plan_limit'=>$basic_plan['shipment_limit']);
+                "customer_email"=>$r->company->email,"user_id"=>$user,'phone'=>$r->company->phone,'plan_limit'=>0);
 
             //chargebee customer registration
             $obj = new \v1\module\chargebee\ChargebeeHelper($chargebee_customer_data);
@@ -122,54 +128,55 @@ $app->post('/signUp', function() use ($app) {
             //chargebee associate to trial plan
             $chargebee_customer_data->customer_id = $customerData["customer_info"]["chargebee_customer_id"];
 
-
             \v1\module\chargebee\model\ChargebeeModel::getInstanse()->
             updateBillingInfo($user, $chargebee_customer_data->customer_id);
+            foreach ($plan as $p){
+                $basic_plan=json_decode(json_encode($p), true);
+                $chargebee_subscription_data = (object) array(
+                    "plan_id"=>$basic_plan["plan_id"],
+                    "plan_quantity"=>1,
+                    "customer_id"=>$chargebee_customer_data->customer_id,
+                    "plan_unit_price"=>$basic_plan["price"],
+                    "start_date"=>date("Y-m-d"),
+                    "billing_cycles"=>$basic_plan["billing_cycle"],
+                    'plan_limit'=>$basic_plan['shipment_limit']
+                );
 
-
-
-
-            $chargebee_customer_data = (object) array(
-                "plan_id"=>$basic_plan["plan_id"],
-                "plan_quantity"=>1,
-                "customer_id"=>$chargebee_customer_data->customer_id,
-                "plan_unit_price"=>$basic_plan["price"],
-                "start_date"=>date("Y-m-d"),
-                //"trial_end"=>$r->company->state,
-                "billing_cycles"=>$basic_plan["billing_cycle"],
-                'plan_limit'=>$basic_plan['shipment_limit']
-            );
-
-            if(strtolower($basic_plan["trial_period_unit"])=="month"){
-                $trial_period = 30*$basic_plan["trial_period"];
-                $chargebee_customer_data->trial_end = date('Y-m-d', strtotime("+$trial_period days"));
+                if(strtolower($basic_plan["trial_period_unit"])=="month"){
+                    $trial_period = 30*$basic_plan["trial_period"];
+                    $chargebee_subscription_data->trial_end = date('Y-m-d', strtotime("+$trial_period days"));
+                }
+                else if(strtolower($basic_plan["trial_period_unit"])=="days"){
+                    $trial_period = $basic_plan["trial_period"];
+                    $chargebee_subscription_data->trial_end = date('Y-m-d', strtotime("+$trial_period days"));
+                }
+                $obj->createSubscription($chargebee_subscription_data);
             }
-            else if(strtolower($basic_plan["trial_period_unit"])=="days"){
-                $trial_period = $basic_plan["trial_period"];
-                $chargebee_customer_data->trial_end = date('Y-m-d', strtotime("+$trial_period days"));
-            }
-            json_encode($chargebee_customer_data);
-            $obj->createSubscription($chargebee_customer_data);
-            // save user id to chargebee_customer_table
-            $db->update("chargebee_customer", array("user_id"=>$user),"chargebee_customer_id='$chargebee_customer_data->customer_id'");
-
-            //save user default notification templates
-            $sql = "SELECT * FROM " . DB_PREFIX ."notification_default WHERE type LIKE 'default'";
-            $templates = $db->getALLRecordS($sql);
-
+            \v1\module\Database\Model\ChargebeeCustomersModel::query()
+                ->where('chargebee_customer_id','=',$chargebee_customer_data->customer_id)
+                ->update(['user_id'=>$user]);
+            $templates=\v1\module\Database\Model\NotificationDefaultModel::all()
+                ->where('type','LIKE','default')->toArray();
+            $t=[];
             foreach($templates as $template){
-                $db->save("notification", array(
+                $t[]=[
                     "company_id" => $user,
                     "trigger_type" => $template["trigger_type"],
                     "trigger_code" => $template["trigger_code"],
                     "status" => $template["status"],
                     "template" => $template["template"]
-                ));
+                ];
             }
+            if(count($t)){
+                \v1\module\Database\Model\NotificationModel::query()
+                    ->insert($t);
+            }
+
 
             $notificationObj = new Courier_Signup();
             $notificationObj->send($user);
-
+            $mailer=new \v1\module\Mailer\SystemEmail();
+//            $mailer->sendWelcomeEmail();
             $response["status"] = "success";
             $response["message"] = "User account created successfully";
             $response["id"] = $user;

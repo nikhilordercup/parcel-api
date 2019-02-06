@@ -159,7 +159,7 @@ class Booking extends Icargo
 
         if($ticketNumber){
 
-            $data["notification_status"] = (isset($param2->notification)) ? $param2->notification : "";
+            $data["notification_status"] = (isset($param2->notification)) ? $param2->notification :0;
             $data['shipment_address1'] = $addressInfo->address_line1;
             $data['shipment_address2'] = (isset($addressInfo->address_line2)) ? $addressInfo->address_line2 : "";
             $data['shipment_customer_city'] = (isset($addressInfo->city)) ? $addressInfo->city : "";
@@ -319,6 +319,10 @@ class Booking extends Icargo
         $parcelData['availabilityTypeCode'] = "UNKN";
         $parcelData['company_id'] = $company_id;
         $parcelData['warehouse_id'] = $warehouse_id;
+		if(isset($parcel->parcel_row_id))
+			$parcelData['parcel_row_id'] = $parcel->parcel_row_id + 1;
+		else
+			$parcelData['parcel_row_id'] = 0;
 
         $parcel_id = $this->modelObj->saveParcel($parcelData);
 
@@ -355,7 +359,7 @@ class Booking extends Icargo
 
             $service_data["service_name"] = $serviceOpted->service_info->name;
             $service_data["rate_type"] = $serviceOpted->rate->rate_type;
-            $service_data["currency"] = $serviceOpted->rate->currency;
+            $service_data["currency"] = isset($serviceOpted->rate->currency) ? $serviceOpted->rate->currency : "GBP";
 
             $service_data["courier_commission_type"] = $serviceOpted->rate->info->operator;
             $service_data["courier_commission"] = $serviceOpted->rate->info->ccf_value;

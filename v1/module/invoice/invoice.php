@@ -24,6 +24,8 @@ public function createInvoice($param){
       $_email               = $param->email;
       $_company_id          = $param->company_id;
       $customerfilter = isset($param->customer)?"AND A.customer_id = '".$param->customer."'":" ";
+      $_start_date          = date('Y-m-d',strtotime($_start_date));
+      $_end_date            = date('Y-m-d',strtotime($_end_date));
       $invoicedDocketData = $this->modelObj->getAllInvoicedDocket($_company_id,$_start_date,$_end_date,$customerfilter);
 
       $tempdatap = array();
@@ -492,11 +494,17 @@ public function prepaidrecharge($param){
           return array('status'=>"false",'message'=>'fail','code'=>'SERR11');
       }
    }
-
-    public function checkInvoiceNumber($param){
+public function checkInvoiceNumber($param){
         $shipmentsData = $this->modelObj->checkInvoiceNumberUnpaid($param);
         return array('status' => ($shipmentsData) ? 'success' : 'error', 'data'=>$shipmentsData);
         return $shipmentsData;
    }
+public function loadAllCustomers($company_id){
+    $return = array();
+    $shipmentsData = $this->modelObj->getAllCustomers($company_id);
+    return $shipmentsData;
+   }    
+    
+    
 }
 ?>

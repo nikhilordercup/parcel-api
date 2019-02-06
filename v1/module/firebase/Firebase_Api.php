@@ -12,8 +12,6 @@ class Firebase_Api{
             $serviceAccount = ServiceAccount::fromJsonFile($this->_getFbCredential());
             $this->firebase = (new Factory)
                 ->withServiceAccount($serviceAccount)
-                // The following line is optional if the project id in your credentials file
-                // is identical to the subdomain of your Firebase project. If you need it
                 ->withDatabaseUri($this->_getFirebaseDb())
                 ->create();
             self::$_fbDatabase = $this->firebase->getDatabase();
@@ -30,7 +28,7 @@ class Firebase_Api{
 
     private function _getFirebaseDb(){
         if(ENV=='live')
-            return 'https://idriver-production.firebaseio.com/';
+            return 'https://idriver-1476714038443.firebaseio.com/';
         else
             return 'https://idriver-1476714038443.firebaseio.com/';
     }
@@ -43,13 +41,6 @@ class Firebase_Api{
 
     function save($url, $data){
         $newPostKey = $this->createNewPostKey($url);
-
-        /*$newPost = $this->database
-            ->getReference($url)
-            ->push($data);
-        $newPostKey = $newPost->getKey();
-        $this->update("$url/$newPostKey", array("postId"=>$newPostKey));*/
-
         $data["postId"] = $newPostKey;
         $this->update("$url/$newPostKey", $data);
         return $newPostKey;
