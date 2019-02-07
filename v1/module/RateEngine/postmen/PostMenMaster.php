@@ -94,9 +94,9 @@ abstract class PostMenMaster extends Postmen
     {                
         $total_item_value = (isset($this->request->customs)) ? $this->request->customs->total_item_value : 0.01;
         $per_parcel_rate = $total_item_value/count($this->request->package);
-                
+               
         $finalPackage = [];
-        $finalPackage['description'] = ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type;
+        $finalPackage['description'] = (isset($package->content)  && $package->content != '') ? $package->content : 'NA';
         $finalPackage['box_type'] = ($package->packaging_type == 'CP') ? 'custom' : 'custom';
         $finalPackage['weight'] = array(
             'value'=> (float)$package->weight,
@@ -109,7 +109,7 @@ abstract class PostMenMaster extends Postmen
             'unit'=> strtolower($package->dimension_unit)
         );        
         $finalPackage['items'][] = array(
-            'description' => ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type,
+            'description' => (isset($package->content)  && $package->content != '' ) ? $package->content : 'NA',
             'quantity' => 1,
             'price' => array(
                 'amount'=> ($per_parcel_rate > 0) ? $per_parcel_rate : 0.01, 
