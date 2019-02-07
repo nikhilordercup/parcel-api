@@ -22,7 +22,6 @@ class RateApiController
      */
     private $_reateEngineModel;
     private $_responseData = [];
-    public $_isSameDay = false;
     public $_isLabelCall = false;
     private $_taxRate = null;
     private $_requestData = null;
@@ -40,9 +39,6 @@ class RateApiController
             $r = json_decode($app->request->getBody());
             $controller = new RateApiController();
             $controller->_requestData = $r;
-            if (!isset($r->package) || count($r->package) == 0) {
-                $controller->_isSameDay = true;
-            }
 
             if (isset($r->label)) {
                 $controller->_isLabelCall = true;
@@ -170,13 +166,13 @@ class RateApiController
                         $f = $f['rate'];
                         switch ($f["rate_type"]) {
                             case 'Weight':
-                                if ($this->_isSameDay) {
+                                if ($packagesCount) {
                                     break;
                                 }
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = round($this->filterRateFormRange($f, $packagesWeight), 2);
                                 break;
                             case 'Box':
-                                if ($this->_isSameDay) break;
+                                if ($packagesCount) break;
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packagesCount);
                                 break;
                             case 'Time':

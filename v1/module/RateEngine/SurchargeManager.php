@@ -51,7 +51,7 @@ class SurchargeManager
         "residential_surcharge" => 0
     ];
     protected $_fuelSurcharge = null;
-    public $_isSameDay = false;
+    public $_packageCount = 0;
     /**
      * @var array Keys for surcharge types
      */
@@ -105,7 +105,9 @@ class SurchargeManager
         $this->_requestData = $request;
         $this->_finalCost = $finalCost;
         if (is_null($packages) || count($packages) == 0) {
-            $this->_isSameDay = true;
+            $this->_packageCount = 0;
+        }else{
+            $this->_packageCount =count($packages);
         }
         if (is_null($surcharges)) {
             $surcharges = [];
@@ -119,11 +121,11 @@ class SurchargeManager
 
             switch ($surchargeObj->surcharge) {
                 case 1:
-                    if ($this->_isSameDay) break;
+                    if ($this->_packageCount) break;
                     $this->longLengthSurcharge($rate);
                     break;
                 case 3:
-                    if ($this->_isSameDay) break;
+                    if ($this->_packageCount) break;
                     $this->manualHandlingSurcharge($rate);
                     break;
                 case 4:
@@ -147,8 +149,8 @@ class SurchargeManager
                 case 16:
                     $this->sameDayDropWaitSurcharge($rate, $surchargeObj->surcharge);
                     break;
-                case 17://print_r($this->_isSameDay);exit('ov');
-                    if ($this->_isSameDay) break;
+                case 17:
+                    if ($this->_packageCount) break;
                     $this->overWeightSurcharge($rate);
                     break;
                 case 18:
@@ -366,14 +368,22 @@ class SurchargeManager
         $this->_countedSurcharge["bookin_surcharge"] = $finalSurcharge;
     }
 
+    /**
+     * @param $rate
+     */
     public function insuranceSurcharge($rate)
     {
+        if(!isset($this->_requestData->insurance) || $this->_requestData->insurance->value<=0){
+            $this->_countedSurcharge["insurance_surcharge"] = 0;
+            return;
+        }
         $finalSurcharge = 0;
         if (!isset($this->_requestData->insurance)) {
             $this->_countedSurcharge['insurance_surcharge'] = 0;
             return;
         } elseif ($this->_isUkMail) {
             $this->getUkMailInsuranceCharge($this->_requestData->insurance->value);
+            return;
         } else {
             if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
                 foreach ($this->_packages as $p) {
