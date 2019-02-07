@@ -241,8 +241,8 @@ class ShipmentManager extends PostMenMaster
                                 
                 $dimensions = array('length'=>'','width'=>'','height'=>'','unit'=>$rate->charge_weight->unit);
                 $weight = array("weight"=>$rate->charge_weight->value,"unit"=>$rate->charge_weight->unit);
-                $time = array("max_waiting_time"=>"","unit"=>"");
-                
+                $time = array("max_waiting_time"=>"","unit"=>"");                
+                $innerRate['rate']['chargeable_weight'] = $weight;                
                 $innerRate['service_options']["dimensions"] =$dimensions; 
                 $innerRate['service_options']["weight"] =$weight; 
                 $innerRate['service_options']["time"] =$time; 
