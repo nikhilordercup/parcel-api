@@ -6,8 +6,7 @@ class ShipmentManager extends PostMenMaster
     private static $shipmentManagerObj = NULL;
     protected $db = NULL;
     protected $responseData = [];
-    protected $request = '';
-
+    
     public static function shipmentRoutes($app)
     {
         $app->post('/postmen/calculateRate', function () use ($app) {              
@@ -325,7 +324,8 @@ class ShipmentManager extends PostMenMaster
 
 
     public function createLabelAction($request)
-    {                          
+    {               
+        $this->request = $request; 
         $fromAddress = $this->convertAddress($request->from);                
         $toAddress = $this->convertAddress($request->to);                            
         $package = $this->packagesToOrder($request->package,$request->currency);                                        
@@ -738,7 +738,7 @@ class ShipmentManager extends PostMenMaster
         return $res->alpha2_code;
     }
     
-    public function createAndSavePdf($request)
+     public function createAndSavePdf($request)
     {        
         $labelArr = $this->responseData;          
         if( isset($labelArr['label']) ) 
@@ -925,5 +925,5 @@ class ShipmentManager extends PostMenMaster
             return $calculatedAmount;
         }
     }
-        
+    
 }
