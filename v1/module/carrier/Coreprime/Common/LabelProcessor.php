@@ -233,8 +233,7 @@ class LabelProcessor
             {
                 $parcelQuantity = $parcel->quantity;
             }
-        } 
-                    
+        }
         $response['pickup_detail'] = array(
             'pickup_date'=>(isset($allData->pickup_date)) ? $allData->pickup_date : '',
             'earliest_pickup_time'=> (isset($allData->earliest_pickup_time)) ? $allData->earliest_pickup_time : '00:00',

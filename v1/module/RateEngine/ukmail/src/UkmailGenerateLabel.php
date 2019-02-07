@@ -89,7 +89,7 @@ class UkmailGenerateLabel
         $param->SpecialInstructions1 = $data->extra->special_instruction;
 		$param->SpecialInstructions2 = $data->extra->pickup_instruction;
 		$param->Telephone = $data->to->phone;
-		$param->Weight = $data->parcel_total_weight;
+		$param->Weight = ceil($data->parcel_total_weight);
         $param->BookIn = "false";
 		$param->CODAmount = "0.00";
 		$param->ConfirmationEmail = $data->to->email;
@@ -117,9 +117,9 @@ class UkmailGenerateLabel
 			$files = array($labelArr['label']['tracking_number'].'-0.png');
 		}
 		$label_path = ROOT_DIR.DIRECTORY_SEPARATOR.'label';
+		
 		$labelPath = "$label_path/$loadIdentity/ukmail";
 		$fileUrl = $libObj->get_api_url();
-
 		if (!file_exists("$label_path/$loadIdentity/ukmail/")) {
 			$oldmask = umask(0);
 			mkdir("$label_path/$loadIdentity/ukmail/", 0777, true);
@@ -188,7 +188,7 @@ class UkmailGenerateLabel
             $mpdf->Output("$labelPath/$loadIdentity.pdf","F");
             return true;
         }catch(Exception $e){
-            return false;
+            print_r($e);die;
         }
   }
 	
