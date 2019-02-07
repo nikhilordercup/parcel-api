@@ -68,6 +68,7 @@ class SubscriptionController {
         $app->post('/updateCardInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
+            $self->registerUserIfNotExist($r);
             verifyRequiredParams(array('access_token'), $r);
             $cardInfo = array(
                 "firstName" => $r->firstName,
@@ -82,6 +83,7 @@ class SubscriptionController {
         $app->post('/updateBillingAddress', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
+            $self->registerUserIfNotExist($r);
             verifyRequiredParams(array('access_token'), $r);
             $billingAddress = array(
                 "firstName" => $r->name,
@@ -456,6 +458,15 @@ class SubscriptionController {
             echo "success";exit;
         } catch (Exception $ex){
             exit($ex->getMessage());
+        }
+    }
+    public function registerUserIfNotExist($r){
+        $customer =\v1\module\Database\Model\ChargebeeCustomersModel::all()
+            ->where('user_id','=',$r->company_id)->first();
+        if(!$customer){
+            $this->registerExistingUserToChargeBee($r->company_id);
+            $customer =\v1\module\Database\Model\ChargebeeCustomersModel::all()
+                ->where('user_id','=',$r->company_id)->first();
         }
     }
 }
