@@ -392,7 +392,7 @@ class LabelProcessor
         $packageData = array();
         $packageInfo = $this->modelObj->getPackageDataByLoadIdentity($loadIdentity);
         foreach ($packageInfo as $data) {
-            array_push($packageData, array("packaging_type" => $data["package"], "width" => $data["parcel_width"], "length" => $data["parcel_length"], "height" => $data["parcel_height"], "dimension_unit" => "CM", "weight" => $data["parcel_weight"], "weight_unit" => "KG"));
+            array_push($packageData, array("packaging_type" => $data["package"], "width" => $data["parcel_width"], "length" => $data["parcel_length"], "height" => $data["parcel_height"], "dimension_unit" => "CM", "weight" => $data["parcel_weight"], "weight_unit" => "KG", "content" => $data["package_content"]));
         }
         return $packageData;
     }

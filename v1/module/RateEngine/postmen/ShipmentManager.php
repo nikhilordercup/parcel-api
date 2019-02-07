@@ -266,8 +266,17 @@ class ShipmentManager extends PostMenMaster
                     if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id]))
                     {                      
                         if(isset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type]))
-                        {                            
-                            $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;
+                        {              
+                            $res = $this->changeRateWithMaxTransitTime($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type], $innerRate);                            
+                            if($res !== "false")
+                            {                                                                                                                               
+                                unset($rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][$res]);                                                                                                                                
+                                $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][$res] = $innerRate;
+                            }
+                            else
+                            {
+                                $rates['rate'][$rate->shipper_account->slug][$length][$rate->shipper_account->id][$length1][$rate->service_type][] = $innerRate;
+                            }                                                                                    
                         }
                         else
                         {                                                     
@@ -915,7 +924,7 @@ class ShipmentManager extends PostMenMaster
     
     public function calculateInsuranceAmount($amount, $currency)
     {
-        $calculatedAmount = ( $amount * 1.5 ) / 100; 
+        $calculatedAmount = ( $amount * 1.5 ) / 100;                 
         if($calculatedAmount <= 12)
         {
             return 12;
@@ -923,7 +932,43 @@ class ShipmentManager extends PostMenMaster
         else
         {
             return $calculatedAmount;
-        }
+        } 
+    }
+    
+    /**
+     * This function check if innerRate(before push) has same rate 
+     * and it's transit time is more than existing same price rate then return index to unset 
+     * otherwise nothing to do means return "false"
+     * @param Array $servicRates          is array of rate within particular service
+     * @param Array $innerRate  is rate
+     * @return String|Integer
+     */
+    public function changeRateWithMaxTransitTime($servicRates, $innerRate)
+    {            
+        $res = "false";
+        if(count($servicRates) > 0)
+        {
+            foreach($servicRates as $key => $servicRate)
+            {                                
+                if($servicRate['rate']['price'] == $innerRate['rate']['price'])
+                {
+                    if($servicRate['service_options']['others']['transit_time'] > $innerRate['service_options']['others']['transit_time'])
+                    {                        
+                      continue;  
+                    }
+                    else
+                    {
+                        $res = $key;
+                    }
+                }
+                
+                if($res != "false")
+                {
+                    return $res;
+                }
+            }
+        }        
+        return $res;
     }
     
 }

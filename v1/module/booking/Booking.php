@@ -320,6 +320,7 @@ class Booking extends Icargo
         $parcelData['availabilityTypeCode'] = "UNKN";
         $parcelData['company_id'] = $company_id;
         $parcelData['warehouse_id'] = $warehouse_id;
+        $parcelData['package_content'] = $parcel->content;
 		if(isset($parcel->parcel_row_id))
 			$parcelData['parcel_row_id'] = $parcel->parcel_row_id + 1;
 		else
