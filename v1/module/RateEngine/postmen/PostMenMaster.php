@@ -22,7 +22,25 @@ abstract class PostMenMaster extends Postmen
        "postmen-api-key: b5585973-d041-4c4a-9b1f-014bf56e65e7"
     );    
     const UNKNOWN_ERROR = 4104;
+    protected $request = '';
+    public static $termOfTrades = array(
+        'DAD' => 'ddu',
+        'DAP' => 'ddu'
+    );
     
+     //Gift  Sale  Purchase   Sample  Repair   Return  Personal Effects
+    
+    public static $reasonsOfExport = array(
+        'Gift' =>'gift',
+        'Sale' =>'merchandise',
+        'Purchase' =>'merchandise',
+        'Sample' =>'sample',
+        'Repair' =>'repair',
+        'Return' =>'return',
+        'Personal Effects' =>'gift'
+    );
+
+
     public function __construct()
     {         
         $this->db = new \DbHandler(); 
@@ -73,7 +91,10 @@ abstract class PostMenMaster extends Postmen
     }
     
     public function convertPackage($package,$currency)
-    {                     
+    {                
+        $total_item_value = (isset($this->request->customs)) ? $this->request->customs->total_item_value : 0.01;
+        $per_parcel_rate = $total_item_value/count($this->request->package);
+                
         $finalPackage = [];
         $finalPackage['description'] = ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type;
         $finalPackage['box_type'] = ($package->packaging_type == 'CP') ? 'custom' : 'custom';
@@ -91,7 +112,7 @@ abstract class PostMenMaster extends Postmen
             'description' => ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type,
             'quantity' => 1,
             'price' => array(
-                'amount'=>0.01, //Need to discussed
+                'amount'=> ($per_parcel_rate > 0) ? $per_parcel_rate : 0.01, 
                 'currency'=>$currency
             ),
             'weight' => array(
@@ -208,7 +229,14 @@ abstract class PostMenMaster extends Postmen
             ),
             'purpose' => $others['purpose']
         );
-                      
+                        
+        if(count($this->request->customs->items) > 0)
+        {
+           $payload['customs']['purpose'] = self::$reasonsOfExport[$this->request->customs->reason_for_export];
+           $payload['customs']['terms_of_trade'] =  self::$termOfTrades[$this->request->customs->terms_of_trade];
+           $payload['customs']['importer_address'] =  $fromAddress;
+        }                                               
+                  
         $payload['shipper_account'] = array(
             'id'=>$shipperAccountId            
         );                        
