@@ -11,6 +11,7 @@ namespace v1\module\customer;
 
 use Illuminate\Database\Eloquent\Builder;
 use Slim\Slim;
+use v1\module\Database\Model\AddressBookModel;
 use v1\module\Database\Model\CarrierModel;
 use v1\module\Database\Model\CarrierServicesModel;
 use v1\module\Database\Model\CompanyCarrierAccountsModel;
@@ -20,11 +21,13 @@ use v1\module\Database\Model\CompanyCustomerServicesModel;
 use v1\module\Database\Model\CompanyDefaultRegistrationSetupModel;
 use v1\module\Database\Model\CompanyUsersModel;
 use v1\module\Database\Model\CompanyWarehouseModel;
+use v1\module\Database\Model\CountriesModel;
 use v1\module\Database\Model\CustomerInfoModel;
 use v1\module\Database\Model\DriverVehicleModel;
 use v1\module\Database\Model\RouteLocalityModel;
 use v1\module\Database\Model\RouteModel;
 use v1\module\Database\Model\RoutePostcodeModel;
+use v1\module\Database\Model\UserAddressModel;
 use v1\module\Database\Model\UsersModel;
 use v1\module\Database\Model\VehicleCategoryMasterModel;
 use v1\module\Database\Model\VehicleModel;
@@ -38,21 +41,25 @@ class CustomerSetup
     protected $_customerId;
     protected $_companyCustomerId;
 
+    /**
+     * @param $params
+     */
     public function setupStepOne($params)
     {
         $this->_warehouse = CompanyWarehouseModel::query()->where('company_id', '=', $params->company_id)->first();
         $customer = $this->setDefaultCustomer($params);
         $carrier = $this->addCarrier($params);
         $account = $this->addCarrierAccount($carrier, $params);
-        $service = $this->addService($carrier, $params,$account,$customer);
+        $service = $this->addService($carrier, $params, $account, $customer);
         $this->enableCarrierForCustomer($params->company_id, $account, $carrier, $customer);
-//        foreach ($service as $s) {
-//            $companyServiceId = $this->enableServicesForCompany($s, $account, $params->company_id);
-//            $this->enableServiceForCustomer($s, $companyServiceId, $carrier, $params->company_id, $customer, $account);
-//        }
         $this->setupRoute($params);
+        $this->addCustomerAddress($params, $customer);
     }
 
+    /**
+     * @param $param
+     * @return int|mixed
+     */
     public function setDefaultCustomer($param)
     {
         if (CompanyUsersModel::query()->whereHas('userInfo', function ($q) {
@@ -92,9 +99,9 @@ class CustomerSetup
                 'billing_address_1' => $param->address_one, 'billing_address_2' => $param->address_two,
                 'billing_postcode' => $param->companyPost, 'billing_city' => $param->companyCity,
                 'billing_state' => $param->companyState, 'billing_country' => $param->companyCountry,
-                'billing_phone' => $param->companyPhone, 'webapi_token' => '','ccf_operator_service'=>'PERCENTAGE',
-                'ccf_operator_surcharge'=>'PERCENTAGE',
-                'customer_type'=>'PREPAID','available_credit'=>500
+                'billing_phone' => $param->companyPhone, 'webapi_token' => '', 'ccf_operator_service' => 'PERCENTAGE',
+                'ccf_operator_surcharge' => 'PERCENTAGE',
+                'customer_type' => 'PREPAID', 'available_credit' => 500
             ];
             CustomerInfoModel::query()->create($customerInfo);
             return $this->_customerId;
@@ -103,6 +110,10 @@ class CustomerSetup
         }
     }
 
+    /**
+     * @param $param
+     * @param $companyInfo
+     */
     public function addDriver($param, $companyInfo)
     {
         $this->_warehouse = CompanyWarehouseModel::query()->where('company_id', '=', $companyInfo->id)->first();
@@ -155,6 +166,10 @@ class CustomerSetup
         }
     }
 
+    /**
+     * @param $param
+     * @return mixed
+     */
     public function addVehicle($param)
     {
         $category = VehicleCategoryMasterModel::query()
@@ -174,6 +189,10 @@ class CustomerSetup
         return $id;
     }
 
+    /**
+     * @param $param
+     * @return mixed
+     */
     public function addCarrier($param)
     {
         $courier = [
@@ -190,6 +209,13 @@ class CustomerSetup
         return (CarrierModel::query()->create($courier))->id;
     }
 
+    /**
+     * @param $carrierId
+     * @param $params
+     * @param $account
+     * @param $customer
+     * @return array
+     */
     public function addService($carrierId, $params, $account, $customer)
     {
         $sameDayService = [
@@ -200,7 +226,7 @@ class CustomerSetup
             'service_description' => '',
             'create_date' => date('Y-m-d'),
             'service_type' => 'SAMEDAY',
-            'flow_type' => ''
+            'flow_type' => 'domestic'
         ];
         $sameDayId = (CarrierServicesModel::query()->create($sameDayService))->id;
         $companyServiceId = $this->enableServicesForCompany($sameDayId, $account, $params->company_id);
@@ -213,7 +239,7 @@ class CustomerSetup
             'service_description' => '',
             'create_date' => date('Y-m-d'),
             'service_type' => 'NEXTDAY',
-            'flow_type' => ''
+            'flow_type' => 'domestic'
         ];
 
         $nextDayId = (CarrierServicesModel::query()->create($nextDayService))->id;
@@ -226,6 +252,11 @@ class CustomerSetup
 //        }
     }
 
+    /**
+     * @param $carrierId
+     * @param $params
+     * @return mixed
+     */
     public function addCarrierAccount($carrierId, $params)
     {
         $accountInfo = [
@@ -244,6 +275,12 @@ class CustomerSetup
         return (CompanyCarrierAccountsModel::query()->create($accountInfo))->id;
     }
 
+    /**
+     * @param $serviceId
+     * @param $carrierAccountId
+     * @param $companyId
+     * @return mixed
+     */
     public function enableServicesForCompany($serviceId, $carrierAccountId, $companyId)
     {
         $data = [
@@ -255,21 +292,38 @@ class CustomerSetup
         return (CompanyCarrierServicesModel::query()->create($data))->id;
     }
 
+    /**
+     * @param $companyId
+     * @param $account
+     * @param $carrierId
+     * @param $customerId
+     * @return mixed
+     */
     public function enableCarrierForCustomer($companyId, $account, $carrierId, $customerId)
     {
         $data = [
             'company_id' => $companyId,
             'company_courier_account_id' => $account,
+            'account_number' => 'blank',
             'courier_id' => $carrierId,
             'customer_id' => $customerId,
             'create_date' => date('Y-m-d'),
-            'company_ccf_operator_service'=>'PERCENTAGE',
-            'company_ccf_operator_surcharge'=>'PERCENTAGE',
+            'company_ccf_operator_service' => 'PERCENTAGE',
+            'company_ccf_operator_surcharge' => 'PERCENTAGE',
             'status' => 1
         ];
         return (CompanyCarrierCustomersModel::query()->create($data))->id;
     }
 
+    /**
+     * @param $serviceId
+     * @param $companyService
+     * @param $carrierId
+     * @param $companyId
+     * @param $companyCustomerId
+     * @param $account
+     * @return mixed
+     */
     public function enableServiceForCustomer($serviceId, $companyService, $carrierId, $companyId, $companyCustomerId, $account)
     {
         $data = [
@@ -279,13 +333,16 @@ class CustomerSetup
             'company_id' => $companyId,
             'company_customer_id' => $companyCustomerId,//Id from Company
             'create_date' => date('Y-m-d'),
-            'ccf_operator'=>'PERCENTAGE',
-            'create_by'=>$companyId,
+            'ccf_operator' => 'PERCENTAGE',
+            'create_by' => $companyId,
             'status' => 1
         ];
         return (CompanyCustomerServicesModel::query()->create($data))->id;
     }
 
+    /**
+     * @param $params
+     */
     public function setupRoute($params)
     {
         $route = [
@@ -309,6 +366,68 @@ class CustomerSetup
             'warehouse_id' => $params->warehouse_id,
         ];
         RoutePostcodeModel::query()->create($rPost);
+    }
+
+    /**
+     * @param $param
+     * @param $customer
+     */
+    public function addCustomerAddress($param, $customer)
+    {
+        $country = CountriesModel::query()
+            ->where('alpha2_code', '=', $param->companyCountry)
+            ->orWhere('alpha3_code', '=', $param->companyCountry)
+            ->first();
+        $billingAddress = [
+            'customer_id' => $customer, 'first_name' => $param->contactName,
+            'last_name' => '', 'contact_no' => $param->companyPhone,
+            'contact_email' => $param->email, 'address_line1' => $param->address_one,
+            'address_line2' => $param->address_two, 'postcode' => $param->companyPost,
+            'city' => $param->companyCity, 'state' => $param->companyState, 'country' => $country->short_name,
+            'iso_code' => $country->alpha3_code, 'latitude' => $this->_warehouse->latitude,
+            'longitude' => $this->_warehouse->longitude,
+            'company_name' => $param->companyName, 'search_string' => '',
+            'is_default_address' => 'N', 'is_warehouse' => 'N',
+            'version_id' => 'version_1',
+            'billing_address' => 'Y', 'name' => $param->contactName,
+            'email' => $param->email, 'phone' => $param->companyPhone,
+            'pickup_address' => 'N', 'country_id' => $country->id
+        ];
+        $billingId = (AddressBookModel::query()->create($billingAddress))->id;
+        $userAdd = [
+            'user_id' => $customer,
+            'address_id' => $billingId,
+            'default_address' => 'N',
+            'pickup_address' => 0,
+            'billing_address' => 1,
+            'warehouse_address' => 'N'
+        ];
+        UserAddressModel::query()->create($userAdd);
+        $pickupAddress = [
+            'customer_id' => $customer, 'first_name' => $param->contactName,
+            'last_name' => '', 'contact_no' => $param->companyPhone,
+            'contact_email' => $param->email, 'address_line1' => $param->address_one,
+            'address_line2' => $param->address_two, 'postcode' => $param->companyPost,
+            'city' => $param->companyCity, 'state' => $param->companyState, 'country' => $country->short_name,
+            'iso_code' => $country->alpha3_code, 'latitude' => $this->_warehouse->latitude,
+            'longitude' => $this->_warehouse->longitude,
+            'company_name' => $param->companyName, 'search_string' => '',
+            'is_default_address' => 'N', 'is_warehouse' => 'N',
+            'version_id' => 'version_1',
+            'billing_address' => 'N', 'name' => $param->contactName,
+            'email' => $param->email, 'phone' => $param->companyPhone,
+            'pickup_address' => 'Y', 'country_id' => $country->id
+        ];
+        $pickupId = (AddressBookModel::query()->create($pickupAddress))->id;
+        $userAdd = [
+            'user_id' => $customer,
+            'address_id' => $pickupId,
+            'default_address' => 'Y',
+            'pickup_address' => 1,
+            'billing_address' => 0,
+            'warehouse_address' => 'N'
+        ];
+        UserAddressModel::query()->create($userAdd);
     }
 
     /**
