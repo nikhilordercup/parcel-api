@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipments_parcel` ADD `package_content` VARCHAR(255) NULL DEFAULT NULL AFTER `package_name`;

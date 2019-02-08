@@ -24,12 +24,10 @@ abstract class PostMenMaster extends Postmen
     const UNKNOWN_ERROR = 4104;
     protected $request = '';
     public static $termOfTrades = array(
-        'DAD' => 'ddu',
-        'DAP' => 'ddu'
+        'DAD' => 'ddp', //Delivery duty paid
+        'DAP' => 'ddu'  //Delivery At place        
     );
-    
-     //Gift  Sale  Purchase   Sample  Repair   Return  Personal Effects
-    
+             
     public static $reasonsOfExport = array(
         'Gift' =>'gift',
         'Sale' =>'merchandise',
@@ -217,24 +215,25 @@ abstract class PostMenMaster extends Postmen
         $payload = array();                                                                        
         $payload['async'] = $async; 
         $payload['is_document'] = $isDocument; 
-        $payload['return_shipment'] = $returnShipment; 
-        $payload['paper_size'] = $others['paper_size']; 
+        $payload['return_shipment'] = $returnShipment;         
+        $payload['paper_size'] = '4x6'; 
         $payload['service_type'] = $others['service_type'];         
         $accountNumber = ( $others['custom_paid_by'] == 'shipper' ) ? $shipperAccountId : $others['account_number'];
         
         $payload['billing'] = array('paid_by'=>$others['paid_by']);
-        $payload['customs'] = array(
+                         
+        if(count($this->request->customs->items) > 0)
+        {
+            $payload['customs'] = array(
             'billing' => array(
                 'paid_by' => $others['custom_paid_by']
             ),
-            'purpose' => $others['purpose']
-        );
-                        
-        if(count($this->request->customs->items) > 0)
-        {
-           $payload['customs']['purpose'] = self::$reasonsOfExport[$this->request->customs->reason_for_export];
-           $payload['customs']['terms_of_trade'] =  self::$termOfTrades[$this->request->customs->terms_of_trade];
-           $payload['customs']['importer_address'] =  $fromAddress;
+                'purpose' => self::$reasonsOfExport[$this->request->customs->reason_for_export]
+            );
+            
+            $payload['customs']['purpose'] = self::$reasonsOfExport[$this->request->customs->reason_for_export];
+            $payload['customs']['terms_of_trade'] =  self::$termOfTrades[$this->request->customs->terms_of_trade];
+            $payload['customs']['importer_address'] =  $fromAddress;
         }                                               
                   
         $payload['shipper_account'] = array(
@@ -250,7 +249,13 @@ abstract class PostMenMaster extends Postmen
                    'currency'=> $others['insurance_detail']['currency']                   
                 )
             );
-        }                      
+        }               
+        $payload['invoice'] = array(
+            'date'   => date('Y-m-d'),
+            'number' => (isset($this->request->loadIdentity)) ? $this->request->loadIdentity : ' ',
+            'type' => (count($this->request->customs->items) > 0 && self::$reasonsOfExport[$this->request->customs->reason_for_export] == 'merchandise') ? 'commercial' : 'proforma',   
+            'number_of_copies' => 2
+        );
         $payload['shipment']['parcels'] = $package;
         $payload['shipment']['ship_from'] = $fromAddress;
         $payload['shipment']['ship_to'] = $toAddress;                

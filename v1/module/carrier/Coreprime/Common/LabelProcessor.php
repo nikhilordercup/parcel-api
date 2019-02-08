@@ -26,11 +26,11 @@ class LabelProcessor
         $app = new \Slim\Slim();
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
-        $labelArr = is_string($label) ? json_decode($label, true) : $label;        
-        $labelArr = $labelArr['label'];  
-		if($labelArr['status']=='error'){
+        $labelArr = is_string($label) ? json_decode($label, true) : $label;          
+		if((isset($labelArr['status'])) && $labelArr['status']=='error'){
 			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
 		}
+        $labelArr = $labelArr['label'];
         if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
@@ -206,6 +206,7 @@ class LabelProcessor
         $response['customs']['tax_status'] = (isset($allData->tax_status) ? $allData->tax_status : '');
         $response['customs']['terms_of_trade'] = (isset($allData->terms_of_trade)) ? $allData->terms_of_trade:'';
         $response['customs']['total_item_value'] = $totalItemValue;
+        $response['customs']['custom_paid_by'] = (isset($allData->custom_paid_by) && $allData->custom_paid_by != '') ? $allData->custom_paid_by : 'recipient';
                                 
         $response['billing_account'] = array(
             "payor_type" => "",
@@ -244,16 +245,7 @@ class LabelProcessor
             'collectionjobnumber'=> (isset($allData->collectionjobnumber) && $allData->collectionjobnumber != '') ? $allData->collectionjobnumber : ''
         );
                                         
-        $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);
-        if($allData->service_opted->collected_by[0]->carrier_code == 'DHL')
-        {
-            if( !$paperLessTrade && ($response['status'] != 'error') && $allData->dutiable ) {
-            $customResp = $this->_getCustomInvoice($allData, $loadIdentity, $response);
-			$response['invoice_created'] = $customResp['invoice_created'];
-            } else {
-                unset($response['label_detail']);
-            }
-        }     
+        $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);     
         return $response;        
     }
 
