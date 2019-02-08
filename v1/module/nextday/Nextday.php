@@ -464,6 +464,7 @@ final class Nextday extends Booking
                         {
 							$services = $this->calculateSurchargesAndBasePrice($services);/**surcharges and base price calculation**/
                             $ratePrice = $services[0]->rate->weight_charge;
+
                             $accountId = isset($this->carrierList[$accountNumber]["account_id"]) ? $this->carrierList[$accountNumber]["account_id"] : $this->carrierList[$accountNumber]["carrier_id"];
                             $serviceCcf = $this->customerccf->calculateServiceCcf($service_code, $ratePrice, $accountId, $this->_param->customer_id, $this->_param->company_id);
                             $services[0]->rate->price = $serviceCcf["price_with_ccf"];
@@ -573,11 +574,14 @@ final class Nextday extends Booking
                                     "account_number" => $this->carrierList[$accountNumber]["account_number"],
                                     "account_id" => $this->carrierList[$accountNumber]["account_id"],
                                     "is_internal" => $this->carrierList[$accountNumber]["internal"]
-                                );
-                                $service->service_info = array(
-                                    "code" => $this->carrierList[$accountNumber]["services"][$service_code]["service_code"],
-                                    "name" => $this->carrierList[$accountNumber]["services"][$service_code]["service_name"]
-                                );
+                                );  
+                                if(isset($this->carrierList[$accountNumber]["services"][$service_code]))
+                                {
+                                    $service->service_info = array( 
+                                        "code" => $this->carrierList[$accountNumber]["services"][$service_code]["service_code"],
+                                        "name" => $this->carrierList[$accountNumber]["services"][$service_code]["service_name"]
+                                    );
+                                }
                             }
                         }
                         else
@@ -642,7 +646,8 @@ final class Nextday extends Booking
                         "height" => $item->height,
                         "dimension_unit" => "CM",
                         "weight" => round($item->weight/$item->quantity,2),
-                        "weight_unit" => "KG"
+                        "weight_unit" => "KG",
+                        "content" => $item->content
                     ));
                     $isDocument = (isset($item->is_document)) ? (($item->is_document && !is_bool($isDocument)) ? "true" : "false") : "false";
                 }
@@ -699,8 +704,9 @@ final class Nextday extends Booking
         $this->_setPostRequest();
 
         if ($this->data["status"] == "success")
-        {
-            $requestStr = json_encode($this->data);
+        { 
+            $requestStr = json_encode($this->data); 
+			//print_r($requestStr);die;
             $responseStr = $this->_postRequest($this->data);
             $response = json_decode($responseStr);
             $response = $this->_getCarrierInfo($response->rate);
@@ -800,8 +806,14 @@ final class Nextday extends Booking
                 }
 
             if ($key == 0) $loadIdentity = $shipmentStatus["shipment_ticket"];
+			$total_weight = 0;
+			$this->_param->LongLength = 'false';	
             foreach($this->_param->parcel as $item)
                 {
+				if($item->length>=140)
+				$this->_param->LongLength = 'true';	
+				$total_weight += $item->weight;
+                $this->_param->parcel_total_weight	= $total_weight;		
                 for ($i = 0; $i < $item->quantity; $i++)
                     {
                     $parcelStatus = $this->_saveParcel($shipmentStatus["shipment_id"], $shipmentStatus["shipment_ticket"], $customerWarehouseId, $this->_param->company_id, $company_code, $item, "P", $loadIdentity);
@@ -826,7 +838,7 @@ final class Nextday extends Booking
             $this->_param->customer_reference2 = (isset($this->_param->customer_reference2)) ? $this->_param->customer_reference2 : "";
             $this->_param->service_opted->collection_carrier->surcharges = isset($this->_param->service_opted->collection_carrier->surcharges) ? $this->_param->service_opted->collection_carrier->surcharges : 0;
             $serviceStatus = $this->_saveShipmentService($this->_param->service_opted, $this->_param->service_opted->collection_carrier->surcharges, $loadIdentity, $this->_param->customer_id, "pending", $otherDetail, $serviceId, $this->_param->customer_reference1, $this->_param->customer_reference2, $this->_param->ismanualbooking, $this->_param->manualbookingreference);
-            $this->_saveInfoReceived($loadIdentity);
+            $this->_saveInfoReceived($loadIdentity); 
             if ($serviceStatus["status"] == "error")
                 {
                 $this->rollBackTransaction();
@@ -922,12 +934,12 @@ final class Nextday extends Booking
 
         
         if (($isInternalCarrier==='YES'))
-        {
+        {                        
             $label_path = "$labelHttpPath/$loadIdentity/$carrier_code/$loadIdentity.pdf";
             $customLabel = new Custom_Label();
             $customLabel->createLabel($loadIdentity,$carrier_code);
             $labelData = array(
-                "label_file_pdf" => $label_path
+                "label_file_pdf" => $label_path                
             );
             $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
             $statusArr = array(
@@ -960,7 +972,7 @@ final class Nextday extends Booking
                 ));
                 return array(
                     "status" => "success",
-                    "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+                    "message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
                     "file_path" => $label_path,
                     "auto_print" => $autoPrint['auto_label_print'],
                     'pickups' => $checkPickupExist,
@@ -980,16 +992,21 @@ final class Nextday extends Booking
 
 
         if(($isInternalCarrier ==='NO') && $this->_param->manualbookingreference=='')
-        {
+        { 
             $labelInfo = $this->getLabelFromLoadIdentity($loadIdentity, $rateDetail, $allData);
             if ($labelInfo['status'] == 'success')
                 {
+                $bkgModel = new \Booking_Model_Booking();
+                $providerInfo = $bkgModel->getProviderInfo('LABEL',ENV,'PROVIDER',$carrier_code);
+                $provider = ($providerInfo['provider'] != NULL) ? $providerInfo['provider']: NULL;
+            
                 $labelData = array(
                     "label_tracking_number" => isset($labelInfo['label_tracking_number']) ? $labelInfo['label_tracking_number'] : '0',
                     "label_files_png" => isset($labelInfo['label_files_png']) ? $labelInfo['label_files_png'] : '',
                     "label_file_pdf" => isset($labelInfo['file_path']) ? $labelInfo['file_path'] : '',
                     "label_json" => isset($labelInfo['label_json']) ? $labelInfo['label_json'] : '',
-					"invoice_created"=>isset($labelInfo['invoice_created']) ? $labelInfo['invoice_created'] : 0
+					"invoice_created"=>isset($labelInfo['invoice_created']) ? $labelInfo['invoice_created'] : 0,
+                    "provider" => $provider
                 );
                 $saveLabelInfo = $this->_saveLabelInfoByLoadIdentity($labelData, $loadIdentity);
 
@@ -1000,7 +1017,7 @@ final class Nextday extends Booking
                 $statusArr = array(
                     "status" => "success"
                 );
-				
+                
 				/*start of update ukmail child account data*/
 				if ((strtolower($carrier_code) == 'ukmail') && (isset($labelInfo['child_account_data']) && count($labelInfo['child_account_data'])>0)){
 				    $this->modelObj->updateChildAccountData("shipment_service",array("accountkey"=>$labelInfo['child_account_data']['child_account_number']),"load_identity='".$loadIdentity."'");
@@ -1018,6 +1035,16 @@ final class Nextday extends Booking
                         $carrierId = $this->_param->service_opted->carrier_info->carrier_id;
                         $collectionDate = date('Y-m-d', strtotime($this->_param->service_opted->collection_carrier->collection_date_time));
                         $checkPickupExist = $this->modelObj->checkExistingPickupForShipment($this->_param->customer_id, $carrierId, $userId, $collectionDate, $searchString, $companyName, $contactName, $loadIdentity);
+                        if($provider == 'Postmen')
+                        {
+                            $labelJsonStr = $labelData['label_json'];
+                            $labelDataArr = json_decode($labelJsonStr);                    
+                            if($labelDataArr->label->collectionstatus == 'created')
+                            {
+                                $checkPickupExist =  array('search' => 1,'assign' => 1);                        
+                            }                                                            
+                        }
+                        
                         }
 
                     Consignee_Notification::_getInstance()->sendNextdayBookingConfirmationNotification(array(
@@ -1037,7 +1064,7 @@ final class Nextday extends Booking
 						$fileUrl = $this->libObj->get_api_url();
 						return array(
 							"status" => "success",
-							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
 							"file_path" => $labelInfo['file_path'],
 							"invoice_file"=>$fileUrl."/label/".$loadIdentity.'/dhl/'.$loadIdentity.'-custom.pdf',
 							"auto_print" => $autoPrint['auto_label_print'],
@@ -1047,7 +1074,7 @@ final class Nextday extends Booking
 					}else{
 						return array(
 							"status" => "success",
-							"message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+							"message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
 							"file_path" => $labelInfo['file_path'],
 							"auto_print" => $autoPrint['auto_label_print'],
 							'pickups' => $checkPickupExist,
@@ -1089,7 +1116,7 @@ final class Nextday extends Booking
             {
             return array(
                 "status" => "success",
-                "message" => "Shipment booked successful. Shipment ticket $loadIdentity",
+                "message" => "Shipment booked successfully. Shipment ticket $loadIdentity",
                 "file_path" => "",
                 "auto_print" => "",
                 'pickups' => "",
@@ -1350,11 +1377,11 @@ final class Nextday extends Booking
         );
     }
 	
-	public function calculateSurchargesAndBasePrice($services){
+	public function calculateSurchargesAndBasePrice($services){ 
 	 foreach($services as $key => $service)
-		{
-			$services[$key]->surcharges = (object)array();
-			if((isset($services[0]->rate->total_tax)) && ($services[0]->rate->total_tax!=0)){			
+		{			
+			if((isset($services[0]->rate->total_tax)) && ($services[0]->rate->total_tax!=0)){
+                $services[$key]->surcharges = (object)array();
 				if(isset($service->rate->fuel_surcharge)){
 					$service->rate->fuel_surcharge = ($service->rate->fuel_surcharge/6)*5;
 					$service->rate->fuel_surcharge = number_format($service->rate->fuel_surcharge,2);
@@ -1391,43 +1418,58 @@ final class Nextday extends Booking
 					$services[$key]->surcharges->over_sized_charge = '';
 				}
 			}else{
-				if(isset($service->rate->fuel_surcharge)){
-					$service->rate->fuel_surcharge = number_format($service->rate->fuel_surcharge,2);
+                
+                if(isset($service->rate->fuel_surcharge))
+                {
+                    $services[$key]->surcharges = (object)array();
+                    
+                    $service->rate->fuel_surcharge = (isset($service->rate->fuel_surcharge)) ? number_format($service->rate->fuel_surcharge,2) : 0 ;
 					$services[$key]->surcharges->fuel_surcharge = $service->rate->fuel_surcharge;
-				}else{
-					$services[$key]->surcharges->fuel_surcharge = '';
-				}
-				if(isset($service->rate->remote_area_delivery)){
-					$service->rate->remote_area_delivery = number_format($service->rate->remote_area_delivery,2);
+                    
+                    $service->rate->remote_area_delivery = (isset($service->rate->remote_area_delivery)) ? number_format($service->rate->remote_area_delivery,2) : '';
 					$services[$key]->surcharges->remote_area_delivery = $service->rate->remote_area_delivery;
-				}else{
-					$services[$key]->surcharges->remote_area_delivery = '';
-				}
-				if(isset($service->rate->insurance_charge)){
-					$service->rate->insurance_charge = number_format($service->rate->insurance_charge,2);
+                    
+                    $service->rate->insurance_charge = ( isset($service->rate->insurance_charge) ) ? number_format($service->rate->insurance_charge,2) : '';
 					$services[$key]->surcharges->insurance_charge = $service->rate->insurance_charge;
-				}else{
-					$services[$key]->surcharges->insurance_charge = '';
-				}
-				if(isset($service->rate->over_weight_charge)){
-					$service->rate->over_weight_charge = number_format($service->rate->over_weight_charge,2);
-					$services[$key]->surcharges->over_weight_charge = $service->rate->over_weight_charge;
-				}else{
-					$services[$key]->surcharges->over_weight_charge = '';
-				}
-				if(isset($service->rate->over_sized_charge)){
-					$service->rate->over_sized_charge = number_format($service->rate->over_sized_charge,2);
-					$services[$key]->surcharges->over_sized_charge = $service->rate->over_sized_charge;
-				}else{
-					$services[$key]->surcharges->over_sized_charge = '';
-				}
+                                        
+                    $service->rate->over_weight_charge = ( isset($service->rate->over_weight_charge) ) ? number_format($service->rate->over_weight_charge,2) : 0;
+					$services[$key]->surcharges->over_weight_charge = $service->rate->over_weight_charge;                                                            
+                }
+                else 
+                {                                                                                                    
+                    $services[$key]->surcharges->fuel_surcharge = (isset($services[$key]->surcharges->fuel_surcharge)) ? $services[$key]->surcharges->fuel_surcharge : 0;                                                            
+                    $services[$key]->surcharges->remote_area_delivery = (isset($services[$key]->surcharges->remote_area_surcharge)) ? $services[$key]->surcharges->remote_area_surcharge : '';
+                    $services[$key]->surcharges->insurance_charge = (isset($services[$key]->surcharges->insurance_charge)) ? $services[$key]->surcharges->insurance_charge : '';
+                    $services[$key]->surcharges->over_weight_charge = (isset($services[$key]->surcharges->overweight_surcharge)) ? $services[$key]->surcharges->overweight_surcharge : '';                                        
+                }                								
 			}
+			  
+            $fuel_surcharge = isset($service->rate->fuel_surcharge) ? (float)$service->rate->fuel_surcharge : 0;
+            $remote_area_delivery = isset($service->rate->remote_area_delivery) ? (float)$service->rate->remote_area_delivery : 0;
+            $insurance_charge = isset($service->rate->insurance_charge) ? (float)$service->rate->insurance_charge : 0;
+            $over_weight_charge = isset($service->rate->over_weight_charge) ? (float)$service->rate->over_weight_charge : 0;
+
+            if(isset($service->rate->fuel_surcharge)) 
+            {              
+                $weight_charge = isset($service->rate->weight_charge) ? (float)$service->rate->weight_charge:0;
+                $totalTax = isset($service->rate->total_tax) ? (float)$service->rate->total_tax : 0;
+                $total_surcharge = isset($service->rate->total_surcharge) ? (float)$service->rate->total_surcharge : 0;                
+            } 
+            else 
+            {                               
+                $weight_charge = isset($service->rate->price) ? (float)$service->rate->price : 0; 
+                $totalTax = isset($service->taxes->total_tax) ? (float)$service->taxes->total_tax : 0;                
+                $total_surcharge = $fuel_surcharge + $remote_area_delivery + $insurance_charge + $over_weight_charge;   $total_surcharge = 0;                              
+            }
+            
+			$service->rate->total_surcharge = $fuel_surcharge + $remote_area_delivery + $insurance_charge + $over_weight_charge;
+			$service->rate->weight_charge_with_tax = $weight_charge;
+			$service->rate->weight_charge = $weight_charge;
 			
-			$service->rate->total_surcharge = @$service->rate->fuel_surcharge + @$service->rate->remote_area_delivery + @$service->rate->insurance_charge + @$service->rate->over_weight_charge + @$service->rate->over_sized_charge;
-			$service->rate->weight_charge_with_tax = $service->rate->weight_charge;
-			$service->rate->weight_charge = $service->rate->weight_charge - ($service->rate->total_surcharge + @$service->rate->total_tax);
-		}	
+		}
+        
 		return $services;
 	}
 }
+
 ?>

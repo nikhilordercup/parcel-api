@@ -238,6 +238,7 @@ final class Nextday extends Booking
                                 {
                                     $surchargeWithCcfPrice = 0;
                                     $surchargePrice = 0;
+                                  
                                     if (isset($service->surcharges))
                                     {
                                         foreach($service->surcharges as $surcharge_code => $surcharge_price)
