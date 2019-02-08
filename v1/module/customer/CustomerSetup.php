@@ -27,6 +27,7 @@ use v1\module\Database\Model\DriverVehicleModel;
 use v1\module\Database\Model\RouteLocalityModel;
 use v1\module\Database\Model\RouteModel;
 use v1\module\Database\Model\RoutePostcodeModel;
+use v1\module\Database\Model\ServiceFlowTypeModel;
 use v1\module\Database\Model\UserAddressModel;
 use v1\module\Database\Model\UsersModel;
 use v1\module\Database\Model\VehicleCategoryMasterModel;
@@ -46,7 +47,7 @@ class CustomerSetup
      */
     public function setupStepOne($params)
     {
-        $this->_warehouse = CompanyWarehouseModel::query()->where('company_id', '=', $params->company_id)->first();
+        $this->_warehouse = CompanyWarehouseModel::query()->with('warehouse')->where('company_id', '=', $params->company_id)->first();
         $customer = $this->setDefaultCustomer($params);
         $carrier = $this->addCarrier($params);
         $account = $this->addCarrierAccount($carrier, $params);
@@ -71,7 +72,7 @@ class CustomerSetup
             $company = UsersModel::query()->where('id', '=', $param->company_id)->first();
             $data = [
                 'parent_id' => $param->company_id,
-                'name' => $param->companyName,
+                'name' => $param->contactName,
                 'contact_name' => $param->contactName,
                 'phone' => $param->companyPhone,
                 'email' => 'default' . $param->company_id . 'customer@gmail.com',
@@ -231,6 +232,11 @@ class CustomerSetup
         $sameDayId = (CarrierServicesModel::query()->create($sameDayService))->id;
         $companyServiceId = $this->enableServicesForCompany($sameDayId, $account, $params->company_id);
         $this->enableServiceForCustomer($sameDayId, $companyServiceId, $carrierId, $params->company_id, $customer, $account);
+        ServiceFlowTypeModel::query()->create([
+            'service_id' => $sameDayId,
+            'account_number' => 'blank',
+            'flow_type' => 'Domestic'
+        ]);
         $nextDayService = [
             'courier_id' => $carrierId,
             'service_name' => $params->companyName,
@@ -245,11 +251,12 @@ class CustomerSetup
         $nextDayId = (CarrierServicesModel::query()->create($nextDayService))->id;
         $companyServiceId = $this->enableServicesForCompany($nextDayId, $account, $params->company_id);
         $this->enableServiceForCustomer($nextDayId, $companyServiceId, $carrierId, $params->company_id, $customer, $account);
-
+        ServiceFlowTypeModel::query()->create([
+            'service_id' => $nextDayId,
+            'account_number' => 'blank',
+            'flow_type' => 'Domestic'
+        ]);
         return [0 => $sameDayId, 1 => $nextDayId];
-//        } else {
-//            return [];
-//        }
     }
 
     /**
@@ -384,8 +391,8 @@ class CustomerSetup
             'contact_email' => $param->email, 'address_line1' => $param->address_one,
             'address_line2' => $param->address_two, 'postcode' => $param->companyPost,
             'city' => $param->companyCity, 'state' => $param->companyState, 'country' => $country->short_name,
-            'iso_code' => $country->alpha3_code, 'latitude' => $this->_warehouse->latitude,
-            'longitude' => $this->_warehouse->longitude,
+            'iso_code' => $country->alpha3_code, 'latitude' => $this->_warehouse->warehouse->latitude,
+            'longitude' => $this->_warehouse->warehouse->longitude,
             'company_name' => $param->companyName, 'search_string' => '',
             'is_default_address' => 'N', 'is_warehouse' => 'N',
             'version_id' => 'version_1',
@@ -409,8 +416,8 @@ class CustomerSetup
             'contact_email' => $param->email, 'address_line1' => $param->address_one,
             'address_line2' => $param->address_two, 'postcode' => $param->companyPost,
             'city' => $param->companyCity, 'state' => $param->companyState, 'country' => $country->short_name,
-            'iso_code' => $country->alpha3_code, 'latitude' => $this->_warehouse->latitude,
-            'longitude' => $this->_warehouse->longitude,
+            'iso_code' => $country->alpha3_code, 'latitude' => $this->_warehouse->warehouse->latitude,
+            'longitude' => $this->_warehouse->warehouse->longitude,
             'company_name' => $param->companyName, 'search_string' => '',
             'is_default_address' => 'N', 'is_warehouse' => 'N',
             'version_id' => 'version_1',
