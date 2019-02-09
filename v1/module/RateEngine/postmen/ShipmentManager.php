@@ -165,6 +165,13 @@ class ShipmentManager extends PostMenMaster
                  */
                 $rate->shipper_account->slug = strtoupper($rate->shipper_account->slug);
                 if(!$rate->booking_cut_off){continue;}
+                               
+                /**
+                 * If postmen do not return rate for picked collection date then remove it from list
+                 */
+                if(strtotime($rate->pickup_deadline) < strtotime($this->request->ship_date))
+                {continue;}
+                
                 if(in_array($rate->service_type, $notSupportdRates)){ continue;}                 
                 $innerRate = array();
                 $innerRate['rate']['id'] = '';
