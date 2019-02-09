@@ -479,7 +479,7 @@ class Module_Coreprime_Api extends Icargo
             }
         }
 
-        $data_string = json_encode($data);
+        $data_string = json_encode($data); //echo $data_string;die;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
@@ -496,7 +496,7 @@ class Module_Coreprime_Api extends Icargo
     
     public function postToRateEngineUrl($url, $data)
     {                
-        $data_string = json_encode($data);
+        $data_string = json_encode($data); //echo $data_string;die;
         $ch = curl_init($url);        
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);

@@ -647,7 +647,7 @@ final class Nextday extends Booking
                         "dimension_unit" => "CM",
                         "weight" => round($item->weight/$item->quantity,2),
                         "weight_unit" => "KG",
-                        "content" => $item->content
+                        "content" => isset($item->content) ? $item->content : ''
                     ));
                     $isDocument = (isset($item->is_document)) ? (($item->is_document && !is_bool($isDocument)) ? "true" : "false") : "false";
                 }

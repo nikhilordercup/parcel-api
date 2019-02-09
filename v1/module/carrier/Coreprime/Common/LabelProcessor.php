@@ -27,10 +27,10 @@ class LabelProcessor
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
         $labelArr = is_string($label) ? json_decode($label, true) : $label;          
+        $labelArr = $labelArr['label'];
 		if((isset($labelArr['status'])) && $labelArr['status']=='error'){
 			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
 		}
-        $labelArr = $labelArr['label'];
         if ($labelArr['tracking_number'] != "") {
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
