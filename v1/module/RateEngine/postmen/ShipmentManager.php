@@ -163,7 +163,15 @@ class ShipmentManager extends PostMenMaster
                  *  There were two rate with same date and amount 
                     but for one booking cut off time was NULL and it's transit time was minimum                 
                  */
+                $rate->shipper_account->slug = strtoupper($rate->shipper_account->slug);
                 if(!$rate->booking_cut_off){continue;}
+                               
+                /**
+                 * If postmen do not return rate for picked collection date then remove it from list
+                 */
+                if(strtotime($rate->pickup_deadline) < strtotime($this->request->ship_date))
+                {continue;}
+                
                 if(in_array($rate->service_type, $notSupportdRates)){ continue;}                 
                 $innerRate = array();
                 $innerRate['rate']['id'] = '';
@@ -334,8 +342,8 @@ class ShipmentManager extends PostMenMaster
 
 
     public function createLabelAction($request)
-    {               
-        $this->request = $request; 
+    {        
+        $this->request = $request;  
         $fromAddress = $this->convertAddress($request->from);                
         $toAddress = $this->convertAddress($request->to);                            
         $package = $this->packagesToOrder($request->package,$request->currency);                                        
@@ -353,11 +361,22 @@ class ShipmentManager extends PostMenMaster
                                              
         $shipperAccountId = $shipper_accounts['id'];                                    
         $others = array();
-        $others['paid_by'] = 'shipper';
+        $others['paid_by'] = 'shipper';                        
         $others['custom_paid_by'] = 'recipient';
-        $others['account_number'] = (isset($request->billing_account->billing_account) && $request->billing_account->billing_account != '') ? $request->billing_account->billing_account : ''; 
-        $others['type'] = 'account';
-        $others['purpose'] = 'merchandise';        
+        if(isset($this->request->customs))
+        { 
+            if($this->request->customs->terms_of_trade == 'DAP')
+            {
+                $others['custom_paid_by'] = 'recipient';
+            }
+            if($this->request->customs->terms_of_trade == 'DAD')
+            {
+                $others['custom_paid_by'] = 'shipper';
+            }
+        }
+        
+        $others['account_number'] = (isset($request->billing_account->billing_account) && $request->billing_account->billing_account != '') ? $request->billing_account->billing_account : $shipperAccountId; 
+        $others['type'] = 'account';        
         $others['currency'] = $request->currency;        
         $directlyCallForPostmen = ($request->directlyCallForPostmen == "false") ? FALSE : TRUE;        
         $serviceDetail = $this->getServiceCodeMapped($request->service,$directlyCallForPostmen); // ui se false api se true  
@@ -381,7 +400,7 @@ class ShipmentManager extends PostMenMaster
         $payload = $this->buildCreateLabelRequest($fromAddress, $toAddress, $package, $shipperAccountId,$others, $isDocument, $returnShipment,FALSE);                                                
         try 
         {   
-            $labelResponse = $this->createLabel($payload);                         
+            $labelResponse = $this->createLabel($payload);                        
             if($labelResponse)
             { 
                 $this->formatCreateLabelResponse($labelResponse);
@@ -410,7 +429,7 @@ class ShipmentManager extends PostMenMaster
         $tracking_numbers = implode(',', $labelResponse->tracking_numbers);
         $this->responseData['label']['id'] = $labelResponse->id;
         $this->responseData['label']['tracking_number'] = $tracking_numbers;                        
-        $this->responseData['label']['file_url'] = $labelResponse->files->label->url;
+        $this->responseData['label']['file_url'] = $labelResponse->files->label->url;                        
         $this->responseData['label']['total_cost'] = $labelResponse->rate->total_charge->amount;
         $this->responseData['label']['weight_charge'] = $labelResponse->rate->charge_weight->value;
         $this->responseData['label']['fuel_surcharge'] = 0;
@@ -424,6 +443,12 @@ class ShipmentManager extends PostMenMaster
         $this->responseData['label']['chargeable_weight '] = '';
         $this->responseData['label']['service_area_code '] = '';                                                    
         $this->responseData['label']['base_encode'] = chunk_split(base64_encode(file_get_contents($labelResponse->files->label->url)));
+        
+        if(isset($labelResponse->files->invoice))
+        {
+            $this->responseData['label']['invoice_file_url'] = $labelResponse->files->invoice->url;
+            $this->responseData['label']['invoice_base_encode'] = chunk_split(base64_encode(file_get_contents($labelResponse->files->invoice->url)));
+        }
         return;
     }
 
@@ -461,8 +486,10 @@ class ShipmentManager extends PostMenMaster
                 $tempErrors[] = $error->info;
             }                                
         }            
+        $this->responseData['status'] = 'error';        
+        $this->responseData['message'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error';
         $this->responseData['errorCode'] = PostMenMaster::UNKNOWN_ERROR;
-        $this->responseData['errorMessage'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error'; 
+        $this->responseData['errorMessage'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error';          
         return $this->responseData;
     }
 
@@ -748,14 +775,14 @@ class ShipmentManager extends PostMenMaster
         return $res->alpha2_code;
     }
     
-     public function createAndSavePdf($request)
+    public function createAndSavePdf($request)
     {        
-        $labelArr = $this->responseData;          
+        $labelArr = $this->responseData;                  
         if( isset($labelArr['label']) ) 
         {
             $libObj = new \Library();
-            $pdf_base64 = $labelArr['label']['base_encode'];
-            $labels = explode(",", $labelArr['label']['file_url']);                        
+            $pdf_base64 = $labelArr['label']['base_encode'];            
+            $labels = explode(",", $labelArr['label']['file_url']);                                        
             $label_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/label/';                                                                        
             $loadIdentity = $request->loadIdentity;
             $carrier = strtolower($request->carrier);          
@@ -767,7 +794,24 @@ class ShipmentManager extends PostMenMaster
                 $data = base64_decode($pdf_base64);
                 file_put_contents($file_name, $data);
                 header('Content-Type: application/pdf');
-            }            
+            }    
+            
+            $invoice_created = 0;
+            if(isset($labelArr['label']['invoice_file_url']))
+            {                
+                $invoice_pdf_base64 = $labelArr['label']['invoice_base_encode'];
+                $invoices = explode(",", $labelArr['label']['invoice_file_url']); 
+                foreach ($invoices as $dataFile) {                
+                    $dataFile = $loadIdentity.'-custom'.'.pdf';                
+                    $inv_file_name = $label_path . $loadIdentity .'/'.$carrier.'/'. $dataFile;
+                    $inv_data = base64_decode($invoice_pdf_base64);
+                    file_put_contents($inv_file_name, $inv_data);
+                    header('Content-Type: application/pdf');
+                }
+                
+                $invoice_created = 1;
+            }
+                        
             $fileUrl = $libObj->get_api_url();
             unset($labelArr['label']['base_encode']);
             $res =  array(
@@ -778,7 +822,8 @@ class ShipmentManager extends PostMenMaster
                     "tracking_number"=>$labelArr['label']['tracking_number'],
                     "label_files_png" => '',
                     "label_json" =>json_encode($labelArr),
-                    "callFromPostmen" =>"true"
+                    "callFromPostmen" =>"true",
+                    "invoice_created" => $invoice_created
             );  
            return $res;
         }        
