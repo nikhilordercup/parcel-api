@@ -205,8 +205,8 @@ class LabelProcessor
         $response['customs']['export_type'] = (isset($allData->export_type) ? $allData->export_type : '');
         $response['customs']['tax_status'] = (isset($allData->tax_status) ? $allData->tax_status : '');
         $response['customs']['terms_of_trade'] = (isset($allData->terms_of_trade)) ? $allData->terms_of_trade:'';
-        $response['customs']['total_item_value'] = $totalItemValue;
-        $response['customs']['custom_paid_by'] = (isset($allData->custom_paid_by) && $allData->custom_paid_by != '') ? $allData->custom_paid_by : 'recipient';
+        $response['customs']['total_item_value'] = $totalItemValue;        
+        $response['customs']['isDutiable'] = $allData->dutiable;
                                 
         $response['billing_account'] = array(
             "payor_type" => "",

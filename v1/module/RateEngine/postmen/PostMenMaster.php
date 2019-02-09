@@ -90,9 +90,16 @@ abstract class PostMenMaster extends Postmen
     
     public function convertPackage($package,$currency)
     {                
-        $total_item_value = (isset($this->request->customs)) ? $this->request->customs->total_item_value : 0.01;
+        $total_item_value = (isset($this->request->customs) && $this->request->customs->isDutiable) ? $this->request->customs->total_item_value : ((isset($this->request->insurance)) ? $this->request->insurance->value : 0.01);
         $per_parcel_rate = $total_item_value/count($this->request->package);
-               
+        
+        $origin_country = ''; 
+        if(isset($this->request->customs) && $this->request->customs->isDutiable)
+        {
+            $cItems = $this->request->customs->items; 
+            $origin_country =  $cItems[0]->country_of_origin->alpha3_code; 
+        }
+                
         $finalPackage = [];
         $finalPackage['description'] = (isset($package->content)  && $package->content != '') ? $package->content : 'NA';
         $finalPackage['box_type'] = ($package->packaging_type == 'CP') ? 'custom' : 'custom';
@@ -106,7 +113,8 @@ abstract class PostMenMaster extends Postmen
             'depth'=> (float)$package->length,
             'unit'=> strtolower($package->dimension_unit)
         );        
-        $finalPackage['items'][] = array(
+        
+        $item = array(
             'description' => (isset($package->content)  && $package->content != '' ) ? $package->content : 'NA',
             'quantity' => 1,
             'price' => array(
@@ -116,8 +124,14 @@ abstract class PostMenMaster extends Postmen
             'weight' => array(
                 'value'=>   (float)$package->weight,
                 'unit'=>   strtolower($package->weight_unit)
-            )
-        );                                                 
+            )            
+        );
+        
+        if($origin_country != '')
+        {
+            $item['origin_country'] = $origin_country;
+        }                
+        $finalPackage['items'][] = $item;                              
         return $finalPackage;
     }
     
@@ -221,21 +235,18 @@ abstract class PostMenMaster extends Postmen
         $accountNumber = ( $others['custom_paid_by'] == 'shipper' ) ? $shipperAccountId : $others['account_number'];
         
         $payload['billing'] = array('paid_by'=>$others['paid_by']);
-                         
-        if(count($this->request->customs->items) > 0)
-        {
-            $payload['customs'] = array(
+                    
+        $payload['customs'] = array(
             'billing' => array(
                 'paid_by' => $others['custom_paid_by']
             ),
-                'purpose' => self::$reasonsOfExport[$this->request->customs->reason_for_export]
-            );
-            
-            $payload['customs']['purpose'] = self::$reasonsOfExport[$this->request->customs->reason_for_export];
-            $payload['customs']['terms_of_trade'] =  self::$termOfTrades[$this->request->customs->terms_of_trade];
-            $payload['customs']['importer_address'] =  $fromAddress;
-        }                                               
-                  
+            'purpose' => ($this->request->customs->reason_for_export != '') ? self::$reasonsOfExport[$this->request->customs->reason_for_export]: 'merchandise'
+        );
+
+        $payload['customs']['purpose'] = ($this->request->customs->reason_for_export != '') ? self::$reasonsOfExport[$this->request->customs->reason_for_export]: 'merchandise';
+        $payload['customs']['terms_of_trade'] = ($this->request->customs->isDutiable) ? self::$termOfTrades[$this->request->customs->terms_of_trade] : 'ddu';
+        $payload['customs']['importer_address'] =  $fromAddress;                                               
+                                                                      
         $payload['shipper_account'] = array(
             'id'=>$shipperAccountId            
         );                        
@@ -249,13 +260,17 @@ abstract class PostMenMaster extends Postmen
                    'currency'=> $others['insurance_detail']['currency']                   
                 )
             );
-        }               
-        $payload['invoice'] = array(
-            'date'   => date('Y-m-d'),
-            'number' => (isset($this->request->loadIdentity)) ? $this->request->loadIdentity : ' ',
-            'type' => (count($this->request->customs->items) > 0 && self::$reasonsOfExport[$this->request->customs->reason_for_export] == 'merchandise') ? 'commercial' : 'proforma',   
-            'number_of_copies' => 2
-        );
+        }              
+        
+        if($this->request->customs->isDutiable)
+        {
+            $payload['invoice'] = array(
+                'date'   => date('Y-m-d'),
+                'number' => (isset($this->request->loadIdentity)) ? $this->request->loadIdentity : ' ',
+                'type' => ($this->request->customs->isDutiable && self::$reasonsOfExport[$this->request->customs->reason_for_export] == 'merchandise') ? 'commercial' : 'proforma',   
+                'number_of_copies' => 2
+            );
+        }
         $payload['shipment']['parcels'] = $package;
         $payload['shipment']['ship_from'] = $fromAddress;
         $payload['shipment']['ship_to'] = $toAddress;                
