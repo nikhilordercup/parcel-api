@@ -608,6 +608,7 @@ final class Nextday extends Booking
             "zip" => $item->postcode,
             "country" => $item->country->alpha2_code,
             "country_name" => $item->country->short_name,
+			"address_type" => (isset($item->address_type) && $item->address_type=='Residential') ? 'Residential' : 'Business',
 			"is_res" => (isset($item->address_type) && $item->address_type=='Residential') ? true : false,
 
         );

@@ -121,6 +121,10 @@
 			 if(isset($arr->phone))
                  array_push($temp, $arr->phone);
 			 
+			 if(isset($arr->address_type))
+                 array_push($temp, $arr->address_type);
+			 
+			 
              $addressString = implode("", $temp);
 
 			       return strtolower(preg_replace('/\s+/','',$addressString));
