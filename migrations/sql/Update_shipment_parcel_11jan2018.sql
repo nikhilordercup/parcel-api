@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_shipments_parcel` ADD `parcel_row_id` INT NULL DEFAULT'0' COMMENT 'rows of package type chosen from nextday booking screen' AFTER`package_name`;  

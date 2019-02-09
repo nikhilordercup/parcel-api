@@ -11,6 +11,9 @@ public function getallinvoice($param){
 		$invoiceData = $this->modelObj->getAllInvoiceByCustomerId($param->warehouse_id,$param->company_id,$param->customer_id);
 	else
 		$invoiceData = $this->modelObj->getAllInvice($param->warehouse_id,$param->company_id);
+	for ($i =0; $i< count($invoiceData); $i++ ){
+		$invoiceData[$i]['download_path']= Library::_getInstance()->get_api_url().'assets/outputpdf/'.$invoiceData[$i]['incoice_pdf'];
+		}
 	return $invoiceData;
    }
 public function createInvoice($param){

@@ -22,11 +22,8 @@ Class Carrier_Coreprime_Request{
 
 
 
-    Public
-
-    function _postRequest($url, $data_string){
-        //$this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";
-		$this->apiConn = 'live'; 
+    public function _postRequest($url, $data_string){
+        $this->apiConn = ( ENV == 'live' ) ? ENV : "stagging";
 		
         $this->authorization_token = $this->_environment[$this->apiConn]["authorization_token"];
         $this->access_url = $this->_environment[$this->apiConn]["access_url"];
@@ -34,7 +31,7 @@ Class Carrier_Coreprime_Request{
         return $this->_send($url, $data_string);
     }
 
-    private function _send($url, $data_string){
+    private function _send($url, $data_string){ 
         $url = "$this->access_url/$url";
         //print_r($url);die;
         //echo $data_string;die;
@@ -54,4 +51,30 @@ Class Carrier_Coreprime_Request{
         curl_close ($ch);
         return $server_output;
     }
+    
+    public function filterServiceProvider($data)
+    { 
+        $env = 'DEV';        
+        if (ENV == 'live') 
+        {
+            $env = 'PROD';
+        }        
+        $callType = 'LABEL';        
+        $rateEngModel = new \v1\module\RateEngine\RateEngineModel();
+        $providerList = $rateEngModel->getProviderInfo($callType, $env);                
+        $this->_endpoints = $providerList;         
+        $filteredData = [];        
+        if(count($providerList) > 0)
+        {
+            foreach ($providerList as $p) 
+            {
+                if ($p['code'] ==  $data->carrier)
+                {
+                    $filteredData[$p['provider']] = $p;
+                }
+            }
+        }        
+        return $filteredData;
+    }
+
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_routes` CHANGE `allowed_drops` `allowed_drops` INT(11) NULLDEFAULT '200';  

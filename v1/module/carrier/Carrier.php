@@ -8,7 +8,8 @@ class Carrier{
 	public function __construct(){
         $this->modelObj = new Booking_Model_Booking();
     }
-	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){
+	
+	/* public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){
 		$carrierObj = null;
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
@@ -19,7 +20,6 @@ class Carrier{
         }else{
             $coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
         }
-
 		$carrierObj = new $coreprimeCarrierClass($this);
 
 		if( strtolower($deliveryCarrier) == 'dhl' ) {
@@ -28,6 +28,42 @@ class Carrier{
 			$shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$allData);
 		}
 
+		if( $shipmentInfo['status'] == 'success' ) {
+			$invoice_created = (isset($shipmentInfo['invoice_created'])) ? $shipmentInfo['invoice_created'] : 0;
+			if(isset($shipmentInfo['child_account_data'])){
+				return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json'],"child_account_data"=>$shipmentInfo['child_account_data'],'invoice_created'=>$invoice_created);
+			}else{
+				return array("status"=>"success","file_path"=>$shipmentInfo['file_path'],"label_tracking_number"=>$shipmentInfo['label_tracking_number'],"label_files_png"=>$shipmentInfo['label_files_png'],"label_json"=>$shipmentInfo['label_json'],'invoice_created'=>$invoice_created);
+			}
+			
+		} else {
+			return array("status"=>$shipmentInfo['status'],"message"=>$shipmentInfo['message']);
+		}
+	} */
+	
+	public function getShipmentInfo($loadIdentity, $rateDetail, $allData = array()){
+		$carrierObj = null;
+		$response = array();
+		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
+		$deliveryCarrier = $shipmentInfo['carrier_code']; 
+        $providerInfo = $this->modelObj->getProviderInfo('LABEL',ENV,'PROVIDER',$shipmentInfo['carrier_code']); //to check provider and endpoint of carrier        
+        global $_GLOBAL_CONTAINER;
+        if($providerInfo!=''){
+			if($providerInfo['endpoint']=='Coreprime'){
+				$coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
+			}else{ 
+				$coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
+				$allData->providerInfo = array(
+						'provider' => $providerInfo['provider'],
+						'endPointUrl' => $providerInfo['label_endpoint'], //url to hit rate api controller
+					);
+			}
+		}else{
+			$coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier)); //if provider/endpoint configuration is not set in DB by default for ukmail/dhl it will hit to coreprime
+		}
+		
+		$carrierObj = new $coreprimeCarrierClass($this); 
+        $shipmentInfo = $carrierObj->getShipmentDataFromCarrier($loadIdentity,$rateDetail,$allData);
 		if( $shipmentInfo['status'] == 'success' ) {
 			$invoice_created = (isset($shipmentInfo['invoice_created'])) ? $shipmentInfo['invoice_created'] : 0;
 			if(isset($shipmentInfo['child_account_data'])){
@@ -205,30 +241,18 @@ class Carrier{
     }
 
 	/*****start of cancelling shipment from shipment grid*******/
-	public function cancelShipmentByLoadIdentity($param){
+	public function cancelShipmentByLoadIdentity($credentialData,$param){
 		$obj = new Carrier_Coreprime_Request();
 		$requestArr = array();
-		$labelInfo = $this->getLabelByLoadIdentity($param->load_identity);
-		//$shipmentInfo = $this->modelObj->getShipmentDataByLoadIdentity($param->load_identity);
-		if( isset($labelInfo[0]['label_json']) && $labelInfo[0]['label_json'] != '' ){
-			$labelArr = json_decode($labelInfo[0]['label_json']);
-			
-			//get credentials for child account
-			if($labelInfo[0]['accountkey']!=$labelInfo[0]['parent_account_key'])
-				$credentialData = $this->modelObj->getCredentialDataForChildAccount($labelArr->label->accountnumber);
-			else //get credentials for parent account
-				$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
 
-			$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>'','token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
-            //$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>$labelArr->label->authenticationtoken,'token'=> $credentialData["token"],'account_number'=>$labelArr->label->accountnumber); 
+		$requestArr['credentials'] = array('username'=>$credentialData["username"],'password'=>$credentialData["password"],'authentication_token'=>'','token'=> $credentialData["token"],'account_number'=>$credentialData["accountnumber"]);  
 
-			$requestArr['carrier'] = strtolower($param->carrier);
-			$requestArr['tracking_number'] = $labelArr->label->tracking_number;
-			$requestArr['carrier_cancel_return'] = false;
-			$requestArr['ship_date'] = $param->ship_date;
-			$cancel = $obj->_postRequest("void",json_encode($requestArr));
-			return $cancel;
-		}
+		$requestArr['carrier'] = strtolower($param->carrier);
+		$requestArr['tracking_number'] = $credentialData["tracking_number"];
+		$requestArr['carrier_cancel_return'] = false;
+		$requestArr['ship_date'] = $param->ship_date;
+		$cancel = $obj->_postRequest("void",json_encode($requestArr));
+		return $cancel;
 
 	}
 	/*****end of cancelling shipment from shipment grid*******/

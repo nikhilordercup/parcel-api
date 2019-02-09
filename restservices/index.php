@@ -1,6 +1,289 @@
-<?php //error_reporting(E_ALL);
+<?php
+/*error_reporting(E_ALL);
+ini_set("display_errors", 1);
+ini_set('date.timezone', 'Europe/London');
+
+//date_default_timezone_set('UTC');
+
+require_once 'constant.php';
+require_once '../Credentials.php';
+require_once 'passwordHash.php';
+require_once 'array_column.php';
+//require '.././libs/Slim/Slim.php';
+require '../vendor/autoload.php';
+require_once 'dbHandler.php';
+\Slim\Slim::registerAutoloader();
+
+use Firebase\JWT\JWT;
+
+$app = new \Slim\Slim();
+$app->config('debug', true);
+
+// User id from db - Global Variable
+$user_id = NULL;
+require_once 'library.php';
+require_once 'module/base/icargo.php';
+require_once 'authentication.php';
+
+require_once 'dashboard.php';
+require_once 'controller.php';
+require_once 'driver.php';
+require_once 'route.php';
+require_once 'vehicle.php';
+
+//validate and beautify postcode
+require_once 'postcode.php';
+
+
+
+
+require_once 'module/configuration/GridConfiguration.php';
+require_once 'module/configuration/CustomFilterConfiguration.php';
+require_once 'module/driver/DriverController.php';
+require_once './module/chargebee/SubscriptionController.php';
+
+
+//Dashboard
+require_once 'module/dashboard/dashboard.php';
+require_once 'module/dashboard/dashboard-api.php';
+//End Dashboard
+
+
+require_once 'module/ukmail_tracking/src/Constant.php';
+require_once 'module/ukmail_tracking/src/UkMailTracking.php';
+require_once 'api.php';
+require_once 'common.php';
+require_once 'default-form.php';
+require_once 'dev.test.php';
+require_once 'module/route/complete.php';
+require_once 'module/route/model/complete.php';
+
+
+
+require_once 'module/shipment/model/shipment.php';
+require_once 'module/shipment/save.php';
+require_once 'module/shipment/load-shipments.php';
+require_once 'module/shipment/load-assign.php';
+require_once 'module/shipment/view-support.php';
+require_once 'module/shipment/optimize.php';
+require_once 'module/shipment/load-route-details.php';
+require_once 'module/shipment/Shipment_Sameday_Release.php';
+require_once 'module/shipment/Route_Release.php';
+
+require_once 'module/company/company.php';
+require_once 'module/company/setup.php';
+require_once 'module/ws/idriver.php';
+
+require_once 'module/push_notification/Push_Notification_Index.php';
+
+require_once 'module/firebase/model/rest.php';
+require_once 'module/firebase/Firebase.php';
+require_once 'module/firebase/Firebase_Api.php';
+require_once 'module/firebase/Firebase_Shipment_Withdraw_From_Route.php';
+require_once 'module/firebase/Firebase_Shipment_Deliver_From_Route.php';
+require_once 'module/firebase/route-accept.php';
+require_once 'module/firebase/Firebase_Route_Assign.php';
+require_once 'module/firebase/Firebase_Withdraw_Route.php';
+require_once 'module/firebase/Firebase_User_Management.php';
+require_once 'module/firebase/User_Management.php';
+require_once 'module/firebase/model/Model.php';
+
+require_once 'module/firebase/route-release.php';
+
+
+//require_once 'module/carrier/customer.php';
+require_once 'module/google/api.php';
+require_once 'module/coreprime/api.php';
+require_once 'module/coreprime/model/api.php';
+require_once 'module/addressbook/addressbook.php';
+require_once 'module/import/Profile.php';
+require_once 'module/configuration/FormConfiguration.php';
+require_once 'module/customer/customer.php';
+require_once 'module/customer/model/customer.php';
+
+require_once 'module/master/master.php';
+require_once 'module/configuration/ConfigurationManager.php';
+
+require_once 'module/allshipment/allshipments.php';
+require_once 'module/allshipment/model/allshipments.php';
+
+require_once 'module/settings/settings.php';
+require_once 'module/settings/model/settings.php';
+require_once 'module/invoice/invoice.php';
+require_once 'module/invoice/model/invoice.php';
+require_once 'module/voucher/voucher.php';
+require_once 'module/voucher/model/voucher.php';
+
+require_once 'module/webevent/index.php';
+require_once 'module/webevent/model/index.php';
+
+require_once 'module/notification/index.php';
+require_once 'module/notification/model/index.php';
+
+require_once 'module/notification/Consignee_Notification.php';
+require_once 'module/notification/Notification_Email.php';
+require_once 'module/quotation/quotation.php';
+require_once 'module/report/report.php';
+
+require_once 'module/carrier/Environment.php';
+require_once 'module/carrier/model/carrier.php';
+require_once 'module/carrier/CustomerCostFactor.php';
+
+require_once 'module/booking/model/Booking.php';
+require_once 'module/booking/Shipment.php';
+require_once 'module/booking/Booking.php';
+
+require_once 'module/carrier/Carrier.php';
+require_once 'module/carrier/Coreprime/Ukmail/Ukmail.php';
+require_once 'module/carrier/Coreprime/Dhl/Dhl.php';
+require_once 'module/nextday/Nextday.php';
+require_once 'module/pickup/Pickup.php';
+
+require_once 'module/allshipment/allshipments.php';
+require_once 'module/allshipment/model/allshipments.php';
+
+require_once 'module/shipment/shipment_tracking.php';
+
+require_once 'Pod.php';//no need to keep separate file to save image. This is already defined in libraray
+
+require_once 'module/package/Module_Package_Index.php';
+
+require_once 'module/booking/collection.php';
+require_once 'module/tracking/Easypost_Tracking.php';
+require_once 'module/tracking/Find_Save_Tracking.php';
+require_once 'module/tracking/Create_Tracking.php';
+
+require_once 'module/service_provider/ServiceProvider.php';
+require_once 'module/service_provider/model/ServiceProviderModel.php';
+require_once 'module/custom_labels/Custom_Label.php';
+
+//Country file included
+require_once 'module/country/model/country.php';
+
+require_once 'module/reconciled/reconciled.php';
+require_once 'module/reconciled/model/reconciled.php';
+
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
+
+/**
+ * Verifying required params posted or not
+ */
+
+/*date_default_timezone_set('Europe/Bucharest');
+
+function verifyRequiredParams($required_fields,$request_params) {
+    $error = false;
+    $error_fields = "";
+    foreach ($required_fields as $field) {
+        if (!isset($request_params->$field) || strlen(trim($request_params->$field)) <= 0) {
+            $error = true;
+            $error_fields .= $field . ', ';
+        }
+    }
+
+    if ($error) {
+        // Required field(s) are missing or empty
+        // echo error json and stop the app
+        $response = array();
+        $app = \Slim\Slim::getInstance();
+        $response["status"] = "error";
+        $response["message"] = 'Required field(s) ' . substr($error_fields, 0, -2) . ' is missing or empty';
+        echoResponse(400, $response);
+        $app->stop();
+    }
+}
+
+function echoResponse($status_code, $response) {
+    $app = \Slim\Slim::getInstance();
+
+    $privateKey = <<<EOD
+-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQC8kGa1pSjbSYZVebtTRBLxBz5H4i2p/llLCrEeQhta5kaQu/Rn
+vuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t0tyazyZ8JXw+KgXTxldMPEL9
+5+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4ehde/zUxo6UvS7UrBQIDAQAB
+AoGAb/MXV46XxCFRxNuB8LyAtmLDgi/xRnTAlMHjSACddwkyKem8//8eZtw9fzxz
+bWZ/1/doQOuHBGYZU8aDzzj59FZ78dyzNFoF91hbvZKkg+6wGyd/LrGVEB+Xre0J
+Nil0GReM2AHDNZUYRv+HYJPIOrB0CRczLQsgFJ8K6aAD6F0CQQDzbpjYdx10qgK1
+cP59UHiHjPZYC0loEsk7s+hUmT3QHerAQJMZWC11Qrn2N+ybwwNblDKv+s5qgMQ5
+5tNoQ9IfAkEAxkyffU6ythpg/H0Ixe1I2rd0GbF05biIzO/i77Det3n4YsJVlDck
+ZkcvY3SK2iRIL4c9yY6hlIhs+K9wXTtGWwJBAO9Dskl48mO7woPR9uD22jDpNSwe
+k90OMepTjzSvlhjbfuPN1IdhqvSJTDychRwn1kIJ7LQZgQ8fVz9OCFZ/6qMCQGOb
+qaGwHmUK6xzpUbbacnYrIM6nLSkXgOAwv7XXCojvY614ILTK3iXiLBOxPu5Eu13k
+eUz9sHyD6vkgZzjtxXECQAkp4Xerf5TGfQXGXhxIX52yH+N2LtujCdkQZjXAsGdm
+B2zNzvrlgRmgBrklMTrMYgm1NPcW+bRLGcwgW2PTvNM=
+-----END RSA PRIVATE KEY-----
+EOD;
+
+    $publicKey = <<<EOD
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8kGa1pSjbSYZVebtTRBLxBz5H
+4i2p/llLCrEeQhta5kaQu/RnvuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t
+0tyazyZ8JXw+KgXTxldMPEL95+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4
+ehde/zUxo6UvS7UrBQIDAQAB
+-----END PUBLIC KEY-----
+EOD;
+
+
+    $jwtString = JWT::encode($response, $privateKey, 'RS256');
+    //echo "Encode:\n" . print_r($jwt, true) . "\n";
+
+    //$decoded = JWT::decode($jwt, $publicKey, array('RS256'));
+
+    //$decoded_array = (array) $decoded;
+    //echo "Decode:\n" . print_r($decoded_array, true) . "\n";
+
+    // Http response code
+    $app->status($status_code);
+
+    // setting response content type to json
+    //$app->contentType('application/json');
+
+    echo $jwtString;
+    //echo json_encode($response);
+}
+
+function encodeJwtData($data) {
+    $privateKey = <<<EOD
+-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQC8kGa1pSjbSYZVebtTRBLxBz5H4i2p/llLCrEeQhta5kaQu/Rn
+vuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t0tyazyZ8JXw+KgXTxldMPEL9
+5+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4ehde/zUxo6UvS7UrBQIDAQAB
+AoGAb/MXV46XxCFRxNuB8LyAtmLDgi/xRnTAlMHjSACddwkyKem8//8eZtw9fzxz
+bWZ/1/doQOuHBGYZU8aDzzj59FZ78dyzNFoF91hbvZKkg+6wGyd/LrGVEB+Xre0J
+Nil0GReM2AHDNZUYRv+HYJPIOrB0CRczLQsgFJ8K6aAD6F0CQQDzbpjYdx10qgK1
+cP59UHiHjPZYC0loEsk7s+hUmT3QHerAQJMZWC11Qrn2N+ybwwNblDKv+s5qgMQ5
+5tNoQ9IfAkEAxkyffU6ythpg/H0Ixe1I2rd0GbF05biIzO/i77Det3n4YsJVlDck
+ZkcvY3SK2iRIL4c9yY6hlIhs+K9wXTtGWwJBAO9Dskl48mO7woPR9uD22jDpNSwe
+k90OMepTjzSvlhjbfuPN1IdhqvSJTDychRwn1kIJ7LQZgQ8fVz9OCFZ/6qMCQGOb
+qaGwHmUK6xzpUbbacnYrIM6nLSkXgOAwv7XXCojvY614ILTK3iXiLBOxPu5Eu13k
+eUz9sHyD6vkgZzjtxXECQAkp4Xerf5TGfQXGXhxIX52yH+N2LtujCdkQZjXAsGdm
+B2zNzvrlgRmgBrklMTrMYgm1NPcW+bRLGcwgW2PTvNM=
+-----END RSA PRIVATE KEY-----
+EOD;
+
+    $publicKey = <<<EOD
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8kGa1pSjbSYZVebtTRBLxBz5H
+4i2p/llLCrEeQhta5kaQu/RnvuER4W8oDH3+3iuIYW4VQAzyqFpwuzjkDI+17t5t
+0tyazyZ8JXw+KgXTxldMPEL95+qVhgXvwtihXC1c5oGbRlEDvDF6Sa53rcFVsYJ4
+ehde/zUxo6UvS7UrBQIDAQAB
+-----END PUBLIC KEY-----
+EOD;
+    $jwtString = JWT::encode($data, $privateKey, 'RS256');
+    return $jwtString;
+}
+
+function rootPath(){
+    return dirname(dirname(dirname(__FILE__)));
+}
+
+$app->run();*/
+
+//error_reporting(E_ALL);
 //ini_set("display_errors", 1);
-date_default_timezone_set('Europe/London'); 
+date_default_timezone_set('Europe/London');
 require_once '../v1/constant.php';
 require_once '../Credentials.php';
 //require_once '../v1/dbHandler.php';
@@ -11,7 +294,7 @@ require '../vendor/autoload.php';
 require_once '../v1/dbHandler.php';
 \Slim\Slim::registerAutoloader();
 use Firebase\JWT\JWT;
-$app = new \Slim\Slim();  
+$app = new \Slim\Slim();
 require_once '../v1/module/base/icargo.php';
 require_once '../v1/module/carrier/model/carrier.php';
 require_once '../v1/module/booking/collection.php';
@@ -35,7 +318,7 @@ require_once '../v1/module/notification/Consignee_Notification.php';
 require_once '../v1/module/notification/Notification_Email.php';
 require_once '../v1/module/allshipment/allshipments.php';
 require_once '../v1/module/allshipment/model/allshipments.php';
-require_once '../v1/module/business_day_cal/Carrier_Business_Day.php';  
+require_once '../v1/module/business_day_cal/Carrier_Business_Day.php';
 require_once './model/restservicesModel.php';
 require_once './restservices.php';
 /*
@@ -73,7 +356,7 @@ function verifyRequiredParams($required_fields,$request_params) {
 }
 
 function verifyToken($app,$r) {
-    
+
     $response = array();
     $responceData = array();
     $error = false;
@@ -91,13 +374,13 @@ function verifyToken($app,$r) {
         $responceData = $model->getTokenofCustomer($tokenData);
     if(count($responceData)>0){
         /*if(CHECKED  && $responceData['url'] !=$fullReqUrl){
-                $error = true;  
+                $error = true;
                 $response["status"] = "fail";
                 $response["message"] = 'your tried with unauthorized resource ';
                 $response["error_code"] = "ERROR001";
         }
         else*/if($token != $responceData['token']){
-            $error = true;  
+            $error = true;
             $response["status"] = "fail";
             $response["message"] = 'wrong accesstoken passed';
             $response["error_code"] = "ERROR002";
@@ -113,10 +396,10 @@ function verifyToken($app,$r) {
             }
             $r->email                   = $responceData['email'];
             $r->access_token            = $responceData['access_token'];
-            $r->customer_id             = $responceData['customer_id'];        
+            $r->customer_id             = $responceData['customer_id'];
             $r->company_id              = $responceData['company_id'];
-            $r->warehouse_id            = $responceData['warehouse_id'];         
-            $r->warehouse_latitude      = $responceData['warehouse_latitude'];         
+            $r->warehouse_id            = $responceData['warehouse_id'];
+            $r->warehouse_latitude      = $responceData['warehouse_latitude'];
             $r->warehouse_longitude     = $responceData['warehouse_longitude'];
             $r->webToken                = $tokenData->identity;
             $r->status                  = 'success';
@@ -124,13 +407,13 @@ function verifyToken($app,$r) {
         }
     }
     else{
-      $error = true;  
+      $error = true;
       $response["status"] = "fail";
       $response["message"] = 'your account is inactive,Please contact to admin';
-      $response["error_code"] = "ERROR003"; 
+      $response["error_code"] = "ERROR003";
     }
      }catch(Exception $e){
-         $error = true;  
+         $error = true;
          $response["status"] = "fail";
          $response["message"] = 'Invalid json object';//$e->getMessage();
          $response["error_code"] = "SYSERROR001";
@@ -147,7 +430,7 @@ if($error){
 
 }
 function verifyTokenByPass($app,$r) {
-    
+
     $response = array();
     $responceData = array();
     $error = false;
@@ -158,25 +441,25 @@ function verifyTokenByPass($app,$r) {
             $r                          = (object)array();
             $r->email                   = $responceData['email'];
             $r->access_token            = $responceData['access_token'];
-            $r->customer_id             = $responceData['customer_id'];        
+            $r->customer_id             = $responceData['customer_id'];
             $r->company_id              = $responceData['company_id'];
-            $r->warehouse_id            = $responceData['warehouse_id'];         
-            $r->warehouse_latitude      = $responceData['warehouse_latitude'];         
+            $r->warehouse_id            = $responceData['warehouse_id'];
+            $r->warehouse_latitude      = $responceData['warehouse_latitude'];
             $r->warehouse_longitude     = $responceData['warehouse_longitude'];
             $r->token                   = $responceData['token'];
             $r->webToken                = 1;
             $r->status                  = 'success';
             return $r;
-        
+
     }
     else{
-      $error = true;  
+      $error = true;
       $response["status"] = "fail";
       $response["message"] = 'your account is inactive';
-      $response["error_code"] = "ERROR003"; 
+      $response["error_code"] = "ERROR003";
     }
      }catch(Exception $e){
-         $error = true;  
+         $error = true;
          $response["status"] = "fail";
          $response["message"] = 'Invalid json object';//$e->getMessage();
          $response["error_code"] = "SYSERROR002";
@@ -195,7 +478,7 @@ if($error){
 
 
 
-    
+
 function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
 
@@ -276,7 +559,7 @@ ehde/zUxo6UvS7UrBQIDAQAB
 EOD;
 
    $jwtString = JWT::encode($data, $privateKey, 'RS256');
-   
+
     echo json_encode($jwtString);
 }
 
@@ -310,14 +593,14 @@ ehde/zUxo6UvS7UrBQIDAQAB
 EOD;
 
     try{
-         $jwtData = JWT::decode($data, $publicKey, array('RS256')); 
+         $jwtData = JWT::decode($data, $publicKey, array('RS256'));
     }
     catch(Exception $e){
         $response = array();
         $app = \Slim\Slim::getInstance();
         $response["status"] = "error";
         $response["message"] = 'unauthorized token';
-        $response["error_code"] = "ERROR001"; 
+        $response["error_code"] = "ERROR001";
         echoResponse(400, $response);die;
         $app->stop();
     }

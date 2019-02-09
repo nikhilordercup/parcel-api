@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_carrier_service_provider` CHANGE `request_type` `request_type` ENUM('RATE','LABEL','PICKUP') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL;
