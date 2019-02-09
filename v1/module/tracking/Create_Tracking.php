@@ -10,6 +10,7 @@ class Create_Tracking extends Icargo{
         "in_transit" => "IN_TRANSIT",
         "out_for_delivery" => "OUTFORDELIVERY",
         "delivered" => "DELIVERYSUCCESS",
+		"failure"  => "INFO_RECEIVED",
 		"unknown"  => "INFO_RECEIVED"
     );
 
@@ -126,7 +127,7 @@ class Create_Tracking extends Icargo{
            
             $temp = $this->modelObj->findTrackingById($this->loadIdentity, $data["code"], $this->trackingData->id, $this->trackingData->tracking_code, $this->trackingData->carrier, 'easypost');
 
-            if(count($temp)==0)
+            if(count((array)$temp)==0)
                 $tracking_id = $this->modelObj->saveTracking($data);
             else{
                 $tracking_id = $temp["id"];

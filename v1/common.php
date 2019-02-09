@@ -121,6 +121,10 @@
 			 if(isset($arr->phone))
                  array_push($temp, $arr->phone);
 			 
+			 if(isset($arr->address_type))
+                 array_push($temp, $arr->address_type);
+			 
+			 
              $addressString = implode("", $temp);
 
 			       return strtolower(preg_replace('/\s+/','',$addressString));
@@ -130,6 +134,7 @@
         {
             $cond = ( isset($searchData['id']) && !empty($searchData['id']) ) ? 'where `id`='.$searchData['id'] : '';
             $sql = "SELECT * FROM ".DB_PREFIX."countries $cond ORDER BY short_name";
+
             if($cond) {
                 $records = $this->db->getRowRecord($sql);
             } else {

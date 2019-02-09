@@ -1,4 +1,7 @@
-<?php  require __DIR__ . '/vendor/autoload.php';
+<?php
+$path = dirname(dirname(dirname(dirname(__FILE__))));
+//require __DIR__ . '/vendor/autoload.php';
+require $path . '/vendor/autoload.php';
 class Module_Reconciled_Reconciled extends Icargo{
     public $reconciledModelObj = null;
     

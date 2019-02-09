@@ -70,31 +70,6 @@ class UkMailTracking
             }                                    
         });
     }
-            
-    public static function doLogin($username, $password)
-    {                                                  
-        $wsdl_url = 'https://api.ukmail.com/Services/UKMAuthenticationServices/UKMAuthenticationService.svc?wsdl';              
-        $LoginWebRequest = new stdClass();
-        $LoginWebRequest->Username = $username;
-        $LoginWebRequest->Password = $password;
-        $Login = new stdClass();
-        $Login->loginWebRequest = $LoginWebRequest;
-
-        $soapClient = new SoapClient($wsdl_url);
-        $LoginResponse = $soapClient->Login($Login);                                         
-        $AuthenticationToken = $LoginResponse->LoginResult->AuthenticationToken; 
-        error_log("Ukmail, Authentication key generated - ".$AuthenticationToken);
-                  
-        // Update authenticationToken to database table carrier_user_token
-        if($AuthenticationToken != NULL)
-        {
-            error_log("Ukmail, Sent request to update db --- ");
-            $ukMailModel = UkMailModel::getInstance();
-            $ukMailModel->updateAuthToDb($username, $AuthenticationToken);
-        }
-        
-        return $AuthenticationToken;
-    }
     
     public static function doTracking($username, $password, $token, $consignmentNumber, $consignmentKey)
     {

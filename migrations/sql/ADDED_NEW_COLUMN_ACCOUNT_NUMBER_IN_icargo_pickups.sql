@@ -1,0 +1,1 @@
+ALTER TABLE `icargo_pickups` ADD `account_number` VARCHAR(55) NULL DEFAULT NULL COMMENT 'referred to UMAIL' AFTER `customer_id`;
