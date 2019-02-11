@@ -89,8 +89,8 @@ abstract class PostMenMaster extends Postmen
     }
     
     public function convertPackage($package,$currency)
-    {                
-        $total_item_value = (isset($this->request->customs) && $this->request->customs->isDutiable) ? $this->request->customs->total_item_value : ((isset($this->request->insurance)) ? $this->request->insurance->value : 0.01);
+    {               
+        $total_item_value = (isset($this->request->customs) && $this->request->customs->isDutiable) ? $this->request->customs->total_item_value : ((isset($this->request->insurance) && $this->request->insurance->value != '') ? $this->request->insurance->value : 0.01);
         $per_parcel_rate = $total_item_value/count($this->request->package);
         
         $origin_country = ''; 
