@@ -763,8 +763,8 @@ class AllShipment_Model
         LEFT JOIN icargo_courier AS COUR ON COUR.id = COMCOUR.courier_id
         LEFT JOIN icargo_shipment_collection AS SCT ON SCT.service_id = SST.id
         WHERE SST.load_identity IN ('$ticket_string')
-
-        ORDER BY S.shipment_id DESC, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC";
+        AND SST.status <> 'pending'    
+        ORDER BY S.shipment_id DESC, FIELD(`S`.`shipment_service_type`,'P','D'),S.icargo_execution_order ASC"; echo $sql;die;
         //#LEFT JOIN icargo_courier_vs_company AS COMCOUR ON COMCOUR.id = SST.carrier
         $record = $this->db->getAllRecords($sql);
         return $record;
