@@ -199,11 +199,13 @@ class RateApiController
         $time = 0;
         $waitTime = 0;
         $drops = 0;
+        $packets = 0;
         foreach ($request->transit as $transitInfo) {
             $distance += $transitInfo->transit_distance;
             $time += $transitInfo->transit_time;
             $drops += $transitInfo->number_of_drops;
             $waitTime += $transitInfo->total_waiting_time;
+            $packets += $transitInfo->number_Of_Packaets??$transitInfo->number_Of_packaets;
         }
 
         $transitData = compact('distance', 'time', 'waitTime', 'drops');
@@ -235,6 +237,9 @@ class RateApiController
                                 break;
                             case 'Drop Rate':
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $drops);
+                                break;
+                            case 'Packets':
+                                $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packets);
                                 break;
                         }
                         if (!isset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost']) || $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] == null) {
