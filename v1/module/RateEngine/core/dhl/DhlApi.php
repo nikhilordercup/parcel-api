@@ -154,8 +154,8 @@ class DhlApi extends DhlApiBase
         $payload->AccountType = 'D';
         $payload->AccountNumber = $rawData['credentials']['account_number'];
         $payload->PersonName = $rawData['pickup_contact']['name'];
-        $payload->Phone = $rawData['pickup_contact']['name'];
-        $payload->CompanyName = $rawData['address']['company'];
+        $payload->Phone = ($rawData['pickup_contact']['phone'] != '') ? $rawData['pickup_contact']['phone'] : 'NA';
+        $payload->CompanyName = ($rawData['address']['company'] != '') ? $rawData['address']['company'] : $rawData['pickup_contact']['name'];
         $payload->Address1 = $rawData['address']['street1'];
         $payload->City = $rawData['address']['city'];
         $payload->CountryCode = $rawData['address']['country'];
