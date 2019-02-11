@@ -64,6 +64,7 @@ class AllInvoice_Model
                     WHERE I.company_id  = '" . $componyId . "'
                     ORDER BY I.id DESC";
         $record = $this->db->getAllRecords($sql);
+		
         return $record;
      }
     public function getCustomerInvoiceCycle($customerid){

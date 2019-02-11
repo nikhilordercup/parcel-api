@@ -82,9 +82,12 @@ class Booking extends Icargo
         $postcode = ($data->country->alpha3_code == 'GBR') ? ( $this->postcodeObj->validate($data->postcode) ) : true;
         if($postcode) {
 			if(isset($data->address_type)){
-				$address_type = ($data->address_type == 'No') ? 'Business' : 'Residential' ;
+				if($data->address_type == 'No' || $data->address_type == 'Business')
+					$address_type = 'Business';
+				elseif($data->address_type == 'Yes' || $data->address_type == 'Residential')
+					$address_type = 'Residential';
 			}else{
-				$address_type = "";
+				$address_type = "Business";
 			}
             $param["postcode"]      = $data->postcode;
             $param["address_line1"] = (isset($data->address_line1)) ? $data->address_line1 : "";
@@ -102,10 +105,9 @@ class Booking extends Icargo
             $param["contact_email"] = (isset($data->email)) ? $data->email : "";
             $param["company_name"]  = (isset($data->company_name)) ? $data->company_name : "";
 
-			$addressData = array("company_name"=>$param["company_name"],"address_1"=>$param['address_line1'],"address_2"=>$param['address_line2'],"name"=>$param['first_name'],"city"=>$param['city'],"state"=>$param['state'],"company_id"=>$param['company_name'],"country"=>$param['country'],"email"=>$param['contact_email'],"postcode"=>$param['postcode']);
+			$addressData = array("company_name"=>$param["company_name"],"address_1"=>$param['address_line1'],"address_2"=>$param['address_line2'],"name"=>$param['first_name'],"city"=>$param['city'],"state"=>$param['state'],"company_id"=>$param['company_name'],"country"=>$param['country'],"email"=>$param['contact_email'],"postcode"=>$param['postcode'],"address_type"=>$address_type);
 
             $param["search_string"] = $commonObj->getAddressBookSearchString((object)$addressData);//str_replace(' ','',implode('',$param));;
-
             $param["country_id"]    = $data->country->id;
 
             $param["latitude"]      = isset($data->geo_position) ? $data->geo_position->latitude : 0.00000000;
@@ -118,7 +120,6 @@ class Booking extends Icargo
             $param["billing_address"] = "N";
 
             $addressVersion = $this->modelObj->getAddressBySearchStringAndCustomerId($customer_id, $param["search_string"]);
-
 			if(isset($data->address_origin) and $data->address_origin=='api'){
 				$param["version_id"] = "version_1";
 				$address_id = $this->modelObj->saveAddress($param);

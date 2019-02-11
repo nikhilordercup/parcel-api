@@ -5,15 +5,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 namespace v1\module\RateEngine;
 /**
  * This class is responsible for all type of surcharge calculation.
  *
  * @author Mandeep Singh Nain
  */
-class SurchargeManager
-{
+class SurchargeManager {
     /**
      * @var object Surcharge data which we need to process
      */
@@ -28,30 +26,30 @@ class SurchargeManager
     protected $_packages = null;
     protected $_rate = null;
     protected $_requestData = null;
-    protected $_finalCost = 0;
+	protected $_finalCost=0;
     protected $_countedSurcharge = [
-        "long_length_surcharge" => 0,
-        "remote_area_surcharge" => 0,
-        "manual_handling_surcharge" => 0,
-        "fuel_surcharge" => 0,
-        "collection_pickup" => 0,
-        "bookin_surcharge" => 0,
-        "insurance_surcharge" => 0,
-        "timed_services_surcharge" => 0,
-        "return_surcharge" => 0,
-        "isle_weight_surcharge" => 0,
-        "isle_scilly_surcharge" => 0,
-        "saturday_delivery_surcharge" => 0,
-        "pobox_surcharge" => 0,
-        "congestion_surcharge" => 0,
-        "same_day_drop_surcharge" => 0,
-        "same_day_waiting_surcharge" => 0,
-        "overweight_surcharge" => 0,
-        "extrabox_surcharge" => 0,
-        "residential_surcharge" => 0
-    ];
+	"long_length_surcharge"=>0,
+        "remote_area_surcharge"=>0,
+        "manual_handling_surcharge"=>0,
+        "fuel_surcharge"=>0,
+        "collection_pickup"=>0,
+        "bookin_surcharge"=>0,
+        "insurance_surcharge"=>0,
+        "timed_services_surcharge"=>0,
+        "return_surcharge"=>0,
+        "isle_weight_surcharge"=>0,
+        "isle_scilly_surcharge"=>0,
+        "saturday_delivery_surcharge"=>0,
+        "pobox_surcharge"=>0,
+        "congestion_surcharge"=>0,
+        "same_day_drop_surcharge"=>0,
+        "same_day_waiting_surcharge"=>0,
+        "overweight_surcharge"=>0,
+        "extrabox_surcharge"=>0,
+        "residential_surcharge"=>0
+	];
     protected $_fuelSurcharge = null;
-    public $_packageCount = 0;
+    public $_packageCount=0;
     /**
      * @var array Keys for surcharge types
      */
@@ -77,7 +75,7 @@ class SurchargeManager
         "residential_surcharge"
     ];
 
-    private $_isUkMail = false;
+	private $_isUkMail = false;
 
     /**
      * SurchargeManager constructor.
@@ -87,9 +85,8 @@ class SurchargeManager
         $this->_isUkMail = strtolower($carrier) == 'ukmail';
     }
 
-
     /**
-     * Start point for every surcharge calculation. This function will filter surcharge type
+     * Start point for every surcharge calculation. This function will filter surcharge type 
      * and call appropriate method for surcharge calculation.
      * @param object $surcharges Surcharge Information.
      * @param object $transitData Shipment transition data like from and to.
@@ -97,17 +94,19 @@ class SurchargeManager
      * @param object $rate Rate object on which surcharge will be calculated.
      * @param object $request Complete request data which we are receiving in api request.
      */
-    public function filterSurcharge($surcharges, $transitData, $packages, $rate, $request, $finalCost = 0)
-    {
+    public function filterSurcharge($surcharges, $transitData, $packages, $rate, $request,$finalCost=0) {
         $this->_packages = $packages;
         $this->_rate = $rate;
         $this->_transitData = $transitData;
         $this->_requestData = $request;
-        $this->_finalCost = $finalCost;
-        if (is_null($packages) || count($packages) == 0) {
-            $this->_packageCount = 0;
-        } else {
-            $this->_packageCount = count($packages);
+	$this->_finalCost=$finalCost;
+//        $date = new \DateTime();
+  //      $match_date = new \DateTime($request->ship_date);
+    //    $interval = $date->diff($match_date);
+        if(is_null($packages) || count($packages) == 0) {
+            $this->_packageCount=0;
+        }else{
+            $this->_packageCount =count($packages);
         }
         if (is_null($surcharges)) {
             $surcharges = [];
@@ -121,11 +120,11 @@ class SurchargeManager
 
             switch ($surchargeObj->surcharge) {
                 case 1:
-                    if ($this->_packageCount) break;
+                    if(!$this->_packageCount)break;
                     $this->longLengthSurcharge($rate);
                     break;
                 case 3:
-                    if ($this->_packageCount) break;
+                    if(!$this->_packageCount)break;
                     $this->manualHandlingSurcharge($rate);
                     break;
                 case 4:
@@ -134,7 +133,7 @@ class SurchargeManager
                 case 6:
                     $this->bookingSurcharge($rate);
                     break;
-                case 7:
+		case 7:
                     $this->insuranceSurcharge($rate);
                     break;
                 case 2:
@@ -150,7 +149,7 @@ class SurchargeManager
                     $this->sameDayDropWaitSurcharge($rate, $surchargeObj->surcharge);
                     break;
                 case 17:
-                    if ($this->_packageCount) break;
+                    if(!$this->_packageCount)break;
                     $this->overWeightSurcharge($rate);
                     break;
                 case 18:
@@ -163,7 +162,7 @@ class SurchargeManager
             }
         }
         if (!is_null($this->_fuelSurcharge)) {
-            $this->fuelSurcharge($rate, $this->_countedSurcharge);
+            $this->fuelSurcharge($rate,$this->_countedSurcharge);
         }
     }
 
@@ -171,17 +170,16 @@ class SurchargeManager
      * Function for logng length surcharges calculation
      * @param $rate object
      */
-    public function longLengthSurcharge($rate)
-    {
+    public function longLengthSurcharge($rate) {
         $finalSurcharge = 0;
-        foreach ($this->_packages as $p) {
-            $lengthApplicable = $this->isConditionTrue($p->length, $this->_surcharge->lengthData->lconditions, $this->_surcharge->lengthData->lUnit);
-            $widthApplicable = $this->isConditionTrue($p->width, $this->_surcharge->lengthData->wconditions, $this->_surcharge->lengthData->wUnit);
-            $heightApplicable = $this->isConditionTrue($p->height, $this->_surcharge->lengthData->hconditions, $this->_surcharge->lengthData->hUnit);
-            if (($heightApplicable && $widthApplicable && $lengthApplicable) || $this->isSideApplicable($p, 2) || $this->isSideApplicable($p, 1)) {
-                $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
+            foreach ($this->_packages as $p) {
+                $lengthApplicable = $this->isConditionTrue($p->length, $this->_surcharge->lengthData->lconditions, $this->_surcharge->lengthData->lUnit);
+                $widthApplicable = $this->isConditionTrue($p->width, $this->_surcharge->lengthData->wconditions, $this->_surcharge->lengthData->wUnit);
+                $heightApplicable = $this->isConditionTrue($p->height, $this->_surcharge->lengthData->hconditions, $this->_surcharge->lengthData->hUnit);
+                if (($heightApplicable && $widthApplicable && $lengthApplicable) || $this->isSideApplicable($p, 2) || $this->isSideApplicable($p, 1)) {
+                    $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
+                }
             }
-        }
 
         $this->_countedSurcharge["long_length_surcharge"] = $finalSurcharge;
     }
@@ -191,8 +189,7 @@ class SurchargeManager
      * @param $rate
      * @param $key
      */
-    public function commonSurcharge($rate, $key)
-    {
+    public function commonSurcharge($rate, $key) {
         $finalSurcharge = 0;
         $key = $this->surcharges[$key - 1];
         $from = $this->isLocationChargeable($this->_requestData->from);
@@ -217,29 +214,28 @@ class SurchargeManager
      * @param $rate
      * @param $key
      */
-    public function sameDayDropWaitSurcharge($rate, $key)
-    {
+    public function sameDayDropWaitSurcharge($rate, $key) {
         $finalSurcharge = 0;
         $key = $this->surcharges[$key - 1];
         $chargableUnit = 0;
         if ($key == 'same_day_drop_surcharge') {
-            $free = $this->_surcharge->sameDay->drops ?? 0;
+            $free = $this->_surcharge->sameDay->drops??0;
             $drops = $this->_requestData->transit[0]->number_of_drops;
             $chargableUnit = $drops - $free;
         } else {
             $baseUnit = $this->_surcharge->sameDay->wait;
             $extra = $this->_requestData->transit[0]->total_waiting_time;
-            $chargableUnit = ($extra / $this->_requestData->transit[0]->number_of_drops) - $baseUnit;
+            $chargableUnit = ($extra / $this->_requestData->transit[0]->number_of_drops) -$baseUnit;
         }
         if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
-            for ($i = 1; $i <= $this->_requestData->transit[0]->number_of_drops; $i++) {
+            for ($i=1;$i<=$this->_requestData->transit[0]->number_of_drops;$i++) {
                 $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
             }
         } else {
             $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, $rate);
         }
         $finalSurcharge *= $chargableUnit;
-        $this->_countedSurcharge[$key] = ($finalSurcharge > 0) ? round($finalSurcharge, 2) : 0;
+        $this->_countedSurcharge[$key] = ($finalSurcharge>0)?round($finalSurcharge,2):0;
     }
 
     /**
@@ -247,8 +243,7 @@ class SurchargeManager
      * Volume weight and provided weight will be compared and charge will be applied on upper value.
      * @param $rate
      */
-    public function manualHandlingSurcharge($rate)
-    {
+    public function manualHandlingSurcharge($rate) {
         /**
          * Vol Weight=L*H*W/Params
          * Params for DHL 5000
@@ -263,39 +258,37 @@ class SurchargeManager
      * Function for over weight surcharge calculation
      * @param $rate
      */
-    public function overWeightSurcharge($rate)
-    {
+    public function overWeightSurcharge($rate) {
         /**
          * Vol Weight=L*H*W/Params
          * Params for DHL 5000
          */
-        $extraWeight = 0;
-        if ($this->_surcharge->commonData->applyPer == 'per_item') {
-            $extraWeight = $this->calculateBoxWeight($this->_surcharge->overWeight->freeWeight);
-        } else {
+        $extraWeight=0;
+        if($this->_surcharge->commonData->applyPer=='per_item'){
+            $extraWeight=$this->calculateBoxWeight($this->_surcharge->overWeight->freeWeight);
+        }else{
             $totalWeight = $this->calculateWeight();
-            $allowedWeight = count($this->_packages) * $this->_surcharge->overWeight->freeWeight;
-            $extraWeight = $totalWeight - $allowedWeight;
+            $allowedWeight=count($this->_packages)*$this->_surcharge->overWeight->freeWeight;
+            $extraWeight=$totalWeight-$allowedWeight;
         }//echo $extraWeight;exit($extraWeight);
-        $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('overWeight', $extraWeight);
+        $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('overWeight',$extraWeight);
 //        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
-        $this->_countedSurcharge["overweight_surcharge"] = $this->overUnitSlabCalculator($extraWeight, $rate);
+        $this->_countedSurcharge["overweight_surcharge"] = $this->overUnitSlabCalculator($extraWeight,$rate);
     }
 
     /**
      * Function for extra box surcharge calculation
      * @param $rate
      */
-    public function extraBoxSurcharge($rate)
-    {
+    public function extraBoxSurcharge($rate) {
         $packageCount = count($this->_packages);
-        $allowedBox = $this->_surcharge->extraBox->freeBox;
-        $extraBox = $packageCount - $allowedBox;
+        $allowedBox=$this->_surcharge->extraBox->freeBox;
+        $extraBox=$packageCount-$allowedBox;
 //        echo $extraBox;
 //        print_r($this->_surcharge);exit;
-        $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('extraBox', $packageCount);
+        $this->_surcharge->commonData->{"factorValue"} = $this->getOverUnitSurcharge('extraBox',$packageCount);
 //        $finalSurcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
-        $this->_countedSurcharge["extrabox_surcharge"] = $this->overUnitSlabCalculator($extraBox, $rate, 'extraBox');
+        $this->_countedSurcharge["extrabox_surcharge"] = $this->overUnitSlabCalculator($extraBox,$rate,'extraBox');
     }
 
     /**
@@ -304,12 +297,11 @@ class SurchargeManager
      * @param array $appliedSurcharges
      * @return int
      */
-    public function fuelSurcharge($rate, $appliedSurcharges = [])
-    {
+    public function fuelSurcharge($rate,$appliedSurcharges = [] ) {
         $finalSurcharge = 0;
-        $this->_fuelSurcharge = (object)$this->_fuelSurcharge;
-        $d = json_decode($this->_fuelSurcharge->surchargeRule);
-        if (!isset($d->fuleSurcharge)) {
+        $this->_fuelSurcharge=(object)$this->_fuelSurcharge;
+        $d= json_decode($this->_fuelSurcharge->surchargeRule);
+        if(!isset($d->fuleSurcharge)){
             return 0;
         }
         foreach ($d->fuleSurcharge->applyOn as $id) {
@@ -317,33 +309,30 @@ class SurchargeManager
                 $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate' => $appliedSurcharges[$this->surcharges[$id - 1]]]);
             }
         }
-        $this->_finalCost = $this->_finalCost > $rate['rate'] ? $this->_finalCost : $rate['rate'];
-        $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate' => $this->_finalCost]);
-        $this->_countedSurcharge["fuel_surcharge"] = round($finalSurcharge, 2);
+	$this->_finalCost=$this->_finalCost>$rate['rate']?$this->_finalCost:$rate['rate'];
+        $finalSurcharge += $this->calculateSurcharge($d->commonData, ['rate'=>$this->_finalCost]);
+        $this->_countedSurcharge["fuel_surcharge"] = round($finalSurcharge,2);
     }
 
-    public function residentialSurcharge($rate)
-    {
-        $finalSurcharge = 0;
-        if (isset($this->_requestData->from->is_res) && $this->_requestData->from->is_res == 1) {
+    public function residentialSurcharge($rate){
+        $finalSurcharge=0;
+        if(isset($this->_requestData->from->is_res)&& $this->_requestData->from->is_res == 1){
+           $finalSurcharge += $this->getItemBaseCalculation($rate);
+        }
+        if(isset($this->_requestData->to->is_res)&& $this->_requestData->to->is_res == 1){
             $finalSurcharge += $this->getItemBaseCalculation($rate);
         }
-        if (isset($this->_requestData->to->is_res) && $this->_requestData->to->is_res == 1) {
-            $finalSurcharge += $this->getItemBaseCalculation($rate);
-        }
-        $this->_countedSurcharge["residential_surcharge"] = round($finalSurcharge, 2);
+        $this->_countedSurcharge["residential_surcharge"] = round($finalSurcharge,2);
     }
-
-    public function getItemBaseCalculation($rate)
-    {
-        $surcharge = $this->calculateSurcharge($this->_surcharge->commonData, $rate);
+    public function getItemBaseCalculation($rate){
+        $surcharge=$this->calculateSurcharge($this->_surcharge->commonData, $rate);
 
         if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
-            if (isset($this->_requestData->package) && count($this->_requestData->package) > 0) {
-                $surcharge = $surcharge * count($this->_requestData->package);
-            } elseif (isset($this->_requestData->transit->number_of_drops)
-                && $this->_requestData->transit->number_of_drops > 0) {
-                $surcharge = $surcharge * $this->_requestData->transit->number_of_drops;
+            if(isset($this->_requestData->package) && count($this->_requestData->package)>0){
+                $surcharge = $surcharge*count($this->_requestData->package);
+            }elseif (isset($this->_requestData->transit->number_of_drops)
+                && $this->_requestData->transit->number_of_drops>0){
+                $surcharge = $surcharge*$this->_requestData->transit->number_of_drops;
             }
         }
         return $surcharge;
@@ -353,8 +342,7 @@ class SurchargeManager
      * Function for booking surcharge calculation if booking enabled
      * @param $rate
      */
-    public function bookingSurcharge($rate)
-    {
+    public function bookingSurcharge($rate) {
         $finalSurcharge = 0;
         if (isset($this->_surcharge->extra) && $this->_surcharge->extra) {
             if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
@@ -368,12 +356,12 @@ class SurchargeManager
         $this->_countedSurcharge["bookin_surcharge"] = $finalSurcharge;
     }
 
-    /**
+	/**
      * @param $rate
      */
     public function insuranceSurcharge($rate)
     {
-        if (!isset($this->_requestData->insurance) || $this->_requestData->insurance->value <= 0) {
+	if(!isset($this->_requestData->insurance) || $this->_requestData->insurance->value<=0){
             $this->_countedSurcharge["insurance_surcharge"] = 0;
             return;
         }
@@ -383,7 +371,7 @@ class SurchargeManager
             return;
         } elseif ($this->_isUkMail) {
             $this->getUkMailInsuranceCharge($this->_requestData->insurance->value);
-            return;
+		return;
         } else {
             if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
                 foreach ($this->_packages as $p) {
@@ -394,6 +382,7 @@ class SurchargeManager
             }
         }
         $finalSurcharge = ($this->_surcharge->insurance->minCharge > $finalSurcharge) ? $this->_surcharge->insurance->minCharge : $finalSurcharge;
+//	echo $finalSurcharge;exit;
         $this->_countedSurcharge["insurance_surcharge"] = $finalSurcharge;
     }
 
@@ -404,8 +393,7 @@ class SurchargeManager
      * @param $secondValue
      * @return bool
      */
-    public function isConditionTrue($firstValue, $operator, $secondValue)
-    {
+    public function isConditionTrue($firstValue, $operator, $secondValue) {
         switch ($operator) {
             case '>':
                 return $firstValue > $secondValue;
@@ -426,10 +414,9 @@ class SurchargeManager
      * @param $side
      * @return bool
      */
-
-    public function isSideApplicable($p, $side)
-    {
-        if (!isset($this->_surcharge->lengthData->tUnit) || !isset($this->_surcharge->lengthData->sUnit)) {
+    public function isSideApplicable($p, $side) {
+	if(!isset($this->_surcharge->lengthData->tUnit) || !isset($this->_surcharge->lengthData->sUnit))
+        {
             return false;
         }
         $unit = ($side == 1) ? $this->_surcharge->lengthData->tUnit : $this->_surcharge->lengthData->sUnit;
@@ -452,13 +439,12 @@ class SurchargeManager
     }
 
     /**
-     *
+     * 
      * @param object $commonData
      * @param array() $rate
      * @return type
      */
-    public function calculateSurcharge($commonData, $rate)
-    {
+    public function calculateSurcharge($commonData, $rate) {
         $surcharge = 0;
         if ($commonData->factor == 'constant') {
             $surcharge += $commonData->factorValue;
@@ -468,24 +454,23 @@ class SurchargeManager
         return $surcharge;
     }
 
-    public function isLocationChargeable($location)
-    {
+    public function isLocationChargeable($location) {
         if (!in_array($location->country, $this->_surcharge->remoteArea->selectedCountry)) {
             return FALSE;
         } else {
             if (!isset($this->_surcharge->remoteArea->postCode) || $this->_surcharge->remoteArea->postCode == "") {
                 return TRUE;
             } else {
-                $postcodes = explode(',', strtolower($this->_surcharge->remoteArea->postCode));
+                $postcodes = explode(',', $this->_surcharge->remoteArea->postCode);
                 if ($location->country != 'GB') {
                     foreach ($postcodes as $p) {
-                        if ($p == strtolower($location->zip)) {
+                        if ($p == $location->zip) {
                             return TRUE;
                         }
                     }
-                }
+                }                
                 $model = new RateEngineModel();
-                $tPost = $model->searchUkPost($postcodes, strtolower($location->zip), TRUE);
+                $tPost = $model->searchUkPost($postcodes, $location->zip, TRUE);
                 if (count($tPost)) {
                     return TRUE;
                 }
@@ -494,8 +479,7 @@ class SurchargeManager
         return FALSE;
     }
 
-    public function calculateWeight()
-    {
+    public function calculateWeight() {
         $totalWeight = 0;
         foreach ($this->_packages as $p) {
             $volWeight = ($p->length * $p->width * $p->height) / 4000;
@@ -504,22 +488,19 @@ class SurchargeManager
         }
         return $totalWeight;
     }
-
-    public function calculateBoxWeight($allowedWeight)
-    {
+    public function calculateBoxWeight($allowedWeight) {
         $totalWeight = 0;
         foreach ($this->_packages as $p) {
             $volWeight = ($p->length * $p->width * $p->height) / 4000;
             $weight = $p->weight;
             $realWeight = ($weight > $volWeight) ? $weight : $volWeight;
-            $extra = $realWeight - $allowedWeight;
-            $totalWeight += ($extra > 0) ? $extra : 0;
+            $extra=$realWeight-$allowedWeight;
+            $totalWeight += ($extra>0)?$extra:0;
         }
         return $totalWeight;
     }
 
-    public function getWeightSurchargeRate($weight)
-    {
+    public function getWeightSurchargeRate($weight) {
         $rate = 0;
         if ($weight < 25 && (isset($this->_surcharge->manualHandling->weight0to24) && $this->_surcharge->manualHandling->weight0to24 == 1)) {
             $rate = $this->_surcharge->manualHandling->weight0to24Rate ?? 0;
@@ -531,22 +512,19 @@ class SurchargeManager
             $rate = $this->_surcharge->manualHandling->weight76to100Rate ?? 0;
         } else if ($weight > 100 && $weight < 201 && (isset($this->_surcharge->manualHandling->weight101to200) && $this->_surcharge->manualHandling->weight101to200 == 1)) {
             $rate = $this->_surcharge->manualHandling->weight101to200Rate ?? 0;
-        }
-        if ($weight > 200 && (isset($this->_surcharge->manualHandling->weight201plus) && $this->_surcharge->manualHandling->weight201plus == 1)) {
+        } if ($weight > 200 && (isset($this->_surcharge->manualHandling->weight201plus) && $this->_surcharge->manualHandling->weight201plus == 1)) {
             $rate = $this->_surcharge->manualHandling->weight201plusRate ?? 0;
         }
         return $rate;
     }
-
-    public function getOverUnitSurcharge($surchargeType, $unit)
-    {
+    public function getOverUnitSurcharge($surchargeType,$unit){
         $rate = 0;
-        foreach ($this->_surcharge->{$surchargeType} as $item) {
-            if (!isset($item->from) || $item->from <= 0) {
+        foreach ($this->_surcharge->{$surchargeType} as $item){
+            if(!isset($item->from) || $item->from <= 0){
                 continue;
             }
-            if ($item->from <= $unit && $item->to >= $unit) {
-                $rate = $item->charge;
+            if($item->from <= $unit && $item->to >= $unit){
+                $rate=$item->charge;
             }
         }
         return $rate;
@@ -556,8 +534,7 @@ class SurchargeManager
      * Here we are returning all calculated surcharge
      * @return type array
      */
-    public function getAppliedSurcharge()
-    {
+    public function getAppliedSurcharge() {
         return $this->_countedSurcharge;
     }
 
@@ -567,33 +544,31 @@ class SurchargeManager
      * @param $type string extra unit type
      * @return int
      */
-    public function overUnitSlabCalculator($extraUnit, $rate, $type = 'overWeight')
-    {
-        $charge = 0;
-        foreach ($this->_surcharge->{$type} as $slab) {
-            if ($extraUnit < 1 || !isset($slab->from)) {
+    public function overUnitSlabCalculator($extraUnit,$rate,$type='overWeight'){
+        $charge=0;
+        foreach ($this->_surcharge->{$type} as $slab){
+            if($extraUnit<1 || !isset($slab->from)){
                 break;
             }
-            $chargeable = 0;
-            if ($extraUnit >= $slab->to) {
-                $chargeable = $slab->to;
-            } else {
-                $chargeable = $extraUnit;
+            $chargeable=0;
+            if($extraUnit >= $slab->to){
+                $chargeable=$slab->to;
+            }else{
+                $chargeable=$extraUnit;
             }
-            $extraUnit -= $chargeable;
-            $unit = $slab->unit ?? 1;
-            $chargeableUnit = ($chargeable % $unit > 0) ? ($chargeable / $unit) + 1 : $chargeable / $unit;
-            if ($this->_surcharge->commonData->factor == 'constant') {
-                $price = $slab->charge;
-            } else {
-                $price = ($slab->charge / 100) * $rate['rate'];
+            $extraUnit -=$chargeable;
+            $unit=$slab->unit??1;
+            $chargeableUnit=($chargeable%$unit>0)?($chargeable/$unit)+1:$chargeable/$unit;
+            if($this->_surcharge->commonData->factor=='constant'){
+                $price=$slab->charge;
+            }else{
+                $price=($slab->charge/100)*$rate['rate'];
             }
-            $charge += $chargeableUnit * $price;
+            $charge += $chargeableUnit*$price;
         }
         return $charge;
     }
-
-    public function getUkMailInsuranceCharge($coverAmount)
+	 public function getUkMailInsuranceCharge($coverAmount)
     {
         if ($coverAmount > 0 && $coverAmount < 1001) {
             $this->_countedSurcharge['insurance_surcharge'] = 10;
@@ -618,5 +593,6 @@ class SurchargeManager
         }
 
     }
+
 
 }

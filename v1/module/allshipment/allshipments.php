@@ -1637,7 +1637,6 @@ class allShipments extends Icargo
 		$env = ( ENV == 'live' ) ? 'PROD' : 'DEV';               
 		$bookingObj = new Booking_Model_Booking();
 		$providerInfo = $bookingObj->getProviderInfo('LABEL',$env,'PROVIDER',$param->carrier);  
-		
 		switch (strtolower($carrier_code))
 		{
 			case 'dhl':
@@ -1662,7 +1661,8 @@ class allShipments extends Icargo
 						$credentialData = $bookingObj->getCredentialDataForChildAccount($labelArr->label->accountnumber,$labelInfo[0]['parent_account_key']);
 					else //get credentials for parent account
 						$credentialData = $bookingObj->getCredentialDataByLoadIdentity($labelArr->label->accountnumber, $param->load_identity);
-					$param->username = "nikhil.kumar@ordercup.com";//$credentialData['username'];
+					    $param->username = $credentialData['username'];
+						$param->password = $credentialData['password'];
 				}else{
 					return array("status"=>"error","message"=>"cancel request not completed by carrier");
 				}
@@ -2235,7 +2235,8 @@ public function getNextDayCarriersofCompany($param){
             'endPointUrl' => $providerInfo['label_endpoint']
         ); 
 		$json_data->labelInfo = (isset($param->labelInfo)) ? $param->labelInfo : "";
-		$json_data->username = (isset($param->username)) ? $param->username : "";		
+		$json_data->username = (isset($param->username)) ? $param->username : "";
+        $json_data->password = (isset($param->password)) ? $param->password : "";		
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
         $resultObj = json_decode($label);   
