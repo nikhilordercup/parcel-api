@@ -23,11 +23,6 @@ class UkmailMaster
 		   return self::cancelLabel($app,$wsdlBaseUrl);
 		}
 		
-		
-		/* $app->credentials->username = "nikhil.kumar@ordercup.com";
-        $app->credentials->password = "b85op06w";
-        $app->credentials->account_number = "K906430"; */
-		
 		$authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($app->credentials->username,$app->carrier);
 		if($authToken!=''){
 			$app->credentials->authenticationToken = $authToken;
@@ -119,38 +114,34 @@ class UkmailMaster
 	 * @return number
 	 */
 	public static function getExtendedCover($insurance_amount){
-		switch ($insurance_amount)
-		{
-		case range(1,1000):
-			return 1; 
-			break;
-		case range(1001,2000):
+		if(($insurance_amount ==  1) || ($insurance_amount <  1000 || $insurance_amount == 1000)){
+		}			
+		elseif(($insurance_amount ==  1001) || ($insurance_amount <  2000) || ($insurance_amount == 2000)){
 			return 2; 
-			break;
-		case range(2001,3000):
+		}
+		elseif(($insurance_amount ==  2001) || ($insurance_amount <  3000) || ($insurance_amount == 3000)){
 			return 3; 
-			break;
-		case range(3001,4000):
+		}
+		elseif(($insurance_amount ==  3001) || ($insurance_amount <  4000) || ($insurance_amount == 4000)){
 			return 4; 
-			break;
-		case range(4001,5000):
+		}
+		elseif(($insurance_amount ==  4001) || ($insurance_amount <  5000) || ($insurance_amount == 5000)){
 			return 5; 
-			break;
-		case range(5001,6000):
+		}
+		elseif(($insurance_amount ==  5001) || ($insurance_amount <  6000) || ($insurance_amount == 6000)){
 			return 6; 
-			break;
-		case range(6001,7000):
+		}
+		elseif(($insurance_amount ==  6001) || ($insurance_amount <  7000) || ($insurance_amount == 7000)){
 			return 7; 
-			break;
-		case range(7001,8000):
+		}
+		elseif(($insurance_amount ==  7001) || ($insurance_amount <  8000) || ($insurance_amount == 8000)){
 			return 8; 
-			break;
-		case range(8001,9000):
+		}
+		elseif(($insurance_amount ==  8001) || ($insurance_amount <  9000) || ($insurance_amount == 9000)){
 			return 9; 
-			break;
-		case range(9001,10000):
+		}
+		elseif(($insurance_amount ==  9001) || ($insurance_amount <  10000) || ($insurance_amount == 10000)){
 			return 10; 
-			break;
 		}
 	}
 	
@@ -159,14 +150,31 @@ class UkmailMaster
 	 * @return Array
 	 */
 	public static function cancelLabel($param,$wsdlBaseUrl){
+		//$ukMailModel = new model\UkMailModel();
 		$labelInfo = (object)$param->labelInfo[0];
 		$labelInfo = json_decode($labelInfo->label_json);
 	    
 		$app = new \stdClass();
-		$app->AuthenticationToken = $labelInfo->label->authenticationtoken;
+		/* $authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($param->username,'UKMAIL');
+		if($authToken!=''){
+			$app->AuthenticationToken = $authToken;
+		}else{ */ 
+			$app->credentials = new \stdClass();
+			$app->credentials->username = $param->username;
+			$app->credentials->password = $param->password;
+			$loginResp = self::getAuthToken($app,$wsdlBaseUrl);
+			if($loginResp['status']=='success'){
+				$app->AuthenticationToken = $loginResp['authenticationtoken'];
+			}else{
+				//login failed
+				$response['label'] = array("status"=>"error","message"=>$loginResp['message']);
+				exit(json_encode($response));
+			}
+		//}
+		
+		//$app->AuthenticationToken = $labelInfo->label->authenticationtoken;
 		$app->ConsignmentNumber = $labelInfo->label->tracking_number;
 		$app->Username = $param->username;
-		
 		$cancelLabel = UkmailCancelLabel::voidCall($app,$wsdlBaseUrl);
 		exit(json_encode($cancelLabel));
 	}

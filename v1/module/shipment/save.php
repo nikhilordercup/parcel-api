@@ -1469,12 +1469,12 @@ class shipment extends Library{
 		$postcode = $postcode[0];
         if($postcode){
 			if(isset($address["type"])){
-				if($address["type"] == 'no' || $address["type"] == 'Business')
+				if($address["type"] == 'no' || $address["type"] == 'Business' || $address["type"] == "")
 					$address_type = 'Business';
 				elseif($address["type"] == 'yes' || $address["type"] == 'Residential')
 					$address_type = 'Residential';
 			}else{
-				$address_type = "";
+				$address_type = "Business";
 			}
             $address["postcode"] = $postcode;
             $data = array();
@@ -1507,7 +1507,7 @@ class shipment extends Library{
             $data["customer_id"] = $address["customer_id"];
 
             $data["is_warehouse"] = (isset($address["is_warehouse"])) ? $address["is_warehouse"] : "N";
-            $data["address_type"] = $address_type;
+            $data["address_type"] = $address_type; 
 
             $data["billing_address"] = (isset($address["billing_address"])) ? addslashes($address["billing_address"]) : "N";
 

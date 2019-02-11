@@ -11,7 +11,6 @@ class UkmailCancelLabel
 		$wsdlUrl = $wsdlBaseUrl.'UKMConsignmentServices/UKMConsignmentService.svc?wsdl';
         $CancelConsignment = new \stdClass();
         $CancelConsignment->request = $request;
-		
         $soapClient = new \SoapClient($wsdlUrl);
         $CancelConsignmentResponse = $soapClient->CancelConsignment($CancelConsignment); 
 		if(isset($CancelConsignmentResponse->CancelConsignmentResult->Errors->UKMWebError)){

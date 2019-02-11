@@ -12,14 +12,14 @@ use Postmen\Postmen;
 abstract class PostMenMaster extends Postmen
 {    
     protected $db = NULL;    
-    protected static $apikey = 'b5585973-d041-4c4a-9b1f-014bf56e65e7';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7            
-    protected static $region = 'sandbox';    //sandbox  //production
+    protected static $apikey = 'b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c';//pro#b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c san#b5585973-d041-4c4a-9b1f-014bf56e65e7            
+    protected static $region = 'production';    //sandbox  //production
     protected $api = NULL;
     
     protected $baseUrl = 'https://sandbox-api.postmen.com';    
     protected $headers = array(
        "content-type: application/json",
-       "postmen-api-key: b5585973-d041-4c4a-9b1f-014bf56e65e7"
+       "postmen-api-key: b353df5f-6bfc-4bc3-bb5e-ed82d5cf6c4c"
     );    
     const UNKNOWN_ERROR = 4104;
     protected $request = '';

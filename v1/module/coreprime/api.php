@@ -94,7 +94,7 @@ class Module_Coreprime_Api extends Icargo
     private
     function _filterApiResponse($input, $customer_id, $company_id, $charge_from_warehouse, $is_tax_exempt)
     {
-        if (is_array($input)) {
+        if (is_array($input) and isset($input["rate"])) {
             $temparray = array();
             $returnarray = array();
             unset($input["rate"]["timestamp"]);
@@ -479,6 +479,10 @@ class Module_Coreprime_Api extends Icargo
             }
         }
 
+	foreach ($data['package']  as $id=>$p){
+            if(!isset($p['length']))unset($data['package'][$id]);
+        }
+
         $data_string = json_encode($data); //echo $data_string;die;
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -489,7 +493,7 @@ class Module_Coreprime_Api extends Icargo
                 'Content-Length: ' . strlen($data_string))
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch); //print_r($server_output);die;
+        $server_output = curl_exec($ch);//print_r($data_string); print_r($server_output);die;
         curl_close($ch);
         return $server_output;
     }
@@ -539,6 +543,7 @@ class Module_Coreprime_Api extends Icargo
     {
         if (trim($price) === "") return false;
         $price = json_decode($price);
+        if(!is_object($price)) return false;
         foreach ($price->rate as $k => $p) {
             $finalArray['rate'][$k] = $p;
         }
