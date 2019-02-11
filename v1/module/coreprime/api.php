@@ -480,7 +480,9 @@ class Module_Coreprime_Api extends Icargo
                 $url = $ep['rate_endpoint'];
             }
         }
-
+        foreach ($data['package']  as $id=>$p){
+            if(!isset($p['length']))unset($data['package'][$id]);
+        }
         $data_string = json_encode($data);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
