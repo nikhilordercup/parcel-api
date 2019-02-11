@@ -608,6 +608,7 @@ final class Nextday extends Booking
             "zip" => $item->postcode,
             "country" => $item->country->alpha2_code,
             "country_name" => $item->country->short_name,
+			"address_type" => (isset($item->address_type) && $item->address_type=='Residential') ? 'Residential' : 'Business',
 			"is_res" => (isset($item->address_type) && $item->address_type=='Residential') ? true : false,
 
         );
@@ -647,7 +648,7 @@ final class Nextday extends Booking
                         "dimension_unit" => "CM",
                         "weight" => round($item->weight/$item->quantity,2),
                         "weight_unit" => "KG",
-                        "content" => $item->content
+                        "content" => isset($item->content) ? $item->content : ''
                     ));
                     $isDocument = (isset($item->is_document)) ? (($item->is_document && !is_bool($isDocument)) ? "true" : "false") : "false";
                 }

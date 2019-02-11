@@ -1449,7 +1449,7 @@ class shipment extends Library{
     private
 
     function _getAddressBySearchStringAndCustomerId($customer_id, $search_string){
-        $record = $this->db->getRowRecord("SELECT id AS address_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '%$search_string%'");
+        $record = $this->db->getRowRecord("SELECT id AS address_id FROM " . DB_PREFIX . "address_book WHERE `customer_id` = '$customer_id' AND `search_string` LIKE '$search_string'");
         return $record['address_id'];
     }
 
@@ -1469,7 +1469,10 @@ class shipment extends Library{
 		$postcode = $postcode[0];
         if($postcode){
 			if(isset($address["type"])){
-				$address_type = ($address["type"] == 'no') ? 'Business' : 'Residential' ;
+				if($address["type"] == 'no' || $address["type"] == 'Business')
+					$address_type = 'Business';
+				elseif($address["type"] == 'yes' || $address["type"] == 'Residential')
+					$address_type = 'Residential';
 			}else{
 				$address_type = "";
 			}
@@ -1494,7 +1497,7 @@ class shipment extends Library{
 
             $data["company_name"] = (isset($address["company_name"])) ? addslashes($address["company_name"]) : "";
 
-            $addressData = array("address_1"=>$data['address_line1'],"address_2"=>$data['address_line2'],"name"=>$data['first_name'],"city"=>$data['city'],"state"=>$data['state'],"company_id"=>$data['company_name'],"country"=>$data['country'],"email"=>$data['contact_email'],"postcode"=>$data['postcode'],"phone"=>$data["phone"]);
+            $addressData = array("address_1"=>$data['address_line1'],"address_2"=>$data['address_line2'],"name"=>$data['first_name'],"city"=>$data['city'],"state"=>$data['state'],"company_id"=>$data['company_name'],"country"=>$data['country'],"email"=>$data['contact_email'],"postcode"=>$data['postcode'],"phone"=>$data["phone"],"address_type"=>$address_type);
 
             $data["search_string"] = $commonObj->getAddressBookSearchString((object)$addressData);//str_replace(' ','',implode('',$data));
 
@@ -1514,7 +1517,7 @@ class shipment extends Library{
 				$data["version_id"] = "version_1";
 				$address_id = $this->db->save("address_book", $data);
 			}else{
-				if(!$address_id){
+				if($address_id){
 					if(($address_op===null) OR ($address_op=="add")){
 						$data["version_id"] = "version_1";
 						$address_id = $this->db->save("address_book", $data);

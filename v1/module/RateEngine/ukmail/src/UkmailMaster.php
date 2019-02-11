@@ -9,7 +9,7 @@ class UkmailMaster
 	 * Login call can be skipped if authentication token for same username is already in icargo_carrier_user_token for the particular username & ukmail carrier and is not expired. We have to request for book collection and label call everytime.
      * @return Array
      */
-	public static function initRoutes($app){//print_r($app);die;
+	public static function initRoutes($app){
 		$labelResp = array();
 		$response = array();
 		if(ENV == 'dev')
@@ -41,7 +41,6 @@ class UkmailMaster
 				exit(json_encode($response));
 			}
 		}
-		
 		if($app->credentials->collectionjobnumber==''){
 			//book collection request after successfully getting authentication token
 			$collectionArr = self::formatCollectionRequest($app);

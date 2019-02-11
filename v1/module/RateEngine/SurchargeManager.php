@@ -49,7 +49,7 @@ class SurchargeManager {
         "residential_surcharge"=>0
 	];
     protected $_fuelSurcharge = null;
-    public $_isSameDay=false;
+    public $_packageCount=0;
     /**
      * @var array Keys for surcharge types
      */
@@ -75,6 +75,16 @@ class SurchargeManager {
         "residential_surcharge"
     ];
 
+	private $_isUkMail = false;
+
+    /**
+     * SurchargeManager constructor.
+     */
+    public function __construct($carrier)
+    {
+        $this->_isUkMail = strtolower($carrier) == 'ukmail';
+    }
+
     /**
      * Start point for every surcharge calculation. This function will filter surcharge type 
      * and call appropriate method for surcharge calculation.
@@ -94,7 +104,9 @@ class SurchargeManager {
   //      $match_date = new \DateTime($request->ship_date);
     //    $interval = $date->diff($match_date);
         if(is_null($packages) || count($packages) == 0) {
-            $this->_isSameDay=true;
+            $this->_packageCount=0;
+        }else{
+            $this->_packageCount =count($packages);
         }
         if (is_null($surcharges)) {
             $surcharges = [];
@@ -108,11 +120,11 @@ class SurchargeManager {
 
             switch ($surchargeObj->surcharge) {
                 case 1:
-                    if($this->_isSameDay)break;
+                    if(!$this->_packageCount)break;
                     $this->longLengthSurcharge($rate);
                     break;
                 case 3:
-                    if($this->_isSameDay)break;
+                    if(!$this->_packageCount)break;
                     $this->manualHandlingSurcharge($rate);
                     break;
                 case 4:
@@ -120,6 +132,9 @@ class SurchargeManager {
                     break;
                 case 6:
                     $this->bookingSurcharge($rate);
+                    break;
+		case 7:
+                    $this->insuranceSurcharge($rate);
                     break;
                 case 2:
                 case 5:
@@ -133,8 +148,8 @@ class SurchargeManager {
                 case 16:
                     $this->sameDayDropWaitSurcharge($rate, $surchargeObj->surcharge);
                     break;
-                case 17://print_r($this->_isSameDay);exit('ov');
-                    if($this->_isSameDay)break;
+                case 17:
+                    if(!$this->_packageCount)break;
                     $this->overWeightSurcharge($rate);
                     break;
                 case 18:
@@ -341,6 +356,36 @@ class SurchargeManager {
         $this->_countedSurcharge["bookin_surcharge"] = $finalSurcharge;
     }
 
+	/**
+     * @param $rate
+     */
+    public function insuranceSurcharge($rate)
+    {
+	if(!isset($this->_requestData->insurance) || $this->_requestData->insurance->value<=0){
+            $this->_countedSurcharge["insurance_surcharge"] = 0;
+            return;
+        }
+        $finalSurcharge = 0;
+        if (!isset($this->_requestData->insurance)) {
+            $this->_countedSurcharge['insurance_surcharge'] = 0;
+            return;
+        } elseif ($this->_isUkMail) {
+            $this->getUkMailInsuranceCharge($this->_requestData->insurance->value);
+		return;
+        } else {
+            if ($this->_surcharge->commonData->applyPer != 'per_consignment') {
+                foreach ($this->_packages as $p) {
+                    $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, ['rate' => $this->_requestData->insurance->value]);
+                }
+            } else {
+                $finalSurcharge += $this->calculateSurcharge($this->_surcharge->commonData, ['rate' => $this->_requestData->insurance->value]);
+            }
+        }
+        $finalSurcharge = ($this->_surcharge->insurance->minCharge > $finalSurcharge) ? $this->_surcharge->insurance->minCharge : $finalSurcharge;
+//	echo $finalSurcharge;exit;
+        $this->_countedSurcharge["insurance_surcharge"] = $finalSurcharge;
+    }
+
     /**
      * Function for checking box side conditions
      * @param $firstValue
@@ -523,5 +568,31 @@ class SurchargeManager {
         }
         return $charge;
     }
+	 public function getUkMailInsuranceCharge($coverAmount)
+    {
+        if ($coverAmount > 0 && $coverAmount < 1001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 10;
+        } else if ($coverAmount > 1001 && $coverAmount < 2001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 20;
+        } else if ($coverAmount > 2001 && $coverAmount < 3001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 30;
+        } else if ($coverAmount > 3001 && $coverAmount < 4001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 40;
+        } else if ($coverAmount > 4001 && $coverAmount < 5001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 50;
+        } else if ($coverAmount > 5001 && $coverAmount < 6001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 60;
+        } else if ($coverAmount > 6001 && $coverAmount < 7001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 70;
+        } else if ($coverAmount > 7001 && $coverAmount < 8001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 80;
+        } else if ($coverAmount > 8001 && $coverAmount < 9001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 90;
+        } else if ($coverAmount > 9001 && $coverAmount < 10001) {
+            $this->_countedSurcharge['insurance_surcharge'] = 100;
+        }
+
+    }
+
 
 }
