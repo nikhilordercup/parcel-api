@@ -199,7 +199,7 @@ class RateApiController
         $packages = $request->package;
         $packagesCount = count($packages);
         $packagesWeight = $this->calculateWeight($packages);
-
+	//print_r($this->_responseData);exit;
         $distance = 0;
         $time = 0;
         $waitTime = 0;
