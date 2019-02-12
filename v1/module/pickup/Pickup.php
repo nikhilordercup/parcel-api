@@ -46,7 +46,7 @@ class Pickup extends Icargo
     
 
     private function _savePickup($data)
-    {
+    { 
         $this->company_id = $data->company_id;              
         $date = date('Y-m-d H:i:s');                
         //print_r($data); die;
@@ -85,9 +85,11 @@ class Pickup extends Icargo
             'instruction_todriver'  => $data->special_instruction,
             'search_string'         => $searchString,
             'loginemail'         => $data->email,
-            'access_token'         => $data->access_token
+            'access_token'         => $data->access_token,
+            'account_number'         => $data->customer_account,
+            'carrier_code'         => 'DHL'
         );
-                          
+                                              
         $pickupConfDetail = $this->_getConfirmationNumber($pickupData, $data->pickup_country->alpha2_code); 
         unset($pickupData['loginemail']);
         unset($pickupData['access_token']);
@@ -279,6 +281,30 @@ class Pickup extends Icargo
         $sql = "SELECT confirmation_number as collectionjobnumber,pickup_date,package_location,earliest_pickup_time,latest_pickup_time,account_number FROM ".DB_PREFIX."pickups IP WHERE IP.carrier_code='$carrier_code' AND IP.account_number='$param->account_number' AND IP.pickup_date ='$param->pickup_date' AND IP.company_id = $param->company_id order by id desc limit 0,1"; //echo $sql;die;
         $record = $this->db->getRowRecord($sql); 
     	return array("status"=>"success", "data"=>$record);
+    }
+    
+    public function getUserAccount($requestData)
+    {                
+        $customerId = $requestData->request->customer_id;        
+        $companyId = $requestData->company_id;                
+        $cid = \Carrier::getCarrierIdByName('DHL'); 
+                        
+        $sql = "SELECT * from ".DB_PREFIX."courier_vs_company_vs_customer 
+                where company_id = $companyId 
+                and customer_id = $customerId  
+                and courier_id = $cid    
+                ";                         
+        $records = $this->db->getAllRecords($sql);  
+        
+        $accountArr = array();
+        if(count($records) > 0)
+        {
+            foreach($records as $record )
+            {
+                $accountArr[] = $record['account_number'];
+            }
+        }                
+    	return array("customerAccountArr"=>$accountArr);
     }
 }
 ?>

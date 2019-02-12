@@ -2538,3 +2538,11 @@ $address_id = $record["id"];
 $db->executeQuery($sql);
 }
 });
+
+$app->post('/getCustomerAccount', function () use ($app) {
+    $response = array();
+    $r = json_decode($app->request->getBody());  
+    $obj = new \Pickup($r);
+    $response = $obj->getUserAccount($r);
+    echoResponse(200, $response);
+});

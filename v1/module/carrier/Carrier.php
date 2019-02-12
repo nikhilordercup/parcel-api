@@ -256,5 +256,14 @@ class Carrier{
 
 	}
 	/*****end of cancelling shipment from shipment grid*******/
+    
+    public static function getCarrierIdByName($carrierName)
+    {       
+        $db = new DbHandler();
+        $sql = "SELECT id FROM " . DB_PREFIX . "courier WHERE name = '$carrierName' limit 0,1";
+        $res = $db->getRowRecord($sql); 
+        return($res == NULL) ? 0 : $res['id'];        
+    }
+    
 }
 ?>
