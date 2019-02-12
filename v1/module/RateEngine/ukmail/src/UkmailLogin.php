@@ -13,7 +13,6 @@ class UkmailLogin
         $LoginWebRequest->Password = $data->credentials->password;
         $Login = new \stdClass();
         $Login->loginWebRequest = $LoginWebRequest;
-		
         $soapClient = new \SoapClient($wsdlUrl);
         $LoginResponse = $soapClient->Login($Login); 
 		if(isset($LoginResponse->LoginResult->Errors->UKMWebError)){
