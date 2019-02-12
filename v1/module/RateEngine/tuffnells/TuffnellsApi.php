@@ -78,7 +78,7 @@ class TuffnellsApi
                 //Consignment type 1 char (Not Required)
                 $string .=" ";
                 //8 Digit Account number with Tuffnells (Required)
-                $string .=$data[$key]['credential_info']->account_number;
+                $string .=str_pad(substr($data[$key]['credential_info']->account_number,0,8),8," ",STR_PAD_RIGHT);
                 //Load Identity Max 9 Char (Required)
                 $string .=str_pad(substr($data[$key]['load_identity'],0,9),9," ",STR_PAD_RIGHT);
                 //2 Space Reserved for TPE Use (Required)
@@ -108,8 +108,9 @@ class TuffnellsApi
 
                 //Package weight 7 Char Max (Required)
                 $string .=str_pad($data[$key]['total_weight'],7,"0",STR_PAD_LEFT);
-                //Delivery Surcharge 3 Char Max (Required)
-                $string .=str_pad($service_args[$keyval]['surcharge'],2," ",STR_PAD_RIGHT);
+
+//                //Delivery Surcharge 2 Char Max (Note Required)
+//                $string .=str_pad($service_args[$keyval]['surcharge'],2," ",STR_PAD_RIGHT);
 
                 //Package Type Field 1 3 Char Max (Required)
                 $packageType=$data[$key]['package_info'][0]->custom_package_type??'CAR';
@@ -118,7 +119,7 @@ class TuffnellsApi
                 //Package Type Field 2 3 Char Max (Not Required)
                 $string .=str_pad('',3," ",STR_PAD_RIGHT);
                 //Package Count Field 1 3 Char Max (Required)
-                $string .=str_pad(count($data[$key]['package_info']),5," ",STR_PAD_RIGHT);
+                $string .=str_pad(count($data[$key]['package_info']),5,"0",STR_PAD_LEFT);
                 //Package Count Field 2 3 Char Max (Not Required)
                 $string .=str_pad('',5," ",STR_PAD_RIGHT);
 
@@ -129,7 +130,7 @@ class TuffnellsApi
                 $string .=str_pad($data[$key]['delivery_info']->name,30," ",STR_PAD_RIGHT);
 
                 //Delivery Phone  31 Char Max (Not Required)
-                $string .=str_pad($data[$key]['delivery_info']->phone,31," ",STR_PAD_RIGHT);
+                $string .=str_pad($data[$key]['delivery_info']->phone,16," ",STR_PAD_RIGHT);
 
                 $sequenceNumber=RateEngineLabelsModel::query()
                     ->where('account_number','=',$data[$key]['credential_info']->account_number)

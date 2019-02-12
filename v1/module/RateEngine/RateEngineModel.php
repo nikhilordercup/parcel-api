@@ -191,7 +191,7 @@ class RateEngineModel
     {
         $query = "SELECT CS.*,C.name FROM " . DB_PREFIX . "courier_vs_services As CS "
             . "LEFT JOIN " . DB_PREFIX . "courier AS C ON CS.courier_id=C.id "
-            . "WHERE CS.service_name='$name' AND C.id=$carrierId ";
+            . "WHERE CS.service_name='$name' AND C.id=$carrierId";
         return $this->_db->getOneRecord($query);
     }
 
@@ -270,10 +270,10 @@ class RateEngineModel
             }
             for ($i = strlen($zip); $i >= 2; $i--) {
                 if ($surcharge) {
-                    if (trim($r) == substr($zip, 0, $i)) {
+                    if (strtolower(trim($r)) == strtolower(substr($zip, 0, $i))) {
                         return $r;
                     }
-                } else if ($r['post_code'] == substr($zip, 0, $i)) {
+                } else if (strtolower($r['post_code']) == strtolower(substr($zip, 0, $i))) {
                     return $r;
                 }
             }
@@ -477,7 +477,7 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         }
     }
     public function getTaxInfoByIso2($iso){
-	if(strlen($iso)===2){
+        if(strlen($iso)===2){
             $where="C.alpha2_code='$iso'";
         }else{
             $where="C.alpha3_code='$iso'";

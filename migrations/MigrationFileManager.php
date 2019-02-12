@@ -69,6 +69,10 @@ class MigrationFileManager {
             $this->saveMigrationStatus($fileName);
             exit(json_encode(array('success' => TRUE, 'message' => 'Migration applied successfully.')));
         } catch (Exception $ex) {
+            if(strpos(strtolower($ex->getMessage()), 'already exist') !== false){
+                $this->saveMigrationStatus($fileName);
+                exit(json_encode(array('success' => TRUE, 'message' => 'Migration applied successfully.')));
+            }
             exit(json_encode(array('success' => FALSE, 'message' => $ex->getMessage())));
         }
     }

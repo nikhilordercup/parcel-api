@@ -227,7 +227,6 @@ class ServiceOptions
     private function commonConditionProcessor($name)
     {
 	if(!isset($this->_serviceOptions[$name]))return true;
-
         if ($this->_serviceOptions[$name]
             && isset($this->_requestData->extra->{$name}) && $this->_requestData->extra->{$name}) {
             //Both Set and true

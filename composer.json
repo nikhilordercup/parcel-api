@@ -23,7 +23,7 @@
     "illuminate/events": "^5.5.0",
     "aws/aws-sdk-php": "^3.82",
     "ext-gd": "*",
-    "twig/twig": "^2.0",
-    "phpoffice/phpspreadsheet": "^1.4"
+    "phpoffice/phpspreadsheet": "^1.6",
+    "twig/twig": "^2.0"
   }
 }

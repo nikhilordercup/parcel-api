@@ -455,7 +455,6 @@ class SurchargeManager {
     }
 
     public function isLocationChargeable($location) {
-//	print_r($this->_surcharge->remoteArea);exit;
         if (isset($this->_surcharge->remoteArea->selectedCountry) && !in_array($location->country, $this->_surcharge->remoteArea->selectedCountry)) {
             return FALSE;
         } else {

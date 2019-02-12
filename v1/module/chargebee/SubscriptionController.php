@@ -68,6 +68,7 @@ class SubscriptionController {
         $app->post('/updateCardInfo', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
+            $self->registerUserIfNotExist($r);
             verifyRequiredParams(array('access_token'), $r);
             $cardInfo = array(
                 "firstName" => $r->firstName,
@@ -82,6 +83,7 @@ class SubscriptionController {
         $app->post('/updateBillingAddress', function() use ($app) {
             $self = new SubscriptionController($app);
             $r = json_decode($app->request->getBody());
+            $self->registerUserIfNotExist($r);
             verifyRequiredParams(array('access_token'), $r);
             $billingAddress = array(
                 "firstName" => $r->name,
@@ -178,6 +180,8 @@ class SubscriptionController {
                 $helper->cancelSubscription($m->chargebee_subscription_id);
                 $m->status='subscription_cancelled';
                 $m->save();
+                $m=new \v1\module\Mailer\SystemEmail();
+                $m->sendSubscriptionCancelEmail($d->first_name,$d->email,$d->subscription->chargebee_subscription_id);
             }
             echoResponse(200,['result'=>'success','message'=>'Subscription canceled successfully.']);
         });
@@ -456,6 +460,15 @@ class SubscriptionController {
             echo "success";exit;
         } catch (Exception $ex){
             exit($ex->getMessage());
+        }
+    }
+    public function registerUserIfNotExist($r){
+        $customer =\v1\module\Database\Model\ChargebeeCustomersModel::all()
+            ->where('user_id','=',$r->company_id)->first();
+        if(!$customer){
+            $this->registerExistingUserToChargeBee($r->company_id);
+            $customer =\v1\module\Database\Model\ChargebeeCustomersModel::all()
+                ->where('user_id','=',$r->company_id)->first();
         }
     }
 }
