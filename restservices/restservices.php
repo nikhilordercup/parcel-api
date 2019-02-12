@@ -1,16 +1,16 @@
-<?php 
-$app->post('/getSameDayQuotation', function() use ($app) { 
+<?php
+$app->post('/getSameDayQuotation', function() use ($app) {
     $response = array();
-    $r = verifyToken($app,$app->request->getBody()); 
+    $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'getSameDayQuotation';
     $obj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
 	$records = $obj->getSameDayQuotation($r);
     $saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
 	echoResponse(200, $records);
 });
-$app->post('/bookSameDayQuotation', function() use ($app) { 
+$app->post('/bookSameDayQuotation', function() use ($app) {
     $response = array();
-    $r = verifyToken($app,$app->request->getBody());  
+    $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'bookSameDayQuotation';
     $commonObj   = new Commonservices();
     $records = $commonObj->getRequestedQuotationInfo($r);
@@ -22,7 +22,7 @@ $app->post('/bookSameDayQuotation', function() use ($app) {
 	$saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
     echoResponse(200, $records);
 });
-$app->post('/bookSameDayJob', function() use($app){ 
+$app->post('/bookSameDayJob', function() use($app){
         $response = array();
         $r = verifyToken($app,$app->request->getBody());
         $r->endpoint = 'bookSameDayJob';
@@ -31,7 +31,7 @@ $app->post('/bookSameDayJob', function() use($app){
         $saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
         echoResponse(200, $records);
 });
-$app->get('/executeRecurringJob', function() use($app){ 
+$app->get('/executeRecurringJob', function() use($app){
         $response = array();
         $r = verifyTokenByPass($app,$app->request->getBody());
         $r->endpoint = 'bookedRecurringJob';
@@ -43,7 +43,7 @@ $app->get('/executeRecurringJob', function() use($app){
         $recordsNext = $nextobj->executeNextDayRecurringJob($r);
         $saveWebRequest = $sameobj->saveWebReqResponce($r,$recordsNext,$app);
         echoResponse(200, $recordsSame + $recordsNext);
-        //echoResponse(200,  $recordsNext);       
+        //echoResponse(200,  $recordsNext);
 });
 /*$app->post('/getNextDayQuotation', function() use ($app) {
         $response = array();
@@ -63,7 +63,7 @@ $app->post('/bookNextDayJob', function() use ($app){
     $saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
     echoResponse(200, $response);
 });*/
-$app->post('/canCancelJob', function() use ($app) { 
+$app->post('/canCancelJob', function() use ($app) {
     $response = array();
     $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'canCancelJob';
@@ -72,7 +72,7 @@ $app->post('/canCancelJob', function() use ($app) {
 	$saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
     echoResponse(200, $records);
 });
-$app->post('/cancelJob', function() use ($app) { 
+$app->post('/cancelJob', function() use ($app) {
     $response = array();
     $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'cancelJob';
@@ -81,7 +81,7 @@ $app->post('/cancelJob', function() use ($app) {
 	$saveWebRequest = $obj->saveWebReqResponce($r,$records,$app);
     echoResponse(200, $records);
 });
-$app->post('/getShipmentTracking', function() use ($app) { 
+$app->post('/getShipmentTracking', function() use ($app) {
     $response = array();
     $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'getShipmentTracking';
@@ -92,9 +92,9 @@ $app->post('/getShipmentTracking', function() use ($app) {
 });
 
 /*  Globle Web services*/
-$app->post('/getQuotation', function() use ($app) { 
+$app->post('/getQuotation', function() use ($app) {
     $response = array();
-    $r = verifyToken($app,$app->request->getBody()); 
+    $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'getQuotation';
     $sameObj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
 	$sameRecords = $sameObj->getSameDayQuotation($r);
@@ -108,13 +108,13 @@ $app->post('/getQuotation', function() use ($app) {
     $records = $commonObj->getMergeRecords($sameRecords,$nextRecords);
     $saveWebRequest = $sameObj->saveWebReqResponce($r,$records,$app);
 	echoResponse(200, $records);
-}); 
-$app->post('/bookQuotation', function() use ($app) { 
+});
+$app->post('/bookQuotation', function() use ($app) {
     $response = array();
-    $r = verifyToken($app,$app->request->getBody());  
+    $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'bookQuotation';
     $commonObj   = new Commonservices();
-    $records = $commonObj->getRequestedQuotationInfo($r); 
+    $records = $commonObj->getRequestedQuotationInfo($r);
     if($records['status']=='success'){
         $obj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
        if($records['job_type']=='SAMEDAY'){
@@ -128,19 +128,19 @@ $app->post('/bookQuotation', function() use ($app) {
             echoResponse(200, $response);
        }else{
            //
-       }   
+       }
     }else{
-        echoResponse(200, $records); 
+        echoResponse(200, $records);
     }
-    
-    
+
+
 });
-$app->post('/bookJob', function() use ($app) { 
+$app->post('/bookJob', function() use ($app) {
     $response = array();
-    $r = verifyToken($app,$app->request->getBody());  
+    $r = verifyToken($app,$app->request->getBody());
     $r->endpoint = 'bookJob';
     $commonObj   = new Commonservices();
-    $records = $commonObj->getSeviceInfo($r); 
+    $records = $commonObj->getSeviceInfo($r);
     if($records['status']=='success'){
        $obj = new Sameday((object)array('email'=>$r->email,'access_token'=>$r->access_token,'endpoint'=>$r->endpoint,'web_token'=>$r->webToken));
        if($records['job_type']=='SAMEDAY'){
@@ -157,12 +157,12 @@ $app->post('/bookJob', function() use ($app) {
             echoResponse(200, $response);
        }else{
            //
-       }   
+       }
     }else{
-        echoResponse(200, $records); 
+        echoResponse(200, $records);
     }
-    
-    
+
+
 });
 
 

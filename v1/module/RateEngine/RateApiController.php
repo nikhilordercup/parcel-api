@@ -24,7 +24,7 @@ class RateApiController
      */
     private $_reateEngineModel;
     private $_responseData = [];
-    public $_isSameDay = false;
+//    public $_isSameDay = false;
     public $_isLabelCall = false;
     private $_taxRate = null;
     private $_requestData = null;
@@ -46,9 +46,9 @@ class RateApiController
             $controller->_requestData = $r;
 //            $date = date('Y-m-d');
 //            $match_date = date('Y-m-d', strtotime($r->ship_date));
-            if (!isset($r->package) || count($r->package) == 0) {
-                $controller->_isSameDay = true;
-            }
+  //          if (!isset($r->package) || count($r->package) == 0) {
+    //            $controller->_isSameDay = true;
+      //      }
             if (isset($r->label)) { 
                 $controller->_isLabelCall = true;
             }
@@ -223,13 +223,13 @@ class RateApiController
                         $f = $f['rate'];
                         switch ($f["rate_type"]) {
                             case 'Weight':
-                                if ($this->_isSameDay) {
+                                if (!$packagesCount) {
                                     break;
                                 }
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = round($this->filterRateFormRange($f, $packagesWeight), 2);
                                 break;
                             case 'Box':
-                                if ($this->_isSameDay) break;
+                                if (!$packagesCount) break;
                                 $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'] = $this->filterRateFormRange($f, $packagesCount);
                                 break;
                             case 'Time':
@@ -254,13 +254,14 @@ class RateApiController
                                 unset($this->_responseData['rate'][$name][$k][$z][$key]);
                                 continue;
                             }
-                            $manager = new \v1\module\RateEngine\SurchargeManager();
+                            $manager = new \v1\module\RateEngine\SurchargeManager($name);
                             $manager->filterSurcharge($this->_responseData['surchargeList'][$name][$k][$z] ?? null, $transitData, $packages, $this->_responseData['rate'][$name][$k][$z][$key]['rate'], $request,$this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost']);
                             $this->_responseData['rate'][$name][$k][$z][$key]['surcharges'] = $manager->getAppliedSurcharge();
                             $this->_responseData['rate'][$name][$k][$z][$key]['service_options'] = $serviceOptionManager->formatOptionForResponse();
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'];
                             $this->_responseData['rate'][$name][$k][$z][$key]['taxes'] = $this->calculateTax($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price'], $this->_responseData['rate'][$name][$k][$z][$key]['surcharges']);
                             $this->_responseData['rate'][$name][$k][$z][$key]['rate']['act_number'] = $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number'];
+	        		$this->_responseData['rate'][$name][$k][$z][$key]['rate']['chargeable_weight']=$manager->calculateWeight();
                             unset($this->_responseData['rate'][$name][$k][$z][$key]['rate']['carrier_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['service_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_type_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['from_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['to_zone_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['start_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['end_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['additional_base_unit'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate_unit_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_id'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['rate'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['final_cost'], $this->_responseData['rate'][$name][$k][$z][$key]['rate']['account_number']);
                             if($this->_responseData['rate'][$name][$k][$z][$key]['rate']['price']==0)unset($this->_responseData['rate'][$name][$k][$z][$key]);
                         }

@@ -27,9 +27,9 @@ class LabelProcessor
         $app = new \Slim\Slim();
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);
-        $labelArr = is_string($label) ? json_decode($label, true) : $label;        
-        $labelArr = $labelArr['label'];  
-		if($labelArr['status']=='error'){
+        $labelArr = is_string($label) ? json_decode($label, true) : $label;          
+        $labelArr = $labelArr['label'];
+		if((isset($labelArr['status'])) && $labelArr['status']=='error'){
 			return array("status"=>$labelArr['status'],"message"=>$labelArr['message']);
 		}
         if ($labelArr['tracking_number'] != "") {
@@ -51,7 +51,7 @@ class LabelProcessor
     }
     
     public function getShipmentDataFromCarrier($loadIdentity, $rateDetail = array(), $allData = array())
-    {       
+    {       //print_r($allData);die;
         $collection = (array)$allData->collection; 
         $delivery = (array)$allData->delivery;     
         if(count($collection) > 0)
@@ -179,8 +179,36 @@ class LabelProcessor
             "over_weight_charge" => "",
             "discounted_rate" => ""
         );
-        $response['label_options'] = "";
-        $response['customs'] = "";
+        $response['label_options'] = "";    
+        
+        $response['customs'] = array();        
+        $customItems = array();
+        $totalItemValue = 0;
+        if(isset($allData->items) && count((array)$allData->items) > 0)
+        {            
+            foreach($allData->items as $item)
+            {
+                $customItem = new \stdClass();
+                $customItem->item_description = $item->item_description;
+                $customItem->item_quantity = $item->item_quantity;
+                $customItem->country_of_origin = $item->country_of_origin;
+                $customItem->item_value = $item->item_value;
+                $customItem->item_weight = $item->item_weight;  
+                
+                $totalItemValue +=  $customItem->item_value;
+                
+                $customItems[] = $customItem;
+            }            
+        }
+        $response['customs']['items'] = $customItems;
+        
+        $response['customs']['reason_for_export'] = isset($allData->reason_for_export) ? $allData->reason_for_export :'';
+        $response['customs']['export_type'] = (isset($allData->export_type) ? $allData->export_type : '');
+        $response['customs']['tax_status'] = (isset($allData->tax_status) ? $allData->tax_status : '');
+        $response['customs']['terms_of_trade'] = (isset($allData->terms_of_trade)) ? $allData->terms_of_trade:'';
+        $response['customs']['total_item_value'] = $totalItemValue;        
+        $response['customs']['isDutiable'] = $allData->dutiable;
+                                
         $response['billing_account'] = array(
             "payor_type" => "",
             "billing_account" => "",
@@ -207,8 +235,7 @@ class LabelProcessor
             {
                 $parcelQuantity = $parcel->quantity;
             }
-        } 
-                    
+        }
         $response['pickup_detail'] = array(
             'pickup_date'=>(isset($allData->pickup_date)) ? $allData->pickup_date : '',
             'earliest_pickup_time'=> (isset($allData->earliest_pickup_time)) ? $allData->earliest_pickup_time : '00:00',
@@ -219,16 +246,7 @@ class LabelProcessor
             'collectionjobnumber'=> (isset($allData->collectionjobnumber) && $allData->collectionjobnumber != '') ? $allData->collectionjobnumber : ''
         );
                                         
-        $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);
-        if($allData->service_opted->collected_by[0]->carrier_code == 'DHL')
-        {
-            if( !$paperLessTrade && ($response['status'] != 'error') && $allData->dutiable ) {
-            $customResp = $this->_getCustomInvoice($allData, $loadIdentity, $response);
-			$response['invoice_created'] = $customResp['invoice_created'];
-            } else {
-                unset($response['label_detail']);
-            }
-        }     
+        $response =  $this->_getLabel($loadIdentity, json_encode($response), $child_account_data);     
         return $response;        
     }
 
@@ -318,6 +336,13 @@ class LabelProcessor
 
         }
 
+        $label->fuel_surcharge = isset($label->fuel_surcharge) ? $label->fuel_surcharge :0;
+        $label->remote_area_delivery = isset($label->remote_area_delivery) ? $label->remote_area_delivery :0;
+        $label->over_sized_charge = isset($label->over_sized_charge) ? $label->over_sized_charge :0;
+        $label->over_weight_charge = isset($label->over_weight_charge) ? $label->over_weight_charge :0;
+        $label->insurance_charge = isset($label->insurance_charge) ? $label->insurance_charge :0;
+        $label->total_cost = isset($label->total_cost) ? $label->total_cost :0;
+        
         $otherChanrges = ( $label->fuel_surcharge +$label->remote_area_delivery + $label->over_sized_charge + $label->over_weight_charge );
 
         $items .= '<tr><td align="left" style="padding:2px; height:25px;"><strong>Total Net Weight:</strong></td><td align="right" style="padding:2px; height:25px;"> '.$tortalW.' kgs </td>';
@@ -358,7 +383,7 @@ class LabelProcessor
         $packageData = array();
         $packageInfo = $this->modelObj->getPackageDataByLoadIdentity($loadIdentity);
         foreach ($packageInfo as $data) {
-            array_push($packageData, array("packaging_type" => $data["package"], "width" => $data["parcel_width"], "length" => $data["parcel_length"], "height" => $data["parcel_height"], "dimension_unit" => "CM", "weight" => $data["parcel_weight"], "weight_unit" => "KG"));
+            array_push($packageData, array("packaging_type" => $data["package"], "width" => $data["parcel_width"], "length" => $data["parcel_length"], "height" => $data["parcel_height"], "dimension_unit" => "CM", "weight" => $data["parcel_weight"], "weight_unit" => "KG", "content" => $data["package_content"]));
         }
         return $packageData;
     }

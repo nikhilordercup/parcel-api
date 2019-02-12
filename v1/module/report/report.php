@@ -1,6 +1,5 @@
 <?php
 require_once "../v1/module/report/model/Route_Model.php";
-
 class Report extends Icargo
 {
     private $_user_id;
@@ -100,20 +99,20 @@ class Report extends Icargo
 
             $driverShipmentCount = count($item["shipment_list"]);
 
-            $carrierPrice = number_format($loadPrice["carrier_price"], 2);
-            $customerPrice = number_format($loadPrice["customer_price"], 2);
+            $carrierPrice = $loadPrice["carrier_price"];
+            $customerPrice = $loadPrice["customer_price"];
 
-            $driverCarrierPricePerDrop = number_format($carrierPrice / $allDropCount, 2);
-            $driverCustomerPricePerDrop = number_format($customerPrice / $allDropCount, 2);
+            $driverCarrierPricePerDrop = $carrierPrice / $allDropCount;
+            $driverCustomerPricePerDrop = $customerPrice / $allDropCount;
 
-            $driverCarrierPricePerShipment = number_format($carrierPrice / $allShipmentCount, 2);
-            $driverCustomerPricePerShipment = number_format($customerPrice / $allShipmentCount, 2);
+            $driverCarrierPricePerShipment = $carrierPrice / $allShipmentCount;
+            $driverCustomerPricePerShipment = $customerPrice / $allShipmentCount;
 
-            $driverCarrierPriceDrop = number_format(($driverCarrierPricePerDrop * $driverDropCount), 2);
-            $driverCustomerPriceDrop = number_format(($driverCustomerPricePerDrop * $driverDropCount), 2);
+            $driverCarrierPriceDrop = $driverCarrierPricePerDrop * $driverDropCount;
+            $driverCustomerPriceDrop = $driverCustomerPricePerDrop * $driverDropCount;
 
-            $driverCarrierPriceShipment = number_format(($driverCarrierPricePerShipment * $driverShipmentCount), 2);
-            $driverCustomerPriceShipment = number_format(($driverCustomerPricePerShipment * $driverShipmentCount), 2);
+            $driverCarrierPriceShipment = $driverCarrierPricePerShipment * $driverShipmentCount;
+            $driverCustomerPriceShipment = $driverCustomerPricePerShipment * $driverShipmentCount;
 
 
             $tempDriverCarrierPriceDrop += $driverCarrierPriceDrop;
@@ -152,10 +151,10 @@ class Report extends Icargo
             );
         }
 
-        $priceData["driver_carrier_price_drop"] = number_format($tempDriverCarrierPriceDrop, 2);
-        $priceData["driver_customer_price_drop"] = number_format($tempDriverCustomerPriceDrop, 2);
-        $priceData["driver_carrier_price_shipment"] = number_format($tempDriverCarrierPriceShipment, 2);
-        $priceData["driver_customer_price_shipment"] = number_format($tempDriverCustomerPriceShipment, 2);
+        $priceData["driver_carrier_price_drop"] = $tempDriverCarrierPriceDrop;
+        $priceData["driver_customer_price_drop"] = $tempDriverCustomerPriceDrop;
+        $priceData["driver_carrier_price_shipment"] = $tempDriverCarrierPriceShipment;
+        $priceData["driver_customer_price_shipment"] = $tempDriverCustomerPriceShipment;
 
         $priceData["driver_carrier_price_drop"] = $tempDriverCarrierPriceDrop;
         $priceData["driver_customer_price_drop"] = $tempDriverCustomerPriceDrop;
@@ -176,7 +175,7 @@ class Report extends Icargo
         $revenuePrice = 0;
         if ($this->_getServiceTypeName() == "SAME") {
             $revenuePrice = $this->_findSamedayRevenue($job_lists, $driver_drop_count, $driver_shipment_count);
-            
+
             $revenuePrice = array(
                 "driver_carrier_price_drop" => $revenuePrice["driver_carrier_price_drop"],
                 "driver_customer_price_drop" => $revenuePrice["driver_customer_price_drop"],
@@ -438,12 +437,12 @@ class Report extends Icargo
             $reportData[$driver_id]["no_of_drops"] = $driverDropCount;
             $reportData[$driver_id]["total_time_taken"] = $item["time_taken"];
             $reportData[$driver_id]['driver_name'] = $item["driver_name"];
-            $reportData[$driver_id]['total_distance_meter'] = ($this->param->service_type == "sameday") ? number_format($this->totalDistanceMeter, 2) : "N/A";
-            $reportData[$driver_id]['total_distance_miles'] = ($this->param->service_type == "sameday") ? number_format($this->totalDistanceMiles, 2) : "N/A";
+            $reportData[$driver_id]['total_distance_meter'] = ($this->param->service_type == "sameday") ? $this->totalDistanceMeter : "N/A";
+            $reportData[$driver_id]['total_distance_miles'] = ($this->param->service_type == "sameday") ? $this->totalDistanceMiles : "N/A";
             $reportData[$driver_id]['start_date'] = $this->libObj->date_format($this->param->start_date);
             $reportData[$driver_id]['end_date'] = $this->libObj->date_format($this->param->end_date);
-            $reportData[$driver_id]['average_speed'] = ($this->param->service_type == "sameday") ? number_format($this->averageSpeed, 2) : "N/A";
-            $reportData[$driver_id]['daily_drop_rate'] = number_format($this->dailyDropRate, 2);
+            $reportData[$driver_id]['average_speed'] = ($this->param->service_type == "sameday") ? $this->averageSpeed : "N/A";
+            $reportData[$driver_id]['daily_drop_rate'] = $this->dailyDropRate;
             $reportData[$driver_id]['average_time_per_drop'] = $this->_getTimeInHourMinutes($this->averageTimePerDrop);
             $reportData[$driver_id]['time_taken_in_hr_min'] = $this->_getTimeInHourMinutes($this->totalTime);
 
@@ -451,10 +450,10 @@ class Report extends Icargo
 
 
 
-            $reportData[$driver_id]['driver_carrier_price_drop'] = number_format(round($price["driver_carrier_price_drop"], 2), 2);
-            $reportData[$driver_id]['driver_customer_price_drop'] = number_format(round($price["driver_customer_price_drop"], 2), 2);
-            $reportData[$driver_id]['driver_carrier_price_shipment'] = number_format(round($price["driver_carrier_price_shipment"], 2), 2);
-            $reportData[$driver_id]['driver_customer_price_shipment'] = number_format(round($price["driver_customer_price_shipment"], 2), 2);
+            $reportData[$driver_id]['driver_carrier_price_drop'] = round($price["driver_carrier_price_drop"], 2);
+            $reportData[$driver_id]['driver_customer_price_drop'] = round($price["driver_customer_price_drop"], 2);
+            $reportData[$driver_id]['driver_carrier_price_shipment'] = round($price["driver_carrier_price_shipment"], 2);
+            $reportData[$driver_id]['driver_customer_price_shipment'] = round($price["driver_customer_price_shipment"], 2);
             $reportData[$driver_id]['no_of_days'] = $noOfDays;
         }
         $allJobCount = $this->_findDriverAllShipmentCount($driverTimeInfo);

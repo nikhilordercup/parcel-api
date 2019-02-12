@@ -40,7 +40,6 @@ class UkmailMaster
 				exit(json_encode($response));
 			}
 		}
-		
 		if($app->credentials->collectionjobnumber==''){
 			//book collection request after successfully getting authentication token
 			$collectionArr = self::formatCollectionRequest($app);

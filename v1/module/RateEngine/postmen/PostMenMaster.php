@@ -22,7 +22,23 @@ abstract class PostMenMaster extends Postmen
        "postmen-api-key: b5585973-d041-4c4a-9b1f-014bf56e65e7"
     );    
     const UNKNOWN_ERROR = 4104;
-    
+    protected $request = '';
+    public static $termOfTrades = array(
+        'DAD' => 'ddp', //Delivery duty paid
+        'DAP' => 'ddu'  //Delivery At place        
+    );
+             
+    public static $reasonsOfExport = array(
+        'Gift' =>'gift',
+        'Sale' =>'merchandise',
+        'Purchase' =>'merchandise',
+        'Sample' =>'sample',
+        'Repair' =>'repair',
+        'Return' =>'return',
+        'Personal Effects' =>'gift'
+    );
+
+
     public function __construct()
     {         
         $this->db = new \DbHandler(); 
@@ -73,9 +89,19 @@ abstract class PostMenMaster extends Postmen
     }
     
     public function convertPackage($package,$currency)
-    {                     
+    {               
+        $total_item_value = (isset($this->request->customs) && $this->request->customs->isDutiable) ? $this->request->customs->total_item_value : ((isset($this->request->insurance) && $this->request->insurance->value != '') ? $this->request->insurance->value : 0.01);
+        $per_parcel_rate = $total_item_value/count($this->request->package);
+        
+        $origin_country = ''; 
+        if(isset($this->request->customs) && $this->request->customs->isDutiable)
+        {
+            $cItems = $this->request->customs->items; 
+            $origin_country =  $cItems[0]->country_of_origin->alpha3_code; 
+        }
+                
         $finalPackage = [];
-        $finalPackage['description'] = ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type;
+        $finalPackage['description'] = (isset($package->content)  && $package->content != '') ? $package->content : 'NA';
         $finalPackage['box_type'] = ($package->packaging_type == 'CP') ? 'custom' : 'custom';
         $finalPackage['weight'] = array(
             'value'=> (float)$package->weight,
@@ -87,18 +113,25 @@ abstract class PostMenMaster extends Postmen
             'depth'=> (float)$package->length,
             'unit'=> strtolower($package->dimension_unit)
         );        
-        $finalPackage['items'][] = array(
-            'description' => ($package->packaging_type == 'CP') ? 'custom' : $package->packaging_type,
+        
+        $item = array(
+            'description' => (isset($package->content)  && $package->content != '' ) ? $package->content : 'NA',
             'quantity' => 1,
             'price' => array(
-                'amount'=>0.01, //Need to discussed
+                'amount'=> ($per_parcel_rate > 0) ? $per_parcel_rate : 0.01, 
                 'currency'=>$currency
             ),
             'weight' => array(
                 'value'=>   (float)$package->weight,
                 'unit'=>   strtolower($package->weight_unit)
-            )
-        );                                                 
+            )            
+        );
+        
+        if($origin_country != '')
+        {
+            $item['origin_country'] = $origin_country;
+        }                
+        $finalPackage['items'][] = $item;                              
         return $finalPackage;
     }
     
@@ -196,22 +229,48 @@ abstract class PostMenMaster extends Postmen
         $payload = array();                                                                        
         $payload['async'] = $async; 
         $payload['is_document'] = $isDocument; 
-        $payload['return_shipment'] = $returnShipment; 
-        $payload['paper_size'] = $others['paper_size']; 
+        $payload['return_shipment'] = $returnShipment;         
+        $payload['paper_size'] = '4x6'; 
         $payload['service_type'] = $others['service_type'];         
         $accountNumber = ( $others['custom_paid_by'] == 'shipper' ) ? $shipperAccountId : $others['account_number'];
         
         $payload['billing'] = array('paid_by'=>$others['paid_by']);
+                    
         $payload['customs'] = array(
             'billing' => array(
                 'paid_by' => $others['custom_paid_by']
             ),
-            'purpose' => $others['purpose']
+            'purpose' => ($this->request->customs->reason_for_export != '') ? self::$reasonsOfExport[$this->request->customs->reason_for_export]: 'merchandise'
         );
-                      
+
+        $payload['customs']['purpose'] = ($this->request->customs->reason_for_export != '') ? self::$reasonsOfExport[$this->request->customs->reason_for_export]: 'merchandise';
+        $payload['customs']['terms_of_trade'] = ($this->request->customs->isDutiable) ? self::$termOfTrades[$this->request->customs->terms_of_trade] : 'ddu';
+        $payload['customs']['importer_address'] =  $fromAddress;                                               
+                                                                      
         $payload['shipper_account'] = array(
             'id'=>$shipperAccountId            
-        );
+        );                        
+        $payload['service_options'] = array();
+        if(isset($others['insurance_detail']) && $others['insurance_detail']['amount'] > 0)
+        {
+            $payload['service_options'][] =  array(
+                'type' =>'insurance',
+                'insured_value' =>array(
+                   'amount'=>$others['insurance_detail']['amount'],
+                   'currency'=> $others['insurance_detail']['currency']                   
+                )
+            );
+        }              
+        
+        if($this->request->customs->isDutiable)
+        {
+            $payload['invoice'] = array(
+                'date'   => date('Y-m-d'),
+                'number' => (isset($this->request->loadIdentity)) ? $this->request->loadIdentity : ' ',
+                'type' => ($this->request->customs->isDutiable && self::$reasonsOfExport[$this->request->customs->reason_for_export] == 'merchandise') ? 'commercial' : 'proforma',   
+                'number_of_copies' => 2
+            );
+        }
         $payload['shipment']['parcels'] = $package;
         $payload['shipment']['ship_from'] = $fromAddress;
         $payload['shipment']['ship_to'] = $toAddress;                
