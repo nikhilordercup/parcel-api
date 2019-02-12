@@ -278,9 +278,16 @@ class Pickup extends Icargo
 	
 	public function getPickupData($param) {
 		$carrier_code = $param->carrier->code;
-        $sql = "SELECT confirmation_number as collectionjobnumber,pickup_date,package_location,earliest_pickup_time,latest_pickup_time,account_number FROM ".DB_PREFIX."pickups IP WHERE IP.carrier_code='$carrier_code' AND IP.account_number='$param->account_number' AND IP.pickup_date ='$param->pickup_date' AND IP.company_id = $param->company_id order by id desc limit 0,1"; //echo $sql;die;
+		$courier_id = $param->carrier->carrier_id;
+		if($carrier_code == "UKMAIL"){
+			$childAccount = "SELECT account_number as child_account FROM ".DB_PREFIX."customer_courier_child_accont CT WHERE CT.courier_id='$courier_id' AND CT.company_id= $param->company_id AND CT.customer_id =$param->customer_id AND CT.parent_account_number = '$param->account_number'"; 
+			$record = $this->db->getRowRecord($childAccount); 
+			if($record['child_account']!="")
+				$param->account_number = $record['child_account'];
+		}
+        $sql = "SELECT confirmation_number as collectionjobnumber,pickup_date,package_location,earliest_pickup_time,latest_pickup_time,account_number FROM ".DB_PREFIX."pickups IP WHERE IP.carrier_code='$carrier_code' AND IP.account_number='$param->account_number' AND IP.pickup_date ='$param->pickup_date' AND IP.company_id = $param->company_id AND status = 1 order by id desc limit 0,1"; 		
         $record = $this->db->getRowRecord($sql); 
-    	return array("status"=>"success", "data"=>$record);
+    	return array("status"=>"success", "data"=>$record); 
     }
     
     public function getUserAccount($requestData)

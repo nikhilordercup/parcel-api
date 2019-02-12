@@ -87,7 +87,7 @@ class Booking extends Icargo
 				elseif($data->address_type == 'Yes' || $data->address_type == 'Residential')
 					$address_type = 'Residential';
 			}else{
-				$address_type = "";
+				$address_type = "Business";
 			}
             $param["postcode"]      = $data->postcode;
             $param["address_line1"] = (isset($data->address_line1)) ? $data->address_line1 : "";

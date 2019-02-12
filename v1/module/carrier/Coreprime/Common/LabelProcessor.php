@@ -397,6 +397,8 @@ class LabelProcessor
     public function getCredentialInfo($carrierAccountNumber, $loadIdentity,$allData,$carrierCode)
     {
 		$credentialData = array();
+		$is_child_account = "no";
+		$parent_account_number = "";
 		if($carrierCode=='UKMAIL'){
 			/*start of check if customer have any ukmail child account or not*/
 			$getChildAccountData = $this->modelObj->getChildAccountData($carrierAccountNumber,$loadIdentity);
@@ -408,13 +410,13 @@ class LabelProcessor
 				$is_child_account = "yes";
 			}else{
 				$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
-				$is_child_account = "no";
-				$parent_account_number = "";
 			}
+		}else{
+			$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
 		}
         //$credentialData = array();
         //$credentialData = $this->modelObj->getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity);
-
+        
         $credentialInfo["username"] = $credentialData["username"];
         $credentialInfo["password"] = $credentialData["password"];
         $credentialInfo["authentication_token"] = $credentialData["authentication_token"];
@@ -430,10 +432,11 @@ class LabelProcessor
 		$credentialInfo["latest_pickup_time"] = isset($allData->latest_pickup_time) ? $allData->latest_pickup_time : "";
 		$credentialInfo["collectionjobnumber"] = isset($allData->collectionjobnumber) ? $allData->collectionjobnumber : "";
         $credentialInfo["carrier_account_type"] = array("1");
-		$credentialInfo["is_child_account"] = $is_child_account;
-		$credentialInfo["parent_account_number"] = $parent_account_number;
 
-        return array("credentials"=>$credentialInfo);
+		//$credentialInfo["is_child_account"] = $is_child_account;
+		//$credentialInfo["parent_account_number"] = $parent_account_number;
+
+        return array("credentials"=>$credentialInfo,"is_child_account"=>$is_child_account,"parent_account_number"=>$parent_account_number);
     }
 
 

@@ -405,13 +405,13 @@ class Sameday extends  Booking
         }else{
             $carrier = $this->modelObjCorePrime->getCustomerInternalCarrierData($param->customer_id, $param->company_id);
         }
-
+       // print_r($carrier);
         if(count($carrier)>0){
             foreach($carrier as $carrierData){
                 if(isset($param->service_id)){
-                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceDataFromServiceId($param->customer_id, $param->company_id, $carrierData['courier_id'],$param->service_id);
+                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceDataFromServiceId($param->customer_id, $param->company_id, $carrierData['courier_account_id'],$param->service_id);
                 }else{
-                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_id']);
+                 $service = $this->modelObjCorePrime->getCustomerSamedayServiceData($param->customer_id, $param->company_id, $carrierData['courier_account_id']);
                 }
                 if(count($service)>0){
                     $tempservice = array();
@@ -465,6 +465,7 @@ class Sameday extends  Booking
         $post_data["insurance"] = []; 
         $data = $this->_filterApiResponse(json_decode($this->_postRequest($post_data),true),$param->customer_id, $param->company_id,$charge_from_warehouse,$is_tax_exempt);
         $available_credit = $this->_getCustomerAccountBalence($param->customer_id,0);
+        
 		if(!empty($data)){
             $transitdata   =  array();
             $transitdata['transit_distance'] = $transit_distance;

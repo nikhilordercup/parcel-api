@@ -477,8 +477,13 @@ WHERE CS.courier_id=$courierId AND CSC.company_id=$companyId";
         }
     }
     public function getTaxInfoByIso2($iso){
+	if(strlen($iso)===2){
+            $where="C.alpha2_code='$iso'";
+        }else{
+            $where="C.alpha3_code='$iso'";
+        }
         $sql="SELECT T.* FROM ".DB_PREFIX."countries AS C LEFT JOIN
-                ".DB_PREFIX."tax_details AS T ON C.id=T.country_id WHERE C.alpha2_code='$iso'";
+                ".DB_PREFIX."tax_details AS T ON C.id=T.country_id WHERE $where";
         return $this->_db->getOneRecord($sql);
     }
     

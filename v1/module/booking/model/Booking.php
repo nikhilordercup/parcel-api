@@ -289,7 +289,8 @@ class Booking_Model_Booking
 
     function getCompanyCarrier($company_id)
     {
-        $sql = "SELECT CT.description as description, CT.icon AS icon, CCT.courier_id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' AND CCT.is_internal='0'";
+        //$sql = "SELECT CT.description as description, CT.icon AS icon, CCT.courier_id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id' AND CCT.is_internal='0'";
+        $sql = "SELECT CT.description as description, CT.icon AS icon, CCT.courier_id AS carrier_id, CT.name, CT.code AS carrier_code, CCT.username AS username, CCT.password AS password, CCT.is_internal AS internal, pickup AS pickup, pickup_surcharge AS pickup_surcharge, collection_start_at AS collection_start_at, collection_end_at AS collection_end_at, CCT.id AS account_id FROM " . DB_PREFIX . "courier_vs_company AS CCT INNER JOIN " . DB_PREFIX . "courier AS CT ON CCT.courier_id = CT.id WHERE CT.status=1 AND CCT.status=1 AND CCT.company_id='$company_id'";
         return $this->_db->getAllRecords($sql);
     }
 
@@ -330,7 +331,7 @@ class Booking_Model_Booking
 
     function getCredentialDataByLoadIdentity($carrierAccountNumber, $loadIdentity)
     {
-		
+
         $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "courier_vs_company AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
         $credentailData = $this->_db->getRowRecord($sql);
         return $credentailData;
@@ -625,7 +626,7 @@ class Booking_Model_Booking
         $sql = "SELECT customer_type FROM " . DB_PREFIX . "customer_info WHERE user_id = '$customer_id'";
         return $this->_db->getRowRecord($sql);
     }
-    
+
      public function getCarriersofCompany($companyId){
          $record = array();
          $sqldata = 'L.id as autocarrier_id,L.courier_id,C.name,C.code,L.account_number,C.icon,
@@ -636,19 +637,19 @@ class Booking_Model_Booking
         $record = $this->_db->getAllRecords($sql);
         return $record;
       }
-	  
+
 	 public function getDeliveryInstructionByLoadIdentity($load_identity)
 		{
 			$sql = "SELECT shipment_instruction FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$load_identity' AND shipment_service_type = 'D'";
 			return $this->_db->getOneRecord($sql);
 		}
-		
+
 	 public function getPickupInstructionByLoadIdentity($load_identity)
 		{
 			$sql = "SELECT shipment_instruction FROM " . DB_PREFIX . "shipment WHERE instaDispatch_loadIdentity = '$load_identity' AND shipment_service_type = 'P'";
 			return $this->_db->getOneRecord($sql);
 		}
-		
+
 	public function getChildAccountData($accountNumber,$loadIdentity){
 		$customer_id = $this->_db->getRowRecord("SELECT customer_id FROM " . DB_PREFIX . "shipment_service AS t1 WHERE t1.load_identity = '$loadIdentity'");
 		$customer_id = $customer_id['customer_id'];
@@ -660,16 +661,16 @@ class Booking_Model_Booking
 	public function updateChildAccountData($tableName,$data,$condition){
 		return $this->_db->update($tableName,$data,$condition);
 	}
-	
+
 	public
 
     function getCredentialDataForChildAccount($carrierAccountNumber)
-    {		
+    {
         $sql = "SELECT username,password,token,authentication_token,authentication_token_created_at FROM " . DB_PREFIX . "customer_courier_child_accont AS CCT WHERE CCT.account_number='$carrierAccountNumber'";
         $credentailData = $this->_db->getRowRecord($sql);
         return $credentailData;
     }
-    
+
      public
 
     function isInternalCarrier($carrier_code)
@@ -678,17 +679,20 @@ class Booking_Model_Booking
         $record = $this->_db->getRowRecord($sql);
         return $record['is_internal'];
     }
-	
+
 	public function getProviderInfo($callType,$env,$providerType='ENDPOINT',$carrier_code)
-	{
-		$query = "SELECT CSP.request_type,C.code, SP.rate_endpoint,SP.label_endpoint,SP.app_env, EP.provider as endpoint,SP.provider AS provider 
+	{   
+	    if($env=='live')
+			$env = "PROD";
+		
+		$query = "SELECT CSP.request_type,C.code, SP.rate_endpoint,SP.label_endpoint,SP.app_env, EP.provider as endpoint,SP.provider AS provider
 		   FROM `icargo_carrier_service_provider` AS CSP
 		   LEFT JOIN icargo_courier AS C ON C.id=CSP.carrier_id
 		   LEFT JOIN icargo_service_providers AS SP ON SP.id =CSP.provider_id
 		   LEFT JOIN icargo_service_providers AS EP ON EP.id=CSP.provider_endpoint_id
-		   WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND CSP.request_type='$callType' AND SP.app_env='$env' AND CSP.carrier_code='$carrier_code'";							
+		   WHERE (EP.provider_type='$providerType' OR SP.provider_type='$providerType') AND CSP.request_type='$callType' AND SP.app_env='$env' AND CSP.carrier_code='$carrier_code'";
 		return $this->_db->getRowRecord($query);
 	}
-	
+
 }
 ?>

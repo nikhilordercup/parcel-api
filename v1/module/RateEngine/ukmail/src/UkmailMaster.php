@@ -23,10 +23,6 @@ class UkmailMaster
 		   return self::cancelLabel($app,$wsdlBaseUrl);
 		}
 		
-		
-		/* $app->credentials->username = "nikhil.kumar@ordercup.com";
-        $app->credentials->password = "b85op06w";
-        $app->credentials->account_number = "K906430"; */
 		$authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($app->credentials->username,$app->carrier);
 		if($authToken!=''){
 			$app->credentials->authenticationToken = $authToken;
@@ -162,7 +158,7 @@ class UkmailMaster
 		/* $authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($param->username,'UKMAIL');
 		if($authToken!=''){
 			$app->AuthenticationToken = $authToken;
-		}else{ */
+		}else{ */ 
 			$app->credentials = new \stdClass();
 			$app->credentials->username = $param->username;
 			$app->credentials->password = $param->password;
