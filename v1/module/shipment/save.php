@@ -555,7 +555,7 @@ class shipment extends Library{
 
         if($address_status["status"]=="success"){
 
-            $shipmentData["address_id"] = $address_status["address_id"];
+            $shipmentData["address_id"] = (isset($address_status["address_id"]) && $address_status["address_id"] !='')?$address_status["address_id"]:0;
 
             $shipmentId = $this->db->save("shipment", $shipmentData);
             //print_r($shipmentId);die;

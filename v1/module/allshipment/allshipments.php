@@ -1633,6 +1633,7 @@ class allShipments extends Icargo
 	} */
 	
 	public function cancelShipmentByLoadIdentity($param){
+		$carrierObj = new Carrier();
 		$carrier_code = $param->carrier_code;                        
 		$env = ( ENV == 'live' ) ? 'PROD' : 'DEV';               
 		$bookingObj = new Booking_Model_Booking();
@@ -1670,6 +1671,9 @@ class allShipments extends Icargo
 				if($providerInfo['provider'] == 'Ukmail'){
 					$cancelShipment = $this->cancelLabelByProvider($param, $providerInfo);
 				}else{
+					$credentialData['accountnumber'] = $labelArr->label->accountnumber;
+					$credentialData['tracking_number'] = $labelArr->label->tracking_number;
+					//print_r($credentialData);die;
 					$cancelShipment = $carrierObj->cancelShipmentByLoadIdentity($credentialData,$param);
 					$cancelShipment = json_decode($cancelShipment);
 				}
