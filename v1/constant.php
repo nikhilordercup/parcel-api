@@ -13,6 +13,6 @@ define('DRIVING_MODE','DRIVING');
 //define('LABEL_FOLDER','label');  //use this variable to find label directory
 //define('ROUND_TRIP','NO');
 //define('DRIVING_MODE','DRIVING');
-//define('APP_LOGGER', true);
+define('APP_LOGGER', true);
 ?>
 

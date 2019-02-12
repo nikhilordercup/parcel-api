@@ -17,17 +17,17 @@ class UkmailGenerateLabel
         $request->Username = $data->credentials->username;
 		$request->AccountNumber = $data->credentials->account_number;
 		$request->Address = new \stdClass();
-		$request->Address->Address1 = $data->from->street1;
-		$request->Address->Address2 = $data->from->street2;
+		$request->Address->Address1 = $data->to->street1;
+		$request->Address->Address2 = $data->to->street2;
 		$request->Address->Address3 = "";
-		$request->Address->CountryCode = $data->from->country;
-		$request->Address->County = $data->from->state;
-		$request->Address->PostalTown = $data->from->city;
-		$request->Address->Postcode = $data->from->zip;
+		$request->Address->CountryCode = $data->to->country;
+		$request->Address->County = $data->to->state;
+		$request->Address->PostalTown = $data->to->city;
+		$request->Address->Postcode = $data->to->zip;
 		$request->CustomersRef = $data->extra->custom_desciption;
 		$request->AlternativeRef = $data->extra->custom_desciption2;
-        $request->BusinessName = $data->from->company;
-		$request->ContactName = $data->from->name;
+        $request->BusinessName = $data->to->company;
+		$request->ContactName = $data->to->name;
 		$request->CollectionJobNumber = $data->collectionjobnumber;
 		
 		
@@ -89,7 +89,7 @@ class UkmailGenerateLabel
         $param->SpecialInstructions1 = $data->extra->special_instruction;
 		$param->SpecialInstructions2 = $data->extra->pickup_instruction;
 		$param->Telephone = $data->to->phone;
-		$param->Weight = $data->parcel_total_weight;
+		$param->Weight = ceil($data->parcel_total_weight);
         $param->BookIn = "false";
 		$param->CODAmount = "0.00";
 		$param->ConfirmationEmail = $data->to->email;

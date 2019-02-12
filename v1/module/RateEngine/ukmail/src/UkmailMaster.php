@@ -9,11 +9,11 @@ class UkmailMaster
 	 * Login call can be skipped if authentication token for same username is already in icargo_carrier_user_token for the particular username & ukmail carrier and is not expired. We have to request for book collection and label call everytime.
      * @return Array
      */
-	public static function initRoutes($app){//print_r($app);die;
+	public static function initRoutes($app){
 		$labelResp = array();
 		$response = array();
 		if(ENV == 'dev')
-			$wsdlBaseUrl = 'https://qa-api.ukmail.com/Services/';
+			$wsdlBaseUrl = 'https://api.ukmail.com/Services/';//'https://qa-api.ukmail.com/Services/';
 		else
 			$wsdlBaseUrl = 'https://api.ukmail.com/Services/';
 		
@@ -27,7 +27,6 @@ class UkmailMaster
 		/* $app->credentials->username = "nikhil.kumar@ordercup.com";
         $app->credentials->password = "b85op06w";
         $app->credentials->account_number = "K906430"; */
-		
 		$authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($app->credentials->username,$app->carrier);
 		if($authToken!=''){
 			$app->credentials->authenticationToken = $authToken;
@@ -156,14 +155,31 @@ class UkmailMaster
 	 * @return Array
 	 */
 	public static function cancelLabel($param,$wsdlBaseUrl){
+		//$ukMailModel = new model\UkMailModel();
 		$labelInfo = (object)$param->labelInfo[0];
 		$labelInfo = json_decode($labelInfo->label_json);
 	    
 		$app = new \stdClass();
-		$app->AuthenticationToken = $labelInfo->label->authenticationtoken;
+		/* $authToken = $ukMailModel->getValidAuthTokenByUsernameAndCarrier($param->username,'UKMAIL');
+		if($authToken!=''){
+			$app->AuthenticationToken = $authToken;
+		}else{ */
+			$app->credentials = new \stdClass();
+			$app->credentials->username = $param->username;
+			$app->credentials->password = $param->password;
+			$loginResp = self::getAuthToken($app,$wsdlBaseUrl);
+			if($loginResp['status']=='success'){
+				$app->AuthenticationToken = $loginResp['authenticationtoken'];
+			}else{
+				//login failed
+				$response['label'] = array("status"=>"error","message"=>$loginResp['message']);
+				exit(json_encode($response));
+			}
+		//}
+		
+		//$app->AuthenticationToken = $labelInfo->label->authenticationtoken;
 		$app->ConsignmentNumber = $labelInfo->label->tracking_number;
 		$app->Username = $param->username;
-		
 		$cancelLabel = UkmailCancelLabel::voidCall($app,$wsdlBaseUrl);
 		exit(json_encode($cancelLabel));
 	}
