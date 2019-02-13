@@ -220,7 +220,7 @@ class ShipmentManager extends PostMenMaster
                     }
                         
                     $tax_percentage = 0;
-                    $tax_percentage = round(number_format(((100 * $taxAmt)/($rate->total_charge->amount - $taxAmt)), 2)) ;
+                    $tax_percentage = round(number_format(((100 * $taxAmt)/($rate->total_charge->amount - $taxAmt)), 2,'.', '')) ;
                         
                     foreach($rate->detailed_charges as $detailed_charge)
                     {                                                                                                                                                
@@ -243,9 +243,9 @@ class ShipmentManager extends PostMenMaster
                         }
                     }
                 } 
-                $innerRate['rate']['price'] = (number_format($baseAmt, 2));                
-                $innerRate['surcharges']['fuel_surcharge'] =  (number_format($fuel_surchargeAmt, 2));
-                $innerRate['surcharges']['long_length_surcharge'] = (number_format($long_length_surcharge, 2)); 
+                $innerRate['rate']['price'] = (number_format($baseAmt, 2,'.', ''));                
+                $innerRate['surcharges']['fuel_surcharge'] =  (number_format($fuel_surchargeAmt, 2,'.', ''));
+                $innerRate['surcharges']['long_length_surcharge'] = (number_format($long_length_surcharge, 2,'.', '')); 
                                 
                 $dimensions = array('length'=>'','width'=>'','height'=>'','unit'=>$rate->charge_weight->unit);
                 $weight = array("weight"=>$rate->charge_weight->value,"unit"=>$rate->charge_weight->unit);
