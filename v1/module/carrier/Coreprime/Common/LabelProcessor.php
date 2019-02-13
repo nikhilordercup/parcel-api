@@ -36,7 +36,7 @@ class LabelProcessor
             $labelArr['status'] = "success";
             $labelArr['file_path'] = $labelArr['file_url'];
             $labelArr['label_tracking_number'] = $labelArr['tracking_number'];
-            $labelArr['label_json'] = $labelArr['label_json'];
+            $labelArr['label_json'] = $labelArr['label_json']??'';
             $labelArr['file_loc'] = isset($labelArr['file_url']) ? $labelArr['file_url'] : "";
             $labelArr['label_files_png'] = isset($labelArr['label_files_png']) ?  $labelArr['label_files_png'] : "";
             $labelArr['label_detail'] = new \stdClass();
