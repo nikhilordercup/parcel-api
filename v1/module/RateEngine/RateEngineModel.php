@@ -270,10 +270,10 @@ class RateEngineModel
             }
             for ($i = strlen($zip); $i >= 2; $i--) {
                 if ($surcharge) {
-                    if (strtolower(trim($r)) == substr($zip, 0, $i)) {
+                    if (strtolower(trim($r)) == strtolower(substr($zip, 0, $i))) {
                         return $r;
                     }
-                } else if (strtolower($r['post_code']) == substr($zip, 0, $i)) {
+                } else if (strtolower($r['post_code']) == strtolower(substr($zip, 0, $i))) {
                     return $r;
                 }
             }

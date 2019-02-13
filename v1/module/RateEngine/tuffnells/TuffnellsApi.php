@@ -27,9 +27,10 @@ class TuffnellsApi
             echoResponse(200, $responce);
         });
 
-        $app->post('/paperManifest', function () use ($app) {
-            $r = json_decode($app->request->getBody());
-            $obj = new TuffnellsLabels($r);
+        $app->get('/paperManifest', function () use ($app) {
+            $r = json_decode($app->request->getBody())??new \stdClass();
+            $r->date=date('Y-m-d');
+            $obj = new TuffnellsLabels();
             $resp = $obj->paperManifestLabel($r);
             echoResponse(200, $resp);
         });
