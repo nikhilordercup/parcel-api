@@ -28,7 +28,6 @@ class TuffnellsLabels extends \Icargo
     public function tuffnellLabelData($postData)
     {
         header('Content-Type: application/json');
-        $tbname = DB_PREFIX . 'rateengine_labels';
         $postvalues = array(
             'credential_info' => json_encode($postData->credentials),
             'collection_info' => json_encode($postData->from),
@@ -43,7 +42,7 @@ class TuffnellsLabels extends \Icargo
             'carrier' => $postData->carrier,
             'service_type' => $postData->service,
             'labels' => isset($postData_options) ? $postData_options : "",
-            'custom' => isset($postData->customs) ? $postData->customs : "",
+            'custom' => isset($postData->customs) ? json_encode($postData->customs) : "",
             'account_number' => $postData->credentials->account_number,
             'reference_id' => $postData->extra->reference_id,
             'load_identity'=>$postData->loadIdentity,
@@ -258,8 +257,8 @@ class TuffnellsLabels extends \Icargo
         $output = $dompdf->output();
         $directory = dirname(dirname(dirname(dirname(__FILE__))));
         $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
-        $uid = 'PAPER_MANIFEST'.$data->loadIdentity;
-        $mkdir = LABEL_PATH.DIRECTORY_SEPARATOR.'label'.DIRECTORY_SEPARATOR.$uid.DIRECTORY_SEPARATOR;
+        $uid = 'PAPER_MANIFEST'.$data->date;
+        $mkdir = LABEL_PATH.DIRECTORY_SEPARATOR.$uid.DIRECTORY_SEPARATOR;
         mkdir($mkdir, 0777, true);
         file_put_contents($mkdir.$uid.'.pdf', $output);
 
