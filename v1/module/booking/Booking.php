@@ -81,7 +81,7 @@ class Booking extends Icargo
         $data = (object)$data;
         $postcode = ($data->country->alpha3_code == 'GBR') ? ( $this->postcodeObj->validate($data->postcode) ) : true;
         if($postcode) {
-			if(isset($data->address_type)){
+			if(isset($data->address_type) && $data->address_type!=""){
 				if($data->address_type == 'No' || $data->address_type == 'Business')
 					$address_type = 'Business';
 				elseif($data->address_type == 'Yes' || $data->address_type == 'Residential')

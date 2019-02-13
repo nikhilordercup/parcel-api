@@ -489,7 +489,11 @@ class ShipmentManager extends PostMenMaster
         $this->responseData['status'] = 'error';        
         $this->responseData['message'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error';
         $this->responseData['errorCode'] = PostMenMaster::UNKNOWN_ERROR;
-        $this->responseData['errorMessage'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error';          
+        $this->responseData['errorMessage'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error'; 
+	$this->responseData['label'] = array(
+            'status'=>'error',
+            'message'=>(implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error'
+        );         
         return $this->responseData;
     }
 
