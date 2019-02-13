@@ -173,7 +173,7 @@ class SurchargeManager {
     public function longLengthSurcharge($rate) {
         $finalSurcharge = 0;
             foreach ($this->_packages as $p) {
-                $lengthApplicable = !isset($this->_surcharge->lengthData->lconditions)?false:$this->isConditionTrue($p->length, $this->_surcharge->lengthData->lconditions, $this->_surcharge->lengthData->lUnit);
+                $lengthApplicable =!isset($this->_surcharge->lengthData->lconditions)?false: $this->isConditionTrue($p->length, $this->_surcharge->lengthData->lconditions, $this->_surcharge->lengthData->lUnit);
                 $widthApplicable = !isset($this->_surcharge->lengthData->wconditions)?false:$this->isConditionTrue($p->width, $this->_surcharge->lengthData->wconditions, $this->_surcharge->lengthData->wUnit);
                 $heightApplicable = !isset($this->_surcharge->lengthData->hconditions)?false:$this->isConditionTrue($p->height, $this->_surcharge->lengthData->hconditions, $this->_surcharge->lengthData->hUnit);
                 if (($heightApplicable && $widthApplicable && $lengthApplicable) || $this->isSideApplicable($p, 2) || $this->isSideApplicable($p, 1)) {
