@@ -13,7 +13,7 @@ class UkmailMaster
 		$labelResp = array();
 		$response = array();
 		if(ENV == 'dev')
-			$wsdlBaseUrl = 'https://api.ukmail.com/Services/';//'https://qa-api.ukmail.com/Services/';
+			$wsdlBaseUrl = 'https://qa-api.ukmail.com/Services/';
 		else
 			$wsdlBaseUrl = 'https://api.ukmail.com/Services/';
 		
