@@ -249,7 +249,7 @@ class Authentication
     function _getUserCollectionAddress($customer_id)
         {
         $data = $this->db->getRowRecord("SELECT * FROM " . DB_PREFIX . "user_address where user_id=" . $customer_id . " AND default_address='Y'");
-        $user_address = $this->db->getRowRecord("SELECT AT.customer_id AS user_id, AT.address_line1, AT.address_line2, AT.postcode, AT.city, AT.country, AT.latitude, AT.longitude, AT.state, AT.company_name, AT.company_name,AT.name,AT.phone,AT.email, AT.iso_code, CO.alpha2_code, CO.alpha3_code FROM " . DB_PREFIX . "address_book AS AT LEFT JOIN " . DB_PREFIX . "countries AS CO ON ( CO.id=AT.country_id OR CO.alpha3_code=AT.iso_code) WHERE AT.id='" . $data['address_id'] . "'");
+        $user_address = $this->db->getRowRecord("SELECT AT.customer_id AS user_id, AT.address_line1, AT.address_line2, AT.postcode, AT.city, AT.country, AT.latitude, AT.longitude, AT.state, AT.company_name, AT.company_name,AT.name,AT.phone,AT.email, AT.iso_code, CO.alpha2_code, CO.alpha3_code,AT.address_type as address_type FROM " . DB_PREFIX . "address_book AS AT LEFT JOIN " . DB_PREFIX . "countries AS CO ON ( CO.id=AT.country_id OR CO.alpha3_code=AT.iso_code) WHERE AT.id='" . $data['address_id'] . "'");
         return $user_address;
         }
 
