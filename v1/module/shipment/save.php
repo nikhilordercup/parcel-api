@@ -1473,6 +1473,8 @@ class shipment extends Library{
 					$address_type = 'Business';
 				elseif($address["type"] == 'yes' || $address["type"] == 'Residential')
 					$address_type = 'Residential';
+				else
+					$address_type = "Business";
 			}else{
 				$address_type = "Business";
 			}

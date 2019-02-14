@@ -46,12 +46,12 @@ class Carrier{
 		$response = array();
 		$shipmentInfo = $this->modelObj->getDeliveryShipmentData($loadIdentity);
 		$deliveryCarrier = $shipmentInfo['carrier_code']; 
-        $providerInfo = $this->modelObj->getProviderInfo('LABEL',ENV,'PROVIDER',$shipmentInfo['carrier_code']); //to check provider and endpoint of carrier        
+        $providerInfo = $this->modelObj->getProviderInfo('LABEL',ENV,'PROVIDER',$shipmentInfo['carrier_code']); //to check provider and endpoint of carrier       
         global $_GLOBAL_CONTAINER;
         if($providerInfo!=''){
 			if($providerInfo['endpoint']=='Coreprime'){
 				$coreprimeCarrierClass = 'Coreprime_' . ucfirst(strtolower($deliveryCarrier));
-			}else{ 
+			}else{
 				$coreprimeCarrierClass = v1\module\carrier\Coreprime\Common\LabelProcessor::class;
 				$allData->providerInfo = array(
 						'provider' => $providerInfo['provider'],

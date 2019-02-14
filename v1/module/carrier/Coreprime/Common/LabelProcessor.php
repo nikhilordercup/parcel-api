@@ -23,7 +23,6 @@ class LabelProcessor
     private function _getLabel($loadIdentity, $json_data,$child_account_data)
     {
         $json_data = json_decode($json_data);
-		//print_r($json_data);die;
         $app = new \Slim\Slim();
         $obj = new \Module_Coreprime_Api($json_data);
         $label = $obj->_postRequest($json_data);

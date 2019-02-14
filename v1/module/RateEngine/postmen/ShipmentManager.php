@@ -490,10 +490,10 @@ class ShipmentManager extends PostMenMaster
         $this->responseData['message'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error';
         $this->responseData['errorCode'] = PostMenMaster::UNKNOWN_ERROR;
         $this->responseData['errorMessage'] = (implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error'; 
-        $this->responseData['label'] = array(
-            'status'=>'error',
-            'message'=>(implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error'
-        );
+		$this->responseData['label'] = array(
+				'status'=>'error',
+				'message'=>(implode(',',$tempErrors)) ? implode(',',$tempErrors):'Unknown Error'
+			);         
         return $this->responseData;
     }
 
@@ -504,7 +504,7 @@ class ShipmentManager extends PostMenMaster
         $credentials = $request->credentials;
         $carrierAccountDetails = $this->getCarrierAccount($carrierId, $credentials->username, $credentials->password, $credentials->account_number);
         $shipper_accounts = array('id'=>$carrierAccountDetails->carrierAccount);                
-        $payload = array();
+        $payload = array(); 
         $payload['async'] = (isset($request->async) && $request->async == "true") ? TRUE: FALSE;
         $payload['shipper_account'] = $shipper_accounts;
                
